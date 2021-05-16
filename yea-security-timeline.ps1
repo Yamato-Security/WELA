@@ -38,7 +38,7 @@ param (
     [bool]$LiveAnalysis = $false,
     [string]$LogFile = "",
     [bool]$ShowContributors = $false,
-    [bool]$EventIDStatistics =  $false,
+    [bool]$EventIDStatistics = $false,
     [bool]$LogonOverview = $false,
     [bool]$AccountInformation = $false
 )
@@ -83,7 +83,7 @@ function Is-Logon-Dangerous ( $msgLogonType ) {
         "4" { $msgIsLogonDangerous = "" }
         "5" { $msgIsLogonDangerous = "" }
         "7" { $msgIsLogonDangerous = "" }
-        "8" { $msgIsLogonDangerous = "(Dangerous! Unhashed passwords were used for authentication.)"}
+        "8" { $msgIsLogonDangerous = "(Dangerous! Unhashed passwords were used for authentication.)" }
         "9" { $msgIsLogonDangerous = "(Dangerous! Credential information is stored in memory and maybe be stolen for account hijacking.)" }
         "10" { $msgIsLogonDangerous = "(Dangerous! Credential information is stored in memory and maybe be stolen for account hijacking.)" }
         "11" { $msgIsLogonDangerous = "" }
@@ -102,16 +102,15 @@ function Is-Admin {
 
 Function Format-FileSize {
     Param ([int]$size)
-    If ($size -gt 1TB) {[string]::Format("{0:0.00} TB", $size / 1TB)}
-    ElseIf ($size -gt 1GB) {[string]::Format("{0:0.00} GB", $size / 1GB)}
-    ElseIf ($size -gt 1MB) {[string]::Format("{0:0.00} MB", $size / 1MB)}
-    ElseIf ($size -gt 1KB) {[string]::Format("{0:0.00} kB", $size / 1KB)}
-    ElseIf ($size -gt 0) {[string]::Format("{0:0.00} B", $size)}
-    Else {""}
+    If ($size -gt 1TB) { [string]::Format("{0:0.00} TB", $size / 1TB) }
+    ElseIf ($size -gt 1GB) { [string]::Format("{0:0.00} GB", $size / 1GB) }
+    ElseIf ($size -gt 1MB) { [string]::Format("{0:0.00} MB", $size / 1MB) }
+    ElseIf ($size -gt 1KB) { [string]::Format("{0:0.00} kB", $size / 1KB) }
+    ElseIf ($size -gt 0) { [string]::Format("{0:0.00} B", $size) }
+    Else { "" }
 }
 
-function Check-Administrator  
-{  
+function Check-Administrator {  
     $user = [Security.Principal.WindowsIdentity]::GetCurrent();
     (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)  
 }
@@ -165,6 +164,12 @@ $TotalLogs = 0
 
 $HostLanguage = Get-WinSystemLocale | Select-Object Name
 
+if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
+    Import-Module './Config/Language/ja.ps1' -Force;
+}
+else {
+    Import-Module './Config/Language/en.ps1' -Force;
+}
 
 #Set the date format
 $DateFormat = "yyyy-MM-dd HH:mm:ss.ff"
@@ -181,166 +186,80 @@ function EventInfo ($eventIDNumber) {
     
     [hashtable]$return = @{}
 
-    if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-
-        switch ( $eventIDNumber ) {
-            "1100" { $EventTitle = 'イベント ログ サービスがシャットダウンしました。' }   
-            "1101" { $EventTitle = 'Audit Events Have Been Dropped By The Transport' }
-            "1102" { $EventTitle = 'Event log was cleared' ; $TimelineDetect = "Yes" ; $Comment = 'Should not happen normally so this is a good event to look out for.' }
-            "1107" { $EventTitle = 'Event processing error' }
-            "4608" { $EventTitle = 'Windows started up' }
-            "4610" { $EventTitle = 'An authentication package has been loaded by the Local Security Authority' }
-            "4611" { $EventTitle = 'A trusted logon process has been registered with the Local Security Authority' }
-            "4614" { $EventTitle = 'A notification package has been loaded by the Security Account Manager' }
-            "4616" { $EventTitle = 'System time was changed' }
-            "4622" { $EventTitle = 'A security package has been loaded by the Local Security Authority' }
-            "4624" { $EventTitle = 'Account logon' ; $TimelineDetect = "Yes" }
-            "4625" { $EventTitle = 'Failed logon' ; $TimelineDetect = "Yes" }
-            "4634" { $EventTitle = 'Logoff' ; $TimelineDetect = "Yes" } 
-            "4647" { $EventTitle = 'Logoff' ; $TimelineDetect = "Yes" }  
-            "4648" { $EventTitle = 'Explicit logon' ; $TimelineDetect = "Yes" }
-            "4672" { $EventTitle = 'Admin logon' ; $TimelineDetect = "Yes" }
-            "4688" { $EventTitle = 'New process started' }
-            "4696" { $EventTitle = 'Primary token assigned to process' }
-            "4692" { $EventTitle = 'Backup of data protection master key was attempted' }
-            "4697" { $EventTitle = 'Service installed' }
-            "4717" { $EventTitle = 'System security access was granted to an account' }
-            "4719" { $EventTitle = 'System audit policy was changed' }
-            "4720" { $EventTitle = 'User account created' ; $TimelineDetect = "Yes" }
-            "4722" { $EventTitle = 'User account enabled' }  
-            "4724" { $EventTitle = 'Password reset' }  
-            "4725" { $EventTitle = 'User account disabled' }
-            "4726" { $EventTitle = 'User account deleted' } 
-            "4728" { $EventTitle = 'User added to security global group' }
-            "4729" { $EventTitle = 'User removed from security global group' }
-            "4732" { $EventTitle = 'User added to security local group' }
-            "4733" { $EventTitle = 'User removed from security local group' }
-            "4735" { $EventTitle = 'Security local group was changed' }
-            "4727" { $EventTitle = 'Security global group was changed' }
-            "4738" { $EventTitle = 'User account''s properties changed' }
-            "4739" { $EventTitle = 'Domain policy channged' }
-            "4776" { $EventTitle = 'NTLM logon to local user' }
-            "4778" { $EventTitle = 'RDP session reconnected or user switched back through Fast Userr Switching' }
-            "4779" { $EventTitle = 'RDP session disconnected or user switched away through Fast User Switching' }
-            "4797" { $EventTitle = 'Attempt to query the account for a blank password' }  
-            "4798" { $EventTitle = 'User''s local group membership was enumerated' }
-            "4799" { $EventTitle = 'Local group membership was enumerated' } 
-            "4781" { $EventTitle = 'User name was changed' }
-            "4800" { $EventTitle = 'Workstation was locked' }
-            "4801" { $EventTitle = 'Workstation was unlocked' }
-            "4826" { $EventTitle = 'Boot configuration data loaded' }
-            "4902" { $EventTitle = 'Per-user audit policy table was created' } 
-            "4904" { $EventTitle = 'Attempt to register a security event source' }
-            "4905" { $EventTitle = 'Attempt to unregister a security event source' } 
-            "4907" { $EventTitle = 'Auditing settings on object was changed' } 
-            "4944" { $EventTitle = 'Policy active when firewall started' }
-            "4945" { $EventTitle = 'Rule listed when the firewall started' ; $Comment = "Too much noise when firewall starts" }
-            "4946" { $EventTitle = 'Rule added to firewall exception list' }
-            "4947" { $EventTitle = 'Rule modified in firewall exception list' }
-            "4948" { $EventTitle = 'Rule deleted in firewall exception list' }
-            "4954" { $EventTitle = 'New setting applied to firewall group policy' }
-            "4956" { $EventTitle = 'Firewall active profile changed' }
-            "5024" { $EventTitle = 'Firewall started' }
-            "5033" { $EventTitle = 'Firewall driver started' } 
-            "5038" { $EventTitle = 'Code integrity determined that the image hash of a file is not valid' }
-            "5058" { $EventTitle = 'Key file operation' } 
-            "5059" { $EventTitle = 'Key migration operation' }
-            "5061" { $EventTitle = 'Cryptographic operation' } 
-            "5140" { $EventTitle = 'Network share object was accessed' }
-            "5142" { $EventTitle = 'A network share object was added' }
-            "5144" { $EventTitle = 'A network share object was deleted' }
-            "5379" { $EventTitle = 'Credential Manager credentials were read' }
-            "5381" { $EventTitle = 'Vault credentials were read' }
-            "5382" { $EventTitle = 'Vault credentials were read' }
-            "5478" { $EventTitle = 'IPsec Services started' }
-            "5889" { $EventTitle = 'An object was added to the COM+ Catalog' }
-            "5890" { $EventTitle = 'An object was added to the COM+ Catalog' }
-            default { $EventTitle = "不明" }
-
-        }
+    switch ( $eventIDNumber ) {
+        "1100" { $return = $1100 }
+        "1101" { $return = $1101 }
+        "1102" { $return = $1102 }
+        "1107" { $return = $1107 }
+        "4608" { $return = $4608 }
+        "4610" { $return = $4610 }
+        "4611" { $return = $4611 }
+        "4614" { $return = $4614 }
+        "4616" { $return = $4616 }
+        "4622" { $return = $4622 }
+        "4624" { $return = $4624 }
+        "4625" { $return = $4625 }
+        "4634" { $return = $4634 }
+        "4647" { $return = $4647 }
+        "4648" { $return = $4648 }
+        "4672" { $return = $4672 }
+        "4688" { $return = $4688 }
+        "4696" { $return = $4696 }
+        "4692" { $return = $4692 }
+        "4697" { $return = $4697 }
+        "4717" { $return = $4717 }
+        "4719" { $return = $4719 }
+        "4720" { $return = $4720 }
+        "4722" { $return = $4722 }
+        "4724" { $return = $4724 }
+        "4725" { $return = $4725 }
+        "4726" { $return = $4726 }
+        "4728" { $return = $4728 }
+        "4729" { $return = $4729 }
+        "4732" { $return = $4732 }
+        "4733" { $return = $4733 }
+        "4735" { $return = $4735 }
+        "4727" { $return = $4727 }
+        "4738" { $return = $4738 }
+        "4739" { $return = $4739 }
+        "4776" { $return = $4776 }
+        "4778" { $return = $4778 }
+        "4779" { $return = $4779 }
+        "4797" { $return = $4797 }
+        "4798" { $return = $4798 }
+        "4799" { $return = $4799 }
+        "4781" { $return = $4781 }
+        "4800" { $return = $4800 }
+        "4801" { $return = $4801 }
+        "4826" { $return = $4826 }
+        "4902" { $return = $4902 }
+        "4904" { $return = $4904 }
+        "4905" { $return = $4905 }
+        "4907" { $return = $4907 }
+        "4944" { $return = $4944 }
+        "4945" { $return = $4945 }
+        "4946" { $return = $4946 }
+        "4947" { $return = $4947 }
+        "4948" { $return = $4948 }
+        "4954" { $return = $4954 }
+        "4956" { $return = $4956 }
+        "5024" { $return = $5024 }
+        "5033" { $return = $5033 }
+        "5038" { $return = $5038 }
+        "5058" { $return = $5058 }
+        "5059" { $return = $5059 }
+        "5061" { $return = $5061 }
+        "5140" { $return = $5140 }
+        "5142" { $return = $5142 }
+        "5144" { $return = $5144 }
+        "5379" { $return = $5379 }
+        "5381" { $return = $5381 }
+        "5382" { $return = $5382 }
+        "5478" { $return = $5478 }
+        "5889" { $return = $5889 }
+        "5890" { $return = $5890 }
+        default { $return = $unregistered }
     }
-    
-    else {
-        
-        switch ( $eventIDNumber ) {
-            "1100" { $EventTitle = 'Event logging service was shut down' ; $Comment = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.' }  
-            "1101" { $EventTitle = 'Audit Events Have Been Dropped By The Transport' }
-            "1102" { $EventTitle = 'Event log was cleared' ; $TimelineDetect = "Yes" ; $Comment = 'Should not happen normally so this is a good event to look out for.' }
-            "1107" { $EventTitle = 'Event processing error' }
-            "4608" { $EventTitle = 'Windows started up' }
-            "4610" { $EventTitle = 'An authentication package has been loaded by the Local Security Authority' }
-            "4611" { $EventTitle = 'A trusted logon process has been registered with the Local Security Authority' }
-            "4614" { $EventTitle = 'A notification package has been loaded by the Security Account Manager' }
-            "4616" { $EventTitle = 'System time was changed' }
-            "4622" { $EventTitle = 'A security package has been loaded by the Local Security Authority' }
-            "4624" { $EventTitle = 'Account logon' ; $TimelineDetect = "Yes" }
-            "4625" { $EventTitle = 'Failed logon' ; $TimelineDetect = "Yes" }
-            "4634" { $EventTitle = 'Logoff' ; $TimelineDetect = "Yes" } 
-            "4647" { $EventTitle = 'Logoff' ; $TimelineDetect = "Yes" }  
-            "4648" { $EventTitle = 'Explicit logon' ; $TimelineDetect = "Yes" }
-            "4672" { $EventTitle = 'Admin logon' ; $TimelineDetect = "Yes" }
-            "4688" { $EventTitle = 'New process started' }
-            "4696" { $EventTitle = 'Primary token assigned to process' }
-            "4692" { $EventTitle = 'Backup of data protection master key was attempted' }
-            "4697" { $EventTitle = 'Service installed' }
-            "4717" { $EventTitle = 'System security access was granted to an account' }
-            "4719" { $EventTitle = 'System audit policy was changed' }
-            "4720" { $EventTitle = 'User account created' ; $TimelineDetect = "Yes" }
-            "4722" { $EventTitle = 'User account enabled' }  
-            "4724" { $EventTitle = 'Password reset' }  
-            "4725" { $EventTitle = 'User account disabled' }
-            "4726" { $EventTitle = 'User account deleted' } 
-            "4728" { $EventTitle = 'User added to security global group' }
-            "4729" { $EventTitle = 'User removed from security global group' }
-            "4732" { $EventTitle = 'User added to security local group' }
-            "4733" { $EventTitle = 'User removed from security local group' }
-            "4735" { $EventTitle = 'Security local group was changed' }
-            "4727" { $EventTitle = 'Security global group was changed' }
-            "4738" { $EventTitle = 'User account''s properties changed' }
-            "4739" { $EventTitle = 'Domain policy channged' }
-            "4776" { $EventTitle = 'NTLM logon to local user' }
-            "4778" { $EventTitle = 'RDP session reconnected or user switched back through Fast Userr Switching' }
-            "4779" { $EventTitle = 'RDP session disconnected or user switched away through Fast User Switching' }
-            "4797" { $EventTitle = 'Attempt to query the account for a blank password' }  
-            "4798" { $EventTitle = 'User''s local group membership was enumerated' }
-            "4799" { $EventTitle = 'Local group membership was enumerated' } 
-            "4781" { $EventTitle = 'User name was changed' }
-            "4800" { $EventTitle = 'Workstation was locked' }
-            "4801" { $EventTitle = 'Workstation was unlocked' }
-            "4826" { $EventTitle = 'Boot configuration data loaded' }
-            "4902" { $EventTitle = 'Per-user audit policy table was created' } 
-            "4904" { $EventTitle = 'Attempt to register a security event source' }
-            "4905" { $EventTitle = 'Attempt to unregister a security event source' } 
-            "4907" { $EventTitle = 'Auditing settings on object was changed' } 
-            "4944" { $EventTitle = 'Policy active when firewall started' }
-            "4945" { $EventTitle = 'Rule listed when the firewall started' ; $Comment = "Too much noise when firewall starts" }
-            "4946" { $EventTitle = 'Rule added to firewall exception list' }
-            "4947" { $EventTitle = 'Rule modified in firewall exception list' }
-            "4948" { $EventTitle = 'Rule deleted in firewall exception list' }
-            "4954" { $EventTitle = 'New setting applied to firewall group policy' }
-            "4956" { $EventTitle = 'Firewall active profile changed' }
-            "5024" { $EventTitle = 'Firewall started' }
-            "5033" { $EventTitle = 'Firewall driver started' } 
-            "5038" { $EventTitle = 'Code integrity determined that the image hash of a file is not valid' }
-            "5058" { $EventTitle = 'Key file operation' } 
-            "5059" { $EventTitle = 'Key migration operation' }
-            "5061" { $EventTitle = 'Cryptographic operation' } 
-            "5140" { $EventTitle = 'Network share object was accessed' }
-            "5142" { $EventTitle = 'A network share object was added' }
-            "5144" { $EventTitle = 'A network share object was deleted' }
-            "5379" { $EventTitle = 'Credential Manager credentials were read' }
-            "5381" { $EventTitle = 'Vault credentials were read' }
-            "5382" { $EventTitle = 'Vault credentials were read' }
-            "5478" { $EventTitle = 'IPsec Services started' }
-            "5889" { $EventTitle = 'An object was added to the COM+ Catalog' }
-            "5890" { $EventTitle = 'An object was added to the COM+ Catalog' }
-            default { $EventTitle = "Unknown" }
-        }
-    }
-
-    $return.EventTitle = $EventTitle
-    $return.Comment = $Comment
-    $return.TimelineDetect = $TimelineDetect
     return $return
 }
 
@@ -378,7 +297,7 @@ function Create-EventIDStatistics {
         $eventlist = @{}
         $TotalNumberOfLogs = 0
 
-        foreach( $event in $logs ) {
+        foreach ( $event in $logs ) {
 
             $id = $event.id.toString()
 
@@ -443,7 +362,7 @@ function Create-EventIDStatistics {
         $eventlist = @{}
         $TotalNumberOfLogs = 0
 
-        foreach( $event in $logs ) {
+        foreach ( $event in $logs ) {
 
             $id = $event.id.toString()
 
@@ -518,7 +437,7 @@ function Create-LogonOverview {
     Write-Host
     
     $WineventFilter = @{}
-    $EventIDsToAnalyze = 4624,4634,4647
+    $EventIDsToAnalyze = 4624, 4634, 4647
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
     $TotalLogons = 0
     $Type2Logons = 0
@@ -551,178 +470,177 @@ function Create-LogonOverview {
         $WineventFilter.Add( "Path", $LogFile )
     }
 
-        $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
-        $eventlist = @{}
-        $TotalNumberOfLogs = 0
+    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $eventlist = @{}
+    $TotalNumberOfLogs = 0
 
-        [System.Collections.ArrayList]$LogoffEventArray = @()
+    [System.Collections.ArrayList]$LogoffEventArray = @()
 
-        #Create an array of timestamps and logon IDs for logoff events
-        foreach( $event in $logs ) {
+    #Create an array of timestamps and logon IDs for logoff events
+    foreach ( $event in $logs ) {
             
-            # 4634 Logoff
-            if ($event.Id -eq "4634"){ 
+        # 4634 Logoff
+        if ($event.Id -eq "4634") { 
 
-                $eventXML = [xml]$event.ToXml()
+            $eventXML = [xml]$event.ToXml()
 
-                foreach($data in $eventXML.Event.EventData.data){
+            foreach ($data in $eventXML.Event.EventData.data) {
             
-                    switch ( $data.name ){
+                switch ( $data.name ) {
                         
-                        "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
-                    }
+                    "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
                 }
-            
-                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
-                $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
-                $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
-                $LogoffEventArray.Add( $LogoffEvent ) > $null
-            }
-
-
-             # 4647 Logoff
-            if ($event.Id -eq "4647"){ 
-
-                $eventXML = [xml]$event.ToXml()
-
-                foreach($data in $eventXML.Event.EventData.data){
-            
-                    switch ( $data.name ){
-                        
-                        "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
-                    }
-                }
-            
-                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
-                $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
-                $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
-                $LogoffEventArray.Add( $LogoffEvent ) > $null
-
             }
             
-            
+            $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
+            $LogoffEventArray.Add( $LogoffEvent ) > $null
         }
 
-        foreach( $event in $logs ) {
-        
-            #Successful logon
-            if ($event.Id -eq "4624"){ 
 
-                $eventXML = [xml]$event.ToXml()
+        # 4647 Logoff
+        if ($event.Id -eq "4647") { 
 
-                foreach($data in $eventXML.Event.EventData.data){
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
             
-                    switch ( $data.name ){
+                switch ( $data.name ) {
                         
-                        "LogonType" { $msgLogonType = $data.'#text' }
-                        "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                        "WorkstationName" { $msgWorkstationName = $data.'#text' }
-                        "IpAddress" { $msgIpAddress = $data.'#text' }
-                        "IpPort" { $msgIpPort = $data.'#text' }
-                        "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
+                    "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
+                }
+            }
+            
+            $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
+            $LogoffEventArray.Add( $LogoffEvent ) > $null
 
-                    }
+        }
+            
+            
+    }
+
+    foreach ( $event in $logs ) {
+        
+        #Successful logon
+        if ($event.Id -eq "4624") { 
+
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+            
+                switch ( $data.name ) {
+                        
+                    "LogonType" { $msgLogonType = $data.'#text' }
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "WorkstationName" { $msgWorkstationName = $data.'#text' }
+                    "IpAddress" { $msgIpAddress = $data.'#text' }
+                    "IpPort" { $msgIpPort = $data.'#text' }
+                    "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
 
                 }
 
-                $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
-                $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
-                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
-                $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
-                $LogoffTimestampString = "" 
+            }
 
-                foreach ( $EventIndex in $LogoffEventArray ) {
+            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
+            $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogoffTimestampString = "" 
+
+            foreach ( $EventIndex in $LogoffEventArray ) {
                 
-                    # $EventIndex[0] -> Logoff Logon ID
-                    # $EventIndex[1] -> Logoff time
-                    # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id)
-                    if ( $EventIndex[0] -eq $msgTargetLogonID -and $EventIndex[1] -ge $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
+                # $EventIndex[0] -> Logoff Logon ID
+                # $EventIndex[1] -> Logoff time
+                # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id)
+                if ( $EventIndex[0] -eq $msgTargetLogonID -and $EventIndex[1] -ge $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
                        
-                        $LogoffTimestampString = $EventIndex[1].ToString("yyyy-MM-dd HH:mm:ss.ff") 
-                        $ElapsedTime = $EventIndex[1] - $LogonTimestampDateTime
+                    $LogoffTimestampString = $EventIndex[1].ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                    $ElapsedTime = $EventIndex[1] - $LogonTimestampDateTime
 
-                    }     
+                }     
                     
-                }
+            }
 
-                $TotalRuntime = [math]::Round(($ElapsedTime).TotalSeconds)
-                $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-                $RuntimeDays = $TempTimeSpan.Days.ToString()
-                $RuntimeHours = $TempTimeSpan.Hours.ToString()
-                $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-                $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-                #$RuntimeMilliSeconds = $TempTimeSpan.Milliseconds.ToString()
+            $TotalRuntime = [math]::Round(($ElapsedTime).TotalSeconds)
+            $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
+            $RuntimeDays = $TempTimeSpan.Days.ToString()
+            $RuntimeHours = $TempTimeSpan.Hours.ToString()
+            $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+            $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+            #$RuntimeMilliSeconds = $TempTimeSpan.Milliseconds.ToString()
 
-                $ElapsedTimeOutput = ""
-                if ( $LogoffTimestampString -eq "" ) {
-                    $LogoffTimestampString = "(No logoff event)                                   " 
+            $ElapsedTimeOutput = ""
+            if ( $LogoffTimestampString -eq "" ) {
+                $LogoffTimestampString = "(No logoff event)                                   " 
+            }
+            else {
+                $ElapsedTimeOutput = "($RuntimeDays Days $RuntimeHours Hours $RuntimeMinutes Min. $RuntimeSeconds Sec.)"
+            }
+
+            if ($msgTargetUserName -ne "SYSTEM" -and #Username is not system
+                $msgWorkstationName -ne "-" -and #Workstation Name is not blank
+                $msgIpAddress -ne "-" -and #IP Address is not blank
+                $msgTargetUserName[-1] -ne "$")             #Not a machine account
+            {
+                        
+                if ( $SaveOutput -eq "" ) {
+                    Write-Host "$LogonTimestampString ~ $LogoffTimestampString $ElapsedTimeOutput Type " -NoNewline
+
+                    switch ( $msgLogonType ) {
+                        "2" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type2Logons++ } #Interactive
+                        "3" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Green ; $Type3Logons++ } #Network
+                        "4" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Blue ; $Type4Logons++ } #Batch
+                        "5" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Blue ; $Type5Logons++ } #Service
+                        "7" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type7Logons++ } #NetworkCleartext
+                        "8" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type8Logons++ } #NetworkCleartext
+                        "9" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type9Logons++ } #Explicit Logon
+                        "10" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type10Logons++ } #RDP
+                        "11" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Green ; $Type11Logons++ } #Cached Credentials
+                        default { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline ; $OtherTypeLogon++ }
+                    }
+                                                
+                    Write-Host " to User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor Cyan
+                    Write-Host " from Workstation: " -NoNewline 
+                    Write-Host $msgWorkstationName -NoNewline -ForegroundColor Cyan
+                    Write-Host " IP Address: " -NoNewline
+                    Write-Host $msgIpAddress -NoNewline -ForegroundColor Cyan
+                    Write-Host " Port: " -NoNewline
+                    Write-Host "$msgIpPort " -ForegroundColor Cyan
+                    #Write-Host $msgTargetLogonID
+
                 }
                 else {
-                    $ElapsedTimeOutput = "($RuntimeDays Days $RuntimeHours Hours $RuntimeMinutes Min. $RuntimeSeconds Sec.)"
+                            
+                    switch ( $msgLogonType ) {
+
+                        "2" { $Type2Logons++ } #Interactive
+                        "3" { $Type3Logons++ } #Network
+                        "4" { $Type4Logons++ } #Batch
+                        "7" { $Type7Logons++ } #NetworkCleartext
+                        "8" { $Type8Logons++ } #NetworkCleartext
+                        "9" { $Type9Logons++ } #Explicit Logon
+                        "10" { $Type10Logons++ } #RDP
+                        "11" { $Type11Logons++ } #Cached Credentials
+                         
+                    }
+
+                    Write-Output "$LogonTimestampString ~ $LogoffTimestampString $ElapsedTimeOutput Type $msgLogonType - $msgLogonTypeReadable to User: $msgTargetUserName from Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort" | Out-File $SaveOutput -Append
+
                 }
 
-                if ($msgTargetUserName -ne "SYSTEM" -and        #Username is not system
-                    $msgWorkstationName-ne "-" -and             #Workstation Name is not blank
-                    $msgIpAddress -ne "-" -and                  #IP Address is not blank
-                    $msgTargetUserName[-1] -ne "$")             #Not a machine account
-           
-                    {
-                        
-                        if ( $SaveOutput -eq "" ) {
-                            Write-Host "$LogonTimestampString ~ $LogoffTimestampString $ElapsedTimeOutput Type " -NoNewline
-
-                            switch ( $msgLogonType ) {
-                                "2" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type2Logons++ } #Interactive
-                                "3" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Green ; $Type3Logons++ } #Network
-                                "4" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Blue ; $Type4Logons++ } #Batch
-                                "5" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Blue ; $Type5Logons++ } #Service
-                                "7" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type7Logons++ } #NetworkCleartext
-                                "8" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type8Logons++ } #NetworkCleartext
-                                "9" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type9Logons++ } #Explicit Logon
-                                "10" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type10Logons++ } #RDP
-                                "11" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Green ; $Type11Logons++ } #Cached Credentials
-                                default { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline ; $OtherTypeLogon++ }
-                            }
-                                                
-                            Write-Host " to User: " -NoNewline
-                            Write-Host $msgTargetUserName -NoNewline -ForegroundColor Cyan
-                            Write-Host " from Workstation: " -NoNewline 
-                            Write-Host $msgWorkstationName -NoNewline -ForegroundColor Cyan
-                            Write-Host " IP Address: " -NoNewline
-                            Write-Host $msgIpAddress -NoNewline -ForegroundColor Cyan
-                            Write-Host " Port: " -NoNewline
-                            Write-Host "$msgIpPort " -ForegroundColor Cyan
-                            #Write-Host $msgTargetLogonID
-
-                        }
-                        else {
-                            
-                            switch ( $msgLogonType ) {
-
-                                "2" { $Type2Logons++ } #Interactive
-                                "3" { $Type3Logons++ } #Network
-                                "4" { $Type4Logons++ } #Batch
-                                "7" { $Type7Logons++ } #NetworkCleartext
-                                "8" { $Type8Logons++ } #NetworkCleartext
-                                "9" { $Type9Logons++ } #Explicit Logon
-                                "10" { $Type10Logons++ } #RDP
-                                "11" { $Type11Logons++ } #Cached Credentials
-                         
-                            }
-
-                            Write-Output "$LogonTimestampString ~ $LogoffTimestampString $ElapsedTimeOutput Type $msgLogonType - $msgLogonTypeReadable to User: $msgTargetUserName from Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort" | Out-File $SaveOutput -Append
-
-                        }
-
-                        $TotalLogons++
+                $TotalLogons++
                     
-                    }
-           
-
             }
            
- 
+
         }
+           
+ 
+    }
     
     if ( $SaveOutput -eq "" ) {                
         Write-Host
@@ -794,32 +712,34 @@ function Create-LogonOverview {
 
 }
 
-function Create-Timeline{
+function Create-Timeline {
 
-if ( $LogFile -eq "" ) {
+    if ( $LogFile -eq "" ) {
 
-    If ( $StartTimeline -eq "" -and $EndTimeline -eq "" ) { #No dates specified
-        $filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
-        #$filter = @{}
-        #$filter.Add("LogName", "Security")
-        #$filter.Add("ID", $EventIDsToAnalyze)
-    }
+        If ( $StartTimeline -eq "" -and $EndTimeline -eq "" ) {
+            #No dates specified
+            $filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
+            #$filter = @{}
+            #$filter.Add("LogName", "Security")
+            #$filter.Add("ID", $EventIDsToAnalyze)
+        }
     
-    ElseIf ( $StartTimeline -ne "" -and $EndTimeline -eq "" ) {  #Start date specified but no end date
+        ElseIf ( $StartTimeline -ne "" -and $EndTimeline -eq "" ) {
+            #Start date specified but no end date
         
-        $StartingTime = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd', $null)
+            $StartingTime = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd', $null)
 
-        $filter = @{}
-        $filter.Add("StartTime", $StartingTime)
-        $filter.Add("LogName", "Security")
-        #$filter.Add("ID", "4624,4625,4672,4634,4647,4720,4732,1102,4648") #filtering on IDs does not work when specifying a start date..
+            $filter = @{}
+            $filter.Add("StartTime", $StartingTime)
+            $filter.Add("LogName", "Security")
+            #$filter.Add("ID", "4624,4625,4672,4634,4647,4720,4732,1102,4648") #filtering on IDs does not work when specifying a start date..
         
-        #$filter = "@{Logname=""Security"";StartDate=$StartingTime}"
-    }
+            #$filter = "@{Logname=""Security"";StartDate=$StartingTime}"
+        }
 
 
 
-    <#
+        <#
     TODO: fix starttimeline and endtimeline
     If ( $StartTimeline -eq "" -and $EndTimeline -ne "" ) {  #Start date specified but no end date
         
@@ -835,170 +755,171 @@ if ( $LogFile -eq "" ) {
     #>
     
 
-    try {
-        if ( $LogFile -eq "" ) {
-            Write-Host
-            Write-Host "Running a live scan on the Security event log"
-            Write-Host
+        try {
+            if ( $LogFile -eq "" ) {
+                Write-Host
+                Write-Host "Running a live scan on the Security event log"
+                Write-Host
 
+                $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
+
+            }
+ 
+            #Bug: starttime not working: can filter on IDs when 
+            #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
+            #and $logs = iex "Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop"
+            #when is change to $logs Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop   I get
+            #Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "@{Logname="Security";ID=4624,4625,4672,4634,4647,4720,4732,1102,4648}" value of type "System.String" to type "System.Collections.Hashtable".
+            #filter.add method gives me Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "System.Collections.Hashtable" value of type "System.String" to type "System.Collections.Hashtable". error when
+            #$filter.Add("ID", $EventIDsToAnalyze) is specified.  
+            #Get-WinEvent error:  There is not an event log on the localhost computer that matches "System.Collections.Hashtable". when commented out
+
+
+        }
+        catch {
+            Write-Host "Get-WinEvent $filter -ErrorAction Stop"
+            Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
+            Write-Host "Exiting...`n"
+            exit
+        }       
+
+    } 
+    ElseIf ( $LogFile -ne "" ) {
+        $filter = "@{Path=""$LogFile"";ID=$EventIDsToAnalyze}"
+        $filter2 = "@{Path=""$LogFile""}"
+        Write-Host
+        Write-Host "Creating timeline for $LogFile"
+        $filesize = Format-FileSize( (get-item $LogFile).length )
+        Write-Host "File Size: $filesize"
+
+        $filesizeMB = (Get-Item $LogFile).Length / 1MB
+        $filesizeMB = $filesizeMB * 0.1
+        $ApproxTimeInSeconds = $filesizeMB * 60
+        $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+        $RuntimeHours = $TempTimeSpan.Hours.ToString()
+        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+        Write-Host "Please be patient. It should take approximately: " -NoNewline
+        Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
+
+        Write-Host
+
+        try {
             $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
 
         }
- 
-        #Bug: starttime not working: can filter on IDs when 
-        #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
-        #and $logs = iex "Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop"
-        #when is change to $logs Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop   I get
-        #Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "@{Logname="Security";ID=4624,4625,4672,4634,4647,4720,4732,1102,4648}" value of type "System.String" to type "System.Collections.Hashtable".
-        #filter.add method gives me Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "System.Collections.Hashtable" value of type "System.String" to type "System.Collections.Hashtable". error when
-        #$filter.Add("ID", $EventIDsToAnalyze) is specified.  
-        #Get-WinEvent error:  There is not an event log on the localhost computer that matches "System.Collections.Hashtable". when commented out
-
-
+        catch {
+            Write-Host "Get-WinEvent $filter -ErrorAction Stop"
+            Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
+            Write-Host "Exiting...`n"
+            exit
+        }
     }
-    catch {
-        Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-        Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-        Write-Host "Exiting...`n"
-        exit
-    }       
-
-} 
-ElseIf ( $LogFile -ne "" ) {
-    $filter =  "@{Path=""$LogFile"";ID=$EventIDsToAnalyze}"
-    $filter2 =  "@{Path=""$LogFile""}"
-    Write-Host
-    Write-Host "Creating timeline for $LogFile"
-    $filesize = Format-FileSize( (get-item $LogFile).length )
-    Write-Host "File Size: $filesize"
-
-    $filesizeMB = (Get-Item $LogFile).Length / 1MB
-    $filesizeMB = $filesizeMB * 0.1
-    $ApproxTimeInSeconds = $filesizeMB * 60
-    $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
-    $RuntimeHours = $TempTimeSpan.Hours.ToString()
-    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-    Write-Host "Please be patient. It should take approximately: " -NoNewline
-    Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
-
-    Write-Host
-
-    try {
-        $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
-
-    }
-    catch {
-        Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-        Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-        Write-Host "Exiting...`n"
-        exit
-    }
-}
 
 
-#Start reading in the logs.
-foreach($event in $logs){
-    $TotalLogs += 1
+    #Start reading in the logs.
+    foreach ($event in $logs) {
+        $TotalLogs += 1
 
-    $printMSG = ""
+        $printMSG = ""
 
-    #Successful logon
-    if ($event.Id -eq "4624"){ 
+        #Successful logon
+        if ($event.Id -eq "4624") { 
 
-       $eventXML = [xml]$event.ToXml()
+            $eventXML = [xml]$event.ToXml()
 
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "LogonType" { $msgLogonType = $data.'#text' }
-                "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                "WorkstationName" { $msgWorkstationName = $data.'#text' }
-                "IpAddress" { $msgIpAddress = $data.'#text' }
-                "IpPort" { $msgIpPort = $data.'#text' }
-                "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
-                default { $LogNoise += 1 }
-            }
-            $TotalPiecesOfData += 1
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "LogonType" { $msgLogonType = $data.'#text' }
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "WorkstationName" { $msgWorkstationName = $data.'#text' }
+                    "IpAddress" { $msgIpAddress = $data.'#text' }
+                    "IpPort" { $msgIpPort = $data.'#text' }
+                    "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
+                    default { $LogNoise += 1 }
+                }
+                $TotalPiecesOfData += 1
         
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+                $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
-            $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
-       }
+                $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
+            }
        
-       $timestamp = $event.TimeCreated.ToString($DateFormat) 
-       if ($msgTargetUserName -ne "SYSTEM" -and        #Username is not system
-           $msgWorkstationName-ne "-" -and             #Workstation Name is not blank
-           $msgIpAddress -ne "-")                     #IP Address is not blank
-           
-           {
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            if ($msgTargetUserName -ne "SYSTEM" -and #Username is not system
+                $msgWorkstationName -ne "-" -and #Workstation Name is not blank
+                $msgIpAddress -ne "-") {
+                #IP Address is not blank
 
-           if ( $ShowLogonID -eq $true) {
-                $printMSG = " 4624 - LOGON Type $msgLogonType ($msgLogonTypeReadable) to User: $msgTargetUserName from Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Logon ID: $msgTargetLogonID $msgIsLogonDangerous"
-           } Else {
-                $printMSG = " 4624 - LOGON Type $msgLogonType ($msgLogonTypeReadable) to User: $msgTargetUserName from Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort $msgIsLogonDangerous"
-           }
-
-
-           if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
-                $AlertedEvents += 1
-                if ( $SaveOutput -eq "") {
-                    Write-Host $timestamp -NoNewline
-                    Write-Host "  4624 - LOGON" -NoNewline -ForegroundColor $EventID_4624_Color 
-                    Write-Host " Type " -NoNewline
-                    Write-Host $msgLogonType -NoNewline -ForegroundColor $ParameterColor 
-                    Write-Host " (" -NoNewline
-                    Write-Host $msgLogonTypeReadable -NoNewline -ForegroundColor $ParameterColor
-                    Write-Host ") to User: " -NoNewline 
-                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
-                    Write-Host " from Workstation: " -NoNewline
-                    if ( $BadWorkstations.Contains($msgWorkstationName) ) {
-                        Write-Host $msgWorkstationName -NoNewline -ForegroundColor White -BackgroundColor Red
-                    } Else {
-                        Write-Host $msgWorkstationName -NoNewline -ForegroundColor $ParameterColor
-                    }
-                    Write-Host " IP address: " -NoNewline
-                    Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
-                    Write-Host " Port: " -NoNewline
-                    Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
-                    if ( $ShowLogonID -eq $true) {
-                        Write-Host " Logon ID: " -NoNewline
-                        Write-Host $msgTargetLogonID -NoNewline -ForegroundColor $ParameterColor
-                    } 
-                    Write-Host " " -NoNewline
-                    Write-Host $msgIsLogonDangerous -ForegroundColor White -BackgroundColor Red
-
+                if ( $ShowLogonID -eq $true) {
+                    $printMSG = " 4624 - LOGON Type $msgLogonType ($msgLogonTypeReadable) to User: $msgTargetUserName from Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Logon ID: $msgTargetLogonID $msgIsLogonDangerous"
                 }
                 Else {
-                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                    $printMSG = " 4624 - LOGON Type $msgLogonType ($msgLogonTypeReadable) to User: $msgTargetUserName from Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort $msgIsLogonDangerous"
                 }
-           }              
-       }     
-    }
 
-    #Special Logon
-    if ($event.Id -eq "4672"){
 
-       $eventXML = [xml]$event.ToXml()
+                if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                    $AlertedEvents += 1
+                    if ( $SaveOutput -eq "") {
+                        Write-Host $timestamp -NoNewline
+                        Write-Host "  4624 - LOGON" -NoNewline -ForegroundColor $EventID_4624_Color 
+                        Write-Host " Type " -NoNewline
+                        Write-Host $msgLogonType -NoNewline -ForegroundColor $ParameterColor 
+                        Write-Host " (" -NoNewline
+                        Write-Host $msgLogonTypeReadable -NoNewline -ForegroundColor $ParameterColor
+                        Write-Host ") to User: " -NoNewline 
+                        Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                        Write-Host " from Workstation: " -NoNewline
+                        if ( $BadWorkstations.Contains($msgWorkstationName) ) {
+                            Write-Host $msgWorkstationName -NoNewline -ForegroundColor White -BackgroundColor Red
+                        }
+                        Else {
+                            Write-Host $msgWorkstationName -NoNewline -ForegroundColor $ParameterColor
+                        }
+                        Write-Host " IP address: " -NoNewline
+                        Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
+                        Write-Host " Port: " -NoNewline
+                        Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
+                        if ( $ShowLogonID -eq $true) {
+                            Write-Host " Logon ID: " -NoNewline
+                            Write-Host $msgTargetLogonID -NoNewline -ForegroundColor $ParameterColor
+                        } 
+                        Write-Host " " -NoNewline
+                        Write-Host $msgIsLogonDangerous -ForegroundColor White -BackgroundColor Red
 
-       foreach($data in $eventXML.Event.EventData.data){
+                    }
+                    Else {
+                        Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                    }
+                }              
+            }     
+        }
+
+        #Special Logon
+        if ($event.Id -eq "4672") {
+
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
             
-            switch ( $data.name ){
-                "SubjectUserName" { $msgSubjectUserName = $data.'#text' }
-                "SubjectLogonId" { $msgSubjectLogonId = $data.'#text' }
-                "SubjectDomainName" { 
-                    $msgSubjectDomainName = $data.'#text' 
-                    $LogNoise += 1
-                }  #Used just to filter noise
+                switch ( $data.name ) {
+                    "SubjectUserName" { $msgSubjectUserName = $data.'#text' }
+                    "SubjectLogonId" { $msgSubjectLogonId = $data.'#text' }
+                    "SubjectDomainName" { 
+                        $msgSubjectDomainName = $data.'#text' 
+                        $LogNoise += 1
+                    }  #Used just to filter noise
 
-                default { $LogNoise += 1 }
-                #Can also print SubjectDomainName and PrivilegeList but not including for now
-            }
+                    default { $LogNoise += 1 }
+                    #Can also print SubjectDomainName and PrivilegeList but not including for now
+                }
 
-            $TotalPiecesOfData += 1
+                $TotalPiecesOfData += 1
             
-       } 
+            } 
 
-       $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
 
 
             #Filter out SYSTEM, DWM-X, DefaultAppPool, IUSR and machine accounts (ending in $) Not using the SubectUserName anymore as an attacker could create a username as DWM-1, etc.. and bypass detection.
@@ -1020,180 +941,187 @@ foreach($event in $logs){
             }
             #>
 
-       if ($msgSubjectDomainName -ne "NT AUTHORITY" -and
-            $msgSubjectDomainName -ne "Window Manager" -and 
-            $msgSubjectDomainName -ne "IIS APPPOOL" -and 
-            $msgSubjectUserName[-1] -ne "$" 
-            ){
+            if ($msgSubjectDomainName -ne "NT AUTHORITY" -and
+                $msgSubjectDomainName -ne "Window Manager" -and 
+                $msgSubjectDomainName -ne "IIS APPPOOL" -and 
+                $msgSubjectUserName[-1] -ne "$" 
+            ) {
                 if ( $ShowLogonID -eq $true ) {
                     $printMSG = " 4672 - ADMIN LOGON by User: $msgSubjectUserName Logon ID: $msgSubjectLogonId"
-                } else {
+                }
+                else {
                     $printMSG = " 4672 - ADMIN LOGON by User: $msgSubjectUserName"
                 }
-       }
-
-
-       if ( $previousMsg -ne $printMSG -and $printMSG -ne "" ){ 
-
-           $AlertedEvents += 1
-           if ( $SaveOutput -eq "") {
-                Write-Host $timestamp -NoNewline
-                Write-Host "  4672 - ADMIN LOGON" -NoNewline -ForegroundColor $EventID_4672_Color 
-                Write-Host " by User: " -NoNewline
-                Write-Host $msgSubjectUserName -NoNewline -ForegroundColor $ParameterColor 
-                if ( $ShowLogonID -eq $true ) {
-                    Write-Host " Logon ID: " -NoNewline
-                    Write-Host $msgSubjectLogonId -ForegroundColor $ParameterColor
-                } else {
-                    Write-Host ""
-                }
-           }
-           Else {
-                Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
-           }
-       }
-        
-    } 
-
-
-
-    #Event 4634 - LOGOFF
-    if ($event.Id -eq "4634"){
-
-       $eventXML = [xml]$event.ToXml()
-
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                "TargetLogonId" { $msgTargetLogonId = $data.'#text' }
-                "LogonType" { $msgLogonType = $data.'#text' } 
-                "TargetDomainName" { 
-                    $LogNoise += 1
-                    $msgTargetDomainName = $data.'#text' } 
-                default { $LogNoise += 1 }
             }
-       
-       $TotalPiecesOfData += 1
-       }
 
-       $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+
+            if ( $previousMsg -ne $printMSG -and $printMSG -ne "" ) { 
+
+                $AlertedEvents += 1
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4672 - ADMIN LOGON" -NoNewline -ForegroundColor $EventID_4672_Color 
+                    Write-Host " by User: " -NoNewline
+                    Write-Host $msgSubjectUserName -NoNewline -ForegroundColor $ParameterColor 
+                    if ( $ShowLogonID -eq $true ) {
+                        Write-Host " Logon ID: " -NoNewline
+                        Write-Host $msgSubjectLogonId -ForegroundColor $ParameterColor
+                    }
+                    else {
+                        Write-Host ""
+                    }
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }
+            }
+        
+        } 
+
+
+
+        #Event 4634 - LOGOFF
+        if ($event.Id -eq "4634") {
+
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "TargetLogonId" { $msgTargetLogonId = $data.'#text' }
+                    "LogonType" { $msgLogonType = $data.'#text' } 
+                    "TargetDomainName" { 
+                        $LogNoise += 1
+                        $msgTargetDomainName = $data.'#text' 
+                    } 
+                    default { $LogNoise += 1 }
+                }
+       
+                $TotalPiecesOfData += 1
+            }
+
+            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
  
-       $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
         
-       if ( $ShowLogonID -eq $true ) {
-            $printMSG = " 4634 - LOGOFF Type $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Logon ID: $msgTargetLogonId"
-       } Else {
-            $printMSG = " 4634 - LOGOFF Type $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName"
-       }
-       
-
-       if ($previousMsg -ne $printMSG -and $printMSG -ne "" -and 
-           $msgTargetDomainName -ne "Window Manager" -and #Filter DWM-X logs
-           $msgTargetDomainName -ne "Font Driver Host" -and   #Filter UMFD-X logs
-           $msgTargetUserName[-1] -ne "$" 
-          ){
-            
-            $AlertedEvents += 1
-
-            if ( $SaveOutput -eq "") {
-                Write-Host $timestamp -NoNewline
-                Write-Host "  4634 - LOGOFF" -NoNewline -ForegroundColor $EventID_4634_Color 
-                Write-Host " Type: " -NoNewline
-                Write-Host $msgLogonType -NoNewline -ForegroundColor $ParameterColor 
-                Write-Host " (" -NoNewline
-                Write-Host $msgLogonTypeReadable -NoNewline -ForegroundColor $ParameterColor
-                Write-Host ") from User: " -NoNewline
-                Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
-                if ( $ShowLogonID -eq $true ) {
-                    Write-Host " Logon ID: " -NoNewline
-                    Write-Host $msgTargetLogonID -ForegroundColor $ParameterColor
-                } Else {
-                    Write-Host ""
-                }
-             }
-             Else {
-                Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
-             }
-       }     
-        
-    } 
-
-    #Event 4647 - LOGOFF
-    if ($event.Id -eq "4647"){
-
-       $eventXML = [xml]$event.ToXml()
-
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                "TargetLogonId" { $msgTargetLogonId = $data.'#text' } 
-                "TargetUserSid" { $msgTargetSid = $data.'#text' }
-                default { $LogNoise += 1 }
+            if ( $ShowLogonID -eq $true ) {
+                $printMSG = " 4634 - LOGOFF Type $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Logon ID: $msgTargetLogonId"
             }
+            Else {
+                $printMSG = " 4634 - LOGOFF Type $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName"
+            }
+       
 
-            $TotalPiecesOfData += 1
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "" -and 
+                $msgTargetDomainName -ne "Window Manager" -and #Filter DWM-X logs
+                $msgTargetDomainName -ne "Font Driver Host" -and #Filter UMFD-X logs
+                $msgTargetUserName[-1] -ne "$" 
+            ) {
+            
+                $AlertedEvents += 1
+
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4634 - LOGOFF" -NoNewline -ForegroundColor $EventID_4634_Color 
+                    Write-Host " Type: " -NoNewline
+                    Write-Host $msgLogonType -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host " (" -NoNewline
+                    Write-Host $msgLogonTypeReadable -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host ") from User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                    if ( $ShowLogonID -eq $true ) {
+                        Write-Host " Logon ID: " -NoNewline
+                        Write-Host $msgTargetLogonID -ForegroundColor $ParameterColor
+                    }
+                    Else {
+                        Write-Host ""
+                    }
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }
+            }     
+        
+        } 
+
+        #Event 4647 - LOGOFF
+        if ($event.Id -eq "4647") {
+
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "TargetLogonId" { $msgTargetLogonId = $data.'#text' } 
+                    "TargetUserSid" { $msgTargetSid = $data.'#text' }
+                    default { $LogNoise += 1 }
+                }
+
+                $TotalPiecesOfData += 1
                    
-       }
+            }
        
-       $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
        
-       if ( $ShowLogonID -eq $true ) {
-            $printMSG = " 4647 - LOGOFF from User: $msgTargetUserName Logon ID: $msgTargetLogonId"
-       } Else {
-            $printMSG = " 4647 - LOGOFF from User: $msgTargetUserName"
-       }
+            if ( $ShowLogonID -eq $true ) {
+                $printMSG = " 4647 - LOGOFF from User: $msgTargetUserName Logon ID: $msgTargetLogonId"
+            }
+            Else {
+                $printMSG = " 4647 - LOGOFF from User: $msgTargetUserName"
+            }
               
        
 
-       if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
-            $AlertedEvents += 1
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                $AlertedEvents += 1
 
-            if ( $SaveOutput -eq "") {
-                Write-Host $timestamp -NoNewline
-                Write-Host "  4647 - LOGOFF" -NoNewline -ForegroundColor $EventID_4647_Color 
-                Write-Host " from User: " -NoNewline
-                Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
-                if ( $ShowLogonID -eq $true ) {
-                    Write-Host " Logon ID: " -NoNewline
-                    Write-Host $msgTargetLogonID -ForegroundColor $ParameterColor
-                } else {
-                    Write-Host ""
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4647 - LOGOFF" -NoNewline -ForegroundColor $EventID_4647_Color 
+                    Write-Host " from User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                    if ( $ShowLogonID -eq $true ) {
+                        Write-Host " Logon ID: " -NoNewline
+                        Write-Host $msgTargetLogonID -ForegroundColor $ParameterColor
+                    }
+                    else {
+                        Write-Host ""
+                    }
                 }
-             }
-             Else {
-                Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
-             }  
-       }    
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }  
+            }    
         
-    } 
+        } 
 
-    #Event 4625 - FAILED LOGON
-    if ($event.Id -eq "4625"){
+        #Event 4625 - FAILED LOGON
+        if ($event.Id -eq "4625") {
 
-       $eventXML = [xml]$event.ToXml()
+            $eventXML = [xml]$event.ToXml()
 
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "LogonType" { $msgLogonType = $data.'#text' }
-                "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                "WorkstationName" { $msgWorkstationName = $data.'#text' }
-                "IpAddress" { $msgIpAddress = $data.'#text' }
-                "IpPort" { $msgIpPort = $data.'#text' }
-                #"FailureReason" { $msgFailureReason = $data.'#text' }
-                "LogonProcessName" { $msgLogonProcessName = $data.'#text' }
-                "AuthenticationPackageName" { $msgAuthenticationPackageName = $data.'#text' }
-                "Status" { $msgStatus = $data.'#text' }
-                "SubStatus" { $msgSubStatus = $data.'#text' }
-                default { $LogNoise += 1 }
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "LogonType" { $msgLogonType = $data.'#text' }
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "WorkstationName" { $msgWorkstationName = $data.'#text' }
+                    "IpAddress" { $msgIpAddress = $data.'#text' }
+                    "IpPort" { $msgIpPort = $data.'#text' }
+                    #"FailureReason" { $msgFailureReason = $data.'#text' }
+                    "LogonProcessName" { $msgLogonProcessName = $data.'#text' }
+                    "AuthenticationPackageName" { $msgAuthenticationPackageName = $data.'#text' }
+                    "Status" { $msgStatus = $data.'#text' }
+                    "SubStatus" { $msgSubStatus = $data.'#text' }
+                    default { $LogNoise += 1 }
                  
+                }
             }
-        }
 
-        $TotalPiecesOfData += 1
+            $TotalPiecesOfData += 1
 
-        $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
-        <# Switching to checking status code and sub status code instead of failurereason for more granular info
+            <# Switching to checking status code and sub status code instead of failurereason for more granular info
             switch ( $msgFailureReason ) {
                 "%%2305" { $msgFailureReasonReadable = "The specified user account has expired." }
                 "%%2309" { $msgFailureReasonReadable = "The specified account's password has expired." }
@@ -1205,7 +1133,7 @@ foreach($event in $logs){
             }
             #>
 
-        switch ( $msgStatus ) {
+            switch ( $msgStatus ) {
                 "0xc000006d" { $msgFailureReasonReadable = "UNKNOWN USERNAME OR PASSWORD" }
                 "0xc000006e" { $msgFailureReasonReadable = "UNKNOWN USERNAME OR PASSWORD" }
                 "0xc000005e" { $msgFailureReasonReadable = "NO LOGON SERVERS AVAILABLE" }
@@ -1222,230 +1150,236 @@ foreach($event in $logs){
                 "0xc0000224" { $msgFailureReasonReadable = "USER REQUIRED TO CHANGE PASSWORD" }
                 "0xc0000225" { $msgFailureReasonReadable = "WINDOWS BUG" }
                 "0xc0000234" { $msgFailureReasonReadable = "ACCOUNT LOCKED" }
-                default { $msgFailureReasonReadable = "UNKNOWN STATUS CODE: $msgStatus Please report to Yamato Security"}    
+                default { $msgFailureReasonReadable = "UNKNOWN STATUS CODE: $msgStatus Please report to Yamato Security" }    
 
             }
 
-        #Override the fail reason with more specific substatus
-        switch ( $msgSubStatus ) {
-            "0xc0000064" { $msgFailureReasonReadable = "UNKNOWN USERNAME" }
-            "0xc000006a" { $msgFailureReasonReadable = "WRONG PASSWORD" }   
-        }
+            #Override the fail reason with more specific substatus
+            switch ( $msgSubStatus ) {
+                "0xc0000064" { $msgFailureReasonReadable = "UNKNOWN USERNAME" }
+                "0xc000006a" { $msgFailureReasonReadable = "WRONG PASSWORD" }   
+            }
 
-        $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
 
-        $printMSG = " 4625 - FAILED LOGON Type: $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Logon Process: $msgLogonProcessName Auth: $msgAuthenticationPackageName Reason: $msgFailureReasonReadable"
+            $printMSG = " 4625 - FAILED LOGON Type: $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Logon Process: $msgLogonProcessName Auth: $msgAuthenticationPackageName Reason: $msgFailureReasonReadable"
 
-       if ($previousMsg -ne $printMSG -and $printMSG -ne "" -and
-           $msgTargetUserName -ne "-" ) {
-             $AlertedEvents += 1
-             if ( $SaveOutput -eq "") {
-                Write-Host $timestamp -NoNewline
-                Write-Host "  4625 - " -NoNewline -ForegroundColor $EventID_4625_Color 
-                Write-Host "FAILED LOGON" -NoNewline -ForegroundColor White -BackgroundColor Red
-                Write-Host " Type: " -NoNewline
-                Write-Host $msgLogonType -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " (" -NoNewline
-                Write-Host $msgLogonTypeReadable -NoNewline -ForegroundColor $ParameterColor
-                Write-Host ") from User: " -NoNewline
-                Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " Workstation: " -NoNewline
-                if ( $BadWorkstations.Contains($msgWorkstationName) ) {
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "" -and
+                $msgTargetUserName -ne "-" ) {
+                $AlertedEvents += 1
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4625 - " -NoNewline -ForegroundColor $EventID_4625_Color 
+                    Write-Host "FAILED LOGON" -NoNewline -ForegroundColor White -BackgroundColor Red
+                    Write-Host " Type: " -NoNewline
+                    Write-Host $msgLogonType -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " (" -NoNewline
+                    Write-Host $msgLogonTypeReadable -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host ") from User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Workstation: " -NoNewline
+                    if ( $BadWorkstations.Contains($msgWorkstationName) ) {
                         Write-Host "$msgWorkstationName" -NoNewline -ForegroundColor White -BackgroundColor Red
-                    } Else {
+                    }
+                    Else {
                         Write-Host $msgWorkstationName -NoNewline -ForegroundColor $ParameterColor
                     }
-                Write-Host " IP Address: " -NoNewline
-                Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " Port: " -NoNewline
-                Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " Logon Process: " -NoNewline 
-                Write-Host $msgLogonProcessName -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " Auth: " -NoNewline
-                Write-Host $msgAuthenticationPackageName -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " Reason: " -NoNewline
-                Write-Host $msgFailureReasonReadable -ForegroundColor White -BackgroundColor Red
+                    Write-Host " IP Address: " -NoNewline
+                    Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Port: " -NoNewline
+                    Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Logon Process: " -NoNewline 
+                    Write-Host $msgLogonProcessName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Auth: " -NoNewline
+                    Write-Host $msgAuthenticationPackageName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Reason: " -NoNewline
+                    Write-Host $msgFailureReasonReadable -ForegroundColor White -BackgroundColor Red
 
-             }
-             Else {
-                Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
-             }    
-       }
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }    
+            }
 
-    } 
+        } 
 
 
-    #Event 4720 - Account Created
-    if ($event.Id -eq "4720"){
+        #Event 4720 - Account Created
+        if ($event.Id -eq "4720") {
 
-       $eventXML = [xml]$event.ToXml()
+            $eventXML = [xml]$event.ToXml()
 
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "SamAccountName" { $msgSamAccountName = $data.'#text' }
-                "DisplayName" { $msgDisplayName = $data.'#text' }
-                "AccountExpires" { $msgAccountExpires = $data.'#text' }
-                "TargetSid" { $msgTargetSid = $data.'#text' }
-                default { $LogNoise += 1 }
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "SamAccountName" { $msgSamAccountName = $data.'#text' }
+                    "DisplayName" { $msgDisplayName = $data.'#text' }
+                    "AccountExpires" { $msgAccountExpires = $data.'#text' }
+                    "TargetSid" { $msgTargetSid = $data.'#text' }
+                    default { $LogNoise += 1 }
                  
-            }
-            $TotalPiecesOfData += 1
+                }
+                $TotalPiecesOfData += 1
                        
-            if ( $msgDisplayName -eq "%%1793" ) {
-                $msgDisplayName = "<value not set>"
-            }
+                if ( $msgDisplayName -eq "%%1793" ) {
+                    $msgDisplayName = "<value not set>"
+                }
 
-            if ( $msgAccountExpires -eq "%%1794" ) {
-                $msgAccountExpires = "<never>"
-            }
+                if ( $msgAccountExpires -eq "%%1794" ) {
+                    $msgAccountExpires = "<never>"
+                }
  
-            $timestamp = $event.TimeCreated.ToString($DateFormat) 
-            $printMSG = " 4720 - ACCOUNT CREATED User: $msgSamAccountName Display Name: $msgDisplayName Account Expires: $msgAccountExpires SID: $msgTargetSid" 
+                $timestamp = $event.TimeCreated.ToString($DateFormat) 
+                $printMSG = " 4720 - ACCOUNT CREATED User: $msgSamAccountName Display Name: $msgDisplayName Account Expires: $msgAccountExpires SID: $msgTargetSid" 
 
-       }
+            }
 
-       if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
-            $AlertedEvents += 1
-            if ( $SaveOutput -eq "") {
-                Write-Host $timestamp -NoNewline
-                Write-Host "  4720 - ACCOUNT CREATED" -NoNewline -ForegroundColor $EventID_4720_Color 
-                Write-Host " User: " -NoNewline
-                Write-Host $msgSamAccountName -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " Display Name: " -NoNewline
-                if ( $msgDisplayName -eq "<value not set>") {
-                    Write-Host $msgDisplayName -NoNewline -ForegroundColor White -BackgroundColor Red
-                } Else {
-                    Write-Host $msgDisplayName -NoNewline -ForegroundColor $ParameterColor
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                $AlertedEvents += 1
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4720 - ACCOUNT CREATED" -NoNewline -ForegroundColor $EventID_4720_Color 
+                    Write-Host " User: " -NoNewline
+                    Write-Host $msgSamAccountName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Display Name: " -NoNewline
+                    if ( $msgDisplayName -eq "<value not set>") {
+                        Write-Host $msgDisplayName -NoNewline -ForegroundColor White -BackgroundColor Red
+                    }
+                    Else {
+                        Write-Host $msgDisplayName -NoNewline -ForegroundColor $ParameterColor
+                    }
+                    Write-Host " Account Expires: " -NoNewline
+                    if ( $msgAccountExpires -eq "<never>" ) {
+                        Write-Host $msgAccountExpires -NoNewline -ForegroundColor White -BackgroundColor Red
+                    }
+                    Else {
+                        Write-Host $msgAccountExpires -NoNewline -ForegroundColor $ParameterColor
+                    }
+                    Write-Host " SID: " -NoNewline
+                    Write-Host $msgTargetSid -ForegroundColor $ParameterColor
                 }
-                Write-Host " Account Expires: " -NoNewline
-                if ( $msgAccountExpires -eq "<never>" ) {
-                    Write-Host $msgAccountExpires -NoNewline -ForegroundColor White -BackgroundColor Red
-                } Else {
-                    Write-Host $msgAccountExpires -NoNewline -ForegroundColor $ParameterColor
-                }
-                Write-Host " SID: " -NoNewline
-                Write-Host $msgTargetSid -ForegroundColor $ParameterColor
-             }
-             Else {
-                Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
-             }     
-       }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }     
+            }
 
-    }
+        }
 
     
-    #User added a group
-    if ($event.Id -eq "4732"){
+        #User added a group
+        if ($event.Id -eq "4732") {
 
-       $eventXML = [xml]$event.ToXml()
+            $eventXML = [xml]$event.ToXml()
 
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "MemberSid" { $msgMemberSid = $data.'#text' }
-                "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
-                "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                "TargetSid" { $msgTargetSid = $data.'#text' } 
-                default { $LogNoise += 1 }
-            }
-            $TotalPiecesOfData += 1
-                       
-            $timestamp = $event.TimeCreated.ToString($DateFormat) 
-            $group = $msgTargetDomainName
-            $group += "\"
-            $group += $msgTargetUserName
-            $printMSG = " 4732 - USER ADDED TO GROUP User SID: $msgMemberSid was added to group: $group" 
-
-       }
- 
-       if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
-             $AlertedEvents += 1
-             if ( $SaveOutput -eq "") {
-                Write-Host $timestamp -NoNewline
-                Write-Host "  4732 - USER ADDED TO GROUP" -NoNewline -ForegroundColor $EventID_4732_Color 
-                Write-Host " User SID: " -NoNewline
-                Write-Host $msgMemberSid -NoNewline -ForegroundColor $ParameterColor
-                Write-Host " was added to group: " -NoNewline
-                if ( $msgTargetUserName -eq "Administrators" ) {
-                    Write-Host $group -ForegroundColor White -BackgroundColor Red
-                } Else {
-                    Write-Host $group -ForegroundColor $ParameterColor
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "MemberSid" { $msgMemberSid = $data.'#text' }
+                    "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "TargetSid" { $msgTargetSid = $data.'#text' } 
+                    default { $LogNoise += 1 }
                 }
-             }
-             Else {
-                Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
-             }   
-       }
+                $TotalPiecesOfData += 1
+                       
+                $timestamp = $event.TimeCreated.ToString($DateFormat) 
+                $group = $msgTargetDomainName
+                $group += "\"
+                $group += $msgTargetUserName
+                $printMSG = " 4732 - USER ADDED TO GROUP User SID: $msgMemberSid was added to group: $group" 
 
-    }  
+            }
+ 
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                $AlertedEvents += 1
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4732 - USER ADDED TO GROUP" -NoNewline -ForegroundColor $EventID_4732_Color 
+                    Write-Host " User SID: " -NoNewline
+                    Write-Host $msgMemberSid -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " was added to group: " -NoNewline
+                    if ( $msgTargetUserName -eq "Administrators" ) {
+                        Write-Host $group -ForegroundColor White -BackgroundColor Red
+                    }
+                    Else {
+                        Write-Host $group -ForegroundColor $ParameterColor
+                    }
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }   
+            }
 
-    #Log cleared
-    if ($event.Id -eq "1102"){
+        }  
 
-       $eventXML = [xml]$event.ToXml()
+        #Log cleared
+        if ($event.Id -eq "1102") {
 
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "SubjectUserName" { $msgSubjectUserName = $data.'#text' }
-                "SubjectLogonId" { $msgSubjectLogonId = $data.'#text' }
-                default { $LogNoise += 1 }
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "SubjectUserName" { $msgSubjectUserName = $data.'#text' }
+                    "SubjectLogonId" { $msgSubjectLogonId = $data.'#text' }
+                    default { $LogNoise += 1 }
                  
+                }
+                $TotalPiecesOfData += 1
             }
-            $TotalPiecesOfData += 1
-       }
                   
-       $timestamp = $event.TimeCreated.ToString($DateFormat) 
-       $printMSG = " 1102 - EVENT LOG CLEARED" 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $printMSG = " 1102 - EVENT LOG CLEARED" 
 
-        if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
-             $AlertedEvents += 1
-             if ( $SaveOutput -eq "") {
-                Write-Host $timestamp -NoNewline
-                Write-Host "  1102 - " -NoNewline -ForegroundColor $EventID_1102_Color
-                Write-Host "EVENT LOG CLEARED" -ForegroundColor White -BackgroundColor red 
-             }
-             Else {
-                Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
-             }      
-       }   
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                $AlertedEvents += 1
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  1102 - " -NoNewline -ForegroundColor $EventID_1102_Color
+                    Write-Host "EVENT LOG CLEARED" -ForegroundColor White -BackgroundColor red 
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }      
+            }   
        
-    }  
+        }  
 
-    #Logon using explicit credentials
-    if ($event.Id -eq "4648"){
-       $eventXML = [xml]$event.ToXml()
+        #Logon using explicit credentials
+        if ($event.Id -eq "4648") {
+            $eventXML = [xml]$event.ToXml()
 
-       foreach($data in $eventXML.Event.EventData.data){
-            switch ( $data.name ){
-                "SubjectUserName" { $msgSubjectUserName = $data.'#text' } 
-                #"SubjectDomainName" { $msgSubjectDomainName = $data.'#text' }  #Would this be useful to add? It seems to always be the same
-                "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
-                "SubjectLogonId" { $msgSubjectLogonId = $data.'#text' } 
-                "TargetServerName" { $msgTargetServerName = $data.'#text' }
-                "IpAddress" { $msgIpAddress = $data.'#text' }
-                "IpPort" { $msgIpPort = $data.'#text' }
-                "ProcessName" { $msgProcessName = $data.'#text' }
-                default { $LogNoise += 1 }
+            foreach ($data in $eventXML.Event.EventData.data) {
+                switch ( $data.name ) {
+                    "SubjectUserName" { $msgSubjectUserName = $data.'#text' } 
+                    #"SubjectDomainName" { $msgSubjectDomainName = $data.'#text' }  #Would this be useful to add? It seems to always be the same
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
+                    "SubjectLogonId" { $msgSubjectLogonId = $data.'#text' } 
+                    "TargetServerName" { $msgTargetServerName = $data.'#text' }
+                    "IpAddress" { $msgIpAddress = $data.'#text' }
+                    "IpPort" { $msgIpPort = $data.'#text' }
+                    "ProcessName" { $msgProcessName = $data.'#text' }
+                    default { $LogNoise += 1 }
+                }
+
+                $TotalPiecesOfData += 1
             }
-
-            $TotalPiecesOfData += 1
-       }
        
-       $timestamp = $event.TimeCreated.ToString($DateFormat) 
-       $isMachine = $msgSubjectUserName[-1]
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $isMachine = $msgSubjectUserName[-1]
        
-       if ( $msgIpAddress -ne "-" -and $isMachine -ne "$") { #don't print local events as there are too many. also filtering machine account noise
-            $AlertedEvents += 1
+            if ( $msgIpAddress -ne "-" -and $isMachine -ne "$") {
+                #don't print local events as there are too many. also filtering machine account noise
+                $AlertedEvents += 1
        
-            if ( $ShowLogonID -eq $true ) {
-                $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName Logon ID: $msgSubjectLogonId" 
-            } else {
-                $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName"
-            }     
-       }
+                if ( $ShowLogonID -eq $true ) {
+                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName Logon ID: $msgSubjectLogonId" 
+                }
+                else {
+                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName"
+                }     
+            }
        
        
-       if ( $previousMsg -ne $printMSG -and $printMSG -ne "" ) {
+            if ( $previousMsg -ne $printMSG -and $printMSG -ne "" ) {
 
                 if ( $SaveOutput -eq "") {
                     Write-Host $timestamp -NoNewline
@@ -1467,7 +1401,8 @@ foreach($event in $logs){
                     if ( $ShowLogonID -eq $true ) {
                         Write-Host " Logon ID: " -NoNewline
                         Write-Host $msgSubjectLogonId
-                    } else {
+                    }
+                    else {
                         Write-Host ""
                     }
                 }
@@ -1475,45 +1410,45 @@ foreach($event in $logs){
                     Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
                 } 
             
-       }
+            }
        
-    } 
+        } 
 
      
-    if ($printMSG -ne ""){
-        $previousMsg = $printMSG #Sometimes duplicate logs happen alot, so if the previous message is the same we will filter.
+        if ($printMSG -ne "") {
+            $previousMsg = $printMSG #Sometimes duplicate logs happen alot, so if the previous message is the same we will filter.
+        }
+        Else {
+            $SkippedLogs += 1
+        }
+
     }
-    Else {
-        $SkippedLogs += 1
-    }
 
-}
-
-$GoodData = $TotalPiecesOfData - $LogNoise
-$LogEventDataReduction = [math]::Round( ( ($TotalLogs - $AlertedEvents) / $TotalLogs * 100 ), 1 )
-$PercentOfLogNoise = [math]::Round( ( $LogNoise / $TotalPiecesOfData * 100 ), 1 )
-$ProgramEndTime = Get-Date
-$TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
+    $GoodData = $TotalPiecesOfData - $LogNoise
+    $LogEventDataReduction = [math]::Round( ( ($TotalLogs - $AlertedEvents) / $TotalLogs * 100 ), 1 )
+    $PercentOfLogNoise = [math]::Round( ( $LogNoise / $TotalPiecesOfData * 100 ), 1 )
+    $ProgramEndTime = Get-Date
+    $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
 
 
-Write-Host
-Write-Host "Total analyzed logs: $TotalLogs"
-Write-Host "Useless logs: $SkippedLogs"
-Write-Host "Alerted events: $AlertedEvents"
-Write-Host "Log event data reduction: $LogEventDataReduction" -NoNewline
-Write-Host "%"
-Write-Host
-Write-Host "Useful Data in filtered logs: $GoodData"
-Write-Host "Noisy Data in filtered logs: $LogNoise"
-Write-Host "Log Noise: $PercentOfLogNoise" -NoNewline
-Write-Host "%"
-Write-Host
+    Write-Host
+    Write-Host "Total analyzed logs: $TotalLogs"
+    Write-Host "Useless logs: $SkippedLogs"
+    Write-Host "Alerted events: $AlertedEvents"
+    Write-Host "Log event data reduction: $LogEventDataReduction" -NoNewline
+    Write-Host "%"
+    Write-Host
+    Write-Host "Useful Data in filtered logs: $GoodData"
+    Write-Host "Noisy Data in filtered logs: $LogNoise"
+    Write-Host "Log Noise: $PercentOfLogNoise" -NoNewline
+    Write-Host "%"
+    Write-Host
 
-$TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-$RuntimeHours = $TempTimeSpan.Hours.ToString()
-$RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-$RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-Write-Output "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
+    $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+    Write-Output "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
 }
 
 function Perform-LiveAnalysis {
@@ -1521,20 +1456,21 @@ function Perform-LiveAnalysis {
 
 }
 
-function Perform-LiveAnalysisChecks{
+function Perform-LiveAnalysisChecks {
     if ( $IsWindows -eq $true -or $env:OS -eq "Windows_NT" ) {
         
         #Check if running as an admin
         $isAdmin = Check-Administrator
         Write-Host $isAdmin
 
-        if ( $isAdmin -eq $false ){
+        if ( $isAdmin -eq $false ) {
             if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
                 Write-Host
                 Write-Host "エラー： Powershellを管理者として実行する必要があります。"
                 Write-Host
                 Exit
-            } else {
+            }
+            else {
                 Write-Host
                 Write-Host "Error: You need to be running Powershell as Administrator."
                 Write-Host
@@ -1546,13 +1482,16 @@ function Perform-LiveAnalysisChecks{
         Perform-LiveAnalysis
                
         
-    } else { #Trying to run live analysis on Mac or Linux
+    }
+    else {
+        #Trying to run live analysis on Mac or Linux
         if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
             Write-Host
             Write-Host "エラー： ライブ調査はWindowsにしか対応していません。"
             Write-Host
             Exit
-        } else {
+        }
+        else {
             Write-Host
             Write-Host "Error: Live Analysis is only supported on Windows"
             Write-Host
@@ -1595,7 +1534,7 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
 
 
 
-if ( $LiveAnalysis -eq $false -and $LogFile -eq ""  -and $EventIDStatistics -eq $false -and $LogonOverview -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonOverview -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
  
     Write-Host 
     Write-Host "YEAセキュリティイベントタイムライン作成ツール" -ForegroundColor Green
