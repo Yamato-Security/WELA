@@ -333,7 +333,7 @@ function Create-EventIDStatistics {
         $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
         [System.Collections.ArrayList]$ArrayWithHeader = @()
         
-        for ( $i = 0 ; $i -le $sorted.count ; $i++) {
+        for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
                  
             $Name = $sorted[$i].Name
             $Value = $sorted[$i].Value
@@ -400,7 +400,7 @@ function Create-EventIDStatistics {
         $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
         [System.Collections.ArrayList]$ArrayWithHeader = @()
         
-        for ( $i = 0 ; $i -le $sorted.count ; $i++) {
+        for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
                  
             $Name = $sorted[$i].Name
             $Value = $sorted[$i].Value
@@ -432,10 +432,10 @@ function Create-EventIDStatistics {
 function Create-LogonTimeline {
 
     #TODO:
-    #Use 1100 event log service has shutdown for shutdown timesgetffff
-    #ShowLogonID
+    #Use 1100 event log service has shutdown for shutdown times
     #Output only odd hour times
-    #Color to tables
+    #Color to table
+    #remove dups
 
     # Note: Logoff events without corresponding logon events first won't be printed
 
@@ -692,6 +692,22 @@ function Create-LogonTimeline {
     Write-Host
     Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
     Write-Host
+
+    $output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
+
+    #重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
+    for ( $i = 0 ; $i -le  ( $output.count - 1 ) ; $i++) {
+
+        if ( $output[$i].$Create_LogonTimeline_LogonTime -eq $output[$i+1].$Create_LogonTimeline_LogonTime -and
+             $output[$i].$Create_LogonTimeline_Type -eq $output[$i+1].$Create_LogonTimeline_Type -and
+             $output[$i].$Create_LogonTimeline_TargetUser -eq $output[$i+1].$Create_LogonTimeline_TargetUser) {
+
+            $output.RemoveAt($i)
+            $TotalFilteredLogons--
+
+        }
+
+    }
 
     if ( $SaveOutput -eq "" ) {   
         
