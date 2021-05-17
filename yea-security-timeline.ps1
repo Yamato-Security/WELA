@@ -39,7 +39,7 @@ param (
     [string]$LogFile = "",
     [bool]$ShowContributors = $false,
     [bool]$EventIDStatistics = $false,
-    [bool]$LogonOverview = $false,
+    [bool]$LogonTimeline = $false,
     [bool]$AccountInformation = $false,
     [bool]$OutputGUI = $false,
     [bool]$OutputCSV = $false,
@@ -428,7 +428,7 @@ function Create-EventIDStatistics {
 
 }
 
-function Create-LogonOverview {
+function Create-LogonTimeline {
 
     #TODO:
     #Use 1100 event log service has shutdown for shutdown times
@@ -439,8 +439,7 @@ function Create-LogonOverview {
     # Note: Logoff events without corresponding logon events first won't be printed
 
     Write-Host
-    Write-Host "Creating a logon overview excluding service account logons, noisy local system logons and machine account logons."
-    Write-Host "Please be patient."
+    Write-Host $Create_LogonTimeline_Welcome_Message #Creating a logon overview excluding service account logons, noisy local system logons and machine account logons.`nPlease be patient.
     Write-Host
     
     $WineventFilter = @{}
@@ -479,36 +478,25 @@ function Create-LogonOverview {
 
         Perform-LiveAnalysisChecks
         $WineventFilter.Add( "LogName", "Security" )
-        
         $filesizeMB = (Get-Item "C:\Windows\System32\winevt\Logs\Security.evtx").Length / 1MB
-        $filesizeMB = $filesizeMB * 0.1
-        $ApproxTimeInSeconds = $filesizeMB * 60
-        $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-        $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
-        Write-Host "File size: $filesize"
-        Write-Host "Estimated processing time: " -NoNewline
-        Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
 
     }
     else {
+
         $WineventFilter.Add( "Path", $LogFile )
-
         $filesize = Format-FileSize( (get-item $LogFile).length )
-        Write-Host "File Size: $filesize"
-
-        $filesizeMB = (Get-Item $LogFile).Length / 1MB
-        $filesizeMB = $filesizeMB * 0.1
-        $ApproxTimeInSeconds = $filesizeMB * 60
-        $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-        Write-Host "Estimated processing time: " -NoNewline
-        Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
     }
+
+    $filesizeMB = $filesizeMB * 0.1
+    $ApproxTimeInSeconds = $filesizeMB * 60
+    $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+    $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
+
+    Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: "
+    Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
     $eventlist = @{}
@@ -635,15 +623,15 @@ function Create-LogonOverview {
             $ElapsedTimeOutput = ""
             if ( $LogoffTimestampString -eq "" ) {
 
-                $LogoffTimestampString = "No logoff event" 
+                $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
 
             }
 
             else {
 
-                $ElapsedTimeOutput = "$RuntimeDays Days $RuntimeHours Hours $RuntimeMinutes Min. $RuntimeSeconds Sec."
+                $ElapsedTimeOutput = ($Create_LogonTimeline_ElapsedTimeOutput -f $RuntimeDays , $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )
             }
-
+    
             switch ( $msgLogonType ) {
                 "0" { $Type0Logons++ } #System
                 "2" { $Type2Logons++ } #Interactive
@@ -657,18 +645,18 @@ function Create-LogonOverview {
                 "11" { $Type11Logons++ } #Cached Credentials
                 "12" { $Type12Logons++ } #Cached Remote Interactive
                 "13" { $Type13Logons++ } #Cached unlock
-                default { $OtherTypeLogon++ } #this shouldn't happen
+                default { $OtherTypeLogon++ } #this shouldn't happen 出力されたらバグ
                          
             }
 
-            if ($msgTargetUserName -ne "SYSTEM" -and   #Username is not system
-                #$msgWorkstationName -ne "-" -and       #Workstation Name is not blank
+            if ($msgTargetUserName -ne "SYSTEM" -and   #Username is not system 
+                #$msgWorkstationName -ne "-" -and       #Workstation Name is not blank IPアドレスチェックで多分十分なので、とりあえずコメントアウト
                 $msgIpAddress -ne "-" -and             #IP Address is not blank
-                $msgTargetUserName[-1] -ne "$" -or
-                ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM"))        #Not a machine account
+                $msgTargetUserName[-1] -ne "$" -or     #Not a machine account
+                ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) #To find system boot time システムの起動時間を調べるため
             {
                         
-                $output += [pscustomobject]@{"Logon Time" = $LogonTimestampString ; "Logoff Time" = $LogoffTimestampString ; "Elapsed Time" = $ElapsedTimeOutput ; "Type" = "$msgLogonType - $msgLogonTypeReadable" ; "Target User" = $msgTargetUserName ; "Source Workstation" = $msgWorkstationName ; "Source IP Address" = $msgIpAddress ; "Source Port" = $msgIpPort }
+                $output += [pscustomobject]@{ $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort }
                     
                 $TotalFilteredLogons++
                     
@@ -688,7 +676,7 @@ function Create-LogonOverview {
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
     Write-Host
-    Write-Host "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
+    Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
     Write-Host
 
     if ( $SaveOutput -eq "" ) {   
@@ -712,53 +700,53 @@ function Create-LogonOverview {
         }
      
         Write-Host
-        Write-Host "Total logon event records: " -NoNewline
+        Write-Host $Create_LogonTimeline_Total_Logon_Event_Records -NoNewline
         Write-Host $TotalLogonEvents -ForegroundColor Cyan
 
-        Write-Host "Log event data reduction: " -NoNewline
+        Write-Host $Create_LogonTimeline_Data_Reduction -NoNewline
         Write-Host "$LogEventDataReduction%" -ForegroundColor Cyan
 
-        Write-Host "Total filtered logons: " -NoNewline
+        Write-Host $Create_LogonTimeline_Total_Filtered_Logons -NoNewline
         Write-Host $TotalFilteredLogons -ForegroundColor Cyan
         Write-Host
 
-        Write-Host "Type 0 System Logons (Ex: System startup): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type0 " -NoNewline
         Write-Host $Type0Logons -ForegroundColor Cyan
 
-        Write-Host "Type 2 Interactive Logons (Ex: Console logon, VNC) (Dangerous: Credentials in memory): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type2 " -NoNewline
         Write-Host $Type2Logons -ForegroundColor Cyan
 
-        Write-Host "Type 3 Network Logons (Ex: SMB Share, net command, rpcclient, psexec, winrm): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type3 " -NoNewline
         Write-Host $Type3Logons -ForegroundColor Cyan
 
-        Write-Host "Type 4 Batch Logons (Ex: Scheduled Tasks): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type4 " -NoNewline
         Write-Host $Type4Logons -ForegroundColor Cyan
 
-        Write-Host "Type 5 Service Logons: " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type5 " -NoNewline
         Write-Host $Type5Logons -ForegroundColor Cyan
 
-        Write-Host "Type 7 Screen Unlock (and RDP reconnect) Logons: " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type7 " -NoNewline
         Write-Host $Type7Logons -ForegroundColor Cyan
 
-        Write-Host "Type 8 NetworkCleartext Logons (Ex: IIS Basic Auth)(Dangerous: plaintext password used for authentication): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type8 " -NoNewline
         Write-Host $Type8Logons -ForegroundColor Cyan
 
-        Write-Host "Type 9 NewCredentials Logons (Ex: runas /netonly command)(Dangerous: Credentials in memory): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type9 " -NoNewline
         Write-Host $Type9Logons -ForegroundColor Cyan
 
-        Write-Host "Type 10 RemoteInteractive Logons (Ex: RDP) (Dangerous: Credentials in memory): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type10 " -NoNewline
         Write-Host $Type10Logons -ForegroundColor Cyan
 
-        Write-Host "Type 11 CachedInteractive/Cached Credentials Logons (Ex: Cannot connect to DC for authentication): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type11 " -NoNewline
         Write-Host $Type11Logons -ForegroundColor Cyan
 
-        Write-Host "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type12 " -NoNewline
         Write-Host $Type12Logons -ForegroundColor Cyan
 
-        Write-Host "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC): " -NoNewline
+        Write-Host "$Create_LogonTimeline_Type13 " -NoNewline
         Write-Host $Type13Logons -ForegroundColor Cyan
 
-        Write-Host "Other Type Logons: " -NoNewline
+        Write-Host "$Create_LogonTimeline_TypeOther " -NoNewline
         Write-Host $OtherTypeLogon -ForegroundColor Cyan
         Write-Host
         
@@ -780,23 +768,23 @@ function Create-LogonOverview {
         Else {
 
             Write-Output "" | Out-File $SaveOutput -Append
-            Write-Output "Total logon event records: $TotalLogonEvents" | Out-File $SaveOutput -Append
-            Write-Output "Log event data reduction: $LogEventDataReduction%" | Out-File $SaveOutput -Append
-            Write-Output "Total filtered logons: $TotalFilteredLogons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Total_Logon_Event_Records $TotalLogonEvents" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Data_Reduction $LogEventDataReduction%" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Total_Filtered_Logons $TotalFilteredLogons" | Out-File $SaveOutput -Append
             Write-Output "" | Out-File $SaveOutput -Append
-            Write-Output "Type 0 System Logons (Ex: System startup): $Type0Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 2 Interactive Logons (Dangerous: Credentials in memory): $Type2Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 3 Network Logons(Ex: SMB Share, net command, rpcclient, psexec, winrm): $Type3Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 4 Batch Logons (Ex: Scheduled Tasks): $Type4Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 5 Service Logons: $Type5Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 7 Screen Unlock (and RDP reconnect) Logons: $Type7Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 8 NetworkCleartext Logons (Ex: IIS Basic Auth.): $Type8Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 9 NewCredential Logons (Ex: runas /netonly command): $Type9Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 10 RemoteInteractive Logons (Ex: RDP) (Dangerous: Credentials in memory): $Type10Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 11 CachedInteractive/Cached Credentials Logons (Ex: Cannot connect to DC for authentication): $Type11Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts): $Type12Logons" | Out-File $SaveOutput -Append
-            Write-Output "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC): $Type13Logons" | Out-File $SaveOutput -Append
-            Write-Output "Other Type Logons: $OtherTypeLogon" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type0 $Type0Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type2 $Type2Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type3 $Type3Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type4 $Type4Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type5 $Type5Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type7 $Type7Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type8 $Type8Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type9 $Type9Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type10 $Type10Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type11 $Type11Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type12 $Type12Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type13 $Type13Logons" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_TypeOther $OtherTypeLogon" | Out-File $SaveOutput -Append
             Write-Output "" | Out-File $SaveOutput -Append
 
         }
@@ -1620,7 +1608,7 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
 
 
 
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonOverview -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
  
     Write-Host 
     Write-Host "YEAセキュリティイベントタイムライン作成ツール" -ForegroundColor Green
@@ -1648,7 +1636,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
     Write-Host "   -LogonStatistics `$true" -NoNewline -ForegroundColor Green
     Write-Host " : ログオンの統計を出力する"
 
-    Write-Host "   -LogonOverview `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -LogonTimeline `$true" -NoNewline -ForegroundColor Green
     Write-Host " : ユーザログオンの簡単なタイムラインを出力する"
 
     Write-Host "   -CreateHumanReadableTimeline `$true" -NoNewline -ForegroundColor Green
@@ -1708,7 +1696,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 
 }
 
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonOverview -eq $false -and $AccountInformation -eq $false ) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
 
     Write-Host 
     Write-Host "YEA Security Event Timeline Generator" -ForegroundColor Green
@@ -1739,7 +1727,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
     Write-Host "   -LogonStatistics `$true" -NoNewline -ForegroundColor Green
     Write-Host " : Output logon statistics"
 
-    Write-Host "   -LogonOverview `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -LogonTimeline `$true" -NoNewline -ForegroundColor Green
     Write-Host " : Output a simple timeline of user logons"
 
     Write-Host "   -CreateBriefHumanReadableTimeline `$true" -NoNewline -ForegroundColor Green
@@ -1816,8 +1804,8 @@ if ( $EventIDStatistics -eq $true ) {
 
 }
 
-if ( $LogonOverview -eq $true ) {
+if ( $LogonTimeline -eq $true ) {
 
-    Create-LogonOverview
+    Create-LogonTimeline
 
 }

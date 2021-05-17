@@ -272,3 +272,35 @@ $5890 = @{
 $unregistered_event_id = @{
     EventTitle = "Unknown";
 }
+
+# function Create-LogonTimeline
+$Create_LogonTimeline_Welcome_Message = "Creating a logon timeline excluding noisy events such as service account, local system and machine account logons.`nPlease be patient."
+$Create_LogonTimeline_Filesize = 'File Size: {0}'
+$Create_LogonTimeline_Estimated_Processing_Time = "Estimated processing time: {0} hours {1} minutes {2} seconds"
+$Create_LogonTimeline_ElapsedTimeOutput = "{0} Days {1} Hours {2} Min. {3} Sec."
+$Create_LogonTimeline_LogonTime = "Logon Time"
+$Create_LogonTimeline_LogoffTime = "Logoff Time"
+$Create_LogonTimeline_ElapsedTime = "Elapsed Time"
+$Create_LogonTimeline_Type = "Type"
+$Create_LogonTimeline_TargetUser = "Target User"
+$Create_LogonTimeline_SourceWorkstation = "Source Workstation"
+$Create_LogonTimeline_SourceIpAddress = "Source IP Address"
+$Create_LogonTimeline_SourceIpPort = "Source Port"
+$Create_LogonTimeline_Processing_Time = "Estimated processing time: {0} hours {1} minutes {2} seconds"
+$Create_LogonTimeline_NoLogoffEvent = "No logoff event"
+$Create_LogonTimeline_Total_Logon_Event_Records = "Total logon event records: "
+$Create_LogonTimeline_Data_Reduction = "Log event data reduction: "
+$Create_LogonTimeline_Total_Filtered_Logons = "Total filtered logons: "
+$Create_LogonTimeline_Type0 = "Type 0 System Logons (Ex: System startup):"
+$Create_LogonTimeline_Type2 = "Type 2 Interactive Logons (Ex: Console logon, VNC) (Dangerous: Credentials in memory):"
+$Create_LogonTimeline_Type3 = "Type 3 Network Logons (Ex: SMB Share, net command, rpcclient, psexec, winrm):"
+$Create_LogonTimeline_Type4 = "Type 4 Batch Logons (Ex: Scheduled Tasks):"
+$Create_LogonTimeline_Type5 = "Type 5 Service Logons:"
+$Create_LogonTimeline_Type7 = "Type 7 Screen Unlock (and RDP reconnect) Logons:"
+$Create_LogonTimeline_Type8 = "Type 8 NetworkCleartext Logons (Ex: IIS Basic Auth)(Dangerous: plaintext password used for authentication):"
+$Create_LogonTimeline_Type9 = "Type 9 NewCredentials Logons (Ex: runas /netonly command)(Dangerous: Credentials in memory):"
+$Create_LogonTimeline_Type10 = "Type 10 RemoteInteractive Logons (Ex: RDP) (Dangerous: Credentials in memory):"
+$Create_LogonTimeline_Type11 = "Type 11 CachedInteractive/Cached Credentials Logons (Ex: Cannot connect to DC for authentication):"
+$Create_LogonTimeline_Type12 = "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts):"
+$Create_LogonTimeline_Type13 = "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC):"
+$Create_LogonTimeline_TypeOther = "Other Type Logons:"
