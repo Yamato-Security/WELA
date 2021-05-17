@@ -40,7 +40,10 @@ param (
     [bool]$ShowContributors = $false,
     [bool]$EventIDStatistics = $false,
     [bool]$LogonOverview = $false,
-    [bool]$AccountInformation = $false
+    [bool]$AccountInformation = $false,
+    [bool]$OutputGUI = $false,
+    [bool]$OutputCSV = $false,
+    [bool]$UTC = $false
 )
 
 $ProgramStartTime = Get-Date
@@ -49,7 +52,9 @@ $ProgramStartTime = Get-Date
 #Functions:
 function Show-Contributors {
     Write-Host 
-    Write-Host "Currently there are no conributors."
+    Write-Host "Contributors:"
+    Write-Host "DustInDark - Localization"
+    Write-Host
     Write-Host "Please contribute to this project for fame and glory!"
     Write-Host
 }
@@ -93,11 +98,6 @@ function Is-Logon-Dangerous ( $msgLogonType ) {
     }
 
     return $msgIsLogonDangerous
-}
-
-function Is-Admin {
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 Function Format-FileSize {
@@ -162,7 +162,7 @@ $AlertedEvents = 0
 $SkippedLogs = 0
 $TotalLogs = 0
 
-$HostLanguage = Get-WinSystemLocale | Select-Object Name
+$HostLanguage = Get-WinSystemLocale | Select-Object Name # en-US, ja-JP, etc..
 
 if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
     Import-Module './Config/Language/ja.ps1' -Force;
@@ -260,7 +260,9 @@ function EventInfo ($eventIDNumber) {
         "5890" { $return = $5890 }
         default { $return = $unregistered }
     }
+
     return $return
+
 }
 
 
@@ -291,6 +293,8 @@ function Create-EventIDStatistics {
 
     #Live Analysis
     if ( $LogFile -eq "" ) {
+        
+        Perform-LiveAnalysisChecks
 
         $WineventFilter.Add("LogName", "Security")
         $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
@@ -427,9 +431,12 @@ function Create-EventIDStatistics {
 function Create-LogonOverview {
 
     #TODO:
-    #UTC Time
+    #Use 1100 event log service has shutdown for shutdown times
     #Japanese translation
     #ShowLogonID
+    #Output only odd hour times
+
+    # Note: Logoff events without corresponding logon events first won't be printed
 
     Write-Host
     Write-Host "Creating a logon overview excluding service account logons, noisy local system logons and machine account logons."
@@ -439,17 +446,23 @@ function Create-LogonOverview {
     $WineventFilter = @{}
     $EventIDsToAnalyze = 4624, 4634, 4647
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
-    $TotalLogons = 0
+    $TotalLogonEvents = 0
+    $TotalFilteredLogons = 0
+    $Type0Logons = 0
     $Type2Logons = 0
     $Type3Logons = 0
     $Type4Logons = 0
-    $Type5Logons
+    $Type5Logons = 0
     $Type7Logons = 0
     $Type8Logons = 0
     $Type9Logons = 0
     $Type10Logons = 0
     $Type11Logons = 0
+    $Type12Logons = 0
+    $Type13Logons = 0
     $OtherTypeLogon = 0
+
+    $output = @()
     
     if ( $StartTimeline -ne "" ) { 
         $StartTimeline = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
@@ -464,10 +477,37 @@ function Create-LogonOverview {
     #Live Analysis
     if ( $LogFile -eq "" ) {
 
+        Perform-LiveAnalysisChecks
         $WineventFilter.Add( "LogName", "Security" )
+        
+        $filesizeMB = (Get-Item "C:\Windows\System32\winevt\Logs\Security.evtx").Length / 1MB
+        $filesizeMB = $filesizeMB * 0.1
+        $ApproxTimeInSeconds = $filesizeMB * 60
+        $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+        $RuntimeHours = $TempTimeSpan.Hours.ToString()
+        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+        $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
+        Write-Host "File size: $filesize"
+        Write-Host "Estimated processing time: " -NoNewline
+        Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
+
     }
     else {
         $WineventFilter.Add( "Path", $LogFile )
+
+        $filesize = Format-FileSize( (get-item $LogFile).length )
+        Write-Host "File Size: $filesize"
+
+        $filesizeMB = (Get-Item $LogFile).Length / 1MB
+        $filesizeMB = $filesizeMB * 0.1
+        $ApproxTimeInSeconds = $filesizeMB * 60
+        $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+        $RuntimeHours = $TempTimeSpan.Hours.ToString()
+        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+        Write-Host "Estimated processing time: " -NoNewline
+        Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
     }
 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
@@ -481,7 +521,8 @@ function Create-LogonOverview {
             
         # 4634 Logoff
         if ($event.Id -eq "4634") { 
-
+            
+            $TotalLogonEvents++
             $eventXML = [xml]$event.ToXml()
 
             foreach ($data in $eventXML.Event.EventData.data) {
@@ -492,16 +533,22 @@ function Create-LogonOverview {
                 }
             }
             
-            $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            if ( $UTC -eq $true ) {
+                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+            }
+            else {
+                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
             $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
             $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
             $LogoffEventArray.Add( $LogoffEvent ) > $null
         }
-
 
         # 4647 Logoff
         if ($event.Id -eq "4647") { 
 
+            $TotalLogonEvents++
             $eventXML = [xml]$event.ToXml()
 
             foreach ($data in $eventXML.Event.EventData.data) {
@@ -512,21 +559,28 @@ function Create-LogonOverview {
                 }
             }
             
-            $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            if ( $UTC -eq $true ) {
+                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+            }
+            else {
+                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
             $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
             $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
             $LogoffEventArray.Add( $LogoffEvent ) > $null
 
         }
-            
-            
+                        
     }
 
     foreach ( $event in $logs ) {
         
         #Successful logon
+
         if ($event.Id -eq "4624") { 
 
+            $TotalLogonEvents++
             $eventXML = [xml]$event.ToXml()
 
             foreach ($data in $eventXML.Event.EventData.data) {
@@ -539,14 +593,20 @@ function Create-LogonOverview {
                     "IpAddress" { $msgIpAddress = $data.'#text' }
                     "IpPort" { $msgIpPort = $data.'#text' }
                     "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
+                    "SubjectUserSid" { $msgSubjectUserSid = $data.'#text' } 
 
                 }
 
             }
 
             $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
-            $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
-            $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+
+            if ( $UTC -eq $true ) {
+                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            } else {
+                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
             $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
             $LogoffTimestampString = "" 
 
@@ -554,7 +614,7 @@ function Create-LogonOverview {
                 
                 # $EventIndex[0] -> Logoff Logon ID
                 # $EventIndex[1] -> Logoff time
-                # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id)
+                # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id (rare case?))
                 if ( $EventIndex[0] -eq $msgTargetLogonID -and $EventIndex[1] -ge $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
                        
                     $LogoffTimestampString = $EventIndex[1].ToString("yyyy-MM-dd HH:mm:ss.ff") 
@@ -574,142 +634,175 @@ function Create-LogonOverview {
 
             $ElapsedTimeOutput = ""
             if ( $LogoffTimestampString -eq "" ) {
-                $LogoffTimestampString = "(No logoff event)                                   " 
-            }
-            else {
-                $ElapsedTimeOutput = "($RuntimeDays Days $RuntimeHours Hours $RuntimeMinutes Min. $RuntimeSeconds Sec.)"
+
+                $LogoffTimestampString = "No logoff event" 
+
             }
 
-            if ($msgTargetUserName -ne "SYSTEM" -and #Username is not system
-                $msgWorkstationName -ne "-" -and #Workstation Name is not blank
-                $msgIpAddress -ne "-" -and #IP Address is not blank
-                $msgTargetUserName[-1] -ne "$")             #Not a machine account
+            else {
+
+                $ElapsedTimeOutput = "$RuntimeDays Days $RuntimeHours Hours $RuntimeMinutes Min. $RuntimeSeconds Sec."
+            }
+
+            switch ( $msgLogonType ) {
+                "0" { $Type0Logons++ } #System
+                "2" { $Type2Logons++ } #Interactive
+                "3" { $Type3Logons++ } #Network
+                "4" { $Type4Logons++ } #Batch
+                "5" { $Type5Logons++ } #Service
+                "7" { $Type7Logons++ } #NetworkCleartext
+                "8" { $Type8Logons++ } #NetworkCleartext
+                "9" { $Type9Logons++ } #Explicit Logon
+                "10" { $Type10Logons++ } #RDP
+                "11" { $Type11Logons++ } #Cached Credentials
+                "12" { $Type12Logons++ } #Cached Remote Interactive
+                "13" { $Type13Logons++ } #Cached unlock
+                default { $OtherTypeLogon++ } #this shouldn't happen
+                         
+            }
+
+            if ($msgTargetUserName -ne "SYSTEM" -and   #Username is not system
+                #$msgWorkstationName -ne "-" -and       #Workstation Name is not blank
+                $msgIpAddress -ne "-" -and             #IP Address is not blank
+                $msgTargetUserName[-1] -ne "$" -or
+                ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM"))        #Not a machine account
             {
                         
-                if ( $SaveOutput -eq "" ) {
-                    Write-Host "$LogonTimestampString ~ $LogoffTimestampString $ElapsedTimeOutput Type " -NoNewline
-
-                    switch ( $msgLogonType ) {
-                        "2" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type2Logons++ } #Interactive
-                        "3" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Green ; $Type3Logons++ } #Network
-                        "4" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Blue ; $Type4Logons++ } #Batch
-                        "5" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Blue ; $Type5Logons++ } #Service
-                        "7" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type7Logons++ } #NetworkCleartext
-                        "8" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type8Logons++ } #NetworkCleartext
-                        "9" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type9Logons++ } #Explicit Logon
-                        "10" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Red ; $Type10Logons++ } #RDP
-                        "11" { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline -ForegroundColor Green ; $Type11Logons++ } #Cached Credentials
-                        default { Write-Host "$msgLogonType - $msgLogonTypeReadable" -NoNewline ; $OtherTypeLogon++ }
-                    }
-                                                
-                    Write-Host " to User: " -NoNewline
-                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor Cyan
-                    Write-Host " from Workstation: " -NoNewline 
-                    Write-Host $msgWorkstationName -NoNewline -ForegroundColor Cyan
-                    Write-Host " IP Address: " -NoNewline
-                    Write-Host $msgIpAddress -NoNewline -ForegroundColor Cyan
-                    Write-Host " Port: " -NoNewline
-                    Write-Host "$msgIpPort " -ForegroundColor Cyan
-                    #Write-Host $msgTargetLogonID
-
-                }
-                else {
-                            
-                    switch ( $msgLogonType ) {
-
-                        "2" { $Type2Logons++ } #Interactive
-                        "3" { $Type3Logons++ } #Network
-                        "4" { $Type4Logons++ } #Batch
-                        "7" { $Type7Logons++ } #NetworkCleartext
-                        "8" { $Type8Logons++ } #NetworkCleartext
-                        "9" { $Type9Logons++ } #Explicit Logon
-                        "10" { $Type10Logons++ } #RDP
-                        "11" { $Type11Logons++ } #Cached Credentials
-                         
-                    }
-
-                    Write-Output "$LogonTimestampString ~ $LogoffTimestampString $ElapsedTimeOutput Type $msgLogonType - $msgLogonTypeReadable to User: $msgTargetUserName from Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort" | Out-File $SaveOutput -Append
-
-                }
-
-                $TotalLogons++
+                $output += [pscustomobject]@{"Logon Time" = $LogonTimestampString ; "Logoff Time" = $LogoffTimestampString ; "Elapsed Time" = $ElapsedTimeOutput ; "Type" = "$msgLogonType - $msgLogonTypeReadable" ; "Target User" = $msgTargetUserName ; "Source Workstation" = $msgWorkstationName ; "Source IP Address" = $msgIpAddress ; "Source Port" = $msgIpPort }
+                    
+                $TotalFilteredLogons++
                     
             }
            
-
         }
            
- 
     }
     
-    if ( $SaveOutput -eq "" ) {                
+    $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
+
+    $ProgramEndTime = Get-Date
+    $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
+    $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+
+    Write-Host
+    Write-Host "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
+    Write-Host
+
+    if ( $SaveOutput -eq "" ) {   
+        
+        if ( $OutputCSV -eq $true ) { 
+            
+            Write-Host 'Error: you need to specify -SaveOutput'
+            Exit
+
+        }
+
+        if ( $OutputGUI -eq $true ) {
+
+            $output | Out-GridView
+
+        }
+        Else {
+
+            $output | Format-Table -AutoSize
+
+        }
+     
         Write-Host
-        Write-Host "Total logons: " -NoNewline
-        Write-Host $TotalLogons -ForegroundColor Cyan
+        Write-Host "Total logon event records: " -NoNewline
+        Write-Host $TotalLogonEvents -ForegroundColor Cyan
+
+        Write-Host "Log event data reduction: " -NoNewline
+        Write-Host "$LogEventDataReduction%" -ForegroundColor Cyan
+
+        Write-Host "Total filtered logons: " -NoNewline
+        Write-Host $TotalFilteredLogons -ForegroundColor Cyan
         Write-Host
-        Write-Host "Type 2 Interactive Logons (Dangerous: Credentials in memory): " -NoNewline
+
+        Write-Host "Type 0 System Logons (Ex: System startup): " -NoNewline
+        Write-Host $Type0Logons -ForegroundColor Cyan
+
+        Write-Host "Type 2 Interactive Logons (Ex: Console logon, VNC) (Dangerous: Credentials in memory): " -NoNewline
         Write-Host $Type2Logons -ForegroundColor Cyan
-        Write-Host "Type 3 Network Logons: " -NoNewline
+
+        Write-Host "Type 3 Network Logons (Ex: SMB Share, net command, rpcclient, psexec, winrm): " -NoNewline
         Write-Host $Type3Logons -ForegroundColor Cyan
+
         Write-Host "Type 4 Batch Logons (Ex: Scheduled Tasks): " -NoNewline
         Write-Host $Type4Logons -ForegroundColor Cyan
+
         Write-Host "Type 5 Service Logons: " -NoNewline
         Write-Host $Type5Logons -ForegroundColor Cyan
-        Write-Host "Type 7 Screen Unlock Logons: " -NoNewline
+
+        Write-Host "Type 7 Screen Unlock (and RDP reconnect) Logons: " -NoNewline
         Write-Host $Type7Logons -ForegroundColor Cyan
-        Write-Host "Type 8 NetworkCleartext Logons (Ex: IIS Basic Auth): " -NoNewline
+
+        Write-Host "Type 8 NetworkCleartext Logons (Ex: IIS Basic Auth)(Dangerous: plaintext password used for authentication): " -NoNewline
         Write-Host $Type8Logons -ForegroundColor Cyan
-        Write-Host "Type 9 NewCredentials Logons (Ex: runas command): " -NoNewline
+
+        Write-Host "Type 9 NewCredentials Logons (Ex: runas /netonly command)(Dangerous: Credentials in memory): " -NoNewline
         Write-Host $Type9Logons -ForegroundColor Cyan
+
         Write-Host "Type 10 RemoteInteractive Logons (Ex: RDP) (Dangerous: Credentials in memory): " -NoNewline
         Write-Host $Type10Logons -ForegroundColor Cyan
+
         Write-Host "Type 11 CachedInteractive/Cached Credentials Logons (Ex: Cannot connect to DC for authentication): " -NoNewline
         Write-Host $Type11Logons -ForegroundColor Cyan
+
+        Write-Host "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts): " -NoNewline
+        Write-Host $Type12Logons -ForegroundColor Cyan
+
+        Write-Host "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC): " -NoNewline
+        Write-Host $Type13Logons -ForegroundColor Cyan
+
         Write-Host "Other Type Logons: " -NoNewline
         Write-Host $OtherTypeLogon -ForegroundColor Cyan
         Write-Host
         
-        $ProgramEndTime = Get-Date
-        $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-        $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-
-        Write-Host
-        Write-Host "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
-        Write-Host
     }
     else {
 
-        Write-Output "" | Out-File $SaveOutput -Append
-        Write-Output "Total logons: $TotalLogons" | Out-File $SaveOutput -Append
-        Write-Output "Type 2 Interactive Logons (Dangerous: Credentials in memory): $Type2Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 3 Network Logons: $Type3Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 4 Batch Logons (Ex: Scheduled Tasks): $Type4Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 5 Service Logons: $Type5Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 7 Screen Unlock Logons: $Type7Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 8 NetworkCleartext Logons (Ex: IIS Basic Auth.): $Type8Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 9 NewCredential Logons (Ex: runas command): $Type9Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 10 RemoteInteractive Logons (Ex: RDP) (Dangerous: Credentials in memory): $Type10Logons" | Out-File $SaveOutput -Append
-        Write-Output "Type 11 CachedInteractive/Cached Credentials Logons (Ex: Cannot connect to DC for authentication): $Type11Logons" | Out-File $SaveOutput -Append
-        Write-Output "Other Type Logons: $OtherTypeLogon" | Out-File $SaveOutput -Append
-        Write-Output "" | Out-File $SaveOutput -Append
+        if ( $OutputGUI -eq $true ) { 
+            
+            Write-Host 'Error: you cannot output to GUI with the -SaveOutput parameter'
+            Exit
 
-        $ProgramEndTime = Get-Date
-        $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-        $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+        }
 
-        Write-Host
-        Write-Host "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
+        if ( $OutputCSV -eq $true ) {
+
+            $output | Export-Csv $SaveOutput
+
+        }
+        Else {
+
+            Write-Output "" | Out-File $SaveOutput -Append
+            Write-Output "Total logon event records: $TotalLogonEvents" | Out-File $SaveOutput -Append
+            Write-Output "Log event data reduction: $LogEventDataReduction%" | Out-File $SaveOutput -Append
+            Write-Output "Total filtered logons: $TotalFilteredLogons" | Out-File $SaveOutput -Append
+            Write-Output "" | Out-File $SaveOutput -Append
+            Write-Output "Type 0 System Logons (Ex: System startup): $Type0Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 2 Interactive Logons (Dangerous: Credentials in memory): $Type2Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 3 Network Logons(Ex: SMB Share, net command, rpcclient, psexec, winrm): $Type3Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 4 Batch Logons (Ex: Scheduled Tasks): $Type4Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 5 Service Logons: $Type5Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 7 Screen Unlock (and RDP reconnect) Logons: $Type7Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 8 NetworkCleartext Logons (Ex: IIS Basic Auth.): $Type8Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 9 NewCredential Logons (Ex: runas /netonly command): $Type9Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 10 RemoteInteractive Logons (Ex: RDP) (Dangerous: Credentials in memory): $Type10Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 11 CachedInteractive/Cached Credentials Logons (Ex: Cannot connect to DC for authentication): $Type11Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts): $Type12Logons" | Out-File $SaveOutput -Append
+            Write-Output "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC): $Type13Logons" | Out-File $SaveOutput -Append
+            Write-Output "Other Type Logons: $OtherTypeLogon" | Out-File $SaveOutput -Append
+            Write-Output "" | Out-File $SaveOutput -Append
+
+        }
 
     }
         
-    
-
 }
 
 function Create-Timeline {
@@ -1414,7 +1507,6 @@ function Create-Timeline {
        
         } 
 
-     
         if ($printMSG -ne "") {
             $previousMsg = $printMSG #Sometimes duplicate logs happen alot, so if the previous message is the same we will filter.
         }
@@ -1429,7 +1521,6 @@ function Create-Timeline {
     $PercentOfLogNoise = [math]::Round( ( $LogNoise / $TotalPiecesOfData * 100 ), 1 )
     $ProgramEndTime = Get-Date
     $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-
 
     Write-Host
     Write-Host "Total analyzed logs: $TotalLogs"
@@ -1461,7 +1552,6 @@ function Perform-LiveAnalysisChecks {
         
         #Check if running as an admin
         $isAdmin = Check-Administrator
-        Write-Host $isAdmin
 
         if ( $isAdmin -eq $false ) {
             if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
@@ -1477,11 +1567,7 @@ function Perform-LiveAnalysisChecks {
                 Exit
             }
         }
-
-        #Running as admin on Windows
-        Perform-LiveAnalysis
-               
-        
+    
     }
     else {
         #Trying to run live analysis on Mac or Linux
@@ -1602,6 +1688,15 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
     Write-Host " : ログオンIDを出力する"
 
     Write-Host
+    Write-Host "出力オプション:"
+
+    Write-Host "   -OutputGUI `$true" -NoNewline -ForegroundColor Green
+    Write-Host " : Out-GridView GUIに出力する (デフォルト： `$false)"
+
+    Write-Host "   -OutputCSV `$true" -NoNewline -ForegroundColor Green
+    Write-Host " : CSVファイルに出力する (デフォルト： `$false)"
+
+    Write-Host
     Write-Host "その他:"
 
     Write-Host "   -ShowContributors `$true" -NoNewline -ForegroundColor Green
@@ -1685,6 +1780,15 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 
     Write-Host "   -ShowLogonID `$true" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if you want to see Logon IDs"
+
+    Write-Host
+    Write-Host "Output Options:"
+
+    Write-Host "   -OutputGUI `$true" -NoNewline -ForegroundColor Green
+    Write-Host " : Outputs to the Out-GridView GUI (Default: `$false)"
+
+    Write-Host "   -OutputCSV `$true" -NoNewline -ForegroundColor Green
+    Write-Host " : Outputs to CSV (Default: `$false)"
 
     Write-Host
     Write-Host "Other:"

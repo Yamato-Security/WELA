@@ -188,7 +188,8 @@ $4944 = @{
 }
     
 $4945 = @{
-    EventTitle = 'Rule listed when the firewall started' ; $Comment = "Too much noise when firewall starts" 
+    EventTitle = 'Rule listed when the firewall started' ; 
+    Comment = "Too much noise when firewall starts" ;
 }
 $4946 = @{
     EventTitle = 'Rule added to firewall exception list';
