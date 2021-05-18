@@ -2,6 +2,9 @@
 language config:Japanese version
 #>
 
+
+# Event ID Statistics
+
 $1100 = @{
     EventTitle = 'イベントログサービスがシャットダウンしました。';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';
@@ -293,7 +296,7 @@ $Create_LogonTimeline_NoLogoffEvent = "ログオフイベント無し"
 $Create_LogonTimeline_Total_Logon_Event_Records = "ログオンイベントの合計: "
 $Create_LogonTimeline_Data_Reduction = "ログイベントのデータ削減率: "
 $Create_LogonTimeline_Total_Filtered_Logons = "フィルタ済のログオンイベント: "
-$Create_LogonTimeline_Type0 = "タイプ  0 システムログオン（例：端末の起動時間): "
+$Create_LogonTimeline_Type0 = "タイプ  0 システムログオン（端末の起動時間): "
 $Create_LogonTimeline_Type2 = "タイプ  2 インタラクティブログオン (例：コンソール、VNC等) (注意：認証情報がメモリに格納されて、盗まれる危険性がある。):"
 $Create_LogonTimeline_Type3 = "タイプ  3 ネットワークログオン (例：SMB共有、netコマンド、rpcclient、psexec、winrm等々):"
 $Create_LogonTimeline_Type4 = "タイプ  4 バッチログオン (例：スケジュールされたタスク):"

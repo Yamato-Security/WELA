@@ -274,7 +274,7 @@ $unregistered_event_id = @{
 }
 
 # function Create-LogonTimeline
-$Create_LogonTimeline_Welcome_Message = "Creating a logon timeline excluding noisy events such as service account, local system and machine account logons.`nPlease be patient."
+$Create_LogonTimeline_Welcome_Message = "Creating a logon timeline excluding noisy events such as service, system and machine account local logons.`nPlease be patient."
 $Create_LogonTimeline_Filesize = 'File Size: {0}'
 $Create_LogonTimeline_Estimated_Processing_Time = "Estimated processing time: {0} hours {1} minutes {2} seconds"
 $Create_LogonTimeline_ElapsedTimeOutput = "{0} Days {1} Hours {2} Min. {3} Sec."
@@ -293,7 +293,7 @@ $Create_LogonTimeline_NoLogoffEvent = "No logoff event"
 $Create_LogonTimeline_Total_Logon_Event_Records = "Total logon event records: "
 $Create_LogonTimeline_Data_Reduction = "Log event data reduction: "
 $Create_LogonTimeline_Total_Filtered_Logons = "Total filtered logons: "
-$Create_LogonTimeline_Type0 = "Type 0 System Logons (Ex: System startup):"
+$Create_LogonTimeline_Type0 = "Type 0 System Logons (System runtime):"
 $Create_LogonTimeline_Type2 = "Type 2 Interactive Logons (Ex: Console logon, VNC) (Dangerous: Credentials in memory):"
 $Create_LogonTimeline_Type3 = "Type 3 Network Logons (Ex: SMB Share, net command, rpcclient, psexec, winrm):"
 $Create_LogonTimeline_Type4 = "Type 4 Batch Logons (Ex: Scheduled Tasks):"

@@ -432,19 +432,19 @@ function Create-EventIDStatistics {
 function Create-LogonTimeline {
 
     #TODO:
-    #Use 1100 event log service has shutdown for shutdown times
     #Output only odd hour times
     #Color to table
-    #remove dups
 
-    # Note: Logoff events without corresponding logon events first won't be printed
+    # Notes: 
+    #   Logoff events without corresponding logon events first won't be printed
+    #   The log service shutdown time is used for the shutdown time so might be wrong if the log service was turned off while the system was running. (anti-forensics, etc..)
 
     Write-Host
     Write-Host $Create_LogonTimeline_Welcome_Message #Creating a logon overview excluding service account logons, noisy local system logons and machine account logons.`nPlease be patient.
     Write-Host
     
     $WineventFilter = @{}
-    $EventIDsToAnalyze = 4624, 4634, 4647
+    $EventIDsToAnalyze = 4624, 4634, 4647, 1100
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
     $TotalLogonEvents = 0
     $TotalFilteredLogons = 0
@@ -463,6 +463,7 @@ function Create-LogonTimeline {
     $OtherTypeLogon = 0
 
     $output = @()
+    $LogServiceShutdownTimeArray = @()
     
     if ( $StartTimeline -ne "" ) { 
         $StartTimeline = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
@@ -486,6 +487,7 @@ function Create-LogonTimeline {
 
         $WineventFilter.Add( "Path", $LogFile )
         $filesize = Format-FileSize( (get-item $LogFile).length )
+        $filesizeMB = (Get-Item $LogFile).length / 1MB 
     }
 
     $filesizeMB = $filesizeMB * 0.1
@@ -494,7 +496,6 @@ function Create-LogonTimeline {
     $RuntimeHours = $TempTimeSpan.Hours.ToString()
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-    $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
 
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: "
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
@@ -560,8 +561,36 @@ function Create-LogonTimeline {
             $LogoffEventArray.Add( $LogoffEvent ) > $null
 
         }
+            
+        # 1100 Event log service stopped
+        if ($event.Id -eq "1100") { 
+
+            $TotalLogonEvents++
+            $eventXML = [xml]$event.ToXml()
+            <#
+            foreach ($data in $eventXML.Event.EventData.data) {
+            
+                switch ( $data.name ) {
+                        
+                    "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
+                }
+            }
+            #>
+
+            if ( $UTC -eq $true ) {
+                $LogServiceShutdownTimeString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+            }
+            else {
+                $LogServiceShutdownTimeString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
+            $LogServiceShutdownTimeDateTime = [datetime]::ParseExact($LogServiceShutdownTimeString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogServiceShutdownTimeArray += $LogServiceShutdownTimeDateTime 
+
+        }
                         
     }
+                       
 
     foreach ( $event in $logs ) {
         
@@ -589,6 +618,8 @@ function Create-LogonTimeline {
             }
 
             $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $LogoffTimestampString = "" 
+            $LogServiceShutdownTimeString = ""
 
             if ( $UTC -eq $true ) {
                 $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
@@ -596,21 +627,38 @@ function Create-LogonTimeline {
                 $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
             }
 
-            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
-            $LogoffTimestampString = "" 
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
 
-            foreach ( $EventIndex in $LogoffEventArray ) {
-                
-                # $EventIndex[0] -> Logoff Logon ID
-                # $EventIndex[1] -> Logoff time
-                # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id (rare case?))
-                if ( $EventIndex[0] -eq $msgTargetLogonID -and $EventIndex[1] -ge $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
+            if ( $msgLogonType -eq "0" ) { #if System startup/runtime
+
+                foreach ( $LogServiceShutdownTime in $LogServiceShutdownTimeArray ) {
+
+                    if ( $LogServiceShutdownTime -gt $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
                        
-                    $LogoffTimestampString = $EventIndex[1].ToString("yyyy-MM-dd HH:mm:ss.ff") 
-                    $ElapsedTime = $EventIndex[1] - $LogonTimestampDateTime
+                        $LogoffTimestampString = $LogServiceShutdownTime.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                        $ElapsedTime = $LogServiceShutdownTime - $LogonTimestampDateTime
 
-                }     
+                    }     
                     
+                }
+
+            } else #regular logon events
+            {
+ 
+                foreach ( $EventIndex in $LogoffEventArray ) {
+                
+                    # $EventIndex[0] -> Logoff Logon ID
+                    # $EventIndex[1] -> Logoff time
+                    # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id (rare case?))
+                    if ( $EventIndex[0] -eq $msgTargetLogonID -and $EventIndex[1] -ge $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
+                       
+                        $LogoffTimestampString = $EventIndex[1].ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                        $ElapsedTime = $EventIndex[1] - $LogonTimestampDateTime
+
+                    }     
+                    
+                }
+
             }
 
             $TotalRuntime = [math]::Round(($ElapsedTime).TotalSeconds)
@@ -622,7 +670,7 @@ function Create-LogonTimeline {
             #$RuntimeMilliSeconds = $TempTimeSpan.Milliseconds.ToString()
 
             $ElapsedTimeOutput = ""
-            if ( $LogoffTimestampString -eq "" ) {
+            if ( $LogoffTimestampString -eq "") {
 
                 $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
 
@@ -651,9 +699,9 @@ function Create-LogonTimeline {
             }
 
             if ($msgTargetUserName -ne "SYSTEM" -and   #Username is not system 
-                #$msgWorkstationName -ne "-" -and       #Workstation Name is not blank IPアドレスチェックで多分十分なので、とりあえずコメントアウト
+                #$msgWorkstationName -ne "-" -and       #Workstation Name is not blank IPアドレスチェックで多分十分なので、とりあえずコメントアウト could possibly bypass by naming the hostname "-" or leaving blank which attackers often do
                 $msgIpAddress -ne "-" -and             #IP Address is not blank
-                $msgTargetUserName[-1] -ne "$" -or     #Not a machine account
+                ($msgTargetUserName[-1] -ne "$" -and $msgIpAddress -ne "127.0.0.1") -or     #Not a machine account local logon
                 ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) #To find system boot time システムの起動時間を調べるため
             {
                 $Timezone = Get-TimeZone
