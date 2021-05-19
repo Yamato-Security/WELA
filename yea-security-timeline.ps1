@@ -481,6 +481,7 @@ function Create-LogonTimeline {
         Perform-LiveAnalysisChecks
         $WineventFilter.Add( "LogName", "Security" )
         $filesizeMB = (Get-Item "C:\Windows\System32\winevt\Logs\Security.evtx").Length / 1MB
+        $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
 
     }
     else {
@@ -497,7 +498,7 @@ function Create-LogonTimeline {
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
-    Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: "
+    Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
@@ -697,11 +698,9 @@ function Create-LogonTimeline {
                 default { $OtherTypeLogon++ } #this shouldn't happen 出力されたらバグ
                          
             }
-
-            if ($msgTargetUserName -ne "SYSTEM" -and   #Username is not system 
-                #$msgWorkstationName -ne "-" -and       #Workstation Name is not blank IPアドレスチェックで多分十分なので、とりあえずコメントアウト could possibly bypass by naming the hostname "-" or leaving blank which attackers often do
-                $msgIpAddress -ne "-" -and             #IP Address is not blank
-                ($msgTargetUserName[-1] -ne "$" -and $msgIpAddress -ne "127.0.0.1") -or     #Not a machine account local logon
+    
+            if ($msgIpAddress -ne "-" -and             #IP Address is not blank
+                !($msgTargetUserName[-1] -eq "$" -and $msgIpAddress -eq "127.0.0.1" ) -or     #Not a machine account local logon
                 ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) #To find system boot time システムの起動時間を調べるため
             {
                 $Timezone = Get-TimeZone

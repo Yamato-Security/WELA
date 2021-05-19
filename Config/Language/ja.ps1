@@ -4,7 +4,6 @@ language config:Japanese version
 
 
 # Event ID Statistics
-
 $1100 = @{
     EventTitle = 'イベントログサービスがシャットダウンしました。';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';
@@ -13,15 +12,15 @@ $1101 = @{
     EventTitle = 'Audit Events Have Been Dropped By The Transport';
 }
 $1102 = @{
-    EventTitle     = 'Event log was cleared';
+    EventTitle     = 'イベントログがクリアされた';
     TimelineDetect = "Yes";
     Comment        = 'Should not happen normally so this is a good event to look out for.';
 }
 $1107 = @{
-    EventTitle = 'Event processing error';
+    EventTitle = 'イベント処理によるエラー';
 }
 $4608 = @{
-    EventTitle = 'Windows started up';
+    EventTitle = 'Windowsが起動された';
 }
 $4610 = @{
     EventTitle = 'An authentication package has been loaded by the Local Security Authority';
@@ -33,7 +32,7 @@ $4614 = @{
     EventTitle = 'A notification package has been loaded by the Security Account Manager';
 }
 $4616 = @{
-    EventTitle = 'System time was changed';
+    EventTitle = 'システム時刻の変更';
 }
 $4622 = @{
     
@@ -41,31 +40,31 @@ $4622 = @{
 }
 $4624 = @{
     
-    EventTitle      = 'Account logon';
+    EventTitle      = 'アカウントログオン';
     TimelineDetect = "Yes";
 }
 $4625 = @{
-    EventTitle      = 'Failed logon';
+    EventTitle      = 'ログオンに失敗';
     TimelineDetect = "Yes"; 
 }
 $4634 = @{
-    EventTitle      = 'Logoff';
+    EventTitle      = 'ログオフ';
     TimelineDetect = "Yes"
 }
 $4647 = @{
-    EventTitle      = 'Logoff';
+    EventTitle      = 'ログオフ';
     TimelineDetect = "Yes" 
 }
 $4648 = @{
-    EventTitle      = 'Explicit logon';
+    EventTitle      = '明示的なログオン';
     TimelineDetect = "Yes"
 }
 $4672 = @{
-    EventTitle      = 'Admin logon';
+    EventTitle      = '管理者ログオン';
     TimelineDetect = "Yes";
 }
 $4688 = @{
-    EventTitle = 'New process started';
+    EventTitle = '新しいプロセスが起動された';
 }
 $4696 = @{
     EventTitle = 'Primary token assigned to process';
@@ -74,7 +73,7 @@ $4692 = @{
     EventTitle = 'Backup of data protection master key was attempted';
 }
 $4697 = @{
-    EventTitle = 'Service installed';
+    EventTitle = 'サービスがインストールされた';
 }
 $4717 = @{
     EventTitle = 'System security access was granted to an account';
@@ -83,63 +82,63 @@ $4719 = @{
     EventTitle = 'System audit policy was changed';
 }
 $4720 = @{
-    EventTitle     = 'User account created';
+    EventTitle     = 'ユーザアカウントが作成された';
     TimelineDetect = "Yes"
 }
 $4722 = @{
-    EventTitle = 'User account enabled';
+    EventTitle = 'ユーザアカウントが有効になった';
 }
 $4724 = @{
-    EventTitle = 'Password reset';
+    EventTitle = 'パスワードリセット';
 }
 $4725 = @{
-    EventTitle = 'User account disabled';
+    EventTitle = 'ユーザアカウントが無効になった';
 }
 $4726 = @{
-    EventTitle = 'User account deleted';
+    EventTitle = 'ユーザアカウントが削除された';
 } 
 $4728 = @{
-    EventTitle = 'User added to security global group';
+    EventTitle = 'ユーザがセキュリティグローバルグループに追加された';
 }
     
 $4729 = @{
-    EventTitle = 'User removed from security global group';
+    EventTitle = 'ユーザがセキュリティグローバルグループから削除された';
 }
     
 $4732 = @{
-    EventTitle = 'User added to security local group';
+    EventTitle = 'ユーザがセキュリティローカルグループに追加された';
 }
     
 $4733 = @{
-    EventTitle = 'User removed from security local group';
+    EventTitle = 'ユーザがセキュリティローカルグループから削除された';
 }
     
 $4735 = @{
-    EventTitle = 'Security local group was changed';
+    EventTitle = 'セキュリティローカルグループの変更';
 }
     
 $4727 = @{
-    EventTitle = 'Security global group was changed';
+    EventTitle = 'セキュリティグローバルグループの変更';
 }
     
 $4738 = @{
-    EventTitle = 'User account''s properties changed';
+    EventTitle = 'ユーザアカウントプロパティの変更';
 }
     
 $4739 = @{
-    EventTitle = 'Domain policy channged';
+    EventTitle = 'ドメインポリシーが変更された';
 }
     
 $4776 = @{
-    EventTitle = 'NTLM logon to local user';
+    EventTitle = 'ローカルユーザへのNTLMログオン';
 }
     
 $4778 = @{
-    EventTitle = 'RDP session reconnected or user switched back through Fast Userr Switching';
+    EventTitle = 'RDPセッションの再接続またはユーザーの簡易切り替えによるログオン';
 }
     
 $4779 = @{
-    EventTitle = 'RDP session disconnected or user switched away through Fast User Switching';
+    EventTitle = 'RDPセッションの切断または簡易切り替えによるログオフ';
 }
     
 $4797 = @{
@@ -155,15 +154,15 @@ $4799 = @{
 }
      
 $4781 = @{
-    EventTitle = 'User name was changed';
+    EventTitle = 'ユーザ名が変更された';
 }
     
 $4800 = @{
-    EventTitle = 'Workstation was locked';
+    EventTitle = '端末がロックされた’;
 }
     
 $4801 = @{
-    EventTitle = 'Workstation was unlocked';
+    EventTitle = '端末がロック解除された';
 }
     
 $4826 = @{
@@ -191,7 +190,7 @@ $4944 = @{
 }
     
 $4945 = @{
-    EventTitle = 'Rule listed when the firewall started' ; Comment = "Too much noise when firewall starts" 
+    EventTitle = 'Rule listed when the firewall started' ; Comment = "ファイアウォールが起動する際に大量のログが発生するのでフィルタした方が良い" 
 }
 $4946 = @{
     EventTitle = 'Rule added to firewall exception list';
@@ -214,11 +213,11 @@ $4956 = @{
 }
     
 $5024 = @{
-    EventTitle = 'Firewall started';
+    EventTitle = 'ファイアウォールが起動された';
 }
     
 $5033 = @{
-    EventTitle = 'Firewall driver started';
+    EventTitle = 'ファイアウォールドライバが起動された';
 }
      
 $5038 = @{
@@ -262,7 +261,7 @@ $5382 = @{
 }
     
 $5478 = @{
-    EventTitle = 'IPsec Services started';
+    EventTitle = 'IPsecサービスが起動された';
 }
     
 $5889 = @{
@@ -275,6 +274,9 @@ $5890 = @{
 $unregistered = @{
     EventTitle = "不明";
 }
+
+
+
 
 # function Create-LogonTimeline
 $Create_LogonTimeline_Welcome_Message = "サービスアカウント、ローカルシステム、マシンアカウント等の不要なイベントを省いて、ログオンタイムラインを作成します。`n少々お待ち下さい。"

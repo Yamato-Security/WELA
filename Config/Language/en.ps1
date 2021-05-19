@@ -124,7 +124,7 @@ $4738 = @{
 }
     
 $4739 = @{
-    EventTitle = 'Domain policy channged';
+    EventTitle = 'Domain policy changed';
 }
     
 $4776 = @{
@@ -132,7 +132,7 @@ $4776 = @{
 }
     
 $4778 = @{
-    EventTitle = 'RDP session reconnected or user switched back through Fast Userr Switching';
+    EventTitle = 'RDP session reconnected or user switched back through Fast User Switching';
 }
     
 $4779 = @{
@@ -288,7 +288,7 @@ $Create_LogonTimeline_SourceWorkstation = "Source Workstation"
 $Create_LogonTimeline_SourceIpAddress = "Source IP Address"
 $Create_LogonTimeline_SourceIpPort = "Source Port"
 $Create_LogonTimeline_LogonID = "Logon ID"
-$Create_LogonTimeline_Processing_Time = "Estimated processing time: {0} hours {1} minutes {2} seconds"
+$Create_LogonTimeline_Processing_Time = "Processing time: {0} hours {1} minutes {2} seconds"
 $Create_LogonTimeline_NoLogoffEvent = "No logoff event"
 $Create_LogonTimeline_Total_Logon_Event_Records = "Total logon event records: "
 $Create_LogonTimeline_Data_Reduction = "Log event data reduction: "
