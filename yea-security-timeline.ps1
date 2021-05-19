@@ -434,6 +434,7 @@ function Create-LogonTimeline {
     #TODO:
     #Output only odd hour times
     #Color to table
+    #Add RDP
 
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
@@ -444,7 +445,7 @@ function Create-LogonTimeline {
     Write-Host
     
     $WineventFilter = @{}
-    $EventIDsToAnalyze = 4624, 4634, 4647, 1100
+    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 1100
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
     $TotalLogonEvents = 0
     $TotalFilteredLogons = 0
@@ -506,6 +507,7 @@ function Create-LogonTimeline {
     $TotalNumberOfLogs = 0
 
     [System.Collections.ArrayList]$LogoffEventArray = @()
+    $AdminLogonArray = @()
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
@@ -568,15 +570,6 @@ function Create-LogonTimeline {
 
             $TotalLogonEvents++
             $eventXML = [xml]$event.ToXml()
-            <#
-            foreach ($data in $eventXML.Event.EventData.data) {
-            
-                switch ( $data.name ) {
-                        
-                    "TargetLogonID" { $msgTargetLogonID = $data.'#text' }  
-                }
-            }
-            #>
 
             if ( $UTC -eq $true ) {
                 $LogServiceShutdownTimeString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
@@ -589,9 +582,35 @@ function Create-LogonTimeline {
             $LogServiceShutdownTimeArray += $LogServiceShutdownTimeDateTime 
 
         }
+
+        # 4672 Special logon -> ADMIN LOGON ログオンしたユーザが管理者権限を持っているかどうか確認
+        if ($event.Id -eq "4672") { 
+
+            $TotalLogonEvents++
+            $eventXML = [xml]$event.ToXml()
+            
+            foreach ($data in $eventXML.Event.EventData.data) {
+            
+                switch ( $data.name ) {
+                    
+                    "SubjectUserName" { $msgSubjectUserName = $data.'#text' } 
+                    #"SubjectLogonId" { $msgSubjectLogonID = $data.'#text' }  #I was checking with Logon IDs but the duplicate 4624 event that I am filtering out later has the logon ID mapped to 4672 so will for now just check the username. 
+                                                                              #This will mess up results in the rare case that someone logs in as a normal user, adds them to the local admin group then logs in again,
+                                                                              #but will still be able to tell that that account now has admin rights or did at some point in time.
+
+                }
+            }
+
+            if ( $AdminLogonArray.Contains( $msgSubjectUserName ) -eq $false ) {
+
+                $AdminLogonArray += $msgSubjectUserName
+
+            }
+
+        }
+
                         
-    }
-                       
+    }  
 
     foreach ( $event in $logs ) {
         
@@ -712,7 +731,9 @@ function Create-LogonTimeline {
                     $UTCOffset = "UTC"
                 }
 
-                $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
+                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
+
+                $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_isAdmin = $isAdmin ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
                 
                 if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
                 if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
@@ -772,7 +793,7 @@ function Create-LogonTimeline {
         }
         Else {
 
-            $output | Format-Table -AutoSize
+            $output | Format-Table * # Powershell by default only prints 10 columns so added *
 
         }
      
