@@ -25,6 +25,7 @@ https://github.com/yamatosecurity
 # 
 # Inspired by Eric Conrad's DeepBlueCLI (https://github.com/sans-blue-team/DeepBlueCLI)
 # Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/en/article/references-pdf)
+# and event log info from www.ultimatewindowssecurity.com
 
 param (
     [bool]$Japanese = $false,
@@ -53,10 +54,7 @@ $ProgramStartTime = Get-Date
 #Functions:
 function Show-Contributors {
     Write-Host 
-    Write-Host "Contributors:"
-    Write-Host "DustInDark - Localization"
-    Write-Host
-    Write-Host "Please contribute to this project for fame and glory!"
+    Write-Host $Show_Contributors -ForegroundColor Cyan
     Write-Host
 }
 
@@ -184,6 +182,8 @@ if ( $EuropeDateFormat -eq $true ) {
 } 
 
 function EventInfo ($eventIDNumber) {
+# TODO
+# - Add all security event IDs from https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx
     
     [hashtable]$return = @{}
 
@@ -269,7 +269,7 @@ function EventInfo ($eventIDNumber) {
 
 function Create-EventIDStatistics {
 
-    #TODO:
+    # TODO:
     # - Implement save-output
     # - Add comments to event IDs
     # - Explicitly output results in a table
@@ -609,8 +609,7 @@ function Create-LogonTimeline {
             }
 
         }
-
-                        
+                      
     }  
 
     foreach ( $event in $logs ) {
@@ -1105,26 +1104,6 @@ function Create-Timeline {
             } 
 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
-
-
-            #Filter out SYSTEM, DWM-X, DefaultAppPool, IUSR and machine accounts (ending in $) Not using the SubectUserName anymore as an attacker could create a username as DWM-1, etc.. and bypass detection.
-            <#
-            if ($msgSubjectUserName -ne "SYSTEM" -and 
-            $msgSubjectUserName -ne "IUSR" -and 
-            $msgSubjectUserName -ne "DWM-1" -and 
-            $msgSubjectUserName -ne "DWM-2" -and 
-            $msgSubjectUserName -ne "DWM-3" -and 
-            $msgSubjectUserName -ne "DWM-4" -and 
-            $msgSubjectUserName -ne "DWM-5" -and
-            $msgSubjectUserName -ne "DWM-6" -and
-            $msgSubjectUserName -ne "LOCAL SERVICE" -and 
-            $msgSubjectUserName -ne "NETWORK SERVICE" -and
-            $msgSubjectUserName -ne "DefaultAppPool" -and
-            $msgSubjectUserName[-1] -ne "$" 
-            ){
-                $printMSG = " 4672 - ADMIN LOGON by user: $msgSubjectUserName Logon ID: $msgSubjectLogonId"
-            }
-            #>
 
             if ($msgSubjectDomainName -ne "NT AUTHORITY" -and
                 $msgSubjectDomainName -ne "Window Manager" -and 

@@ -326,3 +326,12 @@ $Create_LogonTimeline_Type12 = "タイプ 12 キャッシュされた認証情�
 $Create_LogonTimeline_Type13 = "タイプ 13 キャッシュされた認証情報によるロック解除のログオン (例：DCに接続できない場合のロック解除またはRDP再接続):"
 $Create_LogonTimeline_TypeOther = "その他のタイプのログオン:"
 
+#function Show-Contributors
+$Show_Contributors =
+"コントリビューター:
+
+DustInDark - ローカライゼーション、和訳
+つぼっく - 和訳
+
+コントリビューターを募集しています！
+"

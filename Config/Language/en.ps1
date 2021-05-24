@@ -325,3 +325,12 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 
 
 
+#function Show-Contributors
+$Show_Contributors =
+"Contributors:
+
+DustInDark - Localization, Japanese Translations
+Tsubokku - Japanese Translations
+
+Please contribute to this project for fame and glory!
+"
