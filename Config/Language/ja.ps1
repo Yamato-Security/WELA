@@ -3,7 +3,19 @@ language config:Japanese version
 #>
 
 
-# Event ID Statistics
+# function Create-EventIDStatistics
+$Create_EventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計します。`n少々お待ちください。"
+$Create_EventIDStatistics_TotalEventLogs = "イベントの合計:"
+$Create_EventIDStatistics_FileSize = "ファイルサイズ:"
+$Create_EventIDStatistics_FirstEvent = "最初のイベント:"
+$Create_EventIDStatistics_LastEvent = "最後のイベント:"
+$Create_EventIDStatistics_ProcessingTime = "処理時間：{0}時{1}分{2}秒"
+$Create_EventIDStatistics_Count = "カウント"
+$Create_EventIDStatistics_ID = "ID"
+$Create_EventIDStatistics_Event = "イベント"
+$Create_EventIDStatistics_TimelineOutput = "タイムライン出力"
+$Create_EventIDStatistics_Comment = "コメント"
+
 $1100 = @{
     EventTitle = 'イベントログサービスがシャットダウンしました。';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';
@@ -313,3 +325,4 @@ $Create_LogonTimeline_Type11 = "タイプ 11 キャッシュされた認証情�
 $Create_LogonTimeline_Type12 = "タイプ 12 キャッシュされた認証情報によるリモートインタラクティブログオン (例：キャッシュされた認証情報によるRDP、Microsoftライブアカウントの使用):"
 $Create_LogonTimeline_Type13 = "タイプ 13 キャッシュされた認証情報によるロック解除のログオン (例：DCに接続できない場合のロック解除またはRDP再接続):"
 $Create_LogonTimeline_TypeOther = "その他のタイプのログオン:"
+

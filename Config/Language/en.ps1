@@ -2,6 +2,20 @@
 language config:English version
 #>
 
+# function Create-EventIDStatistics
+$Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics.`nPlease be patient."
+$Create_EventIDStatistics_TotalEventLogs = "Total event logs:"
+$Create_EventIDStatistics_FileSize = "File size:"
+$Create_EventIDStatistics_FirstEvent = "First event:"
+$Create_EventIDStatistics_LastEvent = "Last event:"
+$Create_EventIDStatistics_ProcessingTime = "Processing time: {0} hours {1} minutes {2} seconds."
+$Create_EventIDStatistics_Count = "Count"
+$Create_EventIDStatistics_ID = "ID"
+$Create_EventIDStatistics_Event = "Event"
+$Create_EventIDStatistics_TimelineOutput = "Timeline Output"
+$Create_EventIDStatistics_Comment = "Comment"
+
+
 $1100 = @{
     EventTitle = 'Event logging service was shut down';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';
@@ -290,7 +304,7 @@ $Create_LogonTimeline_SourceWorkstation = "Source Workstation"
 $Create_LogonTimeline_SourceIpAddress = "Source IP Address"
 $Create_LogonTimeline_SourceIpPort = "Source Port"
 $Create_LogonTimeline_LogonID = "Logon ID"
-$Create_LogonTimeline_Processing_Time = "Processing time: {0} hours {1} minutes {2} seconds"
+$Create_LogonTimeline_Processing_Time = "Processing time: {0} hours {1} minutes {2} seconds."
 $Create_LogonTimeline_NoLogoffEvent = "No logoff event"
 $Create_LogonTimeline_Total_Logon_Event_Records = "Total logon event records: "
 $Create_LogonTimeline_Data_Reduction = "Log event data reduction: "
@@ -308,3 +322,6 @@ $Create_LogonTimeline_Type11 = "Type 11 CachedInteractive/Cached Credentials Log
 $Create_LogonTimeline_Type12 = "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts):"
 $Create_LogonTimeline_Type13 = "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC):"
 $Create_LogonTimeline_TypeOther = "Other Type Logons:"
+
+
+
