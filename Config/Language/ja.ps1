@@ -17,11 +17,11 @@ $Create_EventIDStatistics_TimelineOutput = "タイムライン出力"
 $Create_EventIDStatistics_Comment = "コメント"
 
 $1100 = @{
-    EventTitle = 'イベントログサービスがシャットダウンしました。';
+    EventTitle = 'イベントログサービスがシャットダウンした';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';
 }
 $1101 = @{
-    EventTitle = 'Audit Events Have Been Dropped By The Transport';
+    EventTitle = '監査イベントがトランスポートによって削除された';
 }
 $1102 = @{
     EventTitle     = 'イベントログがクリアされた';
@@ -35,63 +35,61 @@ $4608 = @{
     EventTitle = 'Windowsが起動された';
 }
 $4610 = @{
-    EventTitle = 'An authentication package has been loaded by the Local Security Authority';
+    EventTitle = '認証パッケージがローカル セキュリティ機関によって読み込まれた';
 }
 $4611 = @{
-    EventTitle = 'A trusted logon process has been registered with the Local Security Authority';
+    EventTitle = '信頼されたログオン プロセスがローカルセキュリティ機関で登録された';
 }
 $4614 = @{
-    EventTitle = 'A notification package has been loaded by the Security Account Manager';
+    EventTitle = 'セキュリティ アカウント マネージャによって通知パッケージが読み込まれた';
 }
 $4616 = @{
     EventTitle = 'システム時刻の変更';
 }
 $4622 = @{
-    
-    EventTitle = 'A security package has been loaded by the Local Security Authority';
+    EventTitle = 'セキュリティ パッケージがローカル セキュリティ機関によって読み込まれた';
 }
 $4624 = @{
-    
-    EventTitle      = 'アカウントログオン';
+    EventTitle     = 'アカウントログオン';
     TimelineDetect = "Yes";
 }
 $4625 = @{
-    EventTitle      = 'ログオンに失敗';
+    EventTitle     = 'ログオンに失敗';
     TimelineDetect = "Yes"; 
 }
 $4634 = @{
-    EventTitle      = 'ログオフ';
+    EventTitle     = 'ログオフ';
     TimelineDetect = "Yes"
 }
 $4647 = @{
-    EventTitle      = 'ログオフ';
+    EventTitle     = 'ログオフ';
     TimelineDetect = "Yes" 
 }
 $4648 = @{
-    EventTitle      = '明示的なログオン';
+    EventTitle     = '明示的なログオン';
     TimelineDetect = "Yes"
 }
 $4672 = @{
-    EventTitle      = '管理者ログオン';
+    EventTitle     = '管理者ログオン';
     TimelineDetect = "Yes";
 }
 $4688 = @{
     EventTitle = '新しいプロセスが起動された';
 }
 $4696 = @{
-    EventTitle = 'Primary token assigned to process';
+    EventTitle = 'プライマリートークンがプロセスに割り当てられた';
 }
 $4692 = @{
-    EventTitle = 'Backup of data protection master key was attempted';
+    EventTitle = 'データ保護用のマスターキーのバックアップが行われた';
 }
 $4697 = @{
     EventTitle = 'サービスがインストールされた';
 }
 $4717 = @{
-    EventTitle = 'System security access was granted to an account';
+    EventTitle = 'システムセキュリティのアクセス権がアカウントに付与された';
 }
 $4719 = @{
-    EventTitle = 'System audit policy was changed';
+    EventTitle = 'システム監査ポリシーが変更された';
 }
 $4720 = @{
     EventTitle     = 'ユーザアカウントが作成された';
@@ -154,15 +152,15 @@ $4779 = @{
 }
     
 $4797 = @{
-    EventTitle = 'Attempt to query the account for a blank password';
+    EventTitle = '空のパスワードでアカウントの照会を行った';
 }
       
 $4798 = @{
-    EventTitle = 'User''s local group membership was enumerated';
+    EventTitle = 'ユーザーのローカルグループメンバシップが列挙された';
 }
     
 $4799 = @{
-    EventTitle = 'Local group membership was enumerated';
+    EventTitle = 'ローカルグループのメンバーシップを列挙した';
 }
      
 $4781 = @{
@@ -178,50 +176,51 @@ $4801 = @{
 }
     
 $4826 = @{
-    EventTitle = 'Boot configuration data loaded';
+    EventTitle = 'ブート構成データを読み込んだ';
 }
     
 $4902 = @{
-    EventTitle = 'Per-user audit policy table was created';
+    EventTitle = 'ユーザごとの監査ポリシーテーブルが作成された';
 }
      
 $4904 = @{
-    EventTitle = 'Attempt to register a security event source';
+    EventTitle = 'セキュリティイベントソースの登録を行った';
 }
     
 $4905 = @{
-    EventTitle = 'Attempt to unregister a security event source';
+    EventTitle = 'セキュリティイベントソースの登録を解除した';
 }
      
 $4907 = @{
-    EventTitle = 'Auditing settings on object was changed';
+    EventTitle = 'オブジェクトの監査設定が変更された';
 }
      
 $4944 = @{
-    EventTitle = 'Policy active when firewall started';
+    EventTitle = 'ファイアウォール起動時に有効なポリシー';
 }
     
 $4945 = @{
-    EventTitle = 'Rule listed when the firewall started' ; Comment = "ファイアウォールが起動する際に大量のログが発生するのでフィルタした方が良い" 
+    EventTitle = 'Rule listed when the firewall started' ;
+    Comment    = "ファイアウォールが起動する際に大量のログが発生するのでフィルタした方が良い";
 }
 $4946 = @{
-    EventTitle = 'Rule added to firewall exception list';
+    EventTitle = 'ファイアウォールの例外リストにルールが追加された';
 }
     
 $4947 = @{
-    EventTitle = 'Rule modified in firewall exception list';
+    EventTitle = 'ファイアウォールの例外リストのルールが変更された';
 }
     
 $4948 = @{
-    EventTitle = 'Rule deleted in firewall exception list';
+    EventTitle = 'ファイアウォールの例外リストのルールが削除された';
 }
     
 $4954 = @{
-    EventTitle = 'New setting applied to firewall group policy';
+    EventTitle = 'ファイアウォールグループに新しい設定が適用された';
 }
     
 $4956 = @{
-    EventTitle = 'Firewall active profile changed';
+    EventTitle = 'ファイアウォールのアクティブプロファイルが変更された';
 }
     
 $5024 = @{
@@ -233,43 +232,43 @@ $5033 = @{
 }
      
 $5038 = @{
-    EventTitle = 'Code integrity determined that the image hash of a file is not valid';
+    EventTitle = 'コードの整合性により、ファイルの画像ハッシュが無効であると判断された';
 }
     
 $5058 = @{
-    EventTitle = 'Key file operation';
+    EventTitle = 'キーファイルの操作';
 }
      
 $5059 = @{
-    EventTitle = 'Key migration operation';
+    EventTitle = 'キーの移行操作';
 }
     
 $5061 = @{
-    EventTitle = 'Cryptographic operation';
+    EventTitle = '暗号化操作';
 }
      
 $5140 = @{
-    EventTitle = 'Network share object was accessed';
+    EventTitle = 'ネットワーク共有オブジェクトへのアクセスがあった';
 }
     
 $5142 = @{
-    EventTitle = 'A network share object was added';
+    EventTitle = 'ネットワーク共有オブジェクトが追加された';
 }
     
 $5144 = @{
-    EventTitle = 'A network share object was deleted';
+    EventTitle = 'ネットワーク共有オブジェクトが削除された';
 }
     
 $5379 = @{
-    EventTitle = 'Credential Manager credentials were read';
+    EventTitle = 'クレデンシャルマネージャの認証情報が読み込まれた';
 }
     
 $5381 = @{
-    EventTitle = 'Vault credentials were read';
+    EventTitle = 'Valutの認証情報が読み取られた';
 }
     
 $5382 = @{
-    EventTitle = 'Vault credentials were read';
+    EventTitle = 'Valutの認証情報が読み取られた';
 }
     
 $5478 = @{
@@ -277,11 +276,11 @@ $5478 = @{
 }
     
 $5889 = @{
-    EventTitle = 'An object was added to the COM+ Catalog';
+    EventTitle = 'COM+ カタログからオブジェクトが削除された';
 }
     
 $5890 = @{
-    EventTitle = 'An object was added to the COM+ Catalog';
+    EventTitle = 'COM+ カタログからオブジェクトが追加された';
 }
 $unregistered = @{
     EventTitle = "不明";
