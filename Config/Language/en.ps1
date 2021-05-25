@@ -52,27 +52,27 @@ $4622 = @{
 }
 $4624 = @{
     
-    EventTitle      = 'Account logon';
+    EventTitle     = 'Account logon';
     TimelineDetect = "Yes";
 }
 $4625 = @{
-    EventTitle      = 'Failed logon';
+    EventTitle     = 'Failed logon';
     TimelineDetect = "Yes"; 
 }
 $4634 = @{
-    EventTitle      = 'Logoff';
+    EventTitle     = 'Logoff';
     TimelineDetect = "Yes"
 }
 $4647 = @{
-    EventTitle      = 'Logoff';
+    EventTitle     = 'Logoff';
     TimelineDetect = "Yes" 
 }
 $4648 = @{
-    EventTitle      = 'Explicit logon';
+    EventTitle     = 'Explicit logon';
     TimelineDetect = "Yes"
 }
 $4672 = @{
-    EventTitle      = 'Admin logon';
+    EventTitle     = 'Admin logon';
     TimelineDetect = "Yes";
 }
 $4688 = @{
@@ -203,7 +203,7 @@ $4944 = @{
     
 $4945 = @{
     EventTitle = 'Rule listed when the firewall started' ; 
-    Comment = "Too much noise when firewall starts" ;
+    Comment    = "Too much noise when firewall starts" ;
 }
 $4946 = @{
     EventTitle = 'Rule added to firewall exception list';
@@ -278,7 +278,7 @@ $5478 = @{
 }
     
 $5889 = @{
-    EventTitle = 'An object was added to the COM+ Catalog';
+    EventTitle = 'An object was deleted to the COM+ Catalog';
 }
 $5890 = @{
     EventTitle = 'An object was added to the COM+ Catalog';
