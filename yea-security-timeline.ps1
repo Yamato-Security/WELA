@@ -1803,7 +1803,10 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $LogDirectory -eq "" -an
     Write-Host " : Creates a timeline based on the live host's log"
 
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timelime from an offline .evtx file"
+    Write-Host " : Creates a timeline from an offline .evtx file"
+
+    Write-Host "   -LogDirectory <path-to-logdirectory>" -NoNewline -ForegroundColor Green
+    Write-Host " : Creates a timeline from offline .evtx files in the directory"
 
     Write-Host
     Write-Host "Analysis Type (Specify one):"
