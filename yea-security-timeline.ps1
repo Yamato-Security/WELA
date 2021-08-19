@@ -668,7 +668,8 @@ function Create-LogonTimeline {
                 }
 
             }
-            else { #regular logon events
+            else {
+                #regular logon events
  
                 foreach ( $EventIndex in $LogoffEventArray ) {
                 
@@ -725,7 +726,8 @@ function Create-LogonTimeline {
     
             if ($msgIpAddress -ne "-" -and #IP Address is not blank
                 !($msgTargetUserName[-1] -eq "$" -and $msgIpAddress -eq "127.0.0.1" ) -or #Not a machine account local logon
-                ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) { #To find system boot time システムの起動時間を調べるため
+                ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) {
+                #To find system boot time システムの起動時間を調べるため
                 $Timezone = Get-TimeZone
                 $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
                 $StartParen = $TimezoneName.IndexOf('(') #get position of (
@@ -1702,98 +1704,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 
 if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
 
-    Write-Host 
-    Write-Host "YEA Security Event Timeline Generator" -ForegroundColor Green
-    Write-Host "Version: $YEAVersion" -ForegroundColor Green
-    Write-Host "Author: Zach Mathis (@yamatosecurity)" -ForegroundColor Green
-    Write-Host 
-
-    Write-Host "Please specify some options:" 
-    Write-Host
-
-    Write-Host "Analysis Source (Specify one):"
-
-    Write-Host "   -LiveAnalysis `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timeline based on the live host's log"
-
-    Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timelime from an offline .evtx file"
-
-    Write-Host
-    Write-Host "Analysis Type (Specify one):"
-
-    Write-Host "   -EventIDStatistics `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output event ID statistics" 
-
-    Write-Host "   -AccountInformation `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output the usernames and SIDs of accounts"
-    
-    Write-Host "   -LogonStatistics `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output logon statistics"
-
-    Write-Host "   -LogonTimeline `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output a simple timeline of user logons"
-
-    Write-Host "   -CreateBriefHumanReadableTimeline `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a human readable timeline with minimal noise"
-
-    Write-Host "   -CreateFullHumanReadableTimeline `$true" -NoNewline  -ForegroundColor Green
-    Write-Host " : Creates a human readable timeline with all details"
-
-    Write-Host 
-    Write-Host "Output Types (Default: Standard Output):"
-
-    Write-Host "   -SaveOutput <outputfile-path>" -NoNewline -ForegroundColor Green
-    Write-Host " : Output results to a text file"
-
-    Write-Host "   -OutputCSV `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Outputs to CSV (Default: `$false)"
-
-    Write-Host "   -OutputGUI `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Outputs to the Out-GridView GUI (Default: `$false)"
-
-    Write-Host 
-    Write-Host "Analysis Options:"
-
-    Write-Host "   -StartTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify the start of the timeline"
-
-    Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify the end of the timeline"
-
-    Write-Host "   -IsDC `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify if the logs are from a DC (Default: `$false)"
-
-    Write-Host 
-    Write-Host "Output Options:"
-
-    Write-Host "   -USDateFormat `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output the dates in MM-DD-YYYY format (Default: YYYY-MM-DD)"
-
-    Write-Host "   -EuropeDateFormat `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output the dates in DD-MM-YYYY format (Default: YYYY-MM-DD)"
-
-    Write-Host "   -UTC `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output in UTC time (Default: `$false)"
-    
-    Write-Host "   -DisplayTimezone `$false" -NoNewline -ForegroundColor Green
-    Write-Host " : Displays the timezone used (Default: `$true)"
-
-    Write-Host "   -ShowLogonID `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify if you want to see Logon IDs (Default: `$false)"
-
-    Write-Host "   -Japanese `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Output in Japanese"
-
-    Write-Host
-    Write-Host "Other:"
-
-    Write-Host "   -ShowContributors `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Show the contributors" 
-
-
-    Write-Host
-
+    Write-Help
     exit
 
 }
