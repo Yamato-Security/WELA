@@ -182,8 +182,8 @@ if ( $EuropeDateFormat -eq $true ) {
 } 
 
 function EventInfo ($eventIDNumber) {
-# TODO
-# - Add all security event IDs from https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx
+    # TODO
+    # - Add all security event IDs from https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx
     
     [hashtable]$return = @{}
 
@@ -596,8 +596,8 @@ function Create-LogonTimeline {
                     
                     "SubjectUserName" { $msgSubjectUserName = $data.'#text' } 
                     #"SubjectLogonId" { $msgSubjectLogonID = $data.'#text' }  #I was checking with Logon IDs but the duplicate 4624 event that I am filtering out later has the logon ID mapped to 4672 so will for now just check the username. 
-                                                                              #This will mess up results in the rare case that someone logs in as a normal user, adds them to the local admin group then logs in again,
-                                                                              #but will still be able to tell that that account now has admin rights or did at some point in time.
+                    #This will mess up results in the rare case that someone logs in as a normal user, adds them to the local admin group then logs in again,
+                    #but will still be able to tell that that account now has admin rights or did at some point in time.
 
                 }
             }
@@ -646,13 +646,15 @@ function Create-LogonTimeline {
 
             if ( $UTC -eq $true ) {
                 $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
-            } else {
+            }
+            else {
                 $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
             }
 
             $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
 
-            if ( $msgLogonType -eq "0" ) { #if System startup/runtime
+            if ( $msgLogonType -eq "0" ) {
+                #if System startup/runtime
 
                 foreach ( $LogServiceShutdownTime in $LogServiceShutdownTimeArray ) {
 
@@ -665,8 +667,8 @@ function Create-LogonTimeline {
                     
                 }
 
-            } else #regular logon events
-            {
+            }
+            else { #regular logon events
  
                 foreach ( $EventIndex in $LogoffEventArray ) {
                 
@@ -721,10 +723,9 @@ function Create-LogonTimeline {
                          
             }
     
-            if ($msgIpAddress -ne "-" -and             #IP Address is not blank
-                !($msgTargetUserName[-1] -eq "$" -and $msgIpAddress -eq "127.0.0.1" ) -or     #Not a machine account local logon
-                ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) #To find system boot time システムの起動時間を調べるため
-            {
+            if ($msgIpAddress -ne "-" -and #IP Address is not blank
+                !($msgTargetUserName[-1] -eq "$" -and $msgIpAddress -eq "127.0.0.1" ) -or #Not a machine account local logon
+                ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) { #To find system boot time システムの起動時間を調べるため
                 $Timezone = Get-TimeZone
                 $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
                 $StartParen = $TimezoneName.IndexOf('(') #get position of (
@@ -769,11 +770,11 @@ function Create-LogonTimeline {
     $output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
 
     #重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
-    for ( $i = 0 ; $i -le  ( $output.count - 1 ) ; $i++) {
+    for ( $i = 0 ; $i -le ( $output.count - 1 ) ; $i++) {
 
-        if ( $output[$i].$Create_LogonTimeline_LogonTime -eq $output[$i+1].$Create_LogonTimeline_LogonTime -and
-             $output[$i].$Create_LogonTimeline_Type -eq $output[$i+1].$Create_LogonTimeline_Type -and
-             $output[$i].$Create_LogonTimeline_TargetUser -eq $output[$i+1].$Create_LogonTimeline_TargetUser) {
+        if ( $output[$i].$Create_LogonTimeline_LogonTime -eq $output[$i + 1].$Create_LogonTimeline_LogonTime -and
+            $output[$i].$Create_LogonTimeline_Type -eq $output[$i + 1].$Create_LogonTimeline_Type -and
+            $output[$i].$Create_LogonTimeline_TargetUser -eq $output[$i + 1].$Create_LogonTimeline_TargetUser) {
 
             $output.RemoveAt($i)
             $TotalFilteredLogons--
@@ -1694,91 +1695,7 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
 
 if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
  
-    Write-Host 
-    Write-Host "YEAセキュリティイベントタイムライン作成ツール" -ForegroundColor Green
-    Write-Host "バージョン: $YEAVersion" -ForegroundColor Green
-    Write-Host "作者: 白舟（田中ザック） (@yamatosecurity)" -ForegroundColor Green
-    Write-Host 
-
-    Write-Host "解析ソースを一つ指定して下さい：" 
-    Write-Host "   -LiveAnalysis `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : ホストOSのログでタイムラインを作成する"
-
-    Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
-    Write-Host " : オフラインの.evtxファイルでタイムラインを作成する"
-
-
-    Write-Host
-    Write-Host "解析タイプを一つ指定して下さい:"
-
-    Write-Host "   -EventIDStatistics `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : イベントIDの統計情報を出力する" 
-
-    Write-Host "   -AccountInformation `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : ユーザ名とSIDのアカウント情報を出力する"
-
-    Write-Host "   -LogonStatistics `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : ログオンの統計を出力する"
-
-    Write-Host "   -LogonTimeline `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : ユーザログオンの簡単なタイムラインを出力する"
-
-    Write-Host "   -CreateHumanReadableTimeline `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : 読みやすいタイムラインを出力する"
-
-    Write-Host 
-    Write-Host "出力方法（デフォルト：標準出力）:"
-
-    Write-Host "   -SaveOutput <出力パス>" -NoNewline -ForegroundColor Green
-    Write-Host " : テキストファイルに出力する"
-
-    Write-Host "   -OutputGUI `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Out-GridView GUIに出力する (デフォルト： `$false)"
-
-    Write-Host "   -OutputCSV `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : CSVファイルに出力する (デフォルト： `$false)"
-
-    Write-Host 
-    Write-Host "解析オプション:"
-
-    Write-Host "   -StartTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : タイムラインの始まりを指定する"
-
-    Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : タイムラインの終わりを指定する"
-
-    Write-Host "   -IsDC `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : ドメインコントローラーのログの場合は指定して下さい (デフォルト： `$false)"
-
-    Write-Host 
-    Write-Host "出力オプション:"
-
-    Write-Host "   -USDateFormat `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : 日付をMM-DD-YYYY形式で出力する (デフォルト： YYYY-MM-DD)"
-
-    Write-Host "   -EuropeDateFormat `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : 日付をDD-MM-YYYY形式で出力する (デフォルト： YYYY-MM-DD)" 
-
-    Write-Host "   -UTC `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : 時間をUTC形式で出力する（デフォルト：`$false）"
-
-    Write-Host "   -DisplayTimezone `$false" -NoNewline -ForegroundColor Green
-    Write-Host " : ログオンIDを出力する (デフォルト： `$true)"
-
-    Write-Host "   -ShowLogonID `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : ログオンIDを出力する (デフォルト： `$false)"
-     
-    Write-Host "   -Japanese `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : 日本語で出力する"
-
-    Write-Host
-    Write-Host "その他:"
-
-    Write-Host "   -ShowContributors `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : コントリビューターの一覧表示" 
-
-    Write-Host
-
+    Write-Help
     exit
 
 }
