@@ -1693,18 +1693,10 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
     exit
 }
 
-
-
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
- 
-    Write-Help
-    exit
-
-}
-
+# Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
 if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
 
-    Write-Help
+    Show-Help
     exit
 
 }

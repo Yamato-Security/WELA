@@ -335,7 +335,7 @@ DustInDark - ローカライゼーション、和訳
 コントリビューターを募集しています！
 "
 
-function Write-Help {
+function Show-Help {
     
     Write-Host 
     Write-Host "YEAセキュリティイベントタイムライン作成ツール" -ForegroundColor Green

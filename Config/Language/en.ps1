@@ -335,7 +335,7 @@ Tsubokku - Japanese Translations
 Please contribute to this project for fame and glory!
 "
 
-function Write-Help {
+function Show-Help {
     Write-Host 
     Write-Host "YEA Security Event Timeline Generator" -ForegroundColor Green
     Write-Host "Version: $YEAVersion" -ForegroundColor Green
