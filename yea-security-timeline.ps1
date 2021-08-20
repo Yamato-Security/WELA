@@ -38,6 +38,7 @@ param (
     [bool]$ShowLogonID = $false,
     [bool]$LiveAnalysis = $false,
     [string]$LogFile = "",
+    [string]$LogDirectory = "",
     [bool]$ShowContributors = $false,
     [bool]$EventIDStatistics = $false,
     [bool]$LogonTimeline = $false,
@@ -1692,7 +1693,7 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
 
 
 
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $LogDirectory -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) ) {
  
     Write-Host 
     Write-Host "YEAセキュリティイベントタイムライン作成ツール" -ForegroundColor Green
@@ -1707,6 +1708,8 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
     Write-Host " : オフラインの.evtxファイルでタイムラインを作成する"
 
+    Write-Host "   -LogDirectory <path-to-logdirectory>" -NoNewline -ForegroundColor Green
+    Write-Host " : 単一のフォルダに保存された複数の.evtxファイルでタイムラインを作成する"
 
     Write-Host
     Write-Host "解析タイプを一つ指定して下さい:"
@@ -1783,7 +1786,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 
 }
 
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $LogDirectory -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
 
     Write-Host 
     Write-Host "YEA Security Event Timeline Generator" -ForegroundColor Green
@@ -1800,7 +1803,10 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
     Write-Host " : Creates a timeline based on the live host's log"
 
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timelime from an offline .evtx file"
+    Write-Host " : Creates a timeline from an offline .evtx file"
+
+    Write-Host "   -LogDirectory <path-to-logdirectory>" -NoNewline -ForegroundColor Green
+    Write-Host " : Creates a timeline from offline .evtx files in the directory"
 
     Write-Host
     Write-Host "Analysis Type (Specify one):"
@@ -1888,14 +1894,34 @@ if ( $LiveAnalysis -eq $true ) {
 }
 #>
 
-if ( $EventIDStatistics -eq $true ) {
+$evtxFiles = @($LogFile)
 
-    Create-EventIDStatistics
+if ( $LogDirectory -ne "" ) {
+
+    if ($LogFile -ne "") {
+        Write-Host
+        Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
+        exit
+    }
+    $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object {$_.FullName}
 
 }
 
-if ( $LogonTimeline -eq $true ) {
+foreach ( $LogFile in $evtxFiles ) {
 
-    Create-LogonTimeline
+    if ( $EventIDStatistics -eq $true ) {   
 
+        Create-EventIDStatistics
+    
+    }
+    
+    if ( $LogonTimeline -eq $true ) {
+    
+        Create-LogonTimeline
+    
+    }
+
+    if ( $LiveAnalysis -eq $true ) {
+        exit
+    }
 }
