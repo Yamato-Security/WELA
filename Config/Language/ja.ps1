@@ -350,6 +350,8 @@ function Show-Help {
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
     Write-Host " : オフラインの.evtxファイルでタイムラインを作成する"
 
+    Write-Host "   -LogDirectory <path-to-logdirectory>" -NoNewline -ForegroundColor Green
+    Write-Host " : 単一のフォルダに保存された複数の.evtxファイルでタイムラインを作成する"
 
     Write-Host
     Write-Host "解析タイプを一つ指定して下さい:"

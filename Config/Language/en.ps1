@@ -353,6 +353,9 @@ function Show-Help {
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
     Write-Host " : Creates a timelime from an offline .evtx file"
 
+    Write-Host "   -LogDirectory <path-to-logdirectory>" -NoNewline -ForegroundColor Green
+    Write-Host " : Creates a timeline from offline .evtx files in the directory"
+
     Write-Host
     Write-Host "Analysis Type (Specify one):"
 

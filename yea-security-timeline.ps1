@@ -38,6 +38,7 @@ param (
     [bool]$ShowLogonID = $false,
     [bool]$LiveAnalysis = $false,
     [string]$LogFile = "",
+    [string]$LogDirectory = "",
     [bool]$ShowContributors = $false,
     [bool]$EventIDStatistics = $false,
     [bool]$LogonTimeline = $false,
@@ -1708,14 +1709,34 @@ if ( $LiveAnalysis -eq $true ) {
 }
 #>
 
-if ( $EventIDStatistics -eq $true ) {
+$evtxFiles = @($LogFile)
 
-    Create-EventIDStatistics
+if ( $LogDirectory -ne "" ) {
+
+    if ($LogFile -ne "") {
+        Write-Host
+        Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
+        exit
+    }
+    $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
 
 }
 
-if ( $LogonTimeline -eq $true ) {
+foreach ( $LogFile in $evtxFiles ) {
 
-    Create-LogonTimeline
+    if ( $EventIDStatistics -eq $true ) {   
 
+        Create-EventIDStatistics
+    
+    }
+    
+    if ( $LogonTimeline -eq $true ) {
+    
+        Create-LogonTimeline
+    
+    }
+
+    if ( $LiveAnalysis -eq $true ) {
+        exit
+    }
 }
