@@ -329,6 +329,7 @@ $Create_LogonTimeline_TypeOther = "その他のタイプのログオン:"
 $Show_Contributors =
 "コントリビューター:
 
+oginoPmP - 開発
 DustInDark - ローカライゼーション、和訳
 つぼっく - 和訳
 

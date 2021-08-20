@@ -329,6 +329,7 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Show_Contributors =
 "Contributors:
 
+oginoPmP - Developer
 DustInDark - Localization, Japanese Translations
 Tsubokku - Japanese Translations
 
