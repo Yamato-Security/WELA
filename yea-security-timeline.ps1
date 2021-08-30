@@ -435,7 +435,6 @@ function Create-LogonTimeline {
     #Color to table
     #Add RDP
     #Add Failed Logons
-    #Add 4776?
     #Explicit logons
 
     # Notes: 
@@ -447,7 +446,7 @@ function Create-LogonTimeline {
     Write-Host
     
     $WineventFilter = @{}
-    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 1100
+    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 4776, 1100
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
     $TotalLogonEvents = 0
     $TotalFilteredLogons = 0
@@ -615,6 +614,8 @@ function Create-LogonTimeline {
 
     foreach ( $event in $logs ) {
         
+        $outputThisEvent = $FALSE
+
         #Successful logon
 
         if ($event.Id -eq "4624") { 
@@ -741,18 +742,87 @@ function Create-LogonTimeline {
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
 
                 if ( $msgAuthPackageName -eq "NTLM" ) { $msgAuthPackageName = $msgLmPackageName } #NTLMの場合はv1かv2か知りたい。AuthPackageはNTLMしか書いていないので、LmPackageName (例：NTLMv1, NTLMv2）で上書きする。
-
-                $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_Auth = $msgAuthPackageName ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_isAdmin = $isAdmin ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; "Process Name" = $msgProcessName ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
                 
-                if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
-                if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
-
-                $output += [pscustomobject]$tempoutput
-    
-                $TotalFilteredLogons++
-                    
+                $outputThisEvent = $TRUE
             }
            
+        }
+        
+        if ($event.Id -eq "4776") {
+            
+            $TotalLogonEvents++
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+
+                    switch ( $data.name ) {
+
+                        "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                        "Workstation" { $msgWorkstationName = $data.'#text' }
+                        "Status" { $msgStatus = $data.'#text' }
+
+                    }
+
+            }
+
+            $msgAuthPackageName = "NTLM"
+            $msgIpAddress = "-"
+            $msgIpPort = "-"
+            $msgProcessName = "-"
+
+            if ( $UTC -eq $true ) {
+                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+            else {
+                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+            $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
+
+            if ($msgTargetUserName[-1] -ne "$") {
+            
+                $Timezone = Get-TimeZone
+                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
+                $StartParen = $TimezoneName.IndexOf('(') #get position of (
+                $EndParen = $TimezoneName.IndexOf(')') #position of )
+                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
+                if ( $UTC -eq $true ) {
+                    $UTCOffset = "UTC"
+                }
+                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
+                
+                $outputThisEvent = $TRUE
+
+            }
+
+        }
+        
+        if ($outputThisEvent -eq $TRUE ){
+
+            $tempoutput = [Ordered]@{ 
+                $Create_LogonTimeline_Timezone = $UTCOffset ;
+                $Create_LogonTimeline_LogonTime = $LogonTimestampString ;
+                $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ;
+                $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ;
+                $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ;
+                $Create_LogonTimeline_Auth = $msgAuthPackageName ;
+                $Create_LogonTimeline_TargetUser = $msgTargetUserName ;
+                $Create_LogonTimeline_isAdmin = $isAdmin ;
+                $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
+                $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ;
+                $Create_LogonTimeline_SourceIpPort = $msgIpPort ;
+                "Process Name" = $msgProcessName ;
+                $Create_LogonTimeline_LogonID = $msgTargetLogonID
+            }
+
+            if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
+            if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
+
+            $output += [pscustomobject]$tempoutput
+
+            $TotalFilteredLogons++
+
         }
            
     }
