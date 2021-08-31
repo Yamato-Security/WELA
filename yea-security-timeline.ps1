@@ -51,14 +51,7 @@ param (
 
 $ProgramStartTime = Get-Date
 
-
-#Functions:
-function Show-Contributors {
-    Write-Host 
-    Write-Host $Show_Contributors -ForegroundColor Cyan
-    Write-Host
-}
-
+Import-Module './Config/utils.ps1' -Force ;
 
 function Logon-Number-To-String($msgLogonType) {
     switch ( $msgLogonType ) {
@@ -100,20 +93,7 @@ function Is-Logon-Dangerous ( $msgLogonType ) {
     return $msgIsLogonDangerous
 }
 
-Function Format-FileSize {
-    Param ([int]$size)
-    If ($size -gt 1TB) { [string]::Format("{0:0.00} TB", $size / 1TB) }
-    ElseIf ($size -gt 1GB) { [string]::Format("{0:0.00} GB", $size / 1GB) }
-    ElseIf ($size -gt 1MB) { [string]::Format("{0:0.00} MB", $size / 1MB) }
-    ElseIf ($size -gt 1KB) { [string]::Format("{0:0.00} kB", $size / 1KB) }
-    ElseIf ($size -gt 0) { [string]::Format("{0:0.00} B", $size) }
-    Else { "" }
-}
 
-function Check-Administrator {  
-    $user = [Security.Principal.WindowsIdentity]::GetCurrent();
-    (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)  
-}
 
 
 #Global variables
@@ -435,6 +415,7 @@ function Create-LogonTimeline {
     #Color to table
     #Add RDP
     #Add Failed Logons
+    #Add 4776?
     #Explicit logons
 
     # Notes: 
@@ -446,7 +427,7 @@ function Create-LogonTimeline {
     Write-Host
     
     $WineventFilter = @{}
-    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 4776, 1100
+    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 1100
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
     $TotalLogonEvents = 0
     $TotalFilteredLogons = 0
@@ -614,8 +595,6 @@ function Create-LogonTimeline {
 
     foreach ( $event in $logs ) {
         
-        $outputThisEvent = $FALSE
-
         #Successful logon
 
         if ($event.Id -eq "4624") { 
@@ -742,87 +721,18 @@ function Create-LogonTimeline {
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
 
                 if ( $msgAuthPackageName -eq "NTLM" ) { $msgAuthPackageName = $msgLmPackageName } #NTLMの場合はv1かv2か知りたい。AuthPackageはNTLMしか書いていないので、LmPackageName (例：NTLMv1, NTLMv2）で上書きする。
+
+                $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_Auth = $msgAuthPackageName ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_isAdmin = $isAdmin ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; "Process Name" = $msgProcessName ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
                 
-                $outputThisEvent = $TRUE
+                if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
+                if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
+
+                $output += [pscustomobject]$tempoutput
+    
+                $TotalFilteredLogons++
+                    
             }
            
-        }
-        
-        if ($event.Id -eq "4776") {
-            
-            $TotalLogonEvents++
-            $eventXML = [xml]$event.ToXml()
-
-            foreach ($data in $eventXML.Event.EventData.data) {
-
-                    switch ( $data.name ) {
-
-                        "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                        "Workstation" { $msgWorkstationName = $data.'#text' }
-                        "Status" { $msgStatus = $data.'#text' }
-
-                    }
-
-            }
-
-            $msgAuthPackageName = "NTLM"
-            $msgIpAddress = "-"
-            $msgIpPort = "-"
-            $msgProcessName = "-"
-
-            if ( $UTC -eq $true ) {
-                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
-            }
-            else {
-                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
-            }
-
-            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
-            $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
-
-            if ($msgTargetUserName[-1] -ne "$") {
-            
-                $Timezone = Get-TimeZone
-                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                $EndParen = $TimezoneName.IndexOf(')') #position of )
-                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                if ( $UTC -eq $true ) {
-                    $UTCOffset = "UTC"
-                }
-                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-                
-                $outputThisEvent = $TRUE
-
-            }
-
-        }
-        
-        if ($outputThisEvent -eq $TRUE ){
-
-            $tempoutput = [Ordered]@{ 
-                $Create_LogonTimeline_Timezone = $UTCOffset ;
-                $Create_LogonTimeline_LogonTime = $LogonTimestampString ;
-                $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ;
-                $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ;
-                $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ;
-                $Create_LogonTimeline_Auth = $msgAuthPackageName ;
-                $Create_LogonTimeline_TargetUser = $msgTargetUserName ;
-                $Create_LogonTimeline_isAdmin = $isAdmin ;
-                $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
-                $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ;
-                $Create_LogonTimeline_SourceIpPort = $msgIpPort ;
-                "Process Name" = $msgProcessName ;
-                $Create_LogonTimeline_LogonID = $msgTargetLogonID
-            }
-
-            if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
-            if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
-
-            $output += [pscustomobject]$tempoutput
-
-            $TotalFilteredLogons++
-
         }
            
     }
@@ -1739,6 +1649,76 @@ function Perform-LiveAnalysisChecks {
 if ( $ShowContributors -eq $true ) {
     Show-Contributors
     exit
+}
+
+
+if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
+    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
+        Write-Host
+        Write-Host "注意：ドメインコントローラーでライブ調査をしない方が良いです。ログをオフラインにコピーしてから解析して下さい。" -ForegroundColor White -BackgroundColor Red
+        exit
+    }
+    Write-Host
+    Write-Host "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis." -ForegroundColor White -BackgroundColor Red
+    exit
+}
+
+if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
+    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
+        Write-Host
+        Write-Host "エラー：「-LiveAnalysis `$true」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
+        exit
+    }
+    Write-Host
+    Write-Host "Error: you cannot specify -LiveAnalysis `$true and -LogFile at the same time." -ForegroundColor White -BackgroundColor Red
+    exit
+}
+
+# Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
+
+    Show-Help
+    exit
+
+}
+
+#Create-Timeline
+<#
+if ( $LiveAnalysis -eq $true ) {
+    Perform-LiveAnalysisChecks
+}
+#>
+
+$evtxFiles = @($LogFile)
+
+if ( $LogDirectory -ne "" ) {
+
+    if ($LogFile -ne "") {
+        Write-Host
+        Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
+        exit
+    }
+    $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
+
+}
+
+foreach ( $LogFile in $evtxFiles ) {
+
+    if ( $EventIDStatistics -eq $true ) {   
+
+        Create-EventIDStatistics
+    
+    }
+    
+    if ( $LogonTimeline -eq $true ) {
+    
+        Create-LogonTimeline
+    
+    }
+
+    if ( $LiveAnalysis -eq $true ) {
+        exit
+    }
 }
 
 
