@@ -49,18 +49,21 @@ param (
     [bool]$DisplayTimezone = $true
 )
 
-$ruleStack = @{};
+$Global:ruleStack = @{};
 
 $ProgramStartTime = Get-Date
 
-Import-Module './Config/utils.ps1' -Force ;
+Import-Module './Config/util.ps1' -Force ;
 
 $flagLiveAnalysis = ($LogFile -eq "");
 # Read Rules
-Get-ChildItem -Path './Rules' -Filter | Foreach-Object { Import-Module "$($PSScriptRoot)/Rules" -Force; Add-Rule $ruleStack $flagLiveAnalysis }
+Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; write-test; . Add-Rule $flagLiveAnalysis }
+
 
 function Start-Detection {
+    foreach ($rule in $ruleStack) {
 
+    }
 }
 
 function Logon-Number-To-String($msgLogonType) {
