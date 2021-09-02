@@ -120,7 +120,7 @@ function Check-Administrator {
 
 $YEAVersion = "0.1"
 
-$EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4776"
+$EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,4776"
 # Logs to filter for:
 # 4624 - LOGON
 # 4625 - FAILED LOGON
@@ -426,6 +426,19 @@ function Create-EventIDStatistics {
     }
 
 
+}
+
+function Get-KerberosStatusStr {
+    param(
+        $status
+    )
+    switch ( $status ) {
+        # 数は多いが有用なデータであるかどうか確認の上追記する
+        "0x0" { $msgStatusReadable = "No Error" }
+        default { $msStatusReadable = "" }
+    }
+
+    return $msgStatusReadable
 }
 
 function Create-LogonTimeline {
@@ -1080,7 +1093,6 @@ function Create-Timeline {
         $TotalLogs += 1
 
         $printMSG = ""
-
         # 4768 Kerberos authentication ticket(TGT) was requested
         if ($event.Id -eq "4768" -and $IsDC) {
             $eventXML = [xml]$event.ToXml()
@@ -1107,7 +1119,7 @@ function Create-Timeline {
                 $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
             }
 
-            $TimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
             $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
             $printMSG = "4768 - Requested Kerberos authentication ticket(TGT) to Service: $msgTargetService from User: $msgTargetUserName from Domain: $msgTargetDomainName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
@@ -1116,7 +1128,7 @@ function Create-Timeline {
                     Write-Host $timestamp -NoNewline
                     Write-Host " 4768 - Requested Kerberos authentication ticket(TGT)" -NoNewline
                     Write-Host " Status " -NoNewline
-                    Write-Host $msgStatus -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host $msgResultCode -NoNewline -ForegroundColor $ParameterColor 
                     Write-Host " (" -NoNewline
                     Write-Host $msgStatusReadable -NoNewline -ForegroundColor $ParameterColor
                     Write-Host ") to Service: " -NoNewline 
@@ -1130,6 +1142,7 @@ function Create-Timeline {
                     Write-Host " Port: " -NoNewline
                     Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
                     Write-Host " " -NoNewline
+                    Write-Host " ";
                 }
                 Else {
                     Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
@@ -1161,7 +1174,7 @@ function Create-Timeline {
                 $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
             }
 
-            $TimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
             $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
             $printMSG = "4769 - Requested Kerberos service ticket to Service: $msgTargetService from User: $msgTargetUserName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
@@ -1170,7 +1183,7 @@ function Create-Timeline {
                     Write-Host $timestamp -NoNewline
                     Write-Host "  4769 - Requested Kerberos service ticket" -NoNewline
                     Write-Host " Status " -NoNewline
-                    Write-Host $msgStatus -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host $msgResultCode -NoNewline -ForegroundColor $ParameterColor 
                     Write-Host " (" -NoNewline
                     Write-Host $msgStatusReadable -NoNewline -ForegroundColor $ParameterColor
                     Write-Host ") to Service: " -NoNewline 
@@ -1182,6 +1195,7 @@ function Create-Timeline {
                     Write-Host " Port: " -NoNewline
                     Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
                     Write-Host " " -NoNewline
+                    Write-Host "";
                 }
                 Else {
                     Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
@@ -1904,7 +1918,7 @@ foreach ( $LogFile in $evtxFiles ) {
     if ( $EventIDStatistics -eq $true ) {   
 
         Create-EventIDStatistics
-    
+        Create-Timeline
     }
     
     if ( $LogonTimeline -eq $true ) {
