@@ -1797,21 +1797,3 @@ if ( $LogDirectory -ne "" ) {
 
 }
 
-foreach ( $LogFile in $evtxFiles ) {
-
-    if ( $EventIDStatistics -eq $true ) {   
-
-        Create-EventIDStatistics
-    
-    }
-    
-    if ( $LogonTimeline -eq $true ) {
-    
-        Create-LogonTimeline
-    
-    }
-
-    if ( $LiveAnalysis -eq $true ) {
-        exit
-    }
-}
