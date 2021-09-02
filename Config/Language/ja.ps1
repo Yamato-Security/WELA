@@ -16,6 +16,8 @@ $Create_EventIDStatistics_Event = "イベント"
 $Create_EventIDStatistics_TimelineOutput = "タイムライン出力"
 $Create_EventIDStatistics_Comment = "コメント"
 
+$Detect_ProcessingDetectionMessage = "ルールベースでの検知中です。`n"
+
 $1100 = @{
     EventTitle = 'イベントログサービスがシャットダウンした';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';

@@ -57,12 +57,21 @@ Import-Module './Config/util.ps1' -Force ;
 
 $flagLiveAnalysis = ($LogFile -eq "");
 # Read Rules
-Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; write-test; . Add-Rule $flagLiveAnalysis }
+Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+
+Write-Host "RuleStacks:" $Global:ruleStack;
+$str = $Global:ruleStack | Out-String;
+Write-Host "StrRuleStacks:" $str;
+
 
 
 function Start-Detection {
-    foreach ($rule in $ruleStack) {
-
+    param(
+        $LogFilePath
+    )
+    
+    foreach ($rule in $Global:ruleStack.Values) {
+        Invoke-Command $rule -ArgumentList $LogFilePath;
     }
 }
 
@@ -354,10 +363,13 @@ function Create-EventIDStatistics {
     #Offline Log Analysis
     Else {
 
-        $WineventFilter.Add( "Path", $LogFile ) 
+        $WineventFilter.Add( "Path", $LogFile )
         $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
         $eventlist = @{}
         $TotalNumberOfLogs = 0
+        Write-Host $Detect_ProcessingDetectionMessage;
+        # 対象となるログのカウントなどが必要になるため各レコードではなく一旦ログ全体から取得するものとする
+        Start-Detection $logs
 
         foreach ( $event in $logs ) {
 

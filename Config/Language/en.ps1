@@ -323,7 +323,7 @@ $Create_LogonTimeline_Type12 = "Type 12 CachedRemoteInteractive (Ex: RDP with ca
 $Create_LogonTimeline_Type13 = "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC):"
 $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 
-
+$Detect_ProcessingDetectionMessage = "Processing rule-base detection...`n"
 
 #function Show-Contributors
 $Show_Contributors =
