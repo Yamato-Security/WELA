@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Windows PowerShell | where {($_.message -match "CommandLine.*.*Get-WmiObject.*" -and $_.message -match "CommandLine.*.* Win32_Shadowcopy.*" -and ($_.message -match "CommandLine.*.*Delete().*" -or $_.message -match "CommandLine.*.*Remove-WmiObject.*") -and $_.ID -eq "400") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

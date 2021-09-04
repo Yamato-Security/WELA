@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "7") -and (($_.message -match "ImageLoaded.*.*\\credui.dll" -or $_.message -match "ImageLoaded.*.*\\wincredui.dll") -or ($_.message -match "credui.dll" -or $_.message -match "wincredui.dll"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

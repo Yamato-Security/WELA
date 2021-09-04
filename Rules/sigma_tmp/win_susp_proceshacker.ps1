@@ -1,0 +1,1 @@
+Get-WinEvent -LogName System | where {($_.ID -eq "7045" -and $_.message -match "ServiceName.*ProcessHacker.*" -and $_.message -match "AccountName.*LocalSystem") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

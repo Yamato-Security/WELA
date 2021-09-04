@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "ParentImage.*.*\\pcalua.exe" -or $_.message -match "ParentImage.*.*\\forfiles.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

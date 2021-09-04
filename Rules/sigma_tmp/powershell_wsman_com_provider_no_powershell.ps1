@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.message -match ".*ProviderName=WSMan.*" -and  -not ($_.message -match ".*HostApplication=.*powershell.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "4738" -and ($_.message -match ".*DES.*" -or $_.message -match ".*Preauth.*" -or $_.message -match ".*Encrypted.*") -and ($_.message -match ".*Enabled.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

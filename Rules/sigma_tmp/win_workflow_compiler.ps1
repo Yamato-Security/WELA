@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "Image.*.*\\Microsoft.Workflow.Compiler.exe" -or ($_.message -match "OriginalFileName.*Microsoft.Workflow.Compiler.exe" -and $_.message -match "CommandLine.*.*.xml.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

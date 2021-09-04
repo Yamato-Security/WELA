@@ -1,0 +1,1 @@
+Get-WinEvent -LogName System | where {($_.message -match "Source.*Microsoft-Windows-Ntfs" -and $_.ID -eq "98" -and $_.message -match "DeviceName.*.*HarddiskVolumeShadowCopy.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and $_.message -match "Image.*.*\\powershell.exe" -and  -not (($_.message -match "ParentImage.*.*\\explorer.exe" -or $_.message -match "ParentImage.*.*\\CompatTelRunner.exe"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

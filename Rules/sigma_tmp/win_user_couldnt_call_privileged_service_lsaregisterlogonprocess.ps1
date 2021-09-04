@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "4673" -and $_.message -match "Service.*LsaRegisterLogonProcess()" -and $_.message -match "Keywords.*0x8010000000000000") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

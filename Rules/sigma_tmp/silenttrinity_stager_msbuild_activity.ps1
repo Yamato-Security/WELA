@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "3" -and $_.message -match "ParentImage.*.*\\msbuild.exe" -and ($_.message -match "80" -or $_.message -match "443") -and $_.message -match "Initiated.*true") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

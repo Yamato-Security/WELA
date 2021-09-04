@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*rundll32.exe.*" -and $_.message -match "CommandLine.*.*Execute.*" -and $_.message -match "CommandLine.*.*RegRead.*" -and $_.message -match "CommandLine.*.*window.close.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

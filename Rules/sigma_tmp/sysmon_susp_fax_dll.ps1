@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "7") -and (($_.message -match "Image.*.*fxssvc.exe") -and ($_.message -match "ImageLoaded.*.*ualapi.dll")) -and  -not (($_.message -match "ImageLoaded.*C:\\Windows\\WinSxS\\.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

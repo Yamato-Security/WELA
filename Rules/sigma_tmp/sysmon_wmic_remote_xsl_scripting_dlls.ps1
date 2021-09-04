@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "7" -and $_.message -match "Image.*.*\\wmic.exe" -and ($_.message -match "ImageLoaded.*.*\\jscript.dll" -or $_.message -match "ImageLoaded.*.*\\vbscript.dll")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

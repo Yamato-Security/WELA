@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Windows PowerShell | where {(($_.ID -eq "400" -and $_.message -match "HostName.*ConsoleHost") -and  -not (($_.message -match "HostApplication.*powershell.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

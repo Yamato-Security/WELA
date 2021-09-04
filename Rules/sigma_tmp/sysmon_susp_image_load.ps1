@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "7" -and ($_.message -match "Image.*.*\\notepad.exe") -and ($_.message -match "ImageLoaded.*.*\\samlib.dll" -or $_.message -match "ImageLoaded.*.*\\WinSCard.dll")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

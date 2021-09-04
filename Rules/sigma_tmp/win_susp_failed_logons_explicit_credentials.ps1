@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "4648") }  | select ComputerName, Account_Name | group ComputerName | foreach { [PSCustomObject]@{'ComputerName'=$_.name;'Count'=($_.group.Account_Name | sort -u).count} }  | sort count -desc | where { $_.count -gt 10 }

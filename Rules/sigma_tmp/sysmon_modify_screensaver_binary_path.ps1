@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and $_.message -match "TargetObject.*.*\\Control Panel\\Desktop\\SCRNSAVE.EXE" -and  -not (($_.message -match "Image.*.*\\rundll32.exe" -or $_.message -match "Image.*.*\\explorer.exe"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

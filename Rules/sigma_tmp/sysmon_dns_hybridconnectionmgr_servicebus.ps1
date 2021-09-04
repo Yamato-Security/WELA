@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "22" -and $_.message -match "QueryName.*.*servicebus.windows.net.*" -and $_.message -match "Image.*.*HybridConnectionManager.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

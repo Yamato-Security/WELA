@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Windows PowerShell | where {($_.ID -eq "400" -and ($_.message -match "EngineVersion.*2..*" -or $_.message -match "EngineVersion.*4..*" -or $_.message -match "EngineVersion.*5..*") -and $_.message -match "HostVersion.*3..*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent | where {($_.ID -eq "1121" -and ($_.message -match "ProcessName.*.*\\wmiprvse.exe" -or $_.message -match "ProcessName.*.*\\psexesvc.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and ($_.message -match "TargetFilename.*.*\\AppData\\Local\\Microsoft\\Cache134.dat" -or $_.message -match "TargetFilename.*.*\\AppData\\Local\\Microsoft\\ExplorerSync.db")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

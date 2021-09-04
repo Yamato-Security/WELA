@@ -1,0 +1,1 @@
+Get-WinEvent -LogName System | where {($_.ID -eq "7045" -and $_.message -match "ServiceName.*BTOBTO" -and $_.Service File Name -eq "*\\execute.bat") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

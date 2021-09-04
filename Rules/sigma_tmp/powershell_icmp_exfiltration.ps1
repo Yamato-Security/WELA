@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*New-Object.*" -and $_.message -match "ScriptBlockText.*.*System.Net.NetworkInformation.Ping.*" -and $_.message -match "ScriptBlockText.*.*.Send(.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

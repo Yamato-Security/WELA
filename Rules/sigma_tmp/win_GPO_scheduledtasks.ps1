@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "5145" -and $_.message -match "ShareName.*\\.*\\SYSVOL" -and $_.message -match "RelativeTargetName.*.*ScheduledTasks.xml" -and ($_.message -match "Accesses.*.*WriteData.*" -or $_.message -match "Accesses.*.*%%4417.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "4719" -and ($_.message -match "AuditPolicyChanges.*.*%%8448.*" -or $_.message -match "AuditPolicyChanges.*.*%%8450.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

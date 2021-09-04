@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "8" -and $_.message -match "StartModule.*.*\\kernel32.dll" -and $_.message -match "StartFunction.*LoadLibraryA") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

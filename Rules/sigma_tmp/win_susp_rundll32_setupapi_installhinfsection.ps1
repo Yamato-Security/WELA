@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\runonce.exe" -and $_.message -match "ParentImage.*.*\\rundll32.exe" -and $_.message -match "ParentCommandLine.*.*setupapi.dll.*" -and $_.message -match "ParentCommandLine.*.*InstallHinfSection.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

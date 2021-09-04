@@ -1,0 +1,2 @@
+Get-WinEvent -LogName Windows PowerShell | where {($_.ID -eq "400" -and ($_.message -match "HostApplication.*.*powercat .*" -or $_.message -match "HostApplication.*.*powercat.ps1.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4103" -and ($_.message -match "ContextInfo.*.*powercat .*" -or $_.message -match "ContextInfo.*.*powercat.ps1.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "6" -and ($_.message -match "ImageLoaded.*.*\\WinDivert.sys.*" -or $_.message -match "ImageLoaded.*.*\\WinDivert64.sys.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

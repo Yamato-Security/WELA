@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {(($_.ID -eq "4624" -and $_.message -match "LogonType.*3" -and $_.message -match "ProcessName.*.*scrcons.exe") -and  -not ($_.message -match "TargetLogonId.*0x3e7")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

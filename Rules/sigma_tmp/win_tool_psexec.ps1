@@ -1,0 +1,4 @@
+Get-WinEvent -LogName System | where {($_.message -match "ServiceName.*PSEXESVC" -and (($_.ID -eq "7045" -and $_.Service File Name -eq "*\\PSEXESVC.exe") -or $_.ID -eq "7036")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\PSEXESVC.exe" -and $_.message -match "User.*NT AUTHORITY\\SYSTEM") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "17" -or $_.ID -eq "18") -and $_.message -match "PipeName.*\\PSEXESVC") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\\PSEXESVC.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

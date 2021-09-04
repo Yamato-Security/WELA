@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Remove-SmbShare.*" -or $_.message -match "ScriptBlockText.*.*Remove-FileShare.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

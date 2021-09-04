@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*-Recurse.*" -and $_.message -match "ScriptBlockText.*.*|.*" -and $_.message -match "ScriptBlockText.*.*Compress-Archive.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*System.Management.Automation.AmsiUtils.*") -and ($_.message -match "CommandLine.*.*amsiInitFailed.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

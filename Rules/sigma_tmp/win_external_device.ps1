@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {(((($_.ID -eq "6416") -and $_.message -match "ClassName.*DiskDrive") -or $_.message -match "DeviceDescription.*USB Mass Storage Device")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

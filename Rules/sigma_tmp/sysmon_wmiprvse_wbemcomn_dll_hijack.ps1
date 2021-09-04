@@ -1,0 +1,2 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "Image.*System" -and $_.message -match "TargetFilename.*.*\\wbem\\wbemcomn.dll") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "7" -and $_.message -match "Image.*.*\\wmiprvse.exe" -and $_.message -match "ImageLoaded.*.*\\wbem\\wbemcomn.dll") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

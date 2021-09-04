@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "23" -and ($_.message -match "TargetFilename.*.*.AAA" -or $_.message -match "TargetFilename.*.*.ZZZ")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

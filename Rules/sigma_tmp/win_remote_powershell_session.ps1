@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "5156" -and ($_.message -match "5985" -or $_.message -match "5986") -and $_.message -match "LayerRTID.*44") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

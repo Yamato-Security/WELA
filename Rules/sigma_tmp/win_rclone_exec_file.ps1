@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*:\\Users\\.*" -and $_.message -match "TargetFilename.*.*\\.config\\rclone\\.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

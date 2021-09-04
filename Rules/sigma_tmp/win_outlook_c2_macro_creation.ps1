@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\\Microsoft\\Outlook\\VbaProject.OTM") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

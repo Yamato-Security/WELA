@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "23" -and ($_.message -match "Image.*.*spoolsv.exe") -and ($_.message -match "TargetFilename.*.*C:\\Windows\\System32\\spool\\drivers\\x64\\3\\.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

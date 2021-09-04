@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*verb:sync.*" -and $_.message -match "CommandLine.*.*-source:RunCommand.*" -and $_.message -match "CommandLine.*.*-dest:runCommand.*" -and ($_.message -match "Image.*.*\\msdeploy.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

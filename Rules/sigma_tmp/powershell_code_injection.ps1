@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "8" -and $_.message -match "SourceImage.*.*\\powershell.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName System | where {($_.ID -eq "16" -and $_.message -match "HiveName.*.*\\AppData\\Local\\Temp\\SAM.*" -and $_.message -match "HiveName.*.*.dmp") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\rundll32.exe" -and $_.message -match "CommandLine.*.*C:\\windows\\system32\\davclnt.dll,DavSetCookie.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

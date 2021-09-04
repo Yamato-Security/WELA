@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and (($_.message -match "Image.*.*\\sqlps.exe" -or $_.message -match "ParentImage.*.*\\sqlps.exe") -or ($_.message -match "OriginalFileName.*\\sqlps.exe" -and  -not ($_.message -match "ParentImage.*.*\\sqlagent.exe")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

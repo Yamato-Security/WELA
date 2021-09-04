@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {(($_.ID -eq "4697") -and $_.message -match "ServiceName.*HybridConnectionManager" -and $_.Service File Name -eq "*HybridConnectionManager*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

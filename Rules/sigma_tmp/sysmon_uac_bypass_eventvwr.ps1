@@ -1,0 +1,2 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKU\\.*" -and $_.message -match "TargetObject.*.*\\mscfile\\shell\\open\\command") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and $_.message -match "ParentImage.*.*\\eventvwr.exe" -and  -not ($_.message -match "Image.*.*\\mmc.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

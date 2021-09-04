@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {(($_.ID -eq "4657" -or $_.ID -eq "4656" -or $_.ID -eq "4660" -or $_.ID -eq "4663") -and $_.message -match "ObjectName.*.*\\Microsoft\\Windows Defender\\Exclusions\\.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

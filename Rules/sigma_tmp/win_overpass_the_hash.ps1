@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "4624" -and $_.message -match "LogonType.*9" -and $_.message -match "LogonProcessName.*seclogo" -and $_.message -match "AuthenticationPackageName.*Negotiate") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\protocolhandler.exe" -and $_.message -match "CommandLine.*.*\"ms-word.*" -and $_.message -match "CommandLine.*.*.docx\".*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

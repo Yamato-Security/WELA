@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "ParentImage.*.*\\System32\\control.exe" -and $_.message -match "Image.*.*\\rundll32.exe ") -and  -not ($_.message -match "CommandLine.*.*Shell32.dll.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

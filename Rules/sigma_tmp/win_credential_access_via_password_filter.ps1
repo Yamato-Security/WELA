@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa.*" -and $_.message -match "CommandLine.*.*scecli\\0.*" -and $_.message -match "CommandLine.*.*reg add.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

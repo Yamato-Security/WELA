@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*sdclt.exe" -and $_.message -match "IntegrityLevel.*High") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

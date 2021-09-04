@@ -1,0 +1,1 @@
+Get-WinEvent -LogName MSExchange Management | where {($_.message -match ".*Set-OabVirtualDirectory.*" -and $_.message -match ".*ExternalUrl.*" -and $_.message -match ".*Page_Load.*" -and $_.message -match ".*script.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

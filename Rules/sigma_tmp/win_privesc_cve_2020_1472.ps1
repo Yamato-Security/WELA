@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {(($_.ID -eq "4742" -and $_.message -match "SubjectUserName.*ANONYMOUS LOGON" -and $_.message -match "TargetUserName.*%DC-MACHINE-NAME%") -and  -not ($_.message -match "PasswordLastSet.*-")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

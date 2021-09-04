@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKLM\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components.*" -and $_.message -match "TargetObject.*.*\\StubPath") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

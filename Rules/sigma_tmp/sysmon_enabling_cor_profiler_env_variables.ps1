@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\COR_ENABLE_PROFILING" -or $_.message -match "TargetObject.*.*\\COR_PROFILER")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "net group \"domain admins\" /domain" -or $_.message -match "net localgroup administrators" -or $_.message -match "net group \"enterprise admins\" /domain")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\cscript.exe" -and $_.message -match "CommandLine.*.*winrm.*" -and $_.message -match "CommandLine.*.*invoke Create wmicimv2/Win32_.*" -and $_.message -match "CommandLine.*.*-r:http.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

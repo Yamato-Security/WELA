@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "Image.*.*\\dctask64.exe") -and  -not (($_.message -match "CommandLine.*.*DesktopCentral_Agent\\agent.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

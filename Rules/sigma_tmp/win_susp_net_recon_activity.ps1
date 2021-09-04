@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "4661" -and ($_.message -match "SAM_USER" -or $_.message -match "SAM_GROUP") -and $_.message -match "ObjectName.*S-1-5-21-.*" -and $_.message -match "AccessMask.*0x2d" -and ($_.message -match "ObjectName.*.*-500" -or $_.message -match "ObjectName.*.*-512")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

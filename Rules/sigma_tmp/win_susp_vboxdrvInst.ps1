@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\VBoxDrvInst.exe" -and $_.message -match "CommandLine.*.*driver.*" -and $_.message -match "CommandLine.*.*executeinf.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.ID -eq "1") -and (($_.message -match "Image.*.*\\runonce.exe") -or ($_.message -match "Run Once Wrapper")) -and ($_.message -match "CommandLine.*.* /AlternateShellStartup.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

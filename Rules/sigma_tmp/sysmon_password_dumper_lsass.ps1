@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "8" -and $_.message -match "TargetImage.*.*\\lsass.exe" -and $_.message -match "StartModule.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

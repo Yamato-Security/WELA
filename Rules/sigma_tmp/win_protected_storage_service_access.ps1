@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "5145" -and $_.message -match "ShareName.*.*IPC.*" -and $_.message -match "RelativeTargetName.*protected_storage") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

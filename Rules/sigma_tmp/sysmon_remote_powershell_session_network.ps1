@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "3") -and ($_.message -match "5985" -or $_.message -match "5986") -and  -not ($_.message -match "User.*NT AUTHORITY\\NETWORK SERVICE")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

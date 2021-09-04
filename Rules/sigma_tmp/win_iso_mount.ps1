@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.ID -eq "4663" -and $_.message -match "ObjectServer.*Security" -and $_.message -match "ObjectType.*File" -and $_.message -match "ObjectName.*\\Device\\CdRom.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

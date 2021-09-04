@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "10" -and $_.message -match "TargetImage.*.*\\lsass.exe" -and $_.message -match "GrantedAccess.*0x1fffff" -and ($_.message -match "CallTrace.*.*dbghelp.dll.*" -or $_.message -match "CallTrace.*.*dbgcore.dll.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

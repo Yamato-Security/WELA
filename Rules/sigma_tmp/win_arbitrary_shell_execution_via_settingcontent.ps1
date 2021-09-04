@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Security | where {($_.message -match "CommandLine.*.*.SettingContent-ms.*" -and  -not (($_.message -match "FilePath.*.*immersivecontrolpanel.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

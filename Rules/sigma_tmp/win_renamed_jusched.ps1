@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and (($_.ID -eq "1") -and ($_.message -match "Description.*Java Update Scheduler" -or $_.message -match "Description.*Java(TM) Update Scheduler")) -and  -not (($_.message -match "Image.*.*\\jusched.exe"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

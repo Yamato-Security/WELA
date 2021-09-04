@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "CommandLine.*.* /c copy.*" -or $_.message -match "CommandLine.*.*xcopy.*") -and $_.message -match "CommandLine.*.*\\System32\\.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message

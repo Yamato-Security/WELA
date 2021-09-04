@@ -1,0 +1,1 @@
+Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "10" -and $_.message -match "TargetImage.*.*\\lsass.exe" -and ($_.message -match "0x1410" -or $_.message -match "0x1010")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
