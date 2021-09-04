@@ -1,0 +1,29 @@
+# Get-WinEvent | where {$_.message -match "FileName.*.*C:\\Windows\\System32\\spool\\drivers\\x64\\.*" } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+
+
+function Add-Rule {
+    param (
+        [bool] $isLiveAnalysis
+    )
+    $ruleName = "av_printernightmare_cve_2021_34527";
+    $detectedMessage = "Detects the suspicious file that is created from PoC code against Windows Print Spooler Remote Code Execution Vulnerability CVE-2021-34527 (PrinterNightmare), CVE-2021-1675 ."
+
+    $detectRule = {
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+            
+            $result = $event | where { $_.message -match "FileName.*.*C:\\Windows\\System32\\spool\\drivers\\x64\\.*" } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            if ($result.Count -ne 0) {
+                Write-Host
+                Write-Host "Detected! RuleName:$ruleName"  
+                Write-Host
+                Write-Host $detectedMessage;
+            }
+            
+        };
+        Search-DetectableEvents $args[0];
+    };
+    $Global:ruleStack.Add($ruleName, $detectRule);
+}
