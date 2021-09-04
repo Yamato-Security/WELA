@@ -338,7 +338,7 @@ Please contribute to this project for fame and glory!
 
 function Show-Help {
     Write-Host 
-    Write-Host "YEA Security Event Timeline Generator" -ForegroundColor Green
+    Write-Host "Windows Event Log Analyzer(WELA)" -ForegroundColor Green
     Write-Host "Version: $YEAVersion" -ForegroundColor Green
     Write-Host "Author: Zach Mathis (@yamatosecurity)" -ForegroundColor Green
     Write-Host 
@@ -348,7 +348,7 @@ function Show-Help {
 
     Write-Host "Analysis Source (Specify one):"
 
-    Write-Host "   -LiveAnalysis `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -LiveAnalysis" -NoNewline -ForegroundColor Green
     Write-Host " : Creates a timeline based on the live host's log"
 
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
@@ -360,22 +360,22 @@ function Show-Help {
     Write-Host
     Write-Host "Analysis Type (Specify one):"
 
-    Write-Host "   -EventIDStatistics `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -EventIDStatistics" -NoNewline -ForegroundColor Green
     Write-Host " : Output event ID statistics" 
 
-    Write-Host "   -AccountInformation `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -AccountInformation" -NoNewline -ForegroundColor Green
     Write-Host " : Output the usernames and SIDs of accounts"
     
-    Write-Host "   -LogonStatistics `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -LogonStatistics" -NoNewline -ForegroundColor Green
     Write-Host " : Output logon statistics"
 
-    Write-Host "   -LogonTimeline `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Output a simple timeline of user logons"
 
-    Write-Host "   -CreateBriefHumanReadableTimeline `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -CreateBriefHumanReadableTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Creates a human readable timeline with minimal noise"
 
-    Write-Host "   -CreateFullHumanReadableTimeline `$true" -NoNewline  -ForegroundColor Green
+    Write-Host "   -CreateFullHumanReadableTimeline" -NoNewline  -ForegroundColor Green
     Write-Host " : Creates a human readable timeline with all details"
 
     Write-Host 
@@ -384,10 +384,10 @@ function Show-Help {
     Write-Host "   -SaveOutput <outputfile-path>" -NoNewline -ForegroundColor Green
     Write-Host " : Output results to a text file"
 
-    Write-Host "   -OutputCSV `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -OutputCSV" -NoNewline -ForegroundColor Green
     Write-Host " : Outputs to CSV (Default: `$false)"
 
-    Write-Host "   -OutputGUI `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -OutputGUI" -NoNewline -ForegroundColor Green
     Write-Host " : Outputs to the Out-GridView GUI (Default: `$false)"
 
     Write-Host 
@@ -405,28 +405,28 @@ function Show-Help {
     Write-Host 
     Write-Host "Output Options:"
 
-    Write-Host "   -USDateFormat `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -USDateFormat" -NoNewline -ForegroundColor Green
     Write-Host " : Output the dates in MM-DD-YYYY format (Default: YYYY-MM-DD)"
 
-    Write-Host "   -EuropeDateFormat `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -EuropeDateFormat" -NoNewline -ForegroundColor Green
     Write-Host " : Output the dates in DD-MM-YYYY format (Default: YYYY-MM-DD)"
 
-    Write-Host "   -UTC `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -UTC" -NoNewline -ForegroundColor Green
     Write-Host " : Output in UTC time (Default: `$false)"
     
-    Write-Host "   -DisplayTimezone `$false" -NoNewline -ForegroundColor Green
+    Write-Host "   -DisplayTimezone" -NoNewline -ForegroundColor Green
     Write-Host " : Displays the timezone used (Default: `$true)"
 
-    Write-Host "   -ShowLogonID `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if you want to see Logon IDs (Default: `$false)"
 
-    Write-Host "   -Japanese `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
     Write-Host " : Output in Japanese"
 
     Write-Host
     Write-Host "Other:"
 
-    Write-Host "   -ShowContributors `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -ShowContributors" -NoNewline -ForegroundColor Green
     Write-Host " : Show the contributors" 
 
     Write-Host
