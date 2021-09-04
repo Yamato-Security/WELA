@@ -414,8 +414,8 @@ function Show-Help {
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
     Write-Host " : Output in UTC time (Default: `$false)"
     
-    Write-Host "   -DisplayTimezone" -NoNewline -ForegroundColor Green
-    Write-Host " : Displays the timezone used (Default: `$true)"
+    Write-Host "   -HideDisplayTimezone" -NoNewline -ForegroundColor Green
+    Write-Host " : Hide Displays the timezone used"
 
     Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if you want to see Logon IDs (Default: `$false)"
