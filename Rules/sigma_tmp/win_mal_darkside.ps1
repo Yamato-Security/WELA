@@ -1,1 +1,28 @@
-Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*=[char][byte]('0x'\+.*" -or $_.message -match "CommandLine.*.* -work worker0 -path .*") -or (($_.message -match "ParentCommandLine.*.*DllHost.exe /Processid:{3E5FC7F9-9A51-4367-9063-A120244FBEC7}.*") -and ($_.message -match "Image.*.*\\AppData\\Local\\Temp\\.*")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*=[char][byte]('0x'+.*" -or $_.message -match "CommandLine.*.* -work worker0 -path .*") -or (($_.message -match "ParentCommandLine.*.*DllHost.exe /Processid:{3E5FC7F9-9A51-4367-9063-A120244FBEC7}.*") -and ($_.message -match "Image.*.*\AppData\Local\Temp\.*")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+
+function Add-Rule {
+    param (
+        [bool] $isLiveAnalysis
+    )
+    $ruleName = "win_mal_darkside";
+    $detectedMessage = "Detects DarkSide Ransomware and helpers"
+
+    $detectRule = {
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+            
+            $result = $event | !firstpipe!
+            if ($result.Count -ne 0) {
+                Write-Host
+                Write-Host "Detected! RuleName:$ruleName"  
+                Write-Host
+                Write-Host $detectedMessage;
+            }
+            
+        };
+        Search-DetectableEvents $args[0];
+    };
+    $Global:ruleStack.Add($ruleName, $detectRule);
+}

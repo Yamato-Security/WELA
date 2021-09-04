@@ -1,2 +1,27 @@
-Get-WinEvent -LogName Windows PowerShell | where {($_.ID -eq "400" -and ($_.message -match "HostApplication.*.*powercat .*" -or $_.message -match "HostApplication.*.*powercat.ps1.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
-Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4103" -and ($_.message -match "ContextInfo.*.*powercat .*" -or $_.message -match "ContextInfo.*.*powercat.ps1.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+
+function Add-Rule {
+    param (
+        [bool] $isLiveAnalysis
+    )
+    $ruleName = "powershell_powercat";
+    $detectedMessage = "Adversaries may use a non-application layer protocol for communication between host and C2 server or among infected hosts within a network"
+
+    $detectRule = {
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+            
+            $result = $event | !firstpipe!
+            if ($result.Count -ne 0) {
+                Write-Host
+                Write-Host "Detected! RuleName:$ruleName"  
+                Write-Host
+                Write-Host $detectedMessage;
+            }
+            
+        };
+        Search-DetectableEvents $args[0];
+    };
+    $Global:ruleStack.Add($ruleName, $detectRule);
+}

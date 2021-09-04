@@ -1,1 +1,28 @@
-Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*InfDefaultInstall.exe .*" -and $_.message -match "CommandLine.*.*.inf.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*InfDefaultInstall.exe .*" -and $_.message -match "CommandLine.*.*.inf.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+
+function Add-Rule {
+    param (
+        [bool] $isLiveAnalysis
+    )
+    $ruleName = "process_creation_infdefaultinstall";
+    $detectedMessage = "Executes SCT script using scrobj.dll from a command in entered into a specially prepared INF file."
+
+    $detectRule = {
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+            
+            $result = $event |  where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*InfDefaultInstall.exe .*" -and $_.message -match "CommandLine.*.*.inf.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            if ($result.Count -ne 0) {
+                Write-Host
+                Write-Host "Detected! RuleName:$ruleName"  
+                Write-Host
+                Write-Host $detectedMessage;
+            }
+            
+        };
+        Search-DetectableEvents $args[0];
+    };
+    $Global:ruleStack.Add($ruleName, $detectRule);
+}
