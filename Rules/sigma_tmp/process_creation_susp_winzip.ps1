@@ -13,7 +13,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*winzip.exe.*" -or $_.message -match "CommandLine.*.*winzip64.exe.*") -and ($_.message -match "CommandLine.*.*-s".*") -and ($_.message -match "CommandLine.*.* -min .*" -or $_.message -match "CommandLine.*.* -a .*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*winzip.exe.*" -or $_.message -match "CommandLine.*.*winzip64.exe.*") -and ($_.message -match "CommandLine.*.*-s.*") -and ($_.message -match "CommandLine.*.* -min .*" -or $_.message -match "CommandLine.*.* -a .*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  
