@@ -757,13 +757,13 @@ function Create-LogonTimeline {
 
             foreach ($data in $eventXML.Event.EventData.data) {
 
-                    switch ( $data.name ) {
+                switch ( $data.name ) {
 
-                        "TargetUserName" { $msgTargetUserName = $data.'#text' }
-                        "Workstation" { $msgWorkstationName = $data.'#text' }
-                        "Status" { $msgStatus = $data.'#text' }
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "Workstation" { $msgWorkstationName = $data.'#text' }
+                    "Status" { $msgStatus = $data.'#text' }
 
-                    }
+                }
 
             }
 
@@ -800,22 +800,22 @@ function Create-LogonTimeline {
 
         }
         
-        if ($outputThisEvent -eq $TRUE ){
+        if ($outputThisEvent -eq $TRUE ) {
 
             $tempoutput = [Ordered]@{ 
-                $Create_LogonTimeline_Timezone = $UTCOffset ;
-                $Create_LogonTimeline_LogonTime = $LogonTimestampString ;
-                $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ;
-                $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ;
-                $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ;
-                $Create_LogonTimeline_Auth = $msgAuthPackageName ;
-                $Create_LogonTimeline_TargetUser = $msgTargetUserName ;
-                $Create_LogonTimeline_isAdmin = $isAdmin ;
+                $Create_LogonTimeline_Timezone          = $UTCOffset ;
+                $Create_LogonTimeline_LogonTime         = $LogonTimestampString ;
+                $Create_LogonTimeline_LogoffTime        = $LogoffTimestampString ;
+                $Create_LogonTimeline_ElapsedTime       = $ElapsedTimeOutput ;
+                $Create_LogonTimeline_Type              = "$msgLogonType - $msgLogonTypeReadable" ;
+                $Create_LogonTimeline_Auth              = $msgAuthPackageName ;
+                $Create_LogonTimeline_TargetUser        = $msgTargetUserName ;
+                $Create_LogonTimeline_isAdmin           = $isAdmin ;
                 $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
-                $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ;
-                $Create_LogonTimeline_SourceIpPort = $msgIpPort ;
-                "Process Name" = $msgProcessName ;
-                $Create_LogonTimeline_LogonID = $msgTargetLogonID
+                $Create_LogonTimeline_SourceIpAddress   = $msgIpAddress ;
+                $Create_LogonTimeline_SourceIpPort      = $msgIpPort ;
+                "Process Name"                          = $msgProcessName ;
+                $Create_LogonTimeline_LogonID           = $msgTargetLogonID
             }
 
             if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
