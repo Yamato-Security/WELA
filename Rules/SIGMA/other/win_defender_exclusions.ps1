@@ -1,5 +1,5 @@
-Get-WinEvent -LogName Microsoft-Windows-Windows Defender/Operational | where { (($_.ID -eq "5007") -and ($_.message -match "New Value.*.*\\Microsoft\\Windows Defender\\Exclusions.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
-Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.ID -eq "13") -and ($_.message -match "TargetObject.*.*\\Microsoft\\Windows Defender\\Exclusions.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Microsoft-Windows-Windows Defender/Operational | where { (($_.ID -eq "5007") -and ($_.message -match "New Value.*.*\\Microsoft\\Windows Defender\\Exclusions.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.ID -eq "13") -and ($_.message -match "TargetObject.*.*\\Microsoft\\Windows Defender\\Exclusions.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
     param (
