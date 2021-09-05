@@ -3,22 +3,22 @@
 Fast forensics timeline generator for the Windows security event log.
 
 .DESCRIPTION
-The YEA security event timeline generator is a fast Forensics PowerShell module to create easy to analyze and as noise-free as possible event timeline for the Windows security log.
+WELA is a fast Forensics PowerShell module to create easy to analyze and as noise-free as possible event timeline for the Windows security log.
 
 .Example
 Process the local Windows security event log (Need to run with Administrator privileges):
-.\yea-security-timeline.ps1
+.\WELA.ps1
 
 .Example
-Process an offline Windows security event log:
+Process output Logon timeline an offline Windows security event log:
 
-.\DeepBlue.ps1 -path E:\logs\Security.evtx
+.\WELA.ps1 -LogFile E:\logs\Security.evtx -LogonTimeline
 
 .LINK
 https://github.com/yamatosecurity
 #>
 
-# Yamato Event Analyzer (YEA) Security event timeline generator
+# Windows Event Log Analyzer (WELA) Security event timeline generator
 # Zach Mathis, Yamatosecurity founder
 # Twitter: @yamatosecurity
 # https://yamatosecurity.connpass.com/
@@ -28,26 +28,28 @@ https://github.com/yamatosecurity
 # and event log info from www.ultimatewindowssecurity.com
 
 param (
-    [bool]$Japanese = $false,
-    [bool]$USDateFormat = $false,
-    [bool]$EuropeDateFormat = $false,
+    [switch]$Japanese,
+    [switch]$USDateFormat,
+    [switch]$EuropeDateFormat,
     [string]$SaveOutput = "",
     [string]$StartTimeline = "",
     [string]$EndTimeline = "",
-    [bool]$IsDC = $false,
-    [bool]$ShowLogonID = $false,
-    [bool]$LiveAnalysis = $false,
+    [switch]$IsDC,
+    [switch]$ShowLogonID,
+    [switch]$LiveAnalysis,
     [string]$LogFile = "",
     [string]$LogDirectory = "",
-    [bool]$ShowContributors = $false,
-    [bool]$EventIDStatistics = $false,
-    [bool]$LogonTimeline = $false,
-    [bool]$AccountInformation = $false,
-    [bool]$OutputGUI = $false,
-    [bool]$OutputCSV = $false,
-    [bool]$UTC = $false,
-    [bool]$DisplayTimezone = $true
+    [switch]$ShowContributors,
+    [switch]$EventIDStatistics,
+    [switch]$LogonTimeline,
+    [switch]$AccountInformation,
+    [switch]$OutputGUI,
+    [switch]$OutputCSV,
+    [switch]$UTC,
+    [switch]$HideDisplayTimezone
 )
+
+$DisplayTimezone = !($HideDisplayTimezone);
 
 $ProgramStartTime = Get-Date
 
