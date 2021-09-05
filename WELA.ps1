@@ -122,7 +122,7 @@ function Check-Administrator {
 
 $YEAVersion = "0.1"
 
-$EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4776"
+$EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,4776"
 # Logs to filter for:
 # 4624 - LOGON
 # 4625 - FAILED LOGON
@@ -133,7 +133,7 @@ $EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4776"
 # 4732 - User added to group
 # 1102 - LOG CLEARED
 # 4648 - EXPLICIT LOGON
-# 4776 - NTLM LOGON TO LOCAL ACCOUNT (TODO)
+# 4776 - NTLM LOGON TO LOCAL ACCOUNT
 
 # Additional logs to filter for if a DC
 # 4768 - TGT ISSUED
@@ -430,6 +430,19 @@ function Create-EventIDStatistics {
 
 }
 
+function Get-KerberosStatusStr {
+    param(
+        $status
+    )
+    switch ( $status ) {
+        # 数は多いが有用なデータであるかどうか確認の上追記する
+        "0x0" { $msgStatusReadable = "No Error" }
+        default { $msStatusReadable = "" }
+    }
+
+    return $msgStatusReadable
+}
+
 function Create-LogonTimeline {
 
     #TODO:
@@ -514,7 +527,7 @@ function Create-LogonTimeline {
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
-            
+
         # 4634 Logoff
         if ($event.Id -eq "4634") { 
             
@@ -1025,7 +1038,7 @@ function Create-Timeline {
 
             }
  
-            #Bug: starttime not working: can filter on IDs when 
+            # Bug: starttime not working: can filter on IDs when 
             #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
             #and $logs = iex "Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop"
             #when is change to $logs Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop   I get
@@ -1082,7 +1095,115 @@ function Create-Timeline {
         $TotalLogs += 1
 
         $printMSG = ""
+        # 4768 Kerberos authentication ticket(TGT) was requested
+        if ($event.Id -eq "4768" -and $IsDC) {
+            $eventXML = [xml]$event.ToXml()
 
+            foreach ($data in $eventXML.Event.EventData.data) {
+            
+                switch ( $data.name ) {
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "ServiceName" { $msgTargetService = $data.'#text' }
+                    "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
+                    "IPAddress" { $msgIpAddress = $data.'#text' }
+                    "IPPort" { $msgIpPort = $data.'#text' }
+                    "Status" { $msgResultCode = $data.'#text' }
+                    "PreAuthType" { $msgPreAuthType = $data.'#text' }
+                    default { $LogNoise += 1 }
+                }
+                $TotalPiecesOfData += 1
+            }
+            
+            if ( $UTC -eq $true ) {
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+            }
+            else {
+                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
+            $printMSG = "4768 - Requested Kerberos authentication ticket(TGT) to Service: $msgTargetService from User: $msgTargetUserName from Domain: $msgTargetDomainName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4768 - Requested Kerberos authentication ticket(TGT)" -NoNewline
+                    Write-Host " Status " -NoNewline
+                    Write-Host $msgResultCode -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host " (" -NoNewline
+                    Write-Host $msgStatusReadable -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host ") to Service: " -NoNewline 
+                    Write-Host $msgTargetService -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " from User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " from Domain: " -NoNewline
+                    Write-Host $msgTargetDomainName -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host " IP address: " -NoNewline
+                    Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Port: " -NoNewline
+                    Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " " -NoNewline
+                    Write-Host " ";
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }
+            }
+        }
+        # 4769 Kerberos service ticket was requested
+        if ($event.Id -eq "4769" -and $IsDC) {
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+            
+                switch ( $data.name ) {
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "ServiceName" { $msgTargetService = $data.'#text' }
+                    "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
+                    "IPAddress" { $msgIpAddress = $data.'#text' }
+                    "IPPort" { $msgIpPort = $data.'#text' }
+                    "Status" { $msgResultCode = $data.'#text' }
+                    default { $LogNoise += 1 }
+                }
+                $TotalPiecesOfData += 1
+            }
+            
+            if ( $UTC -eq $true ) {
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+            }
+            else {
+                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
+            $printMSG = "4769 - Requested Kerberos service ticket to Service: $msgTargetService from User: $msgTargetUserName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4769 - Requested Kerberos service ticket" -NoNewline
+                    Write-Host " Status " -NoNewline
+                    Write-Host $msgResultCode -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host " (" -NoNewline
+                    Write-Host $msgStatusReadable -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host ") to Service: " -NoNewline 
+                    Write-Host $msgTargetService -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " from User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " IP address: " -NoNewline
+                    Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Port: " -NoNewline
+                    Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " " -NoNewline
+                    Write-Host "";
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }
+            }            
+        }
         #Successful logon
         if ($event.Id -eq "4624") { 
 
@@ -1799,7 +1920,7 @@ foreach ( $LogFile in $evtxFiles ) {
     if ( $EventIDStatistics -eq $true ) {   
 
         Create-EventIDStatistics
-    
+        Create-Timeline
     }
     
     if ( $LogonTimeline -eq $true ) {
