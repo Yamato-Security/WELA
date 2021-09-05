@@ -16,7 +16,7 @@ function Add-Rule {
             )
             
             $result = $event |  where { (($_.ID -eq "4103" -and $_.message -match "ContextInfo.*.*") -and -not ($_.message -match "ContextInfo.*powershell.exe" -or $_.message -match "Message.*powershell.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message; $result2 = $event | where { (($_.ID -eq "400" -and $_.message -match "ContextInfo.*.*") -and -not ($_.message -match "ContextInfo.*powershell.exe" -or $_.message -match "Message.*powershell.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if (($result.Count -ne 0) -or $result2.Count -ne 0) {
+            if (($result.Count -ne 0) -or ($result2.Count -ne 0)) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  
                 Write-Host
