@@ -1126,7 +1126,7 @@ function Create-Timeline {
             if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
                 if ( $SaveOutput -eq "") {
                     Write-Host $timestamp -NoNewline
-                    Write-Host " 4768 - Requested Kerberos authentication ticket(TGT)" -NoNewline
+                    Write-Host "  4768 - Requested Kerberos authentication ticket(TGT)" -NoNewline
                     Write-Host " Status " -NoNewline
                     Write-Host $msgResultCode -NoNewline -ForegroundColor $ParameterColor 
                     Write-Host " (" -NoNewline
