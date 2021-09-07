@@ -13,7 +13,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | !firstpipe!
+            $result = $event | where { ((($_.ID -eq "4742" -and $_.message -match "ServicePrincipalNames.*.*GC/.*") -or ($_.ID -eq "5136" -and $_.message -match "AttributeLDAPDisplayName.*servicePrincipalName" -and $_.message -match "AttributeValue.*GC/.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  

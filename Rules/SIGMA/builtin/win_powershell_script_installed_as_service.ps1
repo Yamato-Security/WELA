@@ -1,3 +1,7 @@
+# Get-WinEvent -LogName System | where { ($_.ID -eq "7045" -and ($_.Service File Name -eq "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "6" -and ($_.Service File Name -eq "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Security | where { ($_.ID -eq "4697" -and ($_.Service File Name -eq "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+
 
 function Add-Rule {
     param (
@@ -12,8 +16,11 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | !firstpipe!
-            if ($result.Count -ne 0) {
+            $result = $event | where { ($_.ID -eq "7045" -and ($_.message -match "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result2 = $event | where { ($_.ID -eq "6" -and ($_.message -match "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result3 = $event | where { ($_.ID -eq "4697" -and ($_.message -match "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            
+            if (($result.Count -ne 0) -or ($result2.Count -ne 0) -or ($result3.Count -ne 0)) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  
                 Write-Host
