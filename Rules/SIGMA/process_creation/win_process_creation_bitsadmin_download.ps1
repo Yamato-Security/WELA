@@ -13,7 +13,8 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | !firstpipe!
+            $result = $event | where { (($_.ID -eq "1") -and (($_.ID -eq "1" -and ($_.message -match "Image.*.*\bitsadmin.exe") -and ((($_.message -match "CommandLine.*.* /create .*" -or $_.message -match "CommandLine.*.* /addfile .*") -and ($_.message -match "CommandLine.*.*http.*")) -or ($_.message -match "CommandLine.*.* /transfer .*"))) -or ($_.message -match "CommandLine.*.*copy bitsadmin.exe.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  
