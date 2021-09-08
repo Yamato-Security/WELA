@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_ftp";
-    $detectedMessage = "Detects renamed ftp.exe, ftp.exe script execution and child processes ran by ftp.exe"
+    $detectedMessage = "Detects renamed ftp.exe, ftp.exe script execution and child processes ran by ftp.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

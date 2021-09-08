@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_disabled_tamper_protection_on_microsoft_defender";
-    $detectedMessage = "Detects disabling Windows Defender Tamper Protection"
+    $detectedMessage = "Detects disabling Windows Defender Tamper Protection";
 
     $detectRule = {
         function Search-DetectableEvents {

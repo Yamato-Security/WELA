@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_sysprep_appdata";
-    $detectedMessage = "Detects suspicious sysprep process start with AppData folder as target (as used by Trojan Syndicasec in Thrip report by Symantec)"
+    $detectedMessage = "Detects suspicious sysprep process start with AppData folder as target (as used by Trojan Syndicasec in Thrip report by Symantec)";
 
     $detectRule = {
         function Search-DetectableEvents {

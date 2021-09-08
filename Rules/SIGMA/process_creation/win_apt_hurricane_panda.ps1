@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_hurricane_panda";
-    $detectedMessage = "Detects Hurricane Panda Activity"
+    $detectedMessage = "Detects Hurricane Panda Activity";
 
     $detectRule = {
         function Search-DetectableEvents {

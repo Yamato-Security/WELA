@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_registry_susp_printer_driver";
-    $detectedMessage = "Detects a suspicious printer driver installation with an empty Manufacturer value"
+    $detectedMessage = "Detects a suspicious printer driver installation with an empty Manufacturer value";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_msiexec_cwd";
-    $detectedMessage = "Detects suspicious msiexec process starts in an uncommon directory"
+    $detectedMessage = "Detects suspicious msiexec process starts in an uncommon directory";
 
     $detectRule = {
         function Search-DetectableEvents {

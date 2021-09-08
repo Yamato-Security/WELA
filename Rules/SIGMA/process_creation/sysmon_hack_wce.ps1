@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_hack_wce";
-    $detectedMessage = "Detects the use of Windows Credential Editor (WCE)"
+    $detectedMessage = "Detects the use of Windows Credential Editor (WCE)";
 
     $detectRule = {
         function Search-DetectableEvents {

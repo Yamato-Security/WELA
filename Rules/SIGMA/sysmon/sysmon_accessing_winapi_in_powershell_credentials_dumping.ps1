@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_accessing_winapi_in_powershell_credentials_dumping";
-    $detectedMessage = "Detects Accessing to lsass.exe by Powershell"
+    $detectedMessage = "Detects Accessing to lsass.exe by Powershell";
 
     $detectRule = {
         function Search-DetectableEvents {

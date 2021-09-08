@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_run_locations";
-    $detectedMessage = "Detects suspicious process run from unusual locations"
+    $detectedMessage = "Detects suspicious process run from unusual locations";
 
     $detectRule = {
         function Search-DetectableEvents {

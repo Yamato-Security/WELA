@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_parent_process";
-    $detectedMessage = "Detects a suspicious parents of powershell.exe"
+    $detectedMessage = "Detects a suspicious parents of powershell.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

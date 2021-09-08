@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_getprocess_lsass";
-    $detectedMessage = "Detects a Get-Process command on lsass process, which is in almost all cases a sign of malicious activity"
+    $detectedMessage = "Detects a Get-Process command on lsass process, which is in almost all cases a sign of malicious activity";
 
     $detectRule = {
         function Search-DetectableEvents {

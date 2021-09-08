@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_advanced_ip_scanner";
-    $detectedMessage = "Detects the use of Advanced IP Scanner. Seems to be a popular tool for ransomware groups."
+    $detectedMessage = "Detects the use of Advanced IP Scanner. Seems to be a popular tool for ransomware groups.";
 
     $detectRule = {
         function Search-DetectableEvents {

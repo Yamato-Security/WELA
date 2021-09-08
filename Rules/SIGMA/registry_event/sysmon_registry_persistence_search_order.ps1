@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_registry_persistence_search_order";
-    $detectedMessage = "Detects potential COM object hijacking leveraging the COM Search Order"
+    $detectedMessage = "Detects potential COM object hijacking leveraging the COM Search Order";
 
     $detectRule = {
         function Search-DetectableEvents {

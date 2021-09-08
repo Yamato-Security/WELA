@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_script_exec_from_temp";
-    $detectedMessage = "Detects a suspicious script executions from temporary folder"
+    $detectedMessage = "Detects a suspicious script executions from temporary folder";
 
     $detectRule = {
         function Search-DetectableEvents {

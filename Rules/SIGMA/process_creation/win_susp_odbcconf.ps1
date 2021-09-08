@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_odbcconf";
-    $detectedMessage = "Detects defence evasion attempt via odbcconf.exe execution to load DLL"
+    $detectedMessage = "Detects defence evasion attempt via odbcconf.exe execution to load DLL";
 
     $detectRule = {
         function Search-DetectableEvents {

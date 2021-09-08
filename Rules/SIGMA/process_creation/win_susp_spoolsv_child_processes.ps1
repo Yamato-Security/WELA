@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_spoolsv_child_processes";
-    $detectedMessage = "Detects suspicious print spool service (spoolsv.exe) child processes."
+    $detectedMessage = "Detects suspicious print spool service (spoolsv.exe) child processes.";
 
     $detectRule = {
         function Search-DetectableEvents {

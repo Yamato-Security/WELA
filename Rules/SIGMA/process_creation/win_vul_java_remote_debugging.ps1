@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_vul_java_remote_debugging";
-    $detectedMessage = "Detects a JAVA process running with remote debugging allowing more than just localhost to connect"
+    $detectedMessage = "Detects a JAVA process running with remote debugging allowing more than just localhost to connect";
 
     $detectRule = {
         function Search-DetectableEvents {

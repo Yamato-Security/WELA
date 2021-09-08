@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_runkey_winekey";
-    $detectedMessage = "Detects potential malicious modification of run keys by winekey or team9 backdoor"
+    $detectedMessage = "Detects potential malicious modification of run keys by winekey or team9 backdoor";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_workflow_compiler";
-    $detectedMessage = "Detects invocation of Microsoft Workflow Compiler, which may permit the execution of arbitrary unsigned code."
+    $detectedMessage = "Detects invocation of Microsoft Workflow Compiler, which may permit the execution of arbitrary unsigned code.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_uninstall_crowdstrike_falcon";
-    $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by uninstalling Crowdstrike Falcon"
+    $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by uninstalling Crowdstrike Falcon";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_wmic_proc_create_rundll32";
-    $detectedMessage = "Detects WMI executing rundll32"
+    $detectedMessage = "Detects WMI executing rundll32";
 
     $detectRule = {
         function Search-DetectableEvents {

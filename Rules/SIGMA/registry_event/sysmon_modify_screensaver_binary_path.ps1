@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_modify_screensaver_binary_path";
-    $detectedMessage = "Detects value modification of registry key containing path to binary used as screensaver."
+    $detectedMessage = "Detects value modification of registry key containing path to binary used as screensaver.";
 
     $detectRule = {
         function Search-DetectableEvents {

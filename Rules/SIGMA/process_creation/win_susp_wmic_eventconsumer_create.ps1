@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_wmic_eventconsumer_create";
-    $detectedMessage = "Detects WMIC executions in which a event consumer gets created in order to establish persistence"
+    $detectedMessage = "Detects WMIC executions in which a event consumer gets created in order to establish persistence";
 
     $detectRule = {
         function Search-DetectableEvents {

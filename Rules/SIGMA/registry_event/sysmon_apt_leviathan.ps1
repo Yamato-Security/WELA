@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_apt_leviathan";
-    $detectedMessage = "Detects registry key used by Leviathan APT in Malaysian focused campaign"
+    $detectedMessage = "Detects registry key used by Leviathan APT in Malaysian focused campaign";
 
     $detectRule = {
         function Search-DetectableEvents {

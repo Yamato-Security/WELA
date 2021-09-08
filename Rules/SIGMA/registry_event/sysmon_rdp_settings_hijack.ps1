@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_rdp_settings_hijack";
-    $detectedMessage = "Detects changes to RDP terminal service sensitive settings"
+    $detectedMessage = "Detects changes to RDP terminal service sensitive settings";
 
     $detectRule = {
         function Search-DetectableEvents {

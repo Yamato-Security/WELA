@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_asep_reg_keys_modification";
-    $detectedMessage = "Detects modification of autostart extensibility point (ASEP) in registry."
+    $detectedMessage = "Detects modification of autostart extensibility point (ASEP) in registry.";
 
     $detectRule = {
         function Search-DetectableEvents {

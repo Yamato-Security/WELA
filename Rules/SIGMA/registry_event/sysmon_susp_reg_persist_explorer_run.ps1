@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_reg_persist_explorer_run";
-    $detectedMessage = "Detects a possible persistence mechanism using RUN key for Windows Explorer and pointing to a suspicious folder"
+    $detectedMessage = "Detects a possible persistence mechanism using RUN key for Windows Explorer and pointing to a suspicious folder";
 
     $detectRule = {
         function Search-DetectableEvents {

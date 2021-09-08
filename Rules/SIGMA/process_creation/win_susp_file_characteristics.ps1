@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_file_characteristics";
-    $detectedMessage = "Detects Executables in the Downloads folder without FileVersion,Description,Product,Company likely created with py2exe"
+    $detectedMessage = "Detects Executables in the Downloads folder without FileVersion,Description,Product,Company likely created with py2exe";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_wmi_spwns_powershell";
-    $detectedMessage = "Detects WMI spawning PowerShell"
+    $detectedMessage = "Detects WMI spawning PowerShell";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_ping_hex_ip";
-    $detectedMessage = "Detects a ping command that uses a hex encoded IP address"
+    $detectedMessage = "Detects a ping command that uses a hex encoded IP address";
 
     $detectRule = {
         function Search-DetectableEvents {

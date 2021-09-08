@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_service_dir";
-    $detectedMessage = "Detects a service binary running in a suspicious directory"
+    $detectedMessage = "Detects a service binary running in a suspicious directory";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_attrib_hiding_files";
-    $detectedMessage = "Detects usage of attrib.exe to hide files from users."
+    $detectedMessage = "Detects usage of attrib.exe to hide files from users.";
 
     $detectRule = {
         function Search-DetectableEvents {

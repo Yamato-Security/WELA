@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_stickykey_like_backdoor";
-    $detectedMessage = "Detects the usage and installation of a backdoor that uses an option to register a malicious debugger for built-in tools that are accessible in the login"
+    $detectedMessage = "Detects the usage and installation of a backdoor that uses an option to register a malicious debugger for built-in tools that are accessible in the login";
 
     $detectRule = {
         function Search-DetectableEvents {

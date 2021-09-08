@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_pester";
-    $detectedMessage = "Detects code execution via Pester.bat (Pester - Powershell Modulte for testing) "
+    $detectedMessage = "Detects code execution via Pester.bat (Pester - Powershell Modulte for testing) ";
 
     $detectRule = {
         function Search-DetectableEvents {

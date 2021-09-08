@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_gup";
-    $detectedMessage = "Detects execution of the Notepad++ updater in a suspicious directory, which is often used in DLL side-loading attacks"
+    $detectedMessage = "Detects execution of the Notepad++ updater in a suspicious directory, which is often used in DLL side-loading attacks";
 
     $detectRule = {
         function Search-DetectableEvents {

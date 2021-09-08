@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_findstr_lnk";
-    $detectedMessage = "Detects usage of findstr to identify and execute a lnk file as seen within the HHS redirect attack"
+    $detectedMessage = "Detects usage of findstr to identify and execute a lnk file as seen within the HHS redirect attack";
 
     $detectRule = {
         function Search-DetectableEvents {

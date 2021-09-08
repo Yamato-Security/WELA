@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_ntdsutil";
-    $detectedMessage = "Detects execution of ntdsutil.exe, which can be used for various attacks against the NTDS database (NTDS.DIT)"
+    $detectedMessage = "Detects execution of ntdsutil.exe, which can be used for various attacks against the NTDS database (NTDS.DIT)";
 
     $detectRule = {
         function Search-DetectableEvents {

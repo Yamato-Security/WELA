@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_apt_oceanlotus_registry";
-    $detectedMessage = "Detects registry keys created in OceanLotus (also known as APT32) attacks"
+    $detectedMessage = "Detects registry keys created in OceanLotus (also known as APT32) attacks";
 
     $detectRule = {
         function Search-DetectableEvents {

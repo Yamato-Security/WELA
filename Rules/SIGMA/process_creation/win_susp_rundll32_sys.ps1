@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_rundll32_sys";
-    $detectedMessage = "Detects suspicious process related to rundll32 based on command line that includes a *.sys file as seen being used by UNC2452"
+    $detectedMessage = "Detects suspicious process related to rundll32 based on command line that includes a *.sys file as seen being used by UNC2452";
 
     $detectRule = {
         function Search-DetectableEvents {

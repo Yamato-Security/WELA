@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_shimcache_flush";
-    $detectedMessage = "Detects actions that clear the local ShimCache and remove forensic evidence"
+    $detectedMessage = "Detects actions that clear the local ShimCache and remove forensic evidence";
 
     $detectRule = {
         function Search-DetectableEvents {

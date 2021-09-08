@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_raw_disk_access_using_illegitimate_tools";
-    $detectedMessage = "Raw disk access using illegitimate tools, possible defence evasion"
+    $detectedMessage = "Raw disk access using illegitimate tools, possible defence evasion";
 
     $detectRule = {
         function Search-DetectableEvents {

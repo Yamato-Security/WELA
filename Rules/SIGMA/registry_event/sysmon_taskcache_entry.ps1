@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_taskcache_entry";
-    $detectedMessage = "Monitor the creation of a new key under 'TaskCache' when a new scheduled task is registered"
+    $detectedMessage = "Monitor the creation of a new key under 'TaskCache' when a new scheduled task is registered";
 
     $detectRule = {
         function Search-DetectableEvents {

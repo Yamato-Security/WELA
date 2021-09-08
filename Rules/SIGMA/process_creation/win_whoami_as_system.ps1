@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_whoami_as_system";
-    $detectedMessage = "Detects a whoami.exe executed by LOCAL SYSTEM. This may be a sign of a successful local privilege escalation."
+    $detectedMessage = "Detects a whoami.exe executed by LOCAL SYSTEM. This may be a sign of a successful local privilege escalation.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_lsass_dll_load";
-    $detectedMessage = "Detects a method to load DLL via LSASS process using an undocumented Registry key"
+    $detectedMessage = "Detects a method to load DLL via LSASS process using an undocumented Registry key";
 
     $detectRule = {
         function Search-DetectableEvents {

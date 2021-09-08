@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_new_dll_added_to_appinit_dlls_registry_key";
-    $detectedMessage = "DLLs that are specified in the AppInit_DLLs value in the Registry key HKLMSoftwareMicrosoftWindows NTCurrentVersionWindows are loaded by user32.dll"
+    $detectedMessage = "DLLs that are specified in the AppInit_DLLs value in the Registry key HKLMSoftwareMicrosoftWindows NTCurrentVersionWindows are loaded by user32.dll";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_run_key_img_folder";
-    $detectedMessage = "Detects suspicious new RUN key element pointing to an executable in a suspicious folder"
+    $detectedMessage = "Detects suspicious new RUN key element pointing to an executable in a suspicious folder";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_dns_hybridconnectionmgr_servicebus";
-    $detectedMessage = "Detects Azure Hybrid Connection Manager services querying the Azure service bus service"
+    $detectedMessage = "Detects Azure Hybrid Connection Manager services querying the Azure service bus service";
 
     $detectRule = {
         function Search-DetectableEvents {

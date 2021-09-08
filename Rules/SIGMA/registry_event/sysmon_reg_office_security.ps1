@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_reg_office_security";
-    $detectedMessage = "Detects registry changes to Office macro settings"
+    $detectedMessage = "Detects registry changes to Office macro settings";
 
     $detectRule = {
         function Search-DetectableEvents {

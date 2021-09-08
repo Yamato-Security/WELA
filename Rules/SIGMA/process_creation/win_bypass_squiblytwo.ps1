@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_bypass_squiblytwo";
-    $detectedMessage = "Detects WMI SquiblyTwo Attack with possible renamed WMI by looking for imphash"
+    $detectedMessage = "Detects WMI SquiblyTwo Attack with possible renamed WMI by looking for imphash";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_file_download_via_gfxdownloadwrapper";
-    $detectedMessage = "Detects when GfxDownloadWrapper.exe downloads file from non standard URL"
+    $detectedMessage = "Detects when GfxDownloadWrapper.exe downloads file from non standard URL";
 
     $detectRule = {
         function Search-DetectableEvents {

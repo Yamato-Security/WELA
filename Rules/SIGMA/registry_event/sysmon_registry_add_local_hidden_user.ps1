@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_registry_add_local_hidden_user";
-    $detectedMessage = "Sysmon registry detection of a local hidden user account."
+    $detectedMessage = "Sysmon registry detection of a local hidden user account.";
 
     $detectRule = {
         function Search-DetectableEvents {

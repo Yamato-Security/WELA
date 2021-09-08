@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_tap_installer_execution";
-    $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunneling techniques"
+    $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunneling techniques";
 
     $detectRule = {
         function Search-DetectableEvents {

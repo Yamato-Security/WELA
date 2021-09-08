@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_finger_usage";
-    $detectedMessage = "Detects suspicious aged finger.exe tool execution often used in malware attacks nowadays"
+    $detectedMessage = "Detects suspicious aged finger.exe tool execution often used in malware attacks nowadays";
 
     $detectRule = {
         function Search-DetectableEvents {

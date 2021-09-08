@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_service_path_modification";
-    $detectedMessage = "Detects service path modification to PowerShell or cmd."
+    $detectedMessage = "Detects service path modification to PowerShell or cmd.";
 
     $detectRule = {
         function Search-DetectableEvents {

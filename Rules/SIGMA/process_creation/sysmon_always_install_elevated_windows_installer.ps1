@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_always_install_elevated_windows_installer";
-    $detectedMessage = "This rule will looks for Windows Installer service (msiexec.exe) when it tries to install MSI packages with SYSTEM privilege "
+    $detectedMessage = "This rule will looks for Windows Installer service (msiexec.exe) when it tries to install MSI packages with SYSTEM privilege ";
 
     $detectRule = {
         function Search-DetectableEvents {

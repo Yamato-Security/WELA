@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_reg_silentprocessexit_lsass";
-    $detectedMessage = "Detects changes to the Registry in which a monitor program gets registered to dump process memory of the lsass.exe process memory"
+    $detectedMessage = "Detects changes to the Registry in which a monitor program gets registered to dump process memory of the lsass.exe process memory";
 
     $detectRule = {
         function Search-DetectableEvents {

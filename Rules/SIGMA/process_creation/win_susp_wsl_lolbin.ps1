@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_wsl_lolbin";
-    $detectedMessage = "Detects Possible usage of Windows Subsystem for Linux (WSL) binary as a LOLBIN"
+    $detectedMessage = "Detects Possible usage of Windows Subsystem for Linux (WSL) binary as a LOLBIN";
 
     $detectRule = {
         function Search-DetectableEvents {

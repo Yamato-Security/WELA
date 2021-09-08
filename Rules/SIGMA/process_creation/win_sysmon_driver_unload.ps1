@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_sysmon_driver_unload";
-    $detectedMessage = "Detect possible Sysmon driver unload"
+    $detectedMessage = "Detect possible Sysmon driver unload";
 
     $detectRule = {
         function Search-DetectableEvents {

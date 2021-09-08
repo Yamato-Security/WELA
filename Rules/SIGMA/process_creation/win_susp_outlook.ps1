@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_outlook";
-    $detectedMessage = "Detects EnableUnsafeClientMailRules used for Script Execution from Outlook"
+    $detectedMessage = "Detects EnableUnsafeClientMailRules used for Script Execution from Outlook";
 
     $detectRule = {
         function Search-DetectableEvents {

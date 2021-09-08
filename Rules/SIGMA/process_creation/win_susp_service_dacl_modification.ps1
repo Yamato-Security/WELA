@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_service_dacl_modification";
-    $detectedMessage = "Detects suspicious DACL modifications that can  be used to hide services or make them unstopable"
+    $detectedMessage = "Detects suspicious DACL modifications that can  be used to hide services or make them unstopable";
 
     $detectRule = {
         function Search-DetectableEvents {

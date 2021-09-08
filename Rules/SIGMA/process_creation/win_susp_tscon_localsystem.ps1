@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_tscon_localsystem";
-    $detectedMessage = "Detects a tscon.exe start as LOCAL SYSTEM"
+    $detectedMessage = "Detects a tscon.exe start as LOCAL SYSTEM";
 
     $detectRule = {
         function Search-DetectableEvents {

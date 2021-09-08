@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_shell_spawn_from_mssql";
-    $detectedMessage = "Detects suspicious shell spawn from MSSQL process, this might be sight of RCE or SQL Injection"
+    $detectedMessage = "Detects suspicious shell spawn from MSSQL process, this might be sight of RCE or SQL Injection";
 
     $detectRule = {
         function Search-DetectableEvents {

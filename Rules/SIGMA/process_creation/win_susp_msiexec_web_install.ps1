@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_msiexec_web_install";
-    $detectedMessage = "Detects suspicious msiexec process starts with web addresses as parameter"
+    $detectedMessage = "Detects suspicious msiexec process starts with web addresses as parameter";
 
     $detectRule = {
         function Search-DetectableEvents {

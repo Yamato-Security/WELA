@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_msoffice";
-    $detectedMessage = "Downloads payload from remote server"
+    $detectedMessage = "Downloads payload from remote server";
 
     $detectRule = {
         function Search-DetectableEvents {

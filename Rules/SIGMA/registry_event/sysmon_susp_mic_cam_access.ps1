@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_mic_cam_access";
-    $detectedMessage = "Detects Processes accessing the camera and microphone from suspicious folder"
+    $detectedMessage = "Detects Processes accessing the camera and microphone from suspicious folder";
 
     $detectRule = {
         function Search-DetectableEvents {

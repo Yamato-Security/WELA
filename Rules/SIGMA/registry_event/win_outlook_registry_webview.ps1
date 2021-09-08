@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_outlook_registry_webview";
-    $detectedMessage = "Detects the manipulation of persistant URLs which can be malicious"
+    $detectedMessage = "Detects the manipulation of persistant URLs which can be malicious";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_CL_Invocation_LOLScript";
-    $detectedMessage = "Detects Execution via SyncInvoke in CL_Invocation.ps1 module"
+    $detectedMessage = "Detects Execution via SyncInvoke in CL_Invocation.ps1 module";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_wsreset_uac_bypass";
-    $detectedMessage = "Detects a method that uses Wsreset.exe tool that can be used to reset the Windows Store to bypass UAC"
+    $detectedMessage = "Detects a method that uses Wsreset.exe tool that can be used to reset the Windows Store to bypass UAC";
 
     $detectRule = {
         function Search-DetectableEvents {

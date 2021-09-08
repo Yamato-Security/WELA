@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_mustangpanda";
-    $detectedMessage = "Detects specific process parameters as used by Mustang Panda droppers"
+    $detectedMessage = "Detects specific process parameters as used by Mustang Panda droppers";
 
     $detectRule = {
         function Search-DetectableEvents {

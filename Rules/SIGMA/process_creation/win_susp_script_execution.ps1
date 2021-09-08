@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_script_execution";
-    $detectedMessage = "Detects suspicious file execution by wscript and cscript"
+    $detectedMessage = "Detects suspicious file execution by wscript and cscript";
 
     $detectRule = {
         function Search-DetectableEvents {

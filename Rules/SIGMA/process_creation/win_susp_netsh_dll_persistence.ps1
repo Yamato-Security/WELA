@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_netsh_dll_persistence";
-    $detectedMessage = "Detects persitence via netsh helper"
+    $detectedMessage = "Detects persitence via netsh helper";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_possible_privilege_escalation_via_service_registry_permissions_weakness";
-    $detectedMessage = "Detect modification of services configuration (ImagePath, FailureCommand and ServiceDLL) in registry by processes with Medium integrity level"
+    $detectedMessage = "Detect modification of services configuration (ImagePath, FailureCommand and ServiceDLL) in registry by processes with Medium integrity level";
 
     $detectRule = {
         function Search-DetectableEvents {

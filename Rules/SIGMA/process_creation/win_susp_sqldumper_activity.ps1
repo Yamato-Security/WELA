@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_sqldumper_activity";
-    $detectedMessage = "Detects process dump via legitimate sqldumper.exe binary"
+    $detectedMessage = "Detects process dump via legitimate sqldumper.exe binary";
 
     $detectRule = {
         function Search-DetectableEvents {

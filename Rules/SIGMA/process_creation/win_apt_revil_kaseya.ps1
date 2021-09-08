@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_revil_kaseya";
-    $detectedMessage = "Detects process command line patterns and locations used by REvil group in Kaseya incident (can also match on other malware)"
+    $detectedMessage = "Detects process command line patterns and locations used by REvil group in Kaseya incident (can also match on other malware)";
 
     $detectRule = {
         function Search-DetectableEvents {

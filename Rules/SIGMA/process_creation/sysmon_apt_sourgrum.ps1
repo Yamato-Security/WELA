@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_apt_sourgrum";
-    $detectedMessage = "Suspicious behaviours related to an actor tracked by Microsoft as SOURGUM"
+    $detectedMessage = "Suspicious behaviours related to an actor tracked by Microsoft as SOURGUM";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_reg_silentprocessexit";
-    $detectedMessage = "Detects changes to the Registry in which a monitor program gets registered to monitor the exit of another process"
+    $detectedMessage = "Detects changes to the Registry in which a monitor program gets registered to monitor the exit of another process";
 
     $detectRule = {
         function Search-DetectableEvents {

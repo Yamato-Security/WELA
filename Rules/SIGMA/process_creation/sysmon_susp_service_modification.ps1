@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_service_modification";
-    $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by stopping antivirus service"
+    $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by stopping antivirus service";
 
     $detectRule = {
         function Search-DetectableEvents {

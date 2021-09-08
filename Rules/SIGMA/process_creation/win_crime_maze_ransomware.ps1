@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_crime_maze_ransomware";
-    $detectedMessage = "Detects specific process characteristics of Maze ransomware word document droppers"
+    $detectedMessage = "Detects specific process characteristics of Maze ransomware word document droppers";
 
     $detectRule = {
         function Search-DetectableEvents {

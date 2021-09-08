@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_reg_disable_sec_services";
-    $detectedMessage = "Detects a suspicious reg.exe invocation that looks as if it would disable an important security service"
+    $detectedMessage = "Detects a suspicious reg.exe invocation that looks as if it would disable an important security service";
 
     $detectRule = {
         function Search-DetectableEvents {

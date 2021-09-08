@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_outlook_registry_todaypage";
-    $detectedMessage = "Detects the manipulation of persistant URLs which could execute malicious code"
+    $detectedMessage = "Detects the manipulation of persistant URLs which could execute malicious code";
 
     $detectRule = {
         function Search-DetectableEvents {

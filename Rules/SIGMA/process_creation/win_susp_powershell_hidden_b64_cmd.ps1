@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_hidden_b64_cmd";
-    $detectedMessage = "Detects base64 encoded strings used in hidden malicious PowerShell command lines"
+    $detectedMessage = "Detects base64 encoded strings used in hidden malicious PowerShell command lines";
 
     $detectRule = {
         function Search-DetectableEvents {

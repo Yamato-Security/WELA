@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_parent_combo";
-    $detectedMessage = "Detects suspicious powershell invocations from interpreters or unusual programs"
+    $detectedMessage = "Detects suspicious powershell invocations from interpreters or unusual programs";
 
     $detectRule = {
         function Search-DetectableEvents {

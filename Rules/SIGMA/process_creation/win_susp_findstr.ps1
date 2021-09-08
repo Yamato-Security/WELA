@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_findstr";
-    $detectedMessage = "Attackers can use findstr to hide their artifacts or search specific strings and evade defense mechanism"
+    $detectedMessage = "Attackers can use findstr to hide their artifacts or search specific strings and evade defense mechanism";
 
     $detectRule = {
         function Search-DetectableEvents {

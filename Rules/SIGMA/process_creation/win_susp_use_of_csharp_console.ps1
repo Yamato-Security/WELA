@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_use_of_csharp_console";
-    $detectedMessage = "Detects the execution of CSharp interactive console by PowerShell"
+    $detectedMessage = "Detects the execution of CSharp interactive console by PowerShell";
 
     $detectRule = {
         function Search-DetectableEvents {

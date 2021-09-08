@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_sam_access";
-    $detectedMessage = "Detects suspicious PowerShell scripts accessing SAM hives"
+    $detectedMessage = "Detects suspicious PowerShell scripts accessing SAM hives";
 
     $detectRule = {
         function Search-DetectableEvents {

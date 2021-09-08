@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_uac_wsreset";
-    $detectedMessage = "Identifies use of WSReset.exe to bypass User Account Control. Adversaries use this technique to execute privileged processes."
+    $detectedMessage = "Identifies use of WSReset.exe to bypass User Account Control. Adversaries use this technique to execute privileged processes.";
 
     $detectRule = {
         function Search-DetectableEvents {

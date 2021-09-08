@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_win_reg_telemetry_persistence";
-    $detectedMessage = "Detects persistence method using windows telemetry "
+    $detectedMessage = "Detects persistence method using windows telemetry ";
 
     $detectRule = {
         function Search-DetectableEvents {

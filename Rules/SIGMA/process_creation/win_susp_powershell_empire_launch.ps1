@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_empire_launch";
-    $detectedMessage = "Detects suspicious powershell command line parameters used in Empire"
+    $detectedMessage = "Detects suspicious powershell command line parameters used in Empire";
 
     $detectRule = {
         function Search-DetectableEvents {

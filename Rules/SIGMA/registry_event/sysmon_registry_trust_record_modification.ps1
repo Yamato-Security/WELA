@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_registry_trust_record_modification";
-    $detectedMessage = "Alerts on trust record modification within the registry, indicating usage of macros"
+    $detectedMessage = "Alerts on trust record modification within the registry, indicating usage of macros";
 
     $detectRule = {
         function Search-DetectableEvents {

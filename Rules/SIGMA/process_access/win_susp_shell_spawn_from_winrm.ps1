@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_shell_spawn_from_winrm";
-    $detectedMessage = "Detects suspicious shell spawn from WinRM host process"
+    $detectedMessage = "Detects suspicious shell spawn from WinRM host process";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_svchost";
-    $detectedMessage = "Detects a suspicious svchost process start"
+    $detectedMessage = "Detects a suspicious svchost process start";
 
     $detectRule = {
         function Search-DetectableEvents {

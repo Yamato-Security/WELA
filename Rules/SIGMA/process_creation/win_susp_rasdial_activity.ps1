@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_rasdial_activity";
-    $detectedMessage = "Detects suspicious process related to rasdial.exe"
+    $detectedMessage = "Detects suspicious process related to rasdial.exe";
 
     $detectRule = {
         function Search-DetectableEvents {
@@ -13,7 +13,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "1" -and ($_.message -match "Image.*.*rasdial.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "Image.*.*rasdial.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  

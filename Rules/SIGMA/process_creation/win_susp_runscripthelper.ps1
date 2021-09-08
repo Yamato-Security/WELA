@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_runscripthelper";
-    $detectedMessage = "Detects execution of powershell scripts via Runscripthelper.exe"
+    $detectedMessage = "Detects execution of powershell scripts via Runscripthelper.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

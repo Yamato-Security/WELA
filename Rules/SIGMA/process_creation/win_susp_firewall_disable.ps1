@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_firewall_disable";
-    $detectedMessage = "Detects netsh commands that turns off the Windows firewall"
+    $detectedMessage = "Detects netsh commands that turns off the Windows firewall";
 
     $detectRule = {
         function Search-DetectableEvents {

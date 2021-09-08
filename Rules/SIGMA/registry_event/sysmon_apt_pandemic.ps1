@@ -7,7 +7,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_apt_pandemic";
-    $detectedMessage = "Detects Pandemic Windows Implant"
+    $detectedMessage = "Detects Pandemic Windows Implant";
 
     $detectRule = {
         function Search-DetectableEvents {

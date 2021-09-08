@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_removal_amsi_registry_key";
-    $detectedMessage = "Remove the AMSI Provider registry key in HKLMSoftwareMicrosoftAMSI to disable AMSI inspection"
+    $detectedMessage = "Remove the AMSI Provider registry key in HKLMSoftwareMicrosoftAMSI to disable AMSI inspection";
 
     $detectRule = {
         function Search-DetectableEvents {

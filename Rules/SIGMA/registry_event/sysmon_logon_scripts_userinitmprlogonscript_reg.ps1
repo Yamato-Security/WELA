@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_logon_scripts_userinitmprlogonscript_reg";
-    $detectedMessage = "Detects creation or execution of UserInitMprLogonScript persistence method"
+    $detectedMessage = "Detects creation or execution of UserInitMprLogonScript persistence method";
 
     $detectRule = {
         function Search-DetectableEvents {
@@ -13,7 +13,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*UserInitMprLogonScript.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*UserInitMprLogonScript.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  

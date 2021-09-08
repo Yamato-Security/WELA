@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_explorer";
-    $detectedMessage = "Attackers can use explorer.exe for evading defense mechanisms"
+    $detectedMessage = "Attackers can use explorer.exe for evading defense mechanisms";
 
     $detectRule = {
         function Search-DetectableEvents {

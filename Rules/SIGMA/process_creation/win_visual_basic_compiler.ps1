@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_visual_basic_compiler";
-    $detectedMessage = "Detects successful code compilation via Visual Basic Command Line Compiler that utilizes Windows Resource to Object Converter."
+    $detectedMessage = "Detects successful code compilation via Visual Basic Command Line Compiler that utilizes Windows Resource to Object Converter.";
 
     $detectRule = {
         function Search-DetectableEvents {

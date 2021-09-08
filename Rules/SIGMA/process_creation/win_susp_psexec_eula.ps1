@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_psexec_eula";
-    $detectedMessage = "Detect ed user accept agreement execution in psexec commandline"
+    $detectedMessage = "Detect ed user accept agreement execution in psexec commandline";
 
     $detectRule = {
         function Search-DetectableEvents {

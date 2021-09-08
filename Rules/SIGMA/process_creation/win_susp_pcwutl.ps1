@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_pcwutl";
-    $detectedMessage = "Detects launch of executable by calling the LaunchApplication function from pcwutl.dll library."
+    $detectedMessage = "Detects launch of executable by calling the LaunchApplication function from pcwutl.dll library.";
 
     $detectRule = {
         function Search-DetectableEvents {

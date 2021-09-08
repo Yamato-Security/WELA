@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_crime_fireball";
-    $detectedMessage = "Detects Archer malware invocation via rundll32"
+    $detectedMessage = "Detects Archer malware invocation via rundll32";
 
     $detectRule = {
         function Search-DetectableEvents {

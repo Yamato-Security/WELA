@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_empire_uac_bypass";
-    $detectedMessage = "Detects some Empire PowerShell UAC bypass methods"
+    $detectedMessage = "Detects some Empire PowerShell UAC bypass methods";
 
     $detectRule = {
         function Search-DetectableEvents {

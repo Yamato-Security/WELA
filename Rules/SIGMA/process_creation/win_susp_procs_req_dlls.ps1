@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_procs_req_dlls";
-    $detectedMessage = "Detects suspicious start of program that usually requires a DLL as parameter, which can be a sign of process injection or hollowing activity"
+    $detectedMessage = "Detects suspicious start of program that usually requires a DLL as parameter, which can be a sign of process injection or hollowing activity";
 
     $detectRule = {
         function Search-DetectableEvents {

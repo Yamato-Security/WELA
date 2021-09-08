@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_cobaltstrike_process_patterns";
-    $detectedMessage = "Detects process patterns found in Cobalt Strike beacon activity (see reference for more details)"
+    $detectedMessage = "Detects process patterns found in Cobalt Strike beacon activity (see reference for more details)";
 
     $detectRule = {
         function Search-DetectableEvents {

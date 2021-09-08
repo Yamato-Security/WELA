@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_webshell_spawn";
-    $detectedMessage = "Web servers that spawn shell processes could be the result of a successfully placed web shell or an other attack"
+    $detectedMessage = "Web servers that spawn shell processes could be the result of a successfully placed web shell or an other attack";
 
     $detectRule = {
         function Search-DetectableEvents {

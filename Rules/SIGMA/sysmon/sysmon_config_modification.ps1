@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_config_modification";
-    $detectedMessage = "Someone try to hide from Sysmon"
+    $detectedMessage = "Someone try to hide from Sysmon";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_sysvol_access";
-    $detectedMessage = "Detects Access to Domain Group Policies stored in SYSVOL"
+    $detectedMessage = "Detects Access to Domain Group Policies stored in SYSVOL";
 
     $detectRule = {
         function Search-DetectableEvents {

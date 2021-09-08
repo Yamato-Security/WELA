@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_servu_process_pattern";
-    $detectedMessage = "Detects a suspicious process pattern which could be a sign of an exploited Serv-U service"
+    $detectedMessage = "Detects a suspicious process pattern which could be a sign of an exploited Serv-U service";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_squirrel_lolbin";
-    $detectedMessage = "Detects Possible Squirrel Packages Manager as Lolbin"
+    $detectedMessage = "Detects Possible Squirrel Packages Manager as Lolbin";
 
     $detectRule = {
         function Search-DetectableEvents {

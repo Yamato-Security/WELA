@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_emissarypanda_sep19";
-    $detectedMessage = "Detects the execution of DLL side-loading malware used by threat group Emissary Panda aka APT27"
+    $detectedMessage = "Detects the execution of DLL side-loading malware used by threat group Emissary Panda aka APT27";
 
     $detectRule = {
         function Search-DetectableEvents {

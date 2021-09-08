@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_greenbug_may20";
-    $detectedMessage = "Detects tools and process executions as observed in a Greenbug campaign in May 2020"
+    $detectedMessage = "Detects tools and process executions as observed in a Greenbug campaign in May 2020";
 
     $detectRule = {
         function Search-DetectableEvents {

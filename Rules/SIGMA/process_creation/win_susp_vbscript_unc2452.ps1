@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_vbscript_unc2452";
-    $detectedMessage = "Detects suspicious inline VBScript keywords as used by UNC2452"
+    $detectedMessage = "Detects suspicious inline VBScript keywords as used by UNC2452";
 
     $detectRule = {
         function Search-DetectableEvents {

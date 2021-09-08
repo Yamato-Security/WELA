@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_mpcmdrun_download";
-    $detectedMessage = "Detect the use of Windows Defender to download payloads "
+    $detectedMessage = "Detect the use of Windows Defender to download payloads ";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_registry_persistence_key_linking";
-    $detectedMessage = "Detects COM object hijacking via TreatAs subkey"
+    $detectedMessage = "Detects COM object hijacking via TreatAs subkey";
 
     $detectRule = {
         function Search-DetectableEvents {

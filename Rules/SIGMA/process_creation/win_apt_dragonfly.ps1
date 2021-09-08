@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_dragonfly";
-    $detectedMessage = "Detects CrackMapExecWin Activity as Described by NCSC"
+    $detectedMessage = "Detects CrackMapExecWin Activity as Described by NCSC";
 
     $detectRule = {
         function Search-DetectableEvents {

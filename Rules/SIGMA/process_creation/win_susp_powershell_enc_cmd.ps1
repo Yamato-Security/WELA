@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_enc_cmd";
-    $detectedMessage = "Detects suspicious powershell process starts with base64 encoded commands (e.g. Emotet)"
+    $detectedMessage = "Detects suspicious powershell process starts with base64 encoded commands (e.g. Emotet)";
 
     $detectRule = {
         function Search-DetectableEvents {

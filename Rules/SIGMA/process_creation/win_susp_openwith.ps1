@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_openwith";
-    $detectedMessage = "The OpenWith.exe executes other binary"
+    $detectedMessage = "The OpenWith.exe executes other binary";
 
     $detectRule = {
         function Search-DetectableEvents {

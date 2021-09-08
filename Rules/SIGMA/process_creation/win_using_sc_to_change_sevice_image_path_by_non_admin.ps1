@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_using_sc_to_change_sevice_image_path_by_non_admin";
-    $detectedMessage = "Detection of sc.exe utility spawning by user with Medium integrity level to change service ImagePath or FailureCommand"
+    $detectedMessage = "Detection of sc.exe utility spawning by user with Medium integrity level to change service ImagePath or FailureCommand";
 
     $detectRule = {
         function Search-DetectableEvents {

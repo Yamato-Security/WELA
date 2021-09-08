@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_lazarus_loader";
-    $detectedMessage = "Detects different loaders as described in various threat reports on Lazarus group activity"
+    $detectedMessage = "Detects different loaders as described in various threat reports on Lazarus group activity";
 
     $detectRule = {
         function Search-DetectableEvents {

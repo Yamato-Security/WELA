@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_office_test_regadd";
-    $detectedMessage = "Detects the addition of office test registry that allows a user to specify an arbitrary DLL that will be executed everytime an Office application is started"
+    $detectedMessage = "Detects the addition of office test registry that allows a user to specify an arbitrary DLL that will be executed everytime an Office application is started";
 
     $detectRule = {
         function Search-DetectableEvents {

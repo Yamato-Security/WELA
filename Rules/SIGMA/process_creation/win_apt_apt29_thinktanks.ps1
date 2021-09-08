@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_apt29_thinktanks";
-    $detectedMessage = "This method detects a suspicious PowerShell command line combination as used by APT29 in a campaign against U.S. think tanks."
+    $detectedMessage = "This method detects a suspicious PowerShell command line combination as used by APT29 in a campaign against U.S. think tanks.";
 
     $detectRule = {
         function Search-DetectableEvents {

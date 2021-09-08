@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_wmi_execution";
-    $detectedMessage = "Detects WMI executing suspicious commands"
+    $detectedMessage = "Detects WMI executing suspicious commands";
 
     $detectRule = {
         function Search-DetectableEvents {

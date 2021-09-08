@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_cmdkey_recon";
-    $detectedMessage = "Detects usage of cmdkey to look for cached credentials"
+    $detectedMessage = "Detects usage of cmdkey to look for cached credentials";
 
     $detectRule = {
         function Search-DetectableEvents {

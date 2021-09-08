@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_plink_remote_forward";
-    $detectedMessage = "Detects suspicious Plink tunnel remote forarding to a local port"
+    $detectedMessage = "Detects suspicious Plink tunnel remote forarding to a local port";
 
     $detectRule = {
         function Search-DetectableEvents {

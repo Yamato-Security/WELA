@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_new_application_appcompat";
-    $detectedMessage = "A General detection for a new application in AppCompat. This indicates an application executing for the first time on an endpoint."
+    $detectedMessage = "A General detection for a new application in AppCompat. This indicates an application executing for the first time on an endpoint.";
 
     $detectRule = {
         function Search-DetectableEvents {

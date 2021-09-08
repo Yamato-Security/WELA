@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_remove_windows_defender_definition_files";
-    $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by removing Windows Defender Definition Files"
+    $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by removing Windows Defender Definition Files";
 
     $detectRule = {
         function Search-DetectableEvents {

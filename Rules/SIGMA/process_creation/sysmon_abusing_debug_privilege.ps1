@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_abusing_debug_privilege";
-    $detectedMessage = "Detection of unusual child processes by different system processes"
+    $detectedMessage = "Detection of unusual child processes by different system processes";
 
     $detectRule = {
         function Search-DetectableEvents {

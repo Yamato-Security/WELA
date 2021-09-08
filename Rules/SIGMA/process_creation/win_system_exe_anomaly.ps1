@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_system_exe_anomaly";
-    $detectedMessage = "Detects a Windows program executable started in a suspicious folder"
+    $detectedMessage = "Detects a Windows program executable started in a suspicious folder";
 
     $detectRule = {
         function Search-DetectableEvents {

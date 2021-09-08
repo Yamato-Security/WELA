@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_outlook_temp";
-    $detectedMessage = "Detects a suspicious program execution in Outlook temp folder"
+    $detectedMessage = "Detects a suspicious program execution in Outlook temp folder";
 
     $detectRule = {
         function Search-DetectableEvents {

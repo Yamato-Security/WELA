@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_wmiprvse_spawning_process";
-    $detectedMessage = "Detects wmiprvse spawning processes"
+    $detectedMessage = "Detects wmiprvse spawning processes";
 
     $detectRule = {
         function Search-DetectableEvents {

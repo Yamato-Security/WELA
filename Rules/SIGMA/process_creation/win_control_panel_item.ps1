@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_control_panel_item";
-    $detectedMessage = "Detects the malicious use of a control panel item"
+    $detectedMessage = "Detects the malicious use of a control panel item";
 
     $detectRule = {
         function Search-DetectableEvents {

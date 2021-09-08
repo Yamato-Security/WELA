@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_cve_2021_26857_msexchange";
-    $detectedMessage = "Detects possible successful exploitation for vulnerability described in CVE-2021-26857 by looking for |"
+    $detectedMessage = "Detects possible successful exploitation for vulnerability described in CVE-2021-26857 by looking for |";
 
     $detectRule = {
         function Search-DetectableEvents {

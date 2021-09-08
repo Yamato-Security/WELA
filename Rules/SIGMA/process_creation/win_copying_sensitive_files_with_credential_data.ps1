@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_copying_sensitive_files_with_credential_data";
-    $detectedMessage = "Files with well-known filenames (sensitive files with credential data) copying"
+    $detectedMessage = "Files with well-known filenames (sensitive files with credential data) copying";
 
     $detectRule = {
         function Search-DetectableEvents {

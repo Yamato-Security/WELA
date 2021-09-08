@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_wmi_persistence_script_event_consumer";
-    $detectedMessage = "Detects WMI script event consumers"
+    $detectedMessage = "Detects WMI script event consumers";
 
     $detectRule = {
         function Search-DetectableEvents {

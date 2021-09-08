@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_win_reg_persistence";
-    $detectedMessage = "Detects persistence registry keys"
+    $detectedMessage = "Detects persistence registry keys";
 
     $detectRule = {
         function Search-DetectableEvents {

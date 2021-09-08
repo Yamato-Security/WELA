@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_wocao";
-    $detectedMessage = "Detects activity mentioned in Operation Wocao report"
+    $detectedMessage = "Detects activity mentioned in Operation Wocao report";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_rdp_registry_modification";
-    $detectedMessage = "Detects potential malicious modification of the property value of fDenyTSConnections and UserAuthentication to enable remote desktop connections."
+    $detectedMessage = "Detects potential malicious modification of the property value of fDenyTSConnections and UserAuthentication to enable remote desktop connections.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_mshta_pattern";
-    $detectedMessage = "Detects suspicious mshta process patterns"
+    $detectedMessage = "Detects suspicious mshta process patterns";
 
     $detectRule = {
         function Search-DetectableEvents {

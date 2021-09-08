@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_ke3chang_regadd";
-    $detectedMessage = "Detects Registry modifications performed by Ke3chang malware in campaigns running in 2019 and 2020"
+    $detectedMessage = "Detects Registry modifications performed by Ke3chang malware in campaigns running in 2019 and 2020";
 
     $detectRule = {
         function Search-DetectableEvents {

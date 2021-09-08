@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_bluemashroom";
-    $detectedMessage = "Detects a suspicious DLL loading from AppData Local path as described in BlueMashroom report"
+    $detectedMessage = "Detects a suspicious DLL loading from AppData Local path as described in BlueMashroom report";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_office_vsto_persistence";
-    $detectedMessage = "Detects persistence via Visual Studio Tools for Office (VSTO) add-ins in Office applications."
+    $detectedMessage = "Detects persistence via Visual Studio Tools for Office (VSTO) add-ins in Office applications.";
 
     $detectRule = {
         function Search-DetectableEvents {

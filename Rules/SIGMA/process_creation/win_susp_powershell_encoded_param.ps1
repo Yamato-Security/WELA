@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_powershell_encoded_param";
-    $detectedMessage = "Detects suspicious encoded character syntax often used for defense evasion"
+    $detectedMessage = "Detects suspicious encoded character syntax often used for defense evasion";
 
     $detectRule = {
         function Search-DetectableEvents {

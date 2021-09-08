@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_userinit_child";
-    $detectedMessage = "Detects a suspicious child process of userinit"
+    $detectedMessage = "Detects a suspicious child process of userinit";
 
     $detectRule = {
         function Search-DetectableEvents {

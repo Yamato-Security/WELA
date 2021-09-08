@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_bear_activity_gtr19";
-    $detectedMessage = "Detects Russian group activity as described in Global Threat Report 2019 by Crowdstrike"
+    $detectedMessage = "Detects Russian group activity as described in Global Threat Report 2019 by Crowdstrike";
 
     $detectRule = {
         function Search-DetectableEvents {

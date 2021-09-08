@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_powershell_as_service";
-    $detectedMessage = "Detects that a powershell code is written to the registry as a service."
+    $detectedMessage = "Detects that a powershell code is written to the registry as a service.";
 
     $detectRule = {
         function Search-DetectableEvents {

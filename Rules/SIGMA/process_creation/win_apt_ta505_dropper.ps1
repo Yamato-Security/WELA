@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_ta505_dropper";
-    $detectedMessage = "Detects mshta loaded by wmiprvse as parent as used by TA505 malicious documents"
+    $detectedMessage = "Detects mshta loaded by wmiprvse as parent as used by TA505 malicious documents";
 
     $detectRule = {
         function Search-DetectableEvents {

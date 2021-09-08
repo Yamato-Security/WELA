@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_reg_vbs_payload_stored";
-    $detectedMessage = "Detects VBScript content stored into registry keys as seen being used by UNC2452 group"
+    $detectedMessage = "Detects VBScript content stored into registry keys as seen being used by UNC2452 group";
 
     $detectRule = {
         function Search-DetectableEvents {

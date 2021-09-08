@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_equationgroup_dll_u_load";
-    $detectedMessage = "Detects a specific tool and export used by EquationGroup"
+    $detectedMessage = "Detects a specific tool and export used by EquationGroup";
 
     $detectRule = {
         function Search-DetectableEvents {

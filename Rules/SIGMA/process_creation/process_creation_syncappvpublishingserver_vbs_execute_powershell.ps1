@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_syncappvpublishingserver_vbs_execute_powershell";
-    $detectedMessage = "Adversaries may use scripts signed with trusted certificates to proxy execution of malicious files."
+    $detectedMessage = "Adversaries may use scripts signed with trusted certificates to proxy execution of malicious files.";
 
     $detectRule = {
         function Search-DetectableEvents {

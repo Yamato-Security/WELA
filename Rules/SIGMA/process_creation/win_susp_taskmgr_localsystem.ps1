@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_taskmgr_localsystem";
-    $detectedMessage = "Detects the creation of taskmgr.exe process in context of LOCAL_SYSTEM"
+    $detectedMessage = "Detects the creation of taskmgr.exe process in context of LOCAL_SYSTEM";
 
     $detectRule = {
         function Search-DetectableEvents {

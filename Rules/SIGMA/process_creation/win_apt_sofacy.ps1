@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_sofacy";
-    $detectedMessage = "Detects Trojan loader acitivty as used by APT28"
+    $detectedMessage = "Detects Trojan loader acitivty as used by APT28";
 
     $detectRule = {
         function Search-DetectableEvents {

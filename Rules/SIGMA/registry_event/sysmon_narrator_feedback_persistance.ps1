@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_narrator_feedback_persistance";
-    $detectedMessage = "Detects abusing Windows 10 Narrator's Feedback-Hub"
+    $detectedMessage = "Detects abusing Windows 10 Narrator's Feedback-Hub";
 
     $detectRule = {
         function Search-DetectableEvents {

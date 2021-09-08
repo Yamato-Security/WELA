@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_wmi_backdoor_exchange_transport_agent";
-    $detectedMessage = "Detects a WMI backdoor in Exchange Transport Agents via WMI event filters"
+    $detectedMessage = "Detects a WMI backdoor in Exchange Transport Agents via WMI event filters";
 
     $detectRule = {
         function Search-DetectableEvents {

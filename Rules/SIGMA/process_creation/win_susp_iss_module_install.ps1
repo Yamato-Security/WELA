@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_iss_module_install";
-    $detectedMessage = "Detects suspicious IIS native-code module installations via command line"
+    $detectedMessage = "Detects suspicious IIS native-code module installations via command line";
 
     $detectRule = {
         function Search-DetectableEvents {

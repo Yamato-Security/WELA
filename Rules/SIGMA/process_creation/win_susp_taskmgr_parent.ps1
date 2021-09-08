@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_taskmgr_parent";
-    $detectedMessage = "Detects the creation of a process from Windows task manager"
+    $detectedMessage = "Detects the creation of a process from Windows task manager";
 
     $detectRule = {
         function Search-DetectableEvents {
