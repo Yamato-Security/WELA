@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_cactustorch";
-    $detectedMessage = "Detects remote thread creation from CACTUSTORCH as described in references."
+    $detectedMessage = "Detects remote thread creation from CACTUSTORCH as described in references.";
 
     $detectRule = {
         function Search-DetectableEvents {

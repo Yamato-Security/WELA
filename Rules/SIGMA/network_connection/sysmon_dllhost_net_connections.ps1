@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_dllhost_net_connections";
-    $detectedMessage = "Detects Dllhost that communicates with public IP addresses"
+    $detectedMessage = "Detects Dllhost that communicates with public IP addresses";
 
     $detectRule = {
         function Search-DetectableEvents {

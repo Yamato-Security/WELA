@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_renamed_procdump";
-    $detectedMessage = "Detects the execution of a renamed ProcDump executable often used by attackers or malware"
+    $detectedMessage = "Detects the execution of a renamed ProcDump executable often used by attackers or malware";
 
     $detectRule = {
         function Search-DetectableEvents {

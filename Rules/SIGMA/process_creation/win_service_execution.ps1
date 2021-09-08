@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_service_execution";
-    $detectedMessage = "Detects manual service execution (start) via system utilities."
+    $detectedMessage = "Detects manual service execution (start) via system utilities.";
 
     $detectRule = {
         function Search-DetectableEvents {

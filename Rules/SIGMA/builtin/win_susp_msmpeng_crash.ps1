@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_msmpeng_crash";
-    $detectedMessage = "This rule detects a suspicious crash of the Microsoft Malware Protection Engine"
+    $detectedMessage = "This rule detects a suspicious crash of the Microsoft Malware Protection Engine";
 
     $detectRule = {
         function Search-DetectableEvents {

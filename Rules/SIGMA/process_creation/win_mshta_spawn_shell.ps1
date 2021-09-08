@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_mshta_spawn_shell";
-    $detectedMessage = "Detects a Windows command line executable started from MSHTA"
+    $detectedMessage = "Detects a Windows command line executable started from MSHTA";
 
     $detectRule = {
         function Search-DetectableEvents {

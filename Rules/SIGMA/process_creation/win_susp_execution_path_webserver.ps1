@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_execution_path_webserver";
-    $detectedMessage = "Detects a suspicious program execution in a web service root folder (filter out false positives)"
+    $detectedMessage = "Detects a suspicious program execution in a web service root folder (filter out false positives)";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_wmi_module_load";
-    $detectedMessage = "Detects non wmiprvse loading WMI modules"
+    $detectedMessage = "Detects non wmiprvse loading WMI modules";
 
     $detectRule = {
         function Search-DetectableEvents {

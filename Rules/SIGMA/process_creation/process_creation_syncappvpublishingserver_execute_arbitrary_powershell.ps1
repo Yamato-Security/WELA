@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_syncappvpublishingserver_execute_arbitrary_powershell";
-    $detectedMessage = "Executes arbitrary PowerShell code using SyncAppvPublishingServer.exe."
+    $detectedMessage = "Executes arbitrary PowerShell code using SyncAppvPublishingServer.exe.";
 
     $detectRule = {
         function Search-DetectableEvents {

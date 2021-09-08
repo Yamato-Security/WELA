@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_quarkspwdump_clearing_hive_access_history";
-    $detectedMessage = "Detects QuarksPwDump clearing access history in hive"
+    $detectedMessage = "Detects QuarksPwDump clearing access history in hive";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_dpapi_domain_backupkey_extraction";
-    $detectedMessage = "Detects tools extracting LSA secret DPAPI domain backup key from Domain Controllers"
+    $detectedMessage = "Detects tools extracting LSA secret DPAPI domain backup key from Domain Controllers";
 
     $detectRule = {
         function Search-DetectableEvents {

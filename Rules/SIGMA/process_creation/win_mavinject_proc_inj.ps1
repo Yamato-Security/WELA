@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_mavinject_proc_inj";
-    $detectedMessage = "Detects process injection using the signed Windows tool Mavinject32.exe"
+    $detectedMessage = "Detects process injection using the signed Windows tool Mavinject32.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

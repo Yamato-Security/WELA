@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_defender_exclusion";
-    $detectedMessage = "Detects requests to exclude files, folders or processes from Antivirus scanning using PowerShell cmdlets"
+    $detectedMessage = "Detects requests to exclude files, folders or processes from Antivirus scanning using PowerShell cmdlets";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_wmi_persistence_commandline_event_consumer";
-    $detectedMessage = "Detects WMI command line event consumers"
+    $detectedMessage = "Detects WMI command line event consumers";
 
     $detectRule = {
         function Search-DetectableEvents {

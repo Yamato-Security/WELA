@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_ghostpack_safetykatz";
-    $detectedMessage = "Detects possible SafetyKatz Behaviour"
+    $detectedMessage = "Detects possible SafetyKatz Behaviour";
 
     $detectRule = {
         function Search-DetectableEvents {

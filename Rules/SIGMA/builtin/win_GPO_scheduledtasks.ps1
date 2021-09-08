@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_GPO_scheduledtasks";
-    $detectedMessage = "Detect lateral movement using GPO scheduled task, usually used to deploy ransomware at scale"
+    $detectedMessage = "Detect lateral movement using GPO scheduled task, usually used to deploy ransomware at scale";
 
     $detectRule = {
         function Search-DetectableEvents {

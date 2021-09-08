@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_remote_powershell_session_network";
-    $detectedMessage = "Detects remote PowerShell connections by monitoring network outbound connections to ports 5985 or 5986 from a non-network service account."
+    $detectedMessage = "Detects remote PowerShell connections by monitoring network outbound connections to ports 5985 or 5986 from a non-network service account.";
 
     $detectRule = {
         function Search-DetectableEvents {

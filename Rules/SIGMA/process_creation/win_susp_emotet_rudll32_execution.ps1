@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_emotet_rudll32_execution";
-    $detectedMessage = "Detecting Emotet DLL loading by looking for rundll32.exe processes with command lines ending in ,RunDLL or ,#1"
+    $detectedMessage = "Detecting Emotet DLL loading by looking for rundll32.exe processes with command lines ending in ,RunDLL or ,#1";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_rdp_localhost_login";
-    $detectedMessage = "RDP login with localhost source address may be a tunnelled login"
+    $detectedMessage = "RDP login with localhost source address may be a tunnelled login";
 
     $detectRule = {
         function Search-DetectableEvents {

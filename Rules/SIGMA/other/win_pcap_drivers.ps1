@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_pcap_drivers";
-    $detectedMessage = "Detects Windows Pcap driver installation based on a list of associated .sys files."
+    $detectedMessage = "Detects Windows Pcap driver installation based on a list of associated .sys files.";
 
     $detectRule = {
         function Search-DetectableEvents {

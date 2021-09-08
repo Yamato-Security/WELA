@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_pypykatz_cred_dump_lsass_access";
-    $detectedMessage = "Detects LSASS process access by pypykatz for credential dumping."
+    $detectedMessage = "Detects LSASS process access by pypykatz for credential dumping.";
 
     $detectRule = {
         function Search-DetectableEvents {

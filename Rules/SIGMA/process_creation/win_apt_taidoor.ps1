@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_taidoor";
-    $detectedMessage = "Detects specific process characteristics of Chinese TAIDOOR RAT malware load"
+    $detectedMessage = "Detects specific process characteristics of Chinese TAIDOOR RAT malware load";
 
     $detectRule = {
         function Search-DetectableEvents {

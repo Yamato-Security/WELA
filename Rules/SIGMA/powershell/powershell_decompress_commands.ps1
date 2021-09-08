@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_decompress_commands";
-    $detectedMessage = "A General detection for specific decompress commands in PowerShell logs. This could be an adversary decompressing files."
+    $detectedMessage = "A General detection for specific decompress commands in PowerShell logs. This could be an adversary decompressing files.";
 
     $detectRule = {
         function Search-DetectableEvents {

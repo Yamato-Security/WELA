@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_etw_modification";
-    $detectedMessage = "Potential adversaries stopping ETW providers recording loaded .NET assemblies."
+    $detectedMessage = "Potential adversaries stopping ETW providers recording loaded .NET assemblies.";
 
     $detectRule = {
         function Search-DetectableEvents {

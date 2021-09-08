@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_install_reg_debugger_backdoor";
-    $detectedMessage = "Detects the registration of a debugger for a program that is available in the logon screen (sticky key backdoor)."
+    $detectedMessage = "Detects the registration of a debugger for a program that is available in the logon screen (sticky key backdoor).";
 
     $detectRule = {
         function Search-DetectableEvents {

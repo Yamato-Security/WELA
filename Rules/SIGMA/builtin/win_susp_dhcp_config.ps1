@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_dhcp_config";
-    $detectedMessage = "This rule detects a DHCP server in which a specified Callout DLL (in registry) was loaded"
+    $detectedMessage = "This rule detects a DHCP server in which a specified Callout DLL (in registry) was loaded";
 
     $detectRule = {
         function Search-DetectableEvents {

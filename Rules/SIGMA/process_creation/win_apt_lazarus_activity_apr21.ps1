@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_lazarus_activity_apr21";
-    $detectedMessage = "Detects different process creation events as described in Malwarebytes's threat report on Lazarus group activity"
+    $detectedMessage = "Detects different process creation events as described in Malwarebytes's threat report on Lazarus group activity";
 
     $detectRule = {
         function Search-DetectableEvents {

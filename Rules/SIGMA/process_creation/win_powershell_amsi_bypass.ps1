@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_amsi_bypass";
-    $detectedMessage = "Detects Request to amsiInitFailed that can be used to disable AMSI Scanning"
+    $detectedMessage = "Detects Request to amsiInitFailed that can be used to disable AMSI Scanning";
 
     $detectRule = {
         function Search-DetectableEvents {

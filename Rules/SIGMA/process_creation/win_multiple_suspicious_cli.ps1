@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_multiple_suspicious_cli";
-    $detectedMessage = "Detects multiple suspicious process in a limited timeframe"
+    $detectedMessage = "Detects multiple suspicious process in a limited timeframe";
 
     $detectRule = {
         function Search-DetectableEvents {

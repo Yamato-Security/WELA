@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_external_device";
-    $detectedMessage = "Detects external diskdrives or plugged in USB devices , EventID 6416 on windows 10 or later"
+    $detectedMessage = "Detects external diskdrives or plugged in USB devices , EventID 6416 on windows 10 or later";
 
     $detectRule = {
         function Search-DetectableEvents {

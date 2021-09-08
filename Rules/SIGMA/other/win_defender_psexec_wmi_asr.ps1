@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_defender_psexec_wmi_asr";
-    $detectedMessage = "Detects blocking of process creations originating from PSExec and WMI commands"
+    $detectedMessage = "Detects blocking of process creations originating from PSExec and WMI commands";
 
     $detectRule = {
         function Search-DetectableEvents {

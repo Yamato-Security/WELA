@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_credential_access_via_password_filter";
-    $detectedMessage = "Detects dropping of dll files in system32 that may be used to retrieve user credentials from LSASS"
+    $detectedMessage = "Detects dropping of dll files in system32 that may be used to retrieve user credentials from LSASS";
 
     $detectRule = {
         function Search-DetectableEvents {

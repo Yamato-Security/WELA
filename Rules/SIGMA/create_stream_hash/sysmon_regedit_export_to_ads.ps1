@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_regedit_export_to_ads";
-    $detectedMessage = "Exports the target Registry key and hides it in the specified alternate data stream."
+    $detectedMessage = "Exports the target Registry key and hides it in the specified alternate data stream.";
 
     $detectRule = {
         function Search-DetectableEvents {

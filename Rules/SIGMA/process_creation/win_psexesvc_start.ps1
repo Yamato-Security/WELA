@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_psexesvc_start";
-    $detectedMessage = "Detects a PsExec service start"
+    $detectedMessage = "Detects a PsExec service start";
 
     $detectRule = {
         function Search-DetectableEvents {

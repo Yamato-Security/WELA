@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hivenightmare_file_exports";
-    $detectedMessage = "Detects files written by the different tools that exploit HiveNightmare"
+    $detectedMessage = "Detects files written by the different tools that exploit HiveNightmare";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_downgrade_attack";
-    $detectedMessage = "Detects PowerShell downgrade attack by comparing the host versions with the actually used engine version 2.0"
+    $detectedMessage = "Detects PowerShell downgrade attack by comparing the host versions with the actually used engine version 2.0";
 
     $detectRule = {
         function Search-DetectableEvents {

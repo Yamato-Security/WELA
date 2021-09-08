@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_soundrec_audio_capture";
-    $detectedMessage = "Detect attacker collecting audio via SoundRecorder application."
+    $detectedMessage = "Detect attacker collecting audio via SoundRecorder application.";
 
     $detectRule = {
         function Search-DetectableEvents {

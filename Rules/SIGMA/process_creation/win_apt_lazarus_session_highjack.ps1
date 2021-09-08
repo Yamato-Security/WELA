@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_lazarus_session_highjack";
-    $detectedMessage = "Detects executables launched outside their default directories as used by Lazarus Group (Bluenoroff)"
+    $detectedMessage = "Detects executables launched outside their default directories as used by Lazarus Group (Bluenoroff)";
 
     $detectRule = {
         function Search-DetectableEvents {

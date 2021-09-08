@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_cobaltstrike_load_by_rundll32";
-    $detectedMessage = "Rundll32 can be use by Cobalt Strike with StartW function to load DLLs from the command line."
+    $detectedMessage = "Rundll32 can be use by Cobalt Strike with StartW function to load DLLs from the command line.";
 
     $detectRule = {
         function Search-DetectableEvents {

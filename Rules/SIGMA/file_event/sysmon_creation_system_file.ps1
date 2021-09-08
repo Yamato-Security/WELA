@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_creation_system_file";
-    $detectedMessage = "Detects the creation of a executable with a system process name in a suspicious folder"
+    $detectedMessage = "Detects the creation of a executable with a system process name in a suspicious folder";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_indirect_cmd_compatibility_assistant";
-    $detectedMessage = "Detect indirect command execution via Program Compatibility Assistant pcwrun.exe"
+    $detectedMessage = "Detect indirect command execution via Program Compatibility Assistant pcwrun.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

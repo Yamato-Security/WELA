@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_sysinternals_sdelete_file_deletion";
-    $detectedMessage = "A General detection to trigger for the deletion of files by Sysinternals SDelete. It looks for the common name pattern used to rename files."
+    $detectedMessage = "A General detection to trigger for the deletion of files by Sysinternals SDelete. It looks for the common name pattern used to rename files.";
 
     $detectRule = {
         function Search-DetectableEvents {

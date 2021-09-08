@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_dxcap";
-    $detectedMessage = "Detects execution of of Dxcap.exe"
+    $detectedMessage = "Detects execution of of Dxcap.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

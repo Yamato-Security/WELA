@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_sdclt_child_process";
-    $detectedMessage = "A General detection for sdclt spawning new processes. This could be an indicator of sdclt being used for bypass UAC techniques."
+    $detectedMessage = "A General detection for sdclt spawning new processes. This could be an indicator of sdclt being used for bypass UAC techniques.";
 
     $detectRule = {
         function Search-DetectableEvents {

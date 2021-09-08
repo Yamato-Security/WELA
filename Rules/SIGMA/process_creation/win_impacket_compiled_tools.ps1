@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_impacket_compiled_tools";
-    $detectedMessage = "Detects the execution of different compiled Windows binaries of the impacket toolset (based on names or part of their names - could lead to false positives)"
+    $detectedMessage = "Detects the execution of different compiled Windows binaries of the impacket toolset (based on names or part of their names - could lead to false positives)";
 
     $detectRule = {
         function Search-DetectableEvents {

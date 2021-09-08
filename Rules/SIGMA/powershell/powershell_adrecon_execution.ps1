@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_adrecon_execution";
-    $detectedMessage = " Detects execution of ADRecon.ps1 for AD reconnaissance which has been reported to be actively used by FIN7 "
+    $detectedMessage = " Detects execution of ADRecon.ps1 for AD reconnaissance which has been reported to be actively used by FIN7 ";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_c3_load_by_rundll32";
-    $detectedMessage = "F-Secure C3 produces DLLs with a default exported StartNodeRelay function."
+    $detectedMessage = "F-Secure C3 produces DLLs with a default exported StartNodeRelay function.";
 
     $detectRule = {
         function Search-DetectableEvents {

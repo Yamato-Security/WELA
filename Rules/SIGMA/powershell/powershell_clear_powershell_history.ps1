@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_clear_powershell_history";
-    $detectedMessage = "Detects keywords that could indicate clearing PowerShell history"
+    $detectedMessage = "Detects keywords that could indicate clearing PowerShell history";
 
     $detectRule = {
         function Search-DetectableEvents {

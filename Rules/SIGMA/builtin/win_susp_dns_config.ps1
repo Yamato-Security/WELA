@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_dns_config";
-    $detectedMessage = "This rule detects a DNS server error in which a specified plugin DLL (in registry) could not be loaded"
+    $detectedMessage = "This rule detects a DNS server error in which a specified plugin DLL (in registry) could not be loaded";
 
     $detectRule = {
         function Search-DetectableEvents {

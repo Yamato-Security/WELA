@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_logons_explicit_credentials";
-    $detectedMessage = "Detects a source user failing to authenticate with multiple users using explicit credentials on a host."
+    $detectedMessage = "Detects a source user failing to authenticate with multiple users using explicit credentials on a host.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_dns_exfiltration_tools_execution";
-    $detectedMessage = "Well-known DNS Exfiltration tools execution"
+    $detectedMessage = "Well-known DNS Exfiltration tools execution";
 
     $detectRule = {
         function Search-DetectableEvents {

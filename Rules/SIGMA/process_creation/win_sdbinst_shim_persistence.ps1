@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_sdbinst_shim_persistence";
-    $detectedMessage = "Detects installation of a new shim using sdbinst.exe. A shim can be used to load malicious DLLs into applications."
+    $detectedMessage = "Detects installation of a new shim using sdbinst.exe. A shim can be used to load malicious DLLs into applications.";
 
     $detectRule = {
         function Search-DetectableEvents {

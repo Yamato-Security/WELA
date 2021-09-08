@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_hafnium";
-    $detectedMessage = "Detects activity observed by different researchers to be HAFNIUM group acitivity (or related) on Exchange servers"
+    $detectedMessage = "Detects activity observed by different researchers to be HAFNIUM group acitivity (or related) on Exchange servers";
 
     $detectRule = {
         function Search-DetectableEvents {

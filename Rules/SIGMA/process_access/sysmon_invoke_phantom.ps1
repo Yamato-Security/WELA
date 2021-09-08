@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_invoke_phantom";
-    $detectedMessage = "Detects suspect access to svchost process memory such as that used by Invoke-Phantom to kill the winRM windows event logging service."
+    $detectedMessage = "Detects suspect access to svchost process memory such as that used by Invoke-Phantom to kill the winRM windows event logging service.";
 
     $detectRule = {
         function Search-DetectableEvents {

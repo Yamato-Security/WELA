@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hybridconnectionmgr_svc_running";
-    $detectedMessage = "Rule to detect the Hybrid Connection Manager service running on an endpoint."
+    $detectedMessage = "Rule to detect the Hybrid Connection Manager service running on an endpoint.";
 
     $detectRule = {
         function Search-DetectableEvents {

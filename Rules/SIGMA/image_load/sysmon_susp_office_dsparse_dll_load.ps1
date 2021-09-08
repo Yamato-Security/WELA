@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_office_dsparse_dll_load";
-    $detectedMessage = "Detects DSParse DLL being loaded by an Office Product"
+    $detectedMessage = "Detects DSParse DLL being loaded by an Office Product";
 
     $detectRule = {
         function Search-DetectableEvents {

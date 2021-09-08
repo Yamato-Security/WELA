@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_get_clipboard";
-    $detectedMessage = "A General detection for the Get-Clipboard commands in PowerShell logs. This could be an adversary capturing clipboard contents."
+    $detectedMessage = "A General detection for the Get-Clipboard commands in PowerShell logs. This could be an adversary capturing clipboard contents.";
 
     $detectRule = {
         function Search-DetectableEvents {

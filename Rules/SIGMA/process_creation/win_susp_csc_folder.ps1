@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_csc_folder";
-    $detectedMessage = "Detects a suspicious execution of csc.exe, which uses a source in a suspicious folder (e.g. AppData)"
+    $detectedMessage = "Detects a suspicious execution of csc.exe, which uses a source in a suspicious folder (e.g. AppData)";
 
     $detectRule = {
         function Search-DetectableEvents {

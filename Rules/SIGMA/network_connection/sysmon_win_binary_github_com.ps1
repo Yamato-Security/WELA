@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_win_binary_github_com";
-    $detectedMessage = "Detects an executable in the Windows folder accessing github.com"
+    $detectedMessage = "Detects an executable in the Windows folder accessing github.com";
 
     $detectRule = {
         function Search-DetectableEvents {

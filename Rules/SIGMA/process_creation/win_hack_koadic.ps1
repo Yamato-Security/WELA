@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hack_koadic";
-    $detectedMessage = "Detects command line parameters used by Koadic hack tool"
+    $detectedMessage = "Detects command line parameters used by Koadic hack tool";
 
     $detectRule = {
         function Search-DetectableEvents {

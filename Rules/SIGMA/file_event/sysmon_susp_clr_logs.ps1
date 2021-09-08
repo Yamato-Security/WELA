@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_clr_logs";
-    $detectedMessage = "Detects suspicious .NET assembly executions "
+    $detectedMessage = "Detects suspicious .NET assembly executions ";
 
     $detectRule = {
         function Search-DetectableEvents {

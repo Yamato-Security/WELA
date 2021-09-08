@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_smb_file_creation_admin_shares";
-    $detectedMessage = "Look for non-system accounts SMB accessing a file with write (0x2) access mask via administrative share (i.e C$)."
+    $detectedMessage = "Look for non-system accounts SMB accessing a file with write (0x2) access mask via administrative share (i.e C$).";
 
     $detectRule = {
         function Search-DetectableEvents {

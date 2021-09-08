@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_net_enum";
-    $detectedMessage = "Identifies attempts to enumerate hosts in a network using the built-in Windows net.exe tool."
+    $detectedMessage = "Identifies attempts to enumerate hosts in a network using the built-in Windows net.exe tool.";
 
     $detectRule = {
         function Search-DetectableEvents {

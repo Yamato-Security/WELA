@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_non_priv_reg_or_ps";
-    $detectedMessage = "Search for usage of reg or Powershell by non-priveleged users to modify service configuration in registry"
+    $detectedMessage = "Search for usage of reg or Powershell by non-priveleged users to modify service configuration in registry";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_grabbing_sensitive_hives_via_reg";
-    $detectedMessage = "Dump sam, system or security hives using REG.exe utility"
+    $detectedMessage = "Dump sam, system or security hives using REG.exe utility";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_lethalhta";
-    $detectedMessage = "Detects MSHTA.EXE spwaned by SVCHOST as seen in LethalHTA and described in report"
+    $detectedMessage = "Detects MSHTA.EXE spwaned by SVCHOST as seen in LethalHTA and described in report";
 
     $detectRule = {
         function Search-DetectableEvents {

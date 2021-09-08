@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_msdeploy";
-    $detectedMessage = "Detects file execution using the msdeploy.exe lolbin"
+    $detectedMessage = "Detects file execution using the msdeploy.exe lolbin";
 
     $detectRule = {
         function Search-DetectableEvents {

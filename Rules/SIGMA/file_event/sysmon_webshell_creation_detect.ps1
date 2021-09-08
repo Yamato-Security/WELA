@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_webshell_creation_detect";
-    $detectedMessage = "Possible webshell file creation on a static web site"
+    $detectedMessage = "Possible webshell file creation on a static web site";
 
     $detectRule = {
         function Search-DetectableEvents {

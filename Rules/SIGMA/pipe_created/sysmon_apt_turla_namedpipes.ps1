@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_apt_turla_namedpipes";
-    $detectedMessage = "Detects a named pipe used by Turla group samples"
+    $detectedMessage = "Detects a named pipe used by Turla group samples";
 
     $detectRule = {
         function Search-DetectableEvents {

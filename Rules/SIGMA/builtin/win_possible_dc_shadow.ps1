@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_possible_dc_shadow";
-    $detectedMessage = "Detects DCShadow via create new SPN"
+    $detectedMessage = "Detects DCShadow via create new SPN";
 
     $detectRule = {
         function Search-DetectableEvents {

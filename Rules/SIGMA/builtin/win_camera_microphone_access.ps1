@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_camera_microphone_access";
-    $detectedMessage = "Potential adversaries accessing the microphone and webcam in an endpoint."
+    $detectedMessage = "Potential adversaries accessing the microphone and webcam in an endpoint.";
 
     $detectRule = {
         function Search-DetectableEvents {

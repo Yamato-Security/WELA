@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_rdp_hijack_shadowing";
-    $detectedMessage = "Detects RDP session hijacking by using MSTSC shadowing"
+    $detectedMessage = "Detects RDP session hijacking by using MSTSC shadowing";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_carbonpaper_turla";
-    $detectedMessage = "This method detects a service install of malicious services mentioned in Carbon Paper - Turla report by ESET"
+    $detectedMessage = "This method detects a service install of malicious services mentioned in Carbon Paper - Turla report by ESET";
 
     $detectRule = {
         function Search-DetectableEvents {

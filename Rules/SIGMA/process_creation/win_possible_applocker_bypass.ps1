@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_possible_applocker_bypass";
-    $detectedMessage = "Detects execution of executables that can be used to bypass Applocker whitelisting"
+    $detectedMessage = "Detects execution of executables that can be used to bypass Applocker whitelisting";
 
     $detectRule = {
         function Search-DetectableEvents {

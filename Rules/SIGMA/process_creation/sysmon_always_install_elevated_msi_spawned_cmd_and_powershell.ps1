@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_always_install_elevated_msi_spawned_cmd_and_powershell";
-    $detectedMessage = "This rule will looks for Windows Installer service (msiexec.exe) spawned command line and/or powershell"
+    $detectedMessage = "This rule will looks for Windows Installer service (msiexec.exe) spawned command line and/or powershell";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_scrcons_imageload_wmi_scripteventconsumer";
-    $detectedMessage = "Detects signs of the WMI script host process %SystemRoot%system32wbemscrcons.exe functionality being used via images being loaded by a process."
+    $detectedMessage = "Detects signs of the WMI script host process %SystemRoot%system32wbemscrcons.exe functionality being used via images being loaded by a process.";
 
     $detectRule = {
         function Search-DetectableEvents {

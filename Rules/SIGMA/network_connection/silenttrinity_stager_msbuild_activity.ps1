@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "silenttrinity_stager_msbuild_activity";
-    $detectedMessage = "Detects a possible remote connections to Silenttrinity c2"
+    $detectedMessage = "Detects a possible remote connections to Silenttrinity c2";
 
     $detectRule = {
         function Search-DetectableEvents {

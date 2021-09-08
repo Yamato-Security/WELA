@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_apt_muddywater_dnstunnel";
-    $detectedMessage = "Detecting DNS tunnel activity for Muddywater actor"
+    $detectedMessage = "Detecting DNS tunnel activity for Muddywater actor";
 
     $detectRule = {
         function Search-DetectableEvents {

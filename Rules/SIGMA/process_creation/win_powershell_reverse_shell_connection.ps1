@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_reverse_shell_connection";
-    $detectedMessage = "Detects the Nishang Invoke-PowerShellTcpOneLine reverse shell"
+    $detectedMessage = "Detects the Nishang Invoke-PowerShellTcpOneLine reverse shell";
 
     $detectRule = {
         function Search-DetectableEvents {

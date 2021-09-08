@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_zxshell";
-    $detectedMessage = "Detects a ZxShell start by the called and well-known function name"
+    $detectedMessage = "Detects a ZxShell start by the called and well-known function name";
 
     $detectRule = {
         function Search-DetectableEvents {

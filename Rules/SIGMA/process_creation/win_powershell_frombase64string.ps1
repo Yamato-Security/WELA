@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_frombase64string";
-    $detectedMessage = "Detects suspicious FromBase64String expressions in command line arguments"
+    $detectedMessage = "Detects suspicious FromBase64String expressions in command line arguments";
 
     $detectRule = {
         function Search-DetectableEvents {

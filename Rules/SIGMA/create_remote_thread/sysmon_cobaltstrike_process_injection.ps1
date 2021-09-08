@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_cobaltstrike_process_injection";
-    $detectedMessage = "Detects a possible remote threat creation with certain characteristics which are typical for Cobalt Strike beacons"
+    $detectedMessage = "Detects a possible remote threat creation with certain characteristics which are typical for Cobalt Strike beacons";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_scm_database_privileged_operation";
-    $detectedMessage = "Detects non-system users performing privileged operation os the SCM database"
+    $detectedMessage = "Detects non-system users performing privileged operation os the SCM database";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_office_dotnet_assembly_dll_load";
-    $detectedMessage = "Detects any assembly DLL being loaded by an Office Product"
+    $detectedMessage = "Detects any assembly DLL being loaded by an Office Product";
 
     $detectRule = {
         function Search-DetectableEvents {

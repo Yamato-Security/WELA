@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_logons_single_source_ntlm2";
-    $detectedMessage = "Detects failed logins with multiple invalid domain accounts from a single source system using the NTLM protocol."
+    $detectedMessage = "Detects failed logins with multiple invalid domain accounts from a single source system using the NTLM protocol.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_defender_tamper_protection_trigger";
-    $detectedMessage = "Detects block of attempt to disable real time protection of Microsoft Defender by tamper protection"
+    $detectedMessage = "Detects block of attempt to disable real time protection of Microsoft Defender by tamper protection";
 
     $detectRule = {
         function Search-DetectableEvents {

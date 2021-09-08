@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_rdp";
-    $detectedMessage = "Detects Non-Standard Tools Connecting to TCP port 3389 indicating possible lateral movement"
+    $detectedMessage = "Detects Non-Standard Tools Connecting to TCP port 3389 indicating possible lateral movement";
 
     $detectRule = {
         function Search-DetectableEvents {

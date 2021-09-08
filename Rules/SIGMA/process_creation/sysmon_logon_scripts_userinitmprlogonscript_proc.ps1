@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_logon_scripts_userinitmprlogonscript_proc";
-    $detectedMessage = "Detects creation or execution of UserInitMprLogonScript persistence method"
+    $detectedMessage = "Detects creation or execution of UserInitMprLogonScript persistence method";
 
     $detectRule = {
         function Search-DetectableEvents {

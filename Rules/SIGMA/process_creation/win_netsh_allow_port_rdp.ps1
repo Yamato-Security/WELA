@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_netsh_allow_port_rdp";
-    $detectedMessage = "Detects netsh commands that opens the port 3389 used for RDP, used in Sarwent Malware"
+    $detectedMessage = "Detects netsh commands that opens the port 3389 used for RDP, used in Sarwent Malware";
 
     $detectRule = {
         function Search-DetectableEvents {

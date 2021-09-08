@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_powershell_network_connection";
-    $detectedMessage = "Detects a Powershell process that opens network connections - check for suspicious target ports and target systems - adjust to your environment (e.g."
+    $detectedMessage = "Detects a Powershell process that opens network connections - check for suspicious target ports and target systems - adjust to your environment (e.g.";
 
     $detectRule = {
         function Search-DetectableEvents {

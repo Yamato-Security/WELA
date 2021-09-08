@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_rundll32_net_connections";
-    $detectedMessage = "Detects a rundll32 that communicates with public IP addresses"
+    $detectedMessage = "Detects a rundll32 that communicates with public IP addresses";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_codepage_switch";
-    $detectedMessage = "Detects a code page switch in command line or batch scripts to a rare language"
+    $detectedMessage = "Detects a code page switch in command line or batch scripts to a rare language";
 
     $detectRule = {
         function Search-DetectableEvents {

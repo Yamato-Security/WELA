@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hack_secutyxploded";
-    $detectedMessage = "Detects the execution of SecurityXploded Tools"
+    $detectedMessage = "Detects the execution of SecurityXploded Tools";
 
     $detectRule = {
         function Search-DetectableEvents {

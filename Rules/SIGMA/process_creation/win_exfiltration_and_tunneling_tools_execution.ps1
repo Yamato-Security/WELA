@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_exfiltration_and_tunneling_tools_execution";
-    $detectedMessage = "Execution of well known tools for data exfiltration and tunneling"
+    $detectedMessage = "Execution of well known tools for data exfiltration and tunneling";
 
     $detectRule = {
         function Search-DetectableEvents {

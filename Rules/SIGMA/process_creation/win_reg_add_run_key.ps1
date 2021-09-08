@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_reg_add_run_key";
-    $detectedMessage = "Detects suspicious command line reg.exe tool adding key to RUN key in Registry"
+    $detectedMessage = "Detects suspicious command line reg.exe tool adding key to RUN key in Registry";
 
     $detectRule = {
         function Search-DetectableEvents {

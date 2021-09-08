@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_load_undocumented_autoelevated_com_interface";
-    $detectedMessage = "COM interface (EditionUpgradeManager) that is not used by standard executables."
+    $detectedMessage = "COM interface (EditionUpgradeManager) that is not used by standard executables.";
 
     $detectRule = {
         function Search-DetectableEvents {

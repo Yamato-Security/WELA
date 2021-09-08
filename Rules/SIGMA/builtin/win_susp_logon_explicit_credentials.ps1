@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_logon_explicit_credentials";
-    $detectedMessage = "Detects suspicious processes logging on with explicit credentials"
+    $detectedMessage = "Detects suspicious processes logging on with explicit credentials";
 
     $detectRule = {
         function Search-DetectableEvents {

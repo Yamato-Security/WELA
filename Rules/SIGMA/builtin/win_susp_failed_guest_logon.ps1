@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_guest_logon";
-    $detectedMessage = "Detect Attempt PrintNightmare (CVE-2021-1675) Remote code execution in Windows Spooler Service"
+    $detectedMessage = "Detect Attempt PrintNightmare (CVE-2021-1675) Remote code execution in Windows Spooler Service";
 
     $detectRule = {
         function Search-DetectableEvents {

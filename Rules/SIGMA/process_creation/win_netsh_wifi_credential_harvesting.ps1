@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_netsh_wifi_credential_harvesting";
-    $detectedMessage = "Detect the harvesting of wifi credentials using netsh.exe"
+    $detectedMessage = "Detect the harvesting of wifi credentials using netsh.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

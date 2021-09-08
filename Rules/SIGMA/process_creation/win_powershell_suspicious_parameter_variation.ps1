@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_suspicious_parameter_variation";
-    $detectedMessage = "Detects suspicious PowerShell invocation with a parameter substring"
+    $detectedMessage = "Detects suspicious PowerShell invocation with a parameter substring";
 
     $detectRule = {
         function Search-DetectableEvents {

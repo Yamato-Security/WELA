@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_nishang_malicious_commandlets";
-    $detectedMessage = "Detects Commandlet names and arguments from the Nishang exploitation framework"
+    $detectedMessage = "Detects Commandlet names and arguments from the Nishang exploitation framework";
 
     $detectRule = {
         function Search-DetectableEvents {

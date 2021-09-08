@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_keylogging";
-    $detectedMessage = "Adversaries may log user keystrokes to intercept credentials as the user types them."
+    $detectedMessage = "Adversaries may log user keystrokes to intercept credentials as the user types them.";
 
     $detectRule = {
         function Search-DetectableEvents {

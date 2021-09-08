@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_curl_download";
-    $detectedMessage = "Detects a suspicious curl process start on Windows and outputs the requested document to a local file"
+    $detectedMessage = "Detects a suspicious curl process start on Windows and outputs the requested document to a local file";
 
     $detectRule = {
         function Search-DetectableEvents {

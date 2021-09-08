@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_script_event_consumer_spawn";
-    $detectedMessage = "Detects a suspicious child process of Script Event Consumer (scrcons.exe)."
+    $detectedMessage = "Detects a suspicious child process of Script Event Consumer (scrcons.exe).";
 
     $detectRule = {
         function Search-DetectableEvents {

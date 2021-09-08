@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_mal_wceaux_dll";
-    $detectedMessage = "Detects wceaux.dll access while WCE pass-the-hash remote command execution on source host"
+    $detectedMessage = "Detects wceaux.dll access while WCE pass-the-hash remote command execution on source host";
 
     $detectRule = {
         function Search-DetectableEvents {

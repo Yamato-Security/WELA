@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hack_rubeus";
-    $detectedMessage = "Detects command line parameters used by Rubeus hack tool"
+    $detectedMessage = "Detects command line parameters used by Rubeus hack tool";
 
     $detectRule = {
         function Search-DetectableEvents {

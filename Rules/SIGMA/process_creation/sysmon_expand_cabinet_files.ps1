@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_expand_cabinet_files";
-    $detectedMessage = "Adversaries can use the inbuilt expand utility to decompress cab files as seen in recent Iranian MeteorExpress attack"
+    $detectedMessage = "Adversaries can use the inbuilt expand utility to decompress cab files as seen in recent Iranian MeteorExpress attack";
 
     $detectRule = {
         function Search-DetectableEvents {

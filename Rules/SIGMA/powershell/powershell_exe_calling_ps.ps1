@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_exe_calling_ps";
-    $detectedMessage = "Detects PowerShell called from an executable by the version mismatch method"
+    $detectedMessage = "Detects PowerShell called from an executable by the version mismatch method";
 
     $detectRule = {
         function Search-DetectableEvents {

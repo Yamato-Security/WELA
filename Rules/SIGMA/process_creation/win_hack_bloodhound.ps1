@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hack_bloodhound";
-    $detectedMessage = "Detects command line parameters used by Bloodhound and Sharphound hack tools"
+    $detectedMessage = "Detects command line parameters used by Bloodhound and Sharphound hack tools";
 
     $detectRule = {
         function Search-DetectableEvents {

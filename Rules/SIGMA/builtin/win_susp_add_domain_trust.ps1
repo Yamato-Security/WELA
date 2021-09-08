@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_add_domain_trust";
-    $detectedMessage = "Addition of domains is seldom and should be verified for legitimacy."
+    $detectedMessage = "Addition of domains is seldom and should be verified for legitimacy.";
 
     $detectRule = {
         function Search-DetectableEvents {

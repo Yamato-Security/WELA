@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_av_relevant_match";
-    $detectedMessage = "This detection method points out highly relevant Antivirus events"
+    $detectedMessage = "This detection method points out highly relevant Antivirus events";
 
     $detectRule = {
         function Search-DetectableEvents {

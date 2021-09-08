@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_spn_enum";
-    $detectedMessage = "Detects Service Principal Name Enumeration used for Kerberoasting"
+    $detectedMessage = "Detects Service Principal Name Enumeration used for Kerberoasting";
 
     $detectRule = {
         function Search-DetectableEvents {

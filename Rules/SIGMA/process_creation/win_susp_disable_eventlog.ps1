@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_disable_eventlog";
-    $detectedMessage = "Detects command that is used to disable or delete Windows eventlog via logman Windows utility"
+    $detectedMessage = "Detects command that is used to disable or delete Windows eventlog via logman Windows utility";
 
     $detectRule = {
         function Search-DetectableEvents {

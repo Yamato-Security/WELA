@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_dcom_iertutil_dll_hijack";
-    $detectedMessage = "Detects a threat actor creating a file named `iertutil.dll` in the `C:Program FilesInternet Explorer` directory over the network for a DCOM InternetExplorer DLL Hijack scenario."
+    $detectedMessage = "Detects a threat actor creating a file named `iertutil.dll` in the `C:Program FilesInternet Explorer` directory over the network for a DCOM InternetExplorer DLL Hijack scenario.";
 
     $detectRule = {
         function Search-DetectableEvents {

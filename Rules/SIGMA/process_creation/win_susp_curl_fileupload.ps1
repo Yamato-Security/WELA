@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_curl_fileupload";
-    $detectedMessage = "Detects a suspicious curl process start the adds a file to a web request"
+    $detectedMessage = "Detects a suspicious curl process start the adds a file to a web request";
 
     $detectRule = {
         function Search-DetectableEvents {

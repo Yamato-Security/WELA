@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_creation_mavinject_dll";
-    $detectedMessage = "Injects arbitrary DLL into running process specified by process ID. Requires Windows 10."
+    $detectedMessage = "Injects arbitrary DLL into running process specified by process ID. Requires Windows 10.";
 
     $detectRule = {
         function Search-DetectableEvents {

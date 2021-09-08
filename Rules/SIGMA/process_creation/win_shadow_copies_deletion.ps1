@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_shadow_copies_deletion";
-    $detectedMessage = "Shadow Copies deletion using operating systems utilities"
+    $detectedMessage = "Shadow Copies deletion using operating systems utilities";
 
     $detectRule = {
         function Search-DetectableEvents {

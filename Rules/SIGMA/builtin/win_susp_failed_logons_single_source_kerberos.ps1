@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_logons_single_source_kerberos";
-    $detectedMessage = "Detects multiple failed logins with multiple valid domain accounts from a single source system using the Kerberos protocol."
+    $detectedMessage = "Detects multiple failed logins with multiple valid domain accounts from a single source system using the Kerberos protocol.";
 
     $detectRule = {
         function Search-DetectableEvents {

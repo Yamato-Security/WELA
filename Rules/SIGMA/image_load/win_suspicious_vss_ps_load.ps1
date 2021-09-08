@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_suspicious_vss_ps_load";
-    $detectedMessage = "Detects the image load of vss_ps.dll by uncommon executables using OriginalFileName datapoint"
+    $detectedMessage = "Detects the image load of vss_ps.dll by uncommon executables using OriginalFileName datapoint";
 
     $detectRule = {
         function Search-DetectableEvents {

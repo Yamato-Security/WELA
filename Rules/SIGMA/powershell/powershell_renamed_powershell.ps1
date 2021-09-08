@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_renamed_powershell";
-    $detectedMessage = "Detects renamed powershell"
+    $detectedMessage = "Detects renamed powershell";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_mal_cobaltstrike";
-    $detectedMessage = "Detects the creation of a named pipe as used by CobaltStrike"
+    $detectedMessage = "Detects the creation of a named pipe as used by CobaltStrike";
 
     $detectRule = {
         function Search-DetectableEvents {

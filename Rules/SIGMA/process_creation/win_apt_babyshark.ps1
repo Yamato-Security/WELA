@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_babyshark";
-    $detectedMessage = "Detects activity that could be related to Baby Shark malware"
+    $detectedMessage = "Detects activity that could be related to Baby Shark malware";
 
     $detectRule = {
         function Search-DetectableEvents {

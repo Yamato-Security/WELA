@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_dpapi_domain_masterkey_backup_attempt";
-    $detectedMessage = "Detects anyone attempting a backup for the DPAPI Master Key. This events gets generated at the source and not the Domain Controller."
+    $detectedMessage = "Detects anyone attempting a backup for the DPAPI Master Key. This events gets generated at the source and not the Domain Controller.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_adsi_cache_usage";
-    $detectedMessage = "Detects the usage of ADSI (LDAP) operations by tools. This may also detect tools like LDAPFragger."
+    $detectedMessage = "Detects the usage of ADSI (LDAP) operations by tools. This may also detect tools like LDAPFragger.";
 
     $detectRule = {
         function Search-DetectableEvents {

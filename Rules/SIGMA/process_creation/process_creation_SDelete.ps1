@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_SDelete";
-    $detectedMessage = "Use of SDelete to erase a file not the free space"
+    $detectedMessage = "Use of SDelete to erase a file not the free space";
 
     $detectRule = {
         function Search-DetectableEvents {

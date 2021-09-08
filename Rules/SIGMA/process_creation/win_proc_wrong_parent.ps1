@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_proc_wrong_parent";
-    $detectedMessage = "Detect suspicious parent processes of well-known Windows processes"
+    $detectedMessage = "Detect suspicious parent processes of well-known Windows processes";
 
     $detectRule = {
         function Search-DetectableEvents {

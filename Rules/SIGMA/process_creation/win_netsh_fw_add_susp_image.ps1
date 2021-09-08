@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_netsh_fw_add_susp_image";
-    $detectedMessage = "Detects Netsh commands that allows a suspcious application location on Windows Firewall"
+    $detectedMessage = "Detects Netsh commands that allows a suspcious application location on Windows Firewall";
 
     $detectRule = {
         function Search-DetectableEvents {

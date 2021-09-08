@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_turla_comrat_may20";
-    $detectedMessage = "Detects commands used by Turla group as reported by ESET in May 2020"
+    $detectedMessage = "Detects commands used by Turla group as reported by ESET in May 2020";
 
     $detectRule = {
         function Search-DetectableEvents {

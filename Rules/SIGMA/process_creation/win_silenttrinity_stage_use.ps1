@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_silenttrinity_stage_use";
-    $detectedMessage = "Detects SILENTTRINITY stager use"
+    $detectedMessage = "Detects SILENTTRINITY stager use";
 
     $detectRule = {
         function Search-DetectableEvents {

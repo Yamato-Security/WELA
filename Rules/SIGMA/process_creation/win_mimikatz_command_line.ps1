@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_mimikatz_command_line";
-    $detectedMessage = "Detection well-known mimikatz command line arguments"
+    $detectedMessage = "Detection well-known mimikatz command line arguments";
 
     $detectRule = {
         function Search-DetectableEvents {

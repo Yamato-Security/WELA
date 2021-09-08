@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_redmimicry_winnti_filedrop";
-    $detectedMessage = "Detects actions caused by the RedMimicry Winnti playbook"
+    $detectedMessage = "Detects actions caused by the RedMimicry Winnti playbook";
 
     $detectRule = {
         function Search-DetectableEvents {

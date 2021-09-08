@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_uipromptforcreds_dlls";
-    $detectedMessage = "Detects potential use of UIPromptForCredentials functions by looking for some of the DLLs needed for it."
+    $detectedMessage = "Detects potential use of UIPromptForCredentials functions by looking for some of the DLLs needed for it.";
 
     $detectRule = {
         function Search-DetectableEvents {

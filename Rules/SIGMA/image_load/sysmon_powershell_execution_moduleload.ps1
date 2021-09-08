@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_powershell_execution_moduleload";
-    $detectedMessage = "Detects execution of PowerShell"
+    $detectedMessage = "Detects execution of PowerShell";
 
     $detectRule = {
         function Search-DetectableEvents {

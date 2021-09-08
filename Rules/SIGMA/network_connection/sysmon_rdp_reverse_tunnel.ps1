@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_rdp_reverse_tunnel";
-    $detectedMessage = "Detects svchost hosting RDP termsvcs communicating with the loopback address and on TCP port 3389"
+    $detectedMessage = "Detects svchost hosting RDP termsvcs communicating with the loopback address and on TCP port 3389";
 
     $detectRule = {
         function Search-DetectableEvents {

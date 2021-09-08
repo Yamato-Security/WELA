@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_dctask64_proc_inject";
-    $detectedMessage = "Detects suspicious process injection using ZOHO's dctask64.exe"
+    $detectedMessage = "Detects suspicious process injection using ZOHO's dctask64.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_svchost_cred_dump";
-    $detectedMessage = "Detects when a process, such as mimikatz, accesses the memory of svchost to dump credentials"
+    $detectedMessage = "Detects when a process, such as mimikatz, accesses the memory of svchost to dump credentials";
 
     $detectRule = {
         function Search-DetectableEvents {

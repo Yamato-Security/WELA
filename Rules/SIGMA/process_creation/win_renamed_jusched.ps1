@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_renamed_jusched";
-    $detectedMessage = "Detects renamed jusched.exe used by cobalt group "
+    $detectedMessage = "Detects renamed jusched.exe used by cobalt group ";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_regedit_export_critical_keys";
-    $detectedMessage = "Detects the export of a crital Registry key to a file."
+    $detectedMessage = "Detects the export of a crital Registry key to a file.";
 
     $detectRule = {
         function Search-DetectableEvents {

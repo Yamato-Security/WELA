@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_shellcode_b64";
-    $detectedMessage = "Detects Base64 encoded Shellcode"
+    $detectedMessage = "Detects Base64 encoded Shellcode";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_shadow_copies_access_symlink";
-    $detectedMessage = ""
+    $detectedMessage = "";
 
     $detectRule = {
         function Search-DetectableEvents {

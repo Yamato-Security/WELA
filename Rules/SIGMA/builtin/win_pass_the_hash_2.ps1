@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_pass_the_hash_2";
-    $detectedMessage = "Detects the attack technique pass the hash which is used to move laterally inside the network"
+    $detectedMessage = "Detects the attack technique pass the hash which is used to move laterally inside the network";
 
     $detectRule = {
         function Search-DetectableEvents {

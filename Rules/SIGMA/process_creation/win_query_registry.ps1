@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_query_registry";
-    $detectedMessage = "Adversaries may interact with the Windows Registry to gather information about the system, configuration, and installed software."
+    $detectedMessage = "Adversaries may interact with the Windows Registry to gather information about the system, configuration, and installed software.";
 
     $detectRule = {
         function Search-DetectableEvents {

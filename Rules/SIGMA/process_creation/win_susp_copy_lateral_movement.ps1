@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_copy_lateral_movement";
-    $detectedMessage = "Detects a suspicious copy command to or from an Admin share"
+    $detectedMessage = "Detects a suspicious copy command to or from an Admin share";
 
     $detectRule = {
         function Search-DetectableEvents {

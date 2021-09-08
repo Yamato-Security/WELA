@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_nltest_query";
-    $detectedMessage = "Detects nltest query commands which may leak credential hashes"
+    $detectedMessage = "Detects nltest query commands which may leak credential hashes";
 
     $detectRule = {
         function Search-DetectableEvents {

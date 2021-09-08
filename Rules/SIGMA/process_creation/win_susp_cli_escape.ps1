@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_cli_escape";
-    $detectedMessage = "Detects suspicious process that use escape characters"
+    $detectedMessage = "Detects suspicious process that use escape characters";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_exchange_transportagent";
-    $detectedMessage = "Detects the Installation of a Exchange Transport Agent"
+    $detectedMessage = "Detects the Installation of a Exchange Transport Agent";
 
     $detectRule = {
         function Search-DetectableEvents {

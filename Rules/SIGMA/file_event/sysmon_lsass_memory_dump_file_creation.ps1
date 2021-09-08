@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_lsass_memory_dump_file_creation";
-    $detectedMessage = "LSASS memory dump creation using operating systems utilities. Procdump will use process name in output file if no name is specified"
+    $detectedMessage = "LSASS memory dump creation using operating systems utilities. Procdump will use process name in output file if no name is specified";
 
     $detectRule = {
         function Search-DetectableEvents {

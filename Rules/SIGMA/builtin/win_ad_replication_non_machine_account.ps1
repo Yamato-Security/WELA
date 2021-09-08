@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_ad_replication_non_machine_account";
-    $detectedMessage = "Detects potential abuse of Active Directory Replication Service (ADRS) from a non machine account to request credentials."
+    $detectedMessage = "Detects potential abuse of Active Directory Replication Service (ADRS) from a non machine account to request credentials.";
 
     $detectRule = {
         function Search-DetectableEvents {

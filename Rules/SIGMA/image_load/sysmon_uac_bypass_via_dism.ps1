@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_uac_bypass_via_dism";
-    $detectedMessage = "Attempts to load dismcore.dll after dropping it"
+    $detectedMessage = "Attempts to load dismcore.dll after dropping it";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_service_stop";
-    $detectedMessage = "Detects a windows service to be stopped"
+    $detectedMessage = "Detects a windows service to be stopped";
 
     $detectRule = {
         function Search-DetectableEvents {

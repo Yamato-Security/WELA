@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_code_injection";
-    $detectedMessage = "Detecting Code injection with PowerShell in another process"
+    $detectedMessage = "Detecting Code injection with PowerShell in another process";
 
     $detectRule = {
         function Search-DetectableEvents {

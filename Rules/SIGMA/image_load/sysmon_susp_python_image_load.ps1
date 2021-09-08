@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_python_image_load";
-    $detectedMessage = "Detects the image load of Python Core indicative of a Python script bundled with Py2Exe."
+    $detectedMessage = "Detects the image load of Python Core indicative of a Python script bundled with Py2Exe.";
 
     $detectRule = {
         function Search-DetectableEvents {

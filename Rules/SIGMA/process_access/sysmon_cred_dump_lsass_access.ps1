@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_cred_dump_lsass_access";
-    $detectedMessage = "Detects process access LSASS memory which is typical for credentials dumping tools"
+    $detectedMessage = "Detects process access LSASS memory which is typical for credentials dumping tools";
 
     $detectRule = {
         function Search-DetectableEvents {

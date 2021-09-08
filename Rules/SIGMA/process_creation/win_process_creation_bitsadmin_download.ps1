@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_process_creation_bitsadmin_download";
-    $detectedMessage = "Detects usage of bitsadmin downloading a file"
+    $detectedMessage = "Detects usage of bitsadmin downloading a file";
 
     $detectRule = {
         function Search-DetectableEvents {

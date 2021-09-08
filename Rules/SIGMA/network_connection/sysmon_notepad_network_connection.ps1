@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_notepad_network_connection";
-    $detectedMessage = "Detects suspicious network connection by Notepad"
+    $detectedMessage = "Detects suspicious network connection by Notepad";
 
     $detectRule = {
         function Search-DetectableEvents {

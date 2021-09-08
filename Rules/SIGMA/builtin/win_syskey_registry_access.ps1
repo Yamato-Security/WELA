@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_syskey_registry_access";
-    $detectedMessage = "Detects handle requests and access operations to specific registry keys to calculate the SysKey"
+    $detectedMessage = "Detects handle requests and access operations to specific registry keys to calculate the SysKey";
 
     $detectRule = {
         function Search-DetectableEvents {

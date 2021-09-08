@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_mimikatz_trough_winrm";
-    $detectedMessage = "Detects usage of mimikatz through WinRM protocol by monitoring access to lsass process by wsmprovhost.exe."
+    $detectedMessage = "Detects usage of mimikatz through WinRM protocol by monitoring access to lsass process by wsmprovhost.exe.";
 
     $detectRule = {
         function Search-DetectableEvents {

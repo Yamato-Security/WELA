@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_dotnet";
-    $detectedMessage = "dotnet.exe will execute any DLL and execute unsigned code"
+    $detectedMessage = "dotnet.exe will execute any DLL and execute unsigned code";
 
     $detectRule = {
         function Search-DetectableEvents {

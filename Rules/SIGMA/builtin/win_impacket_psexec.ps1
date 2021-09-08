@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_impacket_psexec";
-    $detectedMessage = "Detects execution of Impacket's psexec.py."
+    $detectedMessage = "Detects execution of Impacket's psexec.py.";
 
     $detectRule = {
         function Search-DetectableEvents {

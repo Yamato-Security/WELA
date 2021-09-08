@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_wmi_persistence_script_event_consumer_write";
-    $detectedMessage = "Detects file writes of WMI script event consumer"
+    $detectedMessage = "Detects file writes of WMI script event consumer";
 
     $detectRule = {
         function Search-DetectableEvents {

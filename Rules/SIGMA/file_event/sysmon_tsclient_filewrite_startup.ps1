@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_tsclient_filewrite_startup";
-    $detectedMessage = "Detects the usage of tsclient share to place a backdoor on the RDP source machine's startup folder"
+    $detectedMessage = "Detects the usage of tsclient share to place a backdoor on the RDP source machine's startup folder";
 
     $detectRule = {
         function Search-DetectableEvents {

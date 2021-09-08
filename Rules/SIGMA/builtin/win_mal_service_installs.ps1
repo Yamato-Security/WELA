@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_mal_service_installs";
-    $detectedMessage = "Detects known malicious service installs that only appear in cases of lateral movement, credential dumping, and other suspicious activities."
+    $detectedMessage = "Detects known malicious service installs that only appear in cases of lateral movement, credential dumping, and other suspicious activities.";
 
     $detectRule = {
         function Search-DetectableEvents {

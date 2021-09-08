@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_disable_windef_av";
-    $detectedMessage = "Detects attackers attempting to disable Windows Defender using Powershell"
+    $detectedMessage = "Detects attackers attempting to disable Windows Defender using Powershell";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_unsigned_image_loaded_into_lsass";
-    $detectedMessage = "Loading unsigned image (DLL, EXE) into LSASS process"
+    $detectedMessage = "Loading unsigned image (DLL, EXE) into LSASS process";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_rottenpotato";
-    $detectedMessage = "Detects logon events that have characteristics of events generated during an attack with RottenPotato and the like"
+    $detectedMessage = "Detects logon events that have characteristics of events generated during an attack with RottenPotato and the like";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_psattack";
-    $detectedMessage = "Detects the use of PSAttack PowerShell hack tool"
+    $detectedMessage = "Detects the use of PSAttack PowerShell hack tool";
 
     $detectRule = {
         function Search-DetectableEvents {

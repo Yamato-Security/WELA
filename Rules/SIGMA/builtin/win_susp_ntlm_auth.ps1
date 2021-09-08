@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_ntlm_auth";
-    $detectedMessage = "Detects logons using NTLM, which could be caused by a legacy source or attackers"
+    $detectedMessage = "Detects logons using NTLM, which could be caused by a legacy source or attackers";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_office_kerberos_dll_load";
-    $detectedMessage = "Detects Kerberos DLL being loaded by an Office Product"
+    $detectedMessage = "Detects Kerberos DLL being loaded by an Office Product";
 
     $detectRule = {
         function Search-DetectableEvents {

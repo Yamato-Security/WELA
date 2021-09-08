@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_suspicious_profile_create";
-    $detectedMessage = "Detects a change in profile.ps1 of the Powershell profile"
+    $detectedMessage = "Detects a change in profile.ps1 of the Powershell profile";
 
     $detectRule = {
         function Search-DetectableEvents {

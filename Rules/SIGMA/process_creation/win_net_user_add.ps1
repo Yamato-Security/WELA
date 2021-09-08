@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_net_user_add";
-    $detectedMessage = "Identifies creation of local users via the net.exe command."
+    $detectedMessage = "Identifies creation of local users via the net.exe command.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_manage-bde_lolbas";
-    $detectedMessage = "Detects a usage of the manage-bde.wsf script that may indicate an attempt of proxy execution from script"
+    $detectedMessage = "Detects a usage of the manage-bde.wsf script that may indicate an attempt of proxy execution from script";
 
     $detectRule = {
         function Search-DetectableEvents {

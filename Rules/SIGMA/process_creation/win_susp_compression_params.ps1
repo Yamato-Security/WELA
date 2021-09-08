@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_compression_params";
-    $detectedMessage = "Detects suspicious command line arguments of common data compression tools"
+    $detectedMessage = "Detects suspicious command line arguments of common data compression tools";
 
     $detectRule = {
         function Search-DetectableEvents {

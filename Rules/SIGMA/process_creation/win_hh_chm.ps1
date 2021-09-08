@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hh_chm";
-    $detectedMessage = "Identifies usage of hh.exe executing recently modified .chm files."
+    $detectedMessage = "Identifies usage of hh.exe executing recently modified .chm files.";
 
     $detectRule = {
         function Search-DetectableEvents {

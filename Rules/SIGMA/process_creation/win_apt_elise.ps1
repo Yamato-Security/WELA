@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_elise";
-    $detectedMessage = "Detects Elise backdoor acitivty as used by APT32"
+    $detectedMessage = "Detects Elise backdoor acitivty as used by APT32";
 
     $detectRule = {
         function Search-DetectableEvents {

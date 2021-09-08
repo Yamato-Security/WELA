@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_cobaltstrike_pipe_patterns";
-    $detectedMessage = "Detects the creation of a named pipe with a pattern found in CobaltStrike malleable C2 profiles"
+    $detectedMessage = "Detects the creation of a named pipe with a pattern found in CobaltStrike malleable C2 profiles";
 
     $detectRule = {
         function Search-DetectableEvents {

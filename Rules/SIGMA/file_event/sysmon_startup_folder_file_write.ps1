@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_startup_folder_file_write";
-    $detectedMessage = "A General detection for files being created in the Windows startup directory. This could be an indicator of persistence."
+    $detectedMessage = "A General detection for files being created in the Windows startup directory. This could be an indicator of persistence.";
 
     $detectRule = {
         function Search-DetectableEvents {

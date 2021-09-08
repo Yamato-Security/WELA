@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_atbroker";
-    $detectedMessage = "Atbroker executing non-deafualt Assistive Technology applications"
+    $detectedMessage = "Atbroker executing non-deafualt Assistive Technology applications";
 
     $detectRule = {
         function Search-DetectableEvents {

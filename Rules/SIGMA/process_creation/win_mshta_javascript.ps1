@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_mshta_javascript";
-    $detectedMessage = "Identifies suspicious mshta.exe commands."
+    $detectedMessage = "Identifies suspicious mshta.exe commands.";
 
     $detectRule = {
         function Search-DetectableEvents {

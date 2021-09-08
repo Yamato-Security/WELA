@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_cdb";
-    $detectedMessage = "Launch 64-bit shellcode from a debugger script file using cdb.exe."
+    $detectedMessage = "Launch 64-bit shellcode from a debugger script file using cdb.exe.";
 
     $detectRule = {
         function Search-DetectableEvents {

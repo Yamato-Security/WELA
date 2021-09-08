@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_account_discovery";
-    $detectedMessage = "Detect priv users or groups recon based on 4661 eventid and known privileged users or groups SIDs"
+    $detectedMessage = "Detect priv users or groups recon based on 4661 eventid and known privileged users or groups SIDs";
 
     $detectRule = {
         function Search-DetectableEvents {

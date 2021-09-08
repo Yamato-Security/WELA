@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_interactive_logons";
-    $detectedMessage = "Detects interactive console logons to Server Systems"
+    $detectedMessage = "Detects interactive console logons to Server Systems";
 
     $detectRule = {
         function Search-DetectableEvents {

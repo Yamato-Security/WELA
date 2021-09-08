@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_lsass_dump_generic";
-    $detectedMessage = "Detects process handle on LSASS process with certain access mask"
+    $detectedMessage = "Detects process handle on LSASS process with certain access mask";
 
     $detectRule = {
         function Search-DetectableEvents {

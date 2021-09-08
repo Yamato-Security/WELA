@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_csc";
-    $detectedMessage = "Detects a suspicious parent of csc.exe, which could by a sign of payload delivery"
+    $detectedMessage = "Detects a suspicious parent of csc.exe, which could by a sign of payload delivery";
 
     $detectRule = {
         function Search-DetectableEvents {

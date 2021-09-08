@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_purplesharp_indicators";
-    $detectedMessage = "Detect"
+    $detectedMessage = "Detect";
 
     $detectRule = {
         function Search-DetectableEvents {

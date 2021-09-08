@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hack_smbexec";
-    $detectedMessage = "Detects the use of smbexec.py tool by detecting a specific service installation"
+    $detectedMessage = "Detects the use of smbexec.py tool by detecting a specific service installation";
 
     $detectRule = {
         function Search-DetectableEvents {

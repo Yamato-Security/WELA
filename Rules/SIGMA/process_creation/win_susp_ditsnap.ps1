@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_ditsnap";
-    $detectedMessage = "Detects the use of Ditsnap tool. Seems to be a tool for ransomware groups."
+    $detectedMessage = "Detects the use of Ditsnap tool. Seems to be a tool for ransomware groups.";
 
     $detectRule = {
         function Search-DetectableEvents {

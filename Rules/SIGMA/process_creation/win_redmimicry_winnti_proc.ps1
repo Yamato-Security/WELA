@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_redmimicry_winnti_proc";
-    $detectedMessage = "Detects actions caused by the RedMimicry Winnti playbook"
+    $detectedMessage = "Detects actions caused by the RedMimicry Winnti playbook";
 
     $detectRule = {
         function Search-DetectableEvents {

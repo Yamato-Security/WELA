@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_add_sid_history";
-    $detectedMessage = "An attacker can use the SID history attribute to gain additional privileges."
+    $detectedMessage = "An attacker can use the SID history attribute to gain additional privileges.";
 
     $detectRule = {
         function Search-DetectableEvents {

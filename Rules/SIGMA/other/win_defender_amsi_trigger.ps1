@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_defender_amsi_trigger";
-    $detectedMessage = "Detects triggering of AMSI by Windows Defender."
+    $detectedMessage = "Detects triggering of AMSI by Windows Defender.";
 
     $detectRule = {
         function Search-DetectableEvents {

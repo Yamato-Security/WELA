@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_ads_executable";
-    $detectedMessage = "Detects the creation of an ADS data stream that contains an executable (non-empty imphash)"
+    $detectedMessage = "Detects the creation of an ADS data stream that contains an executable (non-empty imphash)";
 
     $detectRule = {
         function Search-DetectableEvents {

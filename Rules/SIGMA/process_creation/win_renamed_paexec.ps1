@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_renamed_paexec";
-    $detectedMessage = "Detects execution of renamed paexec via imphash and executable product string"
+    $detectedMessage = "Detects execution of renamed paexec via imphash and executable product string";
 
     $detectRule = {
         function Search-DetectableEvents {

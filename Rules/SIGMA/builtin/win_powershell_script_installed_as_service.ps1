@@ -8,7 +8,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_script_installed_as_service";
-    $detectedMessage = "Detects powershell script installed as a Service"
+    $detectedMessage = "Detects powershell script installed as a Service";
 
     $detectRule = {
         function Search-DetectableEvents {

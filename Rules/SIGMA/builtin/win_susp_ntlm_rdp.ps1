@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_ntlm_rdp";
-    $detectedMessage = "Detects logons using NTLM to hosts that are potentially not part of the domain."
+    $detectedMessage = "Detects logons using NTLM to hosts that are potentially not part of the domain.";
 
     $detectRule = {
         function Search-DetectableEvents {

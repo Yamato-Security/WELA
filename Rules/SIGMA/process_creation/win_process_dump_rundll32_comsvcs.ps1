@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_process_dump_rundll32_comsvcs";
-    $detectedMessage = "Detects a process memory dump performed via ordinal function 24 in comsvcs.dll"
+    $detectedMessage = "Detects a process memory dump performed via ordinal function 24 in comsvcs.dll";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_download";
-    $detectedMessage = "Detects a Powershell process that contains download commands in its command line string"
+    $detectedMessage = "Detects a Powershell process that contains download commands in its command line string";
 
     $detectRule = {
         function Search-DetectableEvents {

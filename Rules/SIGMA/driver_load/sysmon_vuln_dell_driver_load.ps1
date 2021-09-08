@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_vuln_dell_driver_load";
-    $detectedMessage = "Detects the load of the vulnerable Dell BIOS update driver as reported in CVE-2021-21551"
+    $detectedMessage = "Detects the load of the vulnerable Dell BIOS update driver as reported in CVE-2021-21551";
 
     $detectRule = {
         function Search-DetectableEvents {

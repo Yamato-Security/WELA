@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_create_local_user";
-    $detectedMessage = "Detects creation of a local user via PowerShell"
+    $detectedMessage = "Detects creation of a local user via PowerShell";
 
     $detectRule = {
         function Search-DetectableEvents {

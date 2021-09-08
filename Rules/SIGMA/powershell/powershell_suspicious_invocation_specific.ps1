@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_suspicious_invocation_specific";
-    $detectedMessage = "Detects suspicious PowerShell invocation command parameters"
+    $detectedMessage = "Detects suspicious PowerShell invocation command parameters";
 
     $detectRule = {
         function Search-DetectableEvents {

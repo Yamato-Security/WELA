@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_remote_registry_management_using_reg_utility";
-    $detectedMessage = "Remote registry management using REG utility from non-admin workstation"
+    $detectedMessage = "Remote registry management using REG utility from non-admin workstation";
 
     $detectRule = {
         function Search-DetectableEvents {

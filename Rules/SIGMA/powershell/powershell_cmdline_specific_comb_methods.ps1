@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_cmdline_specific_comb_methods";
-    $detectedMessage = "Detects specific combinations of encoding methods in the PowerShell command lines"
+    $detectedMessage = "Detects specific combinations of encoding methods in the PowerShell command lines";
 
     $detectRule = {
         function Search-DetectableEvents {

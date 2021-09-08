@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_cmstp_execution_by_access";
-    $detectedMessage = "Detects various indicators of Microsoft Connection Manager Profile Installer execution"
+    $detectedMessage = "Detects various indicators of Microsoft Connection Manager Profile Installer execution";
 
     $detectRule = {
         function Search-DetectableEvents {

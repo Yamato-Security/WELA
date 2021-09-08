@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_backup_delete";
-    $detectedMessage = "Detects backup catalog deletions"
+    $detectedMessage = "Detects backup catalog deletions";
 
     $detectRule = {
         function Search-DetectableEvents {

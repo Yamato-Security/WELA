@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_dcsync";
-    $detectedMessage = "Detects Mimikatz DC sync security events"
+    $detectedMessage = "Detects Mimikatz DC sync security events";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_ldap_recon";
-    $detectedMessage = "Detects possible Active Directory enumeration via LDAP"
+    $detectedMessage = "Detects possible Active Directory enumeration via LDAP";
 
     $detectRule = {
         function Search-DetectableEvents {

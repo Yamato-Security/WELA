@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_impacket_secretdump";
-    $detectedMessage = "Detect AD credential dumping using impacket secretdump HKTL"
+    $detectedMessage = "Detect AD credential dumping using impacket secretdump HKTL";
 
     $detectRule = {
         function Search-DetectableEvents {

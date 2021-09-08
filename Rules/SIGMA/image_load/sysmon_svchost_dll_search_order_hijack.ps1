@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_svchost_dll_search_order_hijack";
-    $detectedMessage = "IKEEXT and SessionEnv service, as they call LoadLibrary on files that do not exist within C:WindowsSystem32 by default. An attacker can place their"
+    $detectedMessage = "IKEEXT and SessionEnv service, as they call LoadLibrary on files that do not exist within C:WindowsSystem32 by default. An attacker can place their";
 
     $detectRule = {
         function Search-DetectableEvents {

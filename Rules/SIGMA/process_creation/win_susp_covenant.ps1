@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_covenant";
-    $detectedMessage = "Detects suspicious command lines used in Covenant luanchers"
+    $detectedMessage = "Detects suspicious command lines used in Covenant luanchers";
 
     $detectRule = {
         function Search-DetectableEvents {

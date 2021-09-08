@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_mal_namedpipes";
-    $detectedMessage = "Detects the creation of a named pipe used by known APT malware"
+    $detectedMessage = "Detects the creation of a named pipe used by known APT malware";
 
     $detectRule = {
         function Search-DetectableEvents {

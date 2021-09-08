@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_susp_7z";
-    $detectedMessage = "An adversary may compress or encrypt data that is collected prior to exfiltration using 3rd party utilities"
+    $detectedMessage = "An adversary may compress or encrypt data that is collected prior to exfiltration using 3rd party utilities";
 
     $detectRule = {
         function Search-DetectableEvents {

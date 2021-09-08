@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_winword_vbadll_load";
-    $detectedMessage = "Detects DLL's Loaded Via Word Containing VBA Macros"
+    $detectedMessage = "Detects DLL's Loaded Via Word Containing VBA Macros";
 
     $detectRule = {
         function Search-DetectableEvents {

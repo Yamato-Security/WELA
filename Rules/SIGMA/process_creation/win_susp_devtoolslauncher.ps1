@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_devtoolslauncher";
-    $detectedMessage = "The Devtoolslauncher.exe executes other binary"
+    $detectedMessage = "The Devtoolslauncher.exe executes other binary";
 
     $detectRule = {
         function Search-DetectableEvents {

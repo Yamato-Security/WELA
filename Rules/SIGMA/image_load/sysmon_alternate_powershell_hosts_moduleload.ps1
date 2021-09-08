@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_alternate_powershell_hosts_moduleload";
-    $detectedMessage = "Detects alternate PowerShell hosts potentially bypassing detections looking for powershell.exe"
+    $detectedMessage = "Detects alternate PowerShell hosts potentially bypassing detections looking for powershell.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_diskshadow";
-    $detectedMessage = "Detects using Diskshadow.exe to execute arbitrary code in text file"
+    $detectedMessage = "Detects using Diskshadow.exe to execute arbitrary code in text file";
 
     $detectRule = {
         function Search-DetectableEvents {

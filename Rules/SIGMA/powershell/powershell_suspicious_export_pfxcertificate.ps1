@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_suspicious_export_pfxcertificate";
-    $detectedMessage = "Detects Commandlet that is used to export certificates from the local certificate store and sometimes used by threat actors to steal provate keys from compromised machines"
+    $detectedMessage = "Detects Commandlet that is used to export certificates from the local certificate store and sometimes used by threat actors to steal provate keys from compromised machines";
 
     $detectRule = {
         function Search-DetectableEvents {

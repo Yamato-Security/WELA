@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_desktopimgdownldr";
-    $detectedMessage = "Detects a suspicious Microsoft desktopimgdownldr execution with parameters used to download files from the Internet"
+    $detectedMessage = "Detects a suspicious Microsoft desktopimgdownldr execution with parameters used to download files from the Internet";
 
     $detectRule = {
         function Search-DetectableEvents {

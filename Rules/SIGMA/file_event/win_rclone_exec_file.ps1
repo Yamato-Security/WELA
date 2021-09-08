@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_rclone_exec_file";
-    $detectedMessage = "Detects Rclone config file being created"
+    $detectedMessage = "Detects Rclone config file being created";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_usb_device_plugged";
-    $detectedMessage = "Detects plugged USB devices"
+    $detectedMessage = "Detects plugged USB devices";
 
     $detectRule = {
         function Search-DetectableEvents {

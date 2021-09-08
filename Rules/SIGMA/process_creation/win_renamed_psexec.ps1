@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_renamed_psexec";
-    $detectedMessage = "Detects the execution of a renamed PsExec often used by attackers or malware"
+    $detectedMessage = "Detects the execution of a renamed PsExec often used by attackers or malware";
 
     $detectRule = {
         function Search-DetectableEvents {

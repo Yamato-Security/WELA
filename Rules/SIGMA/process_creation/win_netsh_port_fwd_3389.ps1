@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_netsh_port_fwd_3389";
-    $detectedMessage = "Detects netsh commands that configure a port forwarding of port 3389 used for RDP"
+    $detectedMessage = "Detects netsh commands that configure a port forwarding of port 3389 used for RDP";
 
     $detectRule = {
         function Search-DetectableEvents {

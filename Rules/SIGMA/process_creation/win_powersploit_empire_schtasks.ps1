@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powersploit_empire_schtasks";
-    $detectedMessage = "Detects the creation of a schtask via PowerSploit or Empire Default Configuration."
+    $detectedMessage = "Detects the creation of a schtask via PowerSploit or Empire Default Configuration.";
 
     $detectRule = {
         function Search-DetectableEvents {

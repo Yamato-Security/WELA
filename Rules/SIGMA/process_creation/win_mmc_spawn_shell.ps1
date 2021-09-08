@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_mmc_spawn_shell";
-    $detectedMessage = "Detects a Windows command line executable started from MMC"
+    $detectedMessage = "Detects a Windows command line executable started from MMC";
 
     $detectRule = {
         function Search-DetectableEvents {

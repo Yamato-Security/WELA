@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_interactive_at";
-    $detectedMessage = "Detect an interactive AT job, which may be used as a form of privilege escalation."
+    $detectedMessage = "Detect an interactive AT job, which may be used as a form of privilege escalation.";
 
     $detectRule = {
         function Search-DetectableEvents {

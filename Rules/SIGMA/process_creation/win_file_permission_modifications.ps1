@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_file_permission_modifications";
-    $detectedMessage = "Detects a file or folder's permissions being modified."
+    $detectedMessage = "Detects a file or folder's permissions being modified.";
 
     $detectRule = {
         function Search-DetectableEvents {

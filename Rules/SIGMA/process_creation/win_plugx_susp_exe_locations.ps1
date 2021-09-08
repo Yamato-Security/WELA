@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_plugx_susp_exe_locations";
-    $detectedMessage = "Detects the execution of an executable that is typically used by PlugX for DLL side loading started from an uncommon location"
+    $detectedMessage = "Detects the execution of an executable that is typically used by PlugX for DLL side loading started from an uncommon location";
 
     $detectRule = {
         function Search-DetectableEvents {

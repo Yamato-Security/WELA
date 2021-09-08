@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_bitsjob";
-    $detectedMessage = "Detect download by BITS jobs via PowerShell"
+    $detectedMessage = "Detect download by BITS jobs via PowerShell";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_cve_2021_1675_printspooler";
-    $detectedMessage = "Detects the default filename used in PoC code against print spooler vulnerability CVE-2021-1675"
+    $detectedMessage = "Detects the default filename used in PoC code against print spooler vulnerability CVE-2021-1675";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_wmi_login";
-    $detectedMessage = "Detection of logins performed with WMI"
+    $detectedMessage = "Detection of logins performed with WMI";
 
     $detectRule = {
         function Search-DetectableEvents {

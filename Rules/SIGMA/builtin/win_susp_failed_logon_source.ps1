@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_logon_source";
-    $detectedMessage = "A login from a public IP can indicate a misconfigured firewall or network boundary."
+    $detectedMessage = "A login from a public IP can indicate a misconfigured firewall or network boundary.";
 
     $detectRule = {
         function Search-DetectableEvents {

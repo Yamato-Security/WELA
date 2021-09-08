@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_winnti_pipemon";
-    $detectedMessage = "Detects specific process characteristics of Winnti Pipemon malware reported by ESET"
+    $detectedMessage = "Detects specific process characteristics of Winnti Pipemon malware reported by ESET";
 
     $detectRule = {
         function Search-DetectableEvents {

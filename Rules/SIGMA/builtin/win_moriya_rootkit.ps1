@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_moriya_rootkit";
-    $detectedMessage = "Detects the use of Moriya rootkit as described in the securelist's Operation TunnelSnake report"
+    $detectedMessage = "Detects the use of Moriya rootkit as described in the securelist's Operation TunnelSnake report";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_tamper_with_windows_defender";
-    $detectedMessage = "Attempting to disable scheduled scanning and other parts of windows defender atp."
+    $detectedMessage = "Attempting to disable scheduled scanning and other parts of windows defender atp.";
 
     $detectRule = {
         function Search-DetectableEvents {

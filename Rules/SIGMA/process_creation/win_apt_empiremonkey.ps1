@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_empiremonkey";
-    $detectedMessage = "Detects EmpireMonkey APT reported Activity"
+    $detectedMessage = "Detects EmpireMonkey APT reported Activity";
 
     $detectRule = {
         function Search-DetectableEvents {

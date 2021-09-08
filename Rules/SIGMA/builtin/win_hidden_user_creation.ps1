@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_hidden_user_creation";
-    $detectedMessage = "Detects the creation of a local hidden user account which should not happen for event ID 4720."
+    $detectedMessage = "Detects the creation of a local hidden user account which should not happen for event ID 4720.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_raccess_sensitive_fext";
-    $detectedMessage = "Detects known sensitive file extensions accessed on a network share"
+    $detectedMessage = "Detects known sensitive file extensions accessed on a network share";
 
     $detectRule = {
         function Search-DetectableEvents {

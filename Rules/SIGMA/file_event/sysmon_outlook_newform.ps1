@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_outlook_newform";
-    $detectedMessage = "Detects the creation of new Outlook form which can contain malicious code"
+    $detectedMessage = "Detects the creation of new Outlook form which can contain malicious code";
 
     $detectRule = {
         function Search-DetectableEvents {

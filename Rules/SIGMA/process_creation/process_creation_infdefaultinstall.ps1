@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_infdefaultinstall";
-    $detectedMessage = "Executes SCT script using scrobj.dll from a command in entered into a specially prepared INF file."
+    $detectedMessage = "Executes SCT script using scrobj.dll from a command in entered into a specially prepared INF file.";
 
     $detectRule = {
         function Search-DetectableEvents {

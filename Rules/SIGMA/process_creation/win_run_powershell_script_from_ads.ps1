@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_run_powershell_script_from_ads";
-    $detectedMessage = "Detects PowerShell script execution from Alternate Data Stream (ADS)"
+    $detectedMessage = "Detects PowerShell script execution from Alternate Data Stream (ADS)";
 
     $detectRule = {
         function Search-DetectableEvents {

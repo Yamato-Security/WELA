@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "dns_mega_nz";
-    $detectedMessage = " Detects DNS queries for subdomains used for upload to MEGA.io"
+    $detectedMessage = " Detects DNS queries for subdomains used for upload to MEGA.io";
 
     $detectRule = {
         function Search-DetectableEvents {

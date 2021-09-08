@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_network_sniffing";
-    $detectedMessage = "Network sniffing refers to using the network interface on a system to monitor or capture information sent over a wired or wireless connection. An adversary"
+    $detectedMessage = "Network sniffing refers to using the network interface on a system to monitor or capture information sent over a wired or wireless connection. An adversary";
 
     $detectRule = {
         function Search-DetectableEvents {

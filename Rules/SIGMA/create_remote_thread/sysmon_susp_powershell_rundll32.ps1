@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_powershell_rundll32";
-    $detectedMessage = "Detects PowerShell remote thread creation in Rundll32.exe"
+    $detectedMessage = "Detects PowerShell remote thread creation in Rundll32.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

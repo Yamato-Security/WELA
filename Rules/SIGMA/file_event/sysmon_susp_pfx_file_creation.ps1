@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_pfx_file_creation";
-    $detectedMessage = "A general detection for processes creating PFX files. This could be an indicator of an adversary exporting a local certificate to a PFX file."
+    $detectedMessage = "A general detection for processes creating PFX files. This could be an indicator of an adversary exporting a local certificate to a PFX file.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_logons_single_process";
-    $detectedMessage = "Detects failed logins with multiple accounts from a single process on the system."
+    $detectedMessage = "Detects failed logins with multiple accounts from a single process on the system.";
 
     $detectRule = {
         function Search-DetectableEvents {

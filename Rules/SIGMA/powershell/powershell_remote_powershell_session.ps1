@@ -4,7 +4,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_remote_powershell_session";
-    $detectedMessage = "Detects remote PowerShell sessions"
+    $detectedMessage = "Detects remote PowerShell sessions";
 
     $detectRule = {
         function Search-DetectableEvents {

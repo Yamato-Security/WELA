@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_net_execution";
-    $detectedMessage = "Detects execution of Net.exe, whether suspicious or benign."
+    $detectedMessage = "Detects execution of Net.exe, whether suspicious or benign.";
 
     $detectRule = {
         function Search-DetectableEvents {

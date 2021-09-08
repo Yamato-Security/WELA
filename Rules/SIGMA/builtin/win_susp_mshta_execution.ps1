@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_mshta_execution";
-    $detectedMessage = "Detection for mshta.exe suspicious execution patterns sometimes involving file polyglotism"
+    $detectedMessage = "Detection for mshta.exe suspicious execution patterns sometimes involving file polyglotism";
 
     $detectRule = {
         function Search-DetectableEvents {

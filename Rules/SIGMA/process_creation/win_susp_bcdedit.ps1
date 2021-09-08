@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_bcdedit";
-    $detectedMessage = "Detects, possibly, malicious unauthorized usage of bcdedit.exe"
+    $detectedMessage = "Detects, possibly, malicious unauthorized usage of bcdedit.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

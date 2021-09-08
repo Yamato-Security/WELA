@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_proxy_execution_wuauclt";
-    $detectedMessage = "Detects the use of the Windows Update Client binary (wuauclt.exe) to proxy execute code."
+    $detectedMessage = "Detects the use of the Windows Update Client binary (wuauclt.exe) to proxy execute code.";
 
     $detectRule = {
         function Search-DetectableEvents {

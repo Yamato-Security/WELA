@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_ad_user_enumeration";
-    $detectedMessage = "Detects access to a domain user from a non-machine account"
+    $detectedMessage = "Detects access to a domain user from a non-machine account";
 
     $detectRule = {
         function Search-DetectableEvents {

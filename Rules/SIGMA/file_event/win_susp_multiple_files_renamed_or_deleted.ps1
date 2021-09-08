@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_multiple_files_renamed_or_deleted";
-    $detectedMessage = "Detects multiple file rename or delete events occurrence within a specified period of time by a same user (these events may signalize about ransomware activity)."
+    $detectedMessage = "Detects multiple file rename or delete events occurrence within a specified period of time by a same user (these events may signalize about ransomware activity).";
 
     $detectRule = {
         function Search-DetectableEvents {

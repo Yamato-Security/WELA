@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_shell_spawn_mshta";
-    $detectedMessage = "Detects a suspicious child process of a mshta.exe process"
+    $detectedMessage = "Detects a suspicious child process of a mshta.exe process";
 
     $detectRule = {
         function Search-DetectableEvents {

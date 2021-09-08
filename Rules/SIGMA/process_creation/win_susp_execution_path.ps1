@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_execution_path";
-    $detectedMessage = "Detects a suspicious execution from an uncommon folder"
+    $detectedMessage = "Detects a suspicious execution from an uncommon folder";
 
     $detectRule = {
         function Search-DetectableEvents {

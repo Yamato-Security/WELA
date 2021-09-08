@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_crackmapexec_powershell_obfuscation";
-    $detectedMessage = "The CrachMapExec pentesting framework implements a PowerShell obfuscation with some static strings detected by this rule."
+    $detectedMessage = "The CrachMapExec pentesting framework implements a PowerShell obfuscation with some static strings detected by this rule.";
 
     $detectRule = {
         function Search-DetectableEvents {

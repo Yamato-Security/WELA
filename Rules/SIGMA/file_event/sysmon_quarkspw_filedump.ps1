@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_quarkspw_filedump";
-    $detectedMessage = "Detects a dump file written by QuarksPwDump password dumper"
+    $detectedMessage = "Detects a dump file written by QuarksPwDump password dumper";
 
     $detectRule = {
         function Search-DetectableEvents {

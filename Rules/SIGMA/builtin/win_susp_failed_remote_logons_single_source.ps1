@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_remote_logons_single_source";
-    $detectedMessage = "Detects a source system failing to authenticate against a remote host with multiple users."
+    $detectedMessage = "Detects a source system failing to authenticate against a remote host with multiple users.";
 
     $detectRule = {
         function Search-DetectableEvents {

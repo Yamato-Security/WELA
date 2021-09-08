@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_crackmapexec_execution";
-    $detectedMessage = "Detect various execution methods of the CrackMapExec pentesting framework"
+    $detectedMessage = "Detect various execution methods of the CrackMapExec pentesting framework";
 
     $detectRule = {
         function Search-DetectableEvents {

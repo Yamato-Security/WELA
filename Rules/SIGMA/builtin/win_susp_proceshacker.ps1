@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_proceshacker";
-    $detectedMessage = "Detects a ProcessHacker tool that elevated privileges to a very high level"
+    $detectedMessage = "Detects a ProcessHacker tool that elevated privileges to a very high level";
 
     $detectRule = {
         function Search-DetectableEvents {

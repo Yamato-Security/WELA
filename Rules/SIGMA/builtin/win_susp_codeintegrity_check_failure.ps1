@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_codeintegrity_check_failure";
-    $detectedMessage = "Code integrity failures may indicate tampered executables."
+    $detectedMessage = "Code integrity failures may indicate tampered executables.";
 
     $detectRule = {
         function Search-DetectableEvents {

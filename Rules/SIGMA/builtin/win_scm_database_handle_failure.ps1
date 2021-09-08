@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_scm_database_handle_failure";
-    $detectedMessage = "Detects non-system users failing to get a handle of the SCM database."
+    $detectedMessage = "Detects non-system users failing to get a handle of the SCM database.";
 
     $detectRule = {
         function Search-DetectableEvents {

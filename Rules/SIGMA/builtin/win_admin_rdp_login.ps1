@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_admin_rdp_login";
-    $detectedMessage = "Detect remote login by Administrator user (depending on internal pattern)."
+    $detectedMessage = "Detect remote login by Administrator user (depending on internal pattern).";
 
     $detectRule = {
         function Search-DetectableEvents {

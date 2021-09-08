@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_scrcons_remote_wmi_scripteventconsumer";
-    $detectedMessage = "Detect potential adversaries leveraging WMI ActiveScriptEventConsumers remotely to move laterally in a network"
+    $detectedMessage = "Detect potential adversaries leveraging WMI ActiveScriptEventConsumers remotely to move laterally in a network";
 
     $detectRule = {
         function Search-DetectableEvents {

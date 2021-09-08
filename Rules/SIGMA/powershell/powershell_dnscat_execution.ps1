@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_dnscat_execution";
-    $detectedMessage = "Dnscat exfiltration tool execution"
+    $detectedMessage = "Dnscat exfiltration tool execution";
 
     $detectRule = {
         function Search-DetectableEvents {

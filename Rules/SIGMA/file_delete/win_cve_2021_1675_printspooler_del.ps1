@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_cve_2021_1675_printspooler_del";
-    $detectedMessage = "Detect DLL deletions from Spooler Service driver folder "
+    $detectedMessage = "Detect DLL deletions from Spooler Service driver folder ";
 
     $detectRule = {
         function Search-DetectableEvents {

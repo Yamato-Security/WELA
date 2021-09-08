@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_pcre_net_temp_file";
-    $detectedMessage = "Detects processes creating temp files related to PCRE.NET package"
+    $detectedMessage = "Detects processes creating temp files related to PCRE.NET package";
 
     $detectRule = {
         function Search-DetectableEvents {

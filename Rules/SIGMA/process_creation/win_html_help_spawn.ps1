@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_html_help_spawn";
-    $detectedMessage = "Detects a suspicious child process of a Microsoft HTML Help system when executing compiled HTML files (.chm)"
+    $detectedMessage = "Detects a suspicious child process of a Microsoft HTML Help system when executing compiled HTML files (.chm)";
 
     $detectRule = {
         function Search-DetectableEvents {

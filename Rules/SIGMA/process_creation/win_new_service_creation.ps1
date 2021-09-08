@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_new_service_creation";
-    $detectedMessage = "Detects creation of a new service."
+    $detectedMessage = "Detects creation of a new service.";
 
     $detectRule = {
         function Search-DetectableEvents {

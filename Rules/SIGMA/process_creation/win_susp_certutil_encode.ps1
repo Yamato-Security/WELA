@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_certutil_encode";
-    $detectedMessage = "Detects suspicious a certutil command that used to encode files, which is sometimes used for data exfiltration"
+    $detectedMessage = "Detects suspicious a certutil command that used to encode files, which is sometimes used for data exfiltration";
 
     $detectRule = {
         function Search-DetectableEvents {

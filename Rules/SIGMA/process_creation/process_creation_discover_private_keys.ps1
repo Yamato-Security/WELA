@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_discover_private_keys";
-    $detectedMessage = "Adversaries may search for private key certificate files on compromised systems for insecurely stored credential"
+    $detectedMessage = "Adversaries may search for private key certificate files on compromised systems for insecurely stored credential";
 
     $detectRule = {
         function Search-DetectableEvents {

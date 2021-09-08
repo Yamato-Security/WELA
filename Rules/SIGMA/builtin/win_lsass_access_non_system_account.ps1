@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_lsass_access_non_system_account";
-    $detectedMessage = "Detects potential mimikatz-like tools accessing LSASS from non system account"
+    $detectedMessage = "Detects potential mimikatz-like tools accessing LSASS from non system account";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_sam_dump";
-    $detectedMessage = "Detects suspicious SAM dump activity as cause by QuarksPwDump and other password dumpers"
+    $detectedMessage = "Detects suspicious SAM dump activity as cause by QuarksPwDump and other password dumpers";
 
     $detectRule = {
         function Search-DetectableEvents {

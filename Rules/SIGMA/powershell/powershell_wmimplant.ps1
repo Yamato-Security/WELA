@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_wmimplant";
-    $detectedMessage = "Detects parameters used by WMImplant"
+    $detectedMessage = "Detects parameters used by WMImplant";
 
     $detectRule = {
         function Search-DetectableEvents {

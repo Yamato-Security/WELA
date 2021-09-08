@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_time_modification";
-    $detectedMessage = "Detect scenarios where a potentially unauthorized application or user is modifying the system time."
+    $detectedMessage = "Detect scenarios where a potentially unauthorized application or user is modifying the system time.";
 
     $detectRule = {
         function Search-DetectableEvents {

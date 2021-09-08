@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_sdelete";
-    $detectedMessage = "Detects renaming of file while deletion with SDelete tool."
+    $detectedMessage = "Detects renaming of file while deletion with SDelete tool.";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_ntfs_ads_access";
-    $detectedMessage = "Detects writing data into NTFS alternate data streams from powershell. Needs Script Block Logging."
+    $detectedMessage = "Detects writing data into NTFS alternate data streams from powershell. Needs Script Block Logging.";
 
     $detectRule = {
         function Search-DetectableEvents {

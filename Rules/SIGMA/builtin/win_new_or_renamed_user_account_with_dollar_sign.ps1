@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_new_or_renamed_user_account_with_dollar_sign";
-    $detectedMessage = "Detects possible bypass EDR and SIEM via abnormal user account name."
+    $detectedMessage = "Detects possible bypass EDR and SIEM via abnormal user account name.";
 
     $detectRule = {
         function Search-DetectableEvents {

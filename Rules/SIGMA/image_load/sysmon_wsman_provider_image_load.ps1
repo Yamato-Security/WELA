@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_wsman_provider_image_load";
-    $detectedMessage = "Detects signs of potential use of the WSMAN provider from uncommon processes locally and remote execution."
+    $detectedMessage = "Detects signs of potential use of the WSMAN provider from uncommon processes locally and remote execution.";
 
     $detectRule = {
         function Search-DetectableEvents {

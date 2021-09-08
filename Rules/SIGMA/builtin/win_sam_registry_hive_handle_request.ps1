@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_sam_registry_hive_handle_request";
-    $detectedMessage = "Detects handles requested to SAM registry hive"
+    $detectedMessage = "Detects handles requested to SAM registry hive";
 
     $detectRule = {
         function Search-DetectableEvents {

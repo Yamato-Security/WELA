@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_suspicious_recon";
-    $detectedMessage = "Once established within a system or network, an adversary may use automated techniques for collecting internal data"
+    $detectedMessage = "Once established within a system or network, an adversary may use automated techniques for collecting internal data";
 
     $detectRule = {
         function Search-DetectableEvents {

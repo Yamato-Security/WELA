@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_etw_trace_evasion";
-    $detectedMessage = "Detects a command that clears or disables any ETW trace log which could indicate a logging evasion."
+    $detectedMessage = "Detects a command that clears or disables any ETW trace log which could indicate a logging evasion.";
 
     $detectRule = {
         function Search-DetectableEvents {

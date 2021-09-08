@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_audio_capture";
-    $detectedMessage = "Detects audio capture via PowerShell Cmdlet."
+    $detectedMessage = "Detects audio capture via PowerShell Cmdlet.";
 
     $detectRule = {
         function Search-DetectableEvents {

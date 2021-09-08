@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_powershell_dll_execution";
-    $detectedMessage = "Detects PowerShell Strings applied to rundll as seen in PowerShdll.dll"
+    $detectedMessage = "Detects PowerShell Strings applied to rundll as seen in PowerShdll.dll";
 
     $detectRule = {
         function Search-DetectableEvents {

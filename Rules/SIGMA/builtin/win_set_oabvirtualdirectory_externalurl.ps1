@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_set_oabvirtualdirectory_externalurl";
-    $detectedMessage = "Rule to detect an adversary setting OabVirtualDirectory External URL property to a script"
+    $detectedMessage = "Rule to detect an adversary setting OabVirtualDirectory External URL property to a script";
 
     $detectRule = {
         function Search-DetectableEvents {

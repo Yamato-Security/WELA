@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_delete_volume_shadow_copies";
-    $detectedMessage = "Shadow Copies deletion using operating systems utilities via PowerShell"
+    $detectedMessage = "Shadow Copies deletion using operating systems utilities via PowerShell";
 
     $detectRule = {
         function Search-DetectableEvents {

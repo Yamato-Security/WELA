@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_iso_mount";
-    $detectedMessage = "Detects the mount of ISO images on an endpoint"
+    $detectedMessage = "Detects the mount of ISO images on an endpoint";
 
     $detectRule = {
         function Search-DetectableEvents {

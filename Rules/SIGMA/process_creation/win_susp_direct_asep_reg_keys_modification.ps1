@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_direct_asep_reg_keys_modification";
-    $detectedMessage = "Detects direct modification of autostart extensibility point (ASEP) in registry using reg.exe."
+    $detectedMessage = "Detects direct modification of autostart extensibility point (ASEP) in registry using reg.exe.";
 
     $detectRule = {
         function Search-DetectableEvents {

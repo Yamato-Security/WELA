@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_admin_share_access";
-    $detectedMessage = "Detects access to $ADMIN share"
+    $detectedMessage = "Detects access to $ADMIN share";
 
     $detectRule = {
         function Search-DetectableEvents {

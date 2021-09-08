@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_prompt_credentials";
-    $detectedMessage = "Detects PowerShell calling a credential prompt"
+    $detectedMessage = "Detects PowerShell calling a credential prompt";
 
     $detectRule = {
         function Search-DetectableEvents {

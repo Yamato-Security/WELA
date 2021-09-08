@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_createremotethread_loadlibrary";
-    $detectedMessage = "Detects potential use of CreateRemoteThread api and LoadLibrary function to inject DLL into a process"
+    $detectedMessage = "Detects potential use of CreateRemoteThread api and LoadLibrary function to inject DLL into a process";
 
     $detectRule = {
         function Search-DetectableEvents {

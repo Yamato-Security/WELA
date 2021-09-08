@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_net_use_admin_share";
-    $detectedMessage = "Detects when an admin share is mounted using net.exe"
+    $detectedMessage = "Detects when an admin share is mounted using net.exe";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_driver_load";
-    $detectedMessage = "Detects a driver load from a temporary directory"
+    $detectedMessage = "Detects a driver load from a temporary directory";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_lsass_dump_comsvcs_dll";
-    $detectedMessage = "Detects adversaries leveraging the MiniDump export function from comsvcs.dll via rundll32 to perform a memory dump from lsass."
+    $detectedMessage = "Detects adversaries leveraging the MiniDump export function from comsvcs.dll via rundll32 to perform a memory dump from lsass.";
 
     $detectRule = {
         function Search-DetectableEvents {

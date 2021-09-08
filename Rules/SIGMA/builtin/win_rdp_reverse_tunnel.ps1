@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_rdp_reverse_tunnel";
-    $detectedMessage = "Detects svchost hosting RDP termsvcs communicating with the loopback address"
+    $detectedMessage = "Detects svchost hosting RDP termsvcs communicating with the loopback address";
 
     $detectRule = {
         function Search-DetectableEvents {

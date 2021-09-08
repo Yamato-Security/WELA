@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_control_dll_load";
-    $detectedMessage = "Detects suspicious Rundll32 execution from control.exe as used by Equation Group and Exploit Kits"
+    $detectedMessage = "Detects suspicious Rundll32 execution from control.exe as used by Equation Group and Exploit Kits";
 
     $detectRule = {
         function Search-DetectableEvents {

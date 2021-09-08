@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_conhost";
-    $detectedMessage = "Detects the conhost execution as parent process. Can be used to evaded defense mechanism."
+    $detectedMessage = "Detects the conhost execution as parent process. Can be used to evaded defense mechanism.";
 
     $detectRule = {
         function Search-DetectableEvents {

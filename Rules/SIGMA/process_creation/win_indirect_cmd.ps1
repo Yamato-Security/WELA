@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_indirect_cmd";
-    $detectedMessage = "Detect indirect command execution via Program Compatibility Assistant (pcalua.exe or forfiles.exe)."
+    $detectedMessage = "Detect indirect command execution via Program Compatibility Assistant (pcalua.exe or forfiles.exe).";
 
     $detectRule = {
         function Search-DetectableEvents {

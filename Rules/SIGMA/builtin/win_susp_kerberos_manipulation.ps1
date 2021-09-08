@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_kerberos_manipulation";
-    $detectedMessage = "This method triggers on rare Kerberos Failure Codes caused by manipulations of Kerberos messages"
+    $detectedMessage = "This method triggers on rare Kerberos Failure Codes caused by manipulations of Kerberos messages";
 
     $detectRule = {
         function Search-DetectableEvents {

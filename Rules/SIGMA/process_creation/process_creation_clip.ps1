@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "process_creation_clip";
-    $detectedMessage = "Adversaries may collect data stored in the clipboard from users copying information within or between applications. "
+    $detectedMessage = "Adversaries may collect data stored in the clipboard from users copying information within or between applications. ";
 
     $detectRule = {
         function Search-DetectableEvents {

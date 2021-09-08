@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_user_added_to_local_administrators";
-    $detectedMessage = "This rule triggers on user accounts that are added to the local Administrators group, which could be legitimate activity or a sign of privilege escalation"
+    $detectedMessage = "This rule triggers on user accounts that are added to the local Administrators group, which could be legitimate activity or a sign of privilege escalation";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_dnx";
-    $detectedMessage = "Execute C# code located in the consoleapp folder"
+    $detectedMessage = "Execute C# code located in the consoleapp folder";
 
     $detectRule = {
         function Search-DetectableEvents {

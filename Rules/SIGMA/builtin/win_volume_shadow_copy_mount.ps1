@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_volume_shadow_copy_mount";
-    $detectedMessage = "Detects volume shadow copy mount"
+    $detectedMessage = "Detects volume shadow copy mount";
 
     $detectRule = {
         function Search-DetectableEvents {

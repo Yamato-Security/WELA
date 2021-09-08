@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_adfind";
-    $detectedMessage = "Detects the execution of a AdFind for Active Directory enumeration "
+    $detectedMessage = "Detects the execution of a AdFind for Active Directory enumeration ";
 
     $detectRule = {
         function Search-DetectableEvents {

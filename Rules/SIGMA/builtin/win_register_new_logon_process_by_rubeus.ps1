@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_register_new_logon_process_by_rubeus";
-    $detectedMessage = "Detects potential use of Rubeus via registered new trusted logon process"
+    $detectedMessage = "Detects potential use of Rubeus via registered new trusted logon process";
 
     $detectRule = {
         function Search-DetectableEvents {

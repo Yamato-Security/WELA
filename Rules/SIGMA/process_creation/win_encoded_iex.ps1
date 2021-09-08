@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_encoded_iex";
-    $detectedMessage = "Detects a base64 encoded IEX command string in a process command line"
+    $detectedMessage = "Detects a base64 encoded IEX command string in a process command line";
 
     $detectRule = {
         function Search-DetectableEvents {

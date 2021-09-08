@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_disable_ie_features";
-    $detectedMessage = "Detects command lines that indicate unwanted modifications to registry keys that disable important Internet Explorer security features"
+    $detectedMessage = "Detects command lines that indicate unwanted modifications to registry keys that disable important Internet Explorer security features";
 
     $detectRule = {
         function Search-DetectableEvents {

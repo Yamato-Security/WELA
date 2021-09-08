@@ -6,7 +6,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_defender_exclusions";
-    $detectedMessage = "Detects the Setting of Windows Defender Exclusions"
+    $detectedMessage = "Detects the Setting of Windows Defender Exclusions";
 
     $detectRule = {
         function Search-DetectableEvents {

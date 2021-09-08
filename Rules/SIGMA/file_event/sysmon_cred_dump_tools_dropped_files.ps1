@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_cred_dump_tools_dropped_files";
-    $detectedMessage = "Files with well-known filenames (parts of credential dump software or files produced by them) creation"
+    $detectedMessage = "Files with well-known filenames (parts of credential dump software or files produced by them) creation";
 
     $detectRule = {
         function Search-DetectableEvents {

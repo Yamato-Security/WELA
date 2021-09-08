@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_office_spawn_exe_from_users_directory";
-    $detectedMessage = "Detects an executable in the users directory started from Microsoft Word, Excel, Powerpoint, Publisher or Visio"
+    $detectedMessage = "Detects an executable in the users directory started from Microsoft Word, Excel, Powerpoint, Publisher or Visio";
 
     $detectRule = {
         function Search-DetectableEvents {

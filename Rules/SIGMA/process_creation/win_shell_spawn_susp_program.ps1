@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_shell_spawn_susp_program";
-    $detectedMessage = "Detects a suspicious child process of a Windows shell"
+    $detectedMessage = "Detects a suspicious child process of a Windows shell";
 
     $detectRule = {
         function Search-DetectableEvents {

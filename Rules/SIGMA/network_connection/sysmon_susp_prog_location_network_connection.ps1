@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_prog_location_network_connection";
-    $detectedMessage = "Detects programs with network connections running in suspicious files system locations"
+    $detectedMessage = "Detects programs with network connections running in suspicious files system locations";
 
     $detectRule = {
         function Search-DetectableEvents {

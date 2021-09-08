@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_bginfo";
-    $detectedMessage = "Execute VBscript code that is referenced within the *.bgi file."
+    $detectedMessage = "Execute VBscript code that is referenced within the *.bgi file.";
 
     $detectRule = {
         function Search-DetectableEvents {

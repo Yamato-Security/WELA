@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_suspicious_keywords";
-    $detectedMessage = "Detects keywords that could indicate the use of some PowerShell exploitation framework"
+    $detectedMessage = "Detects keywords that could indicate the use of some PowerShell exploitation framework";
 
     $detectRule = {
         function Search-DetectableEvents {

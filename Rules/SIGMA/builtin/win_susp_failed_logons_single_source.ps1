@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_failed_logons_single_source";
-    $detectedMessage = "Detects suspicious failed logins with different user accounts from a single source system"
+    $detectedMessage = "Detects suspicious failed logins with different user accounts from a single source system";
 
     $detectRule = {
         function Search-DetectableEvents {

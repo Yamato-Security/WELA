@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_netsh_fw_add";
-    $detectedMessage = "Allow Incoming Connections by Port or Application on Windows Firewall"
+    $detectedMessage = "Allow Incoming Connections by Port or Application on Windows Firewall";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_shadow_copies_creation";
-    $detectedMessage = "Shadow Copies creation using operating systems utilities, possible credential access"
+    $detectedMessage = "Shadow Copies creation using operating systems utilities, possible credential access";
 
     $detectRule = {
         function Search-DetectableEvents {

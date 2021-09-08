@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_defender_threat";
-    $detectedMessage = "Detects all actions taken by Windows Defender malware detection engines"
+    $detectedMessage = "Detects all actions taken by Windows Defender malware detection engines";
 
     $detectRule = {
         function Search-DetectableEvents {

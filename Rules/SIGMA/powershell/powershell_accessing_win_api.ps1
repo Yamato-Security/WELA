@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_accessing_win_api";
-    $detectedMessage = " Detecting use WinAPI Functions in PowerShell"
+    $detectedMessage = " Detecting use WinAPI Functions in PowerShell";
 
     $detectRule = {
         function Search-DetectableEvents {

@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_rc4_kerberos";
-    $detectedMessage = "Detects service ticket requests using RC4 encryption type"
+    $detectedMessage = "Detects service ticket requests using RC4 encryption type";
 
     $detectRule = {
         function Search-DetectableEvents {

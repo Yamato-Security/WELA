@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_svcctl_remote_service";
-    $detectedMessage = "Detects remote service activity via remote access to the svcctl named pipe"
+    $detectedMessage = "Detects remote service activity via remote access to the svcctl named pipe";
 
     $detectRule = {
         function Search-DetectableEvents {

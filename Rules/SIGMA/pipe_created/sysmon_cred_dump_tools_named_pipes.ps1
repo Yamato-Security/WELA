@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_cred_dump_tools_named_pipes";
-    $detectedMessage = "Detects well-known credential dumping tools execution via specific named pipes"
+    $detectedMessage = "Detects well-known credential dumping tools execution via specific named pipes";
 
     $detectRule = {
         function Search-DetectableEvents {

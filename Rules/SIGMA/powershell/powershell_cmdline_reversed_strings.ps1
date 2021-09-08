@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_cmdline_reversed_strings";
-    $detectedMessage = "Detects the PowerShell command lines with reversed strings"
+    $detectedMessage = "Detects the PowerShell command lines with reversed strings";
 
     $detectRule = {
         function Search-DetectableEvents {

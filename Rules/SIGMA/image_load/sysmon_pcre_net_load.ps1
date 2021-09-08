@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_pcre_net_load";
-    $detectedMessage = "Detects processes loading modules related to PCRE.NET package"
+    $detectedMessage = "Detects processes loading modules related to PCRE.NET package";
 
     $detectRule = {
         function Search-DetectableEvents {

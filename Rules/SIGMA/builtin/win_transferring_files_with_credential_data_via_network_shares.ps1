@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_transferring_files_with_credential_data_via_network_shares";
-    $detectedMessage = "Transferring files with well-known filenames (sensitive files with credential data) using network shares"
+    $detectedMessage = "Transferring files with well-known filenames (sensitive files with credential data) using network shares";
 
     $detectRule = {
         function Search-DetectableEvents {

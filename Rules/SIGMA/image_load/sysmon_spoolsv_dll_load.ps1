@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_spoolsv_dll_load";
-    $detectedMessage = "Detect DLL Load from Spooler Service backup folder"
+    $detectedMessage = "Detect DLL Load from Spooler Service backup folder";
 
     $detectRule = {
         function Search-DetectableEvents {

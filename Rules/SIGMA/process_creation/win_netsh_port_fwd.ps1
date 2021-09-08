@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_netsh_port_fwd";
-    $detectedMessage = "Detects netsh commands that configure a port forwarding (PortProxy)"
+    $detectedMessage = "Detects netsh commands that configure a port forwarding (PortProxy)";
 
     $detectRule = {
         function Search-DetectableEvents {

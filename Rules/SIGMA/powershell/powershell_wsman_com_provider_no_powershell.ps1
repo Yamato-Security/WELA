@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_wsman_com_provider_no_powershell";
-    $detectedMessage = "Detects suspicious use of the WSMAN provider without PowerShell.exe as the host application."
+    $detectedMessage = "Detects suspicious use of the WSMAN provider without PowerShell.exe as the host application.";
 
     $detectRule = {
         function Search-DetectableEvents {

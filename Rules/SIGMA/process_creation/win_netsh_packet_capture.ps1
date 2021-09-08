@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_netsh_packet_capture";
-    $detectedMessage = "Detects capture a network trace via netsh.exe trace functionality"
+    $detectedMessage = "Detects capture a network trace via netsh.exe trace functionality";
 
     $detectRule = {
         function Search-DetectableEvents {

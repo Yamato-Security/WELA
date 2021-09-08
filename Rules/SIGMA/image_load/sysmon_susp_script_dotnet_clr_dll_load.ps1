@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "sysmon_susp_script_dotnet_clr_dll_load";
-    $detectedMessage = "Detects CLR DLL being loaded by an scripting applications"
+    $detectedMessage = "Detects CLR DLL being loaded by an scripting applications";
 
     $detectRule = {
         function Search-DetectableEvents {

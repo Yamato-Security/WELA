@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_apt_evilnum_jul20";
-    $detectedMessage = "Detects Golden Chickens deployment method as used by Evilnum in report published in July 2020"
+    $detectedMessage = "Detects Golden Chickens deployment method as used by Evilnum in report published in July 2020";
 
     $detectRule = {
         function Search-DetectableEvents {

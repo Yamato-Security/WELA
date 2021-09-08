@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "powershell_powerview_malicious_commandlets";
-    $detectedMessage = "Detects Commandlet names from PowerView of PowerSploit exploitation framework."
+    $detectedMessage = "Detects Commandlet names from PowerView of PowerSploit exploitation framework.";
 
     $detectRule = {
         function Search-DetectableEvents {
