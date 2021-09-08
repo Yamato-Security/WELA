@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_verclsid_runs_com";
-    $detectedMessage = "Detects when verclsid.exe is used to run COM object via GUID"
+    $detectedMessage = "Detects when verclsid.exe is used to run COM object via GUID";
 
     $detectRule = {
         function Search-DetectableEvents {
@@ -13,7 +13,8 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | !firstpipe!
+            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\verclsid.exe" -and $_.message -match "CommandLine.*.*/C.*" -and $_.message -match "CommandLine.*.*/S.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  

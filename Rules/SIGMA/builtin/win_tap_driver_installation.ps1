@@ -1,10 +1,13 @@
+# Get-WinEvent -LogName System | where { ($_.ID -eq "7045" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "6" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Security | where { ($_.ID -eq "4697" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
     param (
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_tap_driver_installation";
-    $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques"
+    $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques";
 
     $detectRule = {
         function Search-DetectableEvents {
@@ -12,8 +15,11 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | !firstpipe!
-            if ($result.Count -ne 0) {
+            $result = $event | where { ($_.ID -eq "7045" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result2 = $event | where { ($_.ID -eq "6" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result3 = $event | where { ($_.ID -eq "4697" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            
+            if (($result.Count -ne 0) -or ($result2.Count -ne 0) -or ($result3.Count -ne 0)) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  
                 Write-Host
