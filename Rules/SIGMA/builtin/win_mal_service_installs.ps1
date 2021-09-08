@@ -13,17 +13,18 @@ function Add-Rule {
             param (
                 $event
             )
+            $results = @();
+            $results += $event | where { ($_.ID -eq "7045" -and ($_.message -match "*\\PAExec*" -or $_.message -match "ServiceName.*mssecsvc2.0" -or $_.message -match "*net user*" -or $_.message -match "ServiceName.*Java(TM) Virtual Machine Support Service")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results += $event | where { ($_.ID -eq "4697" -and $_.message -match "ServiceName.*javamtsup") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             
-            $result = $event | where { ($_.ID -eq "7045" -and ($_.message -match "*\\PAExec*" -or $_.message -match "ServiceName.*mssecsvc2.0" -or $_.message -match "*net user*" -or $_.message -match "ServiceName.*Java(TM) Virtual Machine Support Service")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $result2 = $event | where { ($_.ID -eq "4697" -and $_.message -match "ServiceName.*javamtsup") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            
-            if (($result.Count -ne 0) -or ($result2.Count -ne 0)) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
-                Write-Host $detectedMessage;
-            }
-            
+            foreach ($result in $results) {
+                if ($result.Count -ne 0) {
+                    Write-Host
+                    Write-Host "Detected! RuleName:$ruleName";
+                    Write-Host $result
+                    Write-Host $detectedMessage;    
+                }
+            }            
         };
         Search-DetectableEvents $args[0];
     };

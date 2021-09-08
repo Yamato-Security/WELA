@@ -14,14 +14,18 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | where { ((($_.ID -eq "5861" -and ($_.message -match ".*ActiveScriptEventConsumer.*" -or $_.message -match ".*CommandLineEventConsumer.*" -or $_.message -match ".*CommandLineTemplate.*")) -or $_.ID -eq "5859")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $result2 = $event | where { ($_.ID -eq "4662" -and $_.message -match "ObjectType.*WMI Namespace" -and $_.message -match "ObjectName.*.*subscription.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            $results = @();
             
-            if (($result.Count -ne 0) -or ($result2.Count -ne 0)) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
-                Write-Host $detectedMessage;
+            $results += $event | where { ((($_.ID -eq "5861" -and ($_.message -match ".*ActiveScriptEventConsumer.*" -or $_.message -match ".*CommandLineEventConsumer.*" -or $_.message -match ".*CommandLineTemplate.*")) -or $_.ID -eq "5859")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results += $event | where { ($_.ID -eq "4662" -and $_.message -match "ObjectType.*WMI Namespace" -and $_.message -match "ObjectName.*.*subscription.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            
+            foreach ($result in $results) {
+                if ($result.Count -ne 0) {
+                    Write-Host
+                    Write-Host "Detected! RuleName:$ruleName";
+                    Write-Host $entry.Value
+                    Write-Host $detectedMessage;    
+                }
             }
             
         };
