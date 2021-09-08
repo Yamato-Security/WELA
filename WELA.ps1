@@ -3,22 +3,22 @@
 Fast forensics timeline generator for the Windows security event log.
 
 .DESCRIPTION
-The YEA security event timeline generator is a fast Forensics PowerShell module to create easy to analyze and as noise-free as possible event timeline for the Windows security log.
+WELA is a fast Forensics PowerShell module to create easy to analyze and as noise-free as possible event timeline for the Windows security log.
 
 .Example
 Process the local Windows security event log (Need to run with Administrator privileges):
-.\yea-security-timeline.ps1
+.\WELA.ps1
 
 .Example
-Process an offline Windows security event log:
+Process output Logon timeline an offline Windows security event log:
 
-.\DeepBlue.ps1 -path E:\logs\Security.evtx
+.\WELA.ps1 -LogFile E:\logs\Security.evtx -LogonTimeline
 
 .LINK
 https://github.com/yamatosecurity
 #>
 
-# Yamato Event Analyzer (YEA) Security event timeline generator
+# Windows Event Log Analyzer (WELA) Security event timeline generator
 # Zach Mathis, Yamatosecurity founder
 # Twitter: @yamatosecurity
 # https://yamatosecurity.connpass.com/
@@ -28,28 +28,29 @@ https://github.com/yamatosecurity
 # and event log info from www.ultimatewindowssecurity.com
 
 param (
-    [bool]$Japanese = $false,
-    [bool]$USDateFormat = $false,
-    [bool]$EuropeDateFormat = $false,
+    [switch]$Japanese,
+    [switch]$USDateFormat,
+    [switch]$EuropeDateFormat,
     [string]$SaveOutput = "",
     [string]$StartTimeline = "",
     [string]$EndTimeline = "",
-    [bool]$IsDC = $false,
-    [bool]$ShowLogonID = $false,
-    [bool]$LiveAnalysis = $false,
+    [switch]$IsDC,
+    [switch]$ShowLogonID,
+    [switch]$LiveAnalysis,
     [string]$LogFile = "",
     [string]$LogDirectory = "",
-    [bool]$ShowContributors = $false,
-    [bool]$EventIDStatistics = $false,
-    [bool]$LogonTimeline = $false,
-    [bool]$AccountInformation = $false,
-    [bool]$OutputGUI = $false,
-    [bool]$OutputCSV = $false,
-    [bool]$UTC = $false,
-    [bool]$DisplayTimezone = $true
+    [switch]$ShowContributors,
+    [switch]$EventIDStatistics,
+    [switch]$LogonTimeline,
+    [switch]$AccountInformation,
+    [switch]$OutputGUI,
+    [switch]$OutputCSV,
+    [switch]$UTC,
+    [switch]$HideDisplayTimezone
 )
 
 $Global:ruleStack = @{};
+$DisplayTimezone = !($HideDisplayTimezone);
 
 $ProgramStartTime = Get-Date
 
@@ -122,7 +123,7 @@ function Is-Logon-Dangerous ( $msgLogonType ) {
 
 $YEAVersion = "0.1"
 
-$EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4776"
+$EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,4776"
 # Logs to filter for:
 # 4624 - LOGON
 # 4625 - FAILED LOGON
@@ -133,7 +134,7 @@ $EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4776"
 # 4732 - User added to group
 # 1102 - LOG CLEARED
 # 4648 - EXPLICIT LOGON
-# 4776 - NTLM LOGON TO LOCAL ACCOUNT (TODO)
+# 4776 - NTLM LOGON TO LOCAL ACCOUNT
 
 # Additional logs to filter for if a DC
 # 4768 - TGT ISSUED
@@ -433,6 +434,19 @@ function Create-EventIDStatistics {
 
 }
 
+function Get-KerberosStatusStr {
+    param(
+        $status
+    )
+    switch ( $status ) {
+        # 数は多いが有用なデータであるかどうか確認の上追記する
+        "0x0" { $msgStatusReadable = "No Error" }
+        default { $msStatusReadable = "" }
+    }
+
+    return $msgStatusReadable
+}
+
 function Create-LogonTimeline {
 
     #TODO:
@@ -518,7 +532,7 @@ function Create-LogonTimeline {
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
-            
+
         # 4634 Logoff
         if ($event.Id -eq "4634") { 
             
@@ -746,163 +760,225 @@ function Create-LogonTimeline {
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
 
                 if ( $msgAuthPackageName -eq "NTLM" ) { $msgAuthPackageName = $msgLmPackageName } #NTLMの場合はv1かv2か知りたい。AuthPackageはNTLMしか書いていないので、LmPackageName (例：NTLMv1, NTLMv2）で上書きする。
-
-                $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_Auth = $msgAuthPackageName ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_isAdmin = $isAdmin ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; "Process Name" = $msgProcessName ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
                 
-                if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
-                if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
-
-                $output += [pscustomobject]$tempoutput
-    
-                $TotalFilteredLogons++
-                    
+                $outputThisEvent = $TRUE
             }
            
         }
-           
-    }
+        
+        if ($event.Id -eq "4776") {
+            
+            $TotalLogonEvents++
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+
+                switch ( $data.name ) {
+
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "Workstation" { $msgWorkstationName = $data.'#text' }
+                    "Status" { $msgStatus = $data.'#text' }
+
+                }
+
+            }
+
+            $msgAuthPackageName = "NTLM"
+            $msgIpAddress = "-"
+            $msgIpPort = "-"
+            $msgProcessName = "-"
+
+            if ( $UTC -eq $true ) {
+                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+            else {
+                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+            $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
+
+            $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_Auth = $msgAuthPackageName ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_isAdmin = $isAdmin ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; "Process Name" = $msgProcessName ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
+                
+            if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
+            if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
+
+            $output += [pscustomobject]$tempoutput
     
-    $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
-
-    $ProgramEndTime = Get-Date
-    $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-    $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-    $RuntimeHours = $TempTimeSpan.Hours.ToString()
-    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-
-    Write-Host
-    Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
-    Write-Host
-
-    $output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
-
-    #重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
-    for ( $i = 0 ; $i -le ( $output.count - 1 ) ; $i++) {
-
-        if ( $output[$i].$Create_LogonTimeline_LogonTime -eq $output[$i + 1].$Create_LogonTimeline_LogonTime -and
-            $output[$i].$Create_LogonTimeline_Type -eq $output[$i + 1].$Create_LogonTimeline_Type -and
-            $output[$i].$Create_LogonTimeline_TargetUser -eq $output[$i + 1].$Create_LogonTimeline_TargetUser) {
-
-            $output.RemoveAt($i)
-            $TotalFilteredLogons--
-
+            $TotalFilteredLogons++
+                    
         }
 
     }
-
-    if ( $SaveOutput -eq "" ) {   
         
-        if ( $OutputCSV -eq $true ) { 
+    if ($outputThisEvent -eq $TRUE ) {
+
+        $tempoutput = [Ordered]@{ 
+            $Create_LogonTimeline_Timezone          = $UTCOffset ;
+            $Create_LogonTimeline_LogonTime         = $LogonTimestampString ;
+            $Create_LogonTimeline_LogoffTime        = $LogoffTimestampString ;
+            $Create_LogonTimeline_ElapsedTime       = $ElapsedTimeOutput ;
+            $Create_LogonTimeline_Type              = "$msgLogonType - $msgLogonTypeReadable" ;
+            $Create_LogonTimeline_Auth              = $msgAuthPackageName ;
+            $Create_LogonTimeline_TargetUser        = $msgTargetUserName ;
+            $Create_LogonTimeline_isAdmin           = $isAdmin ;
+            $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
+            $Create_LogonTimeline_SourceIpAddress   = $msgIpAddress ;
+            $Create_LogonTimeline_SourceIpPort      = $msgIpPort ;
+            "Process Name"                          = $msgProcessName ;
+            $Create_LogonTimeline_LogonID           = $msgTargetLogonID
+        }
+
+        if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
+        if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
+
+        $output += [pscustomobject]$tempoutput
+
+        $TotalFilteredLogons++
+
+    }
+           
+}
+    
+$LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
+
+$ProgramEndTime = Get-Date
+$TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
+$TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
+$RuntimeHours = $TempTimeSpan.Hours.ToString()
+$RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+$RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+
+Write-Host
+Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
+Write-Host
+
+$output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
+
+#重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
+for ( $i = 0 ; $i -le ( $output.count - 1 ) ; $i++) {
+
+    if ( $output[$i].$Create_LogonTimeline_LogonTime -eq $output[$i + 1].$Create_LogonTimeline_LogonTime -and
+        $output[$i].$Create_LogonTimeline_Type -eq $output[$i + 1].$Create_LogonTimeline_Type -and
+        $output[$i].$Create_LogonTimeline_TargetUser -eq $output[$i + 1].$Create_LogonTimeline_TargetUser) {
+
+        $output.RemoveAt($i)
+        $TotalFilteredLogons--
+
+    }
+
+}
+
+if ( $SaveOutput -eq "" ) {   
+        
+    if ( $OutputCSV -eq $true ) { 
             
-            Write-Host 'Error: you need to specify -SaveOutput'
-            Exit
+        Write-Host 'Error: you need to specify -SaveOutput'
+        Exit
 
-        }
+    }
 
-        if ( $OutputGUI -eq $true ) {
+    if ( $OutputGUI -eq $true ) {
 
-            $output | Out-GridView
+        $output | Out-GridView
 
-        }
-        Else {
+    }
+    Else {
 
-            $output | Format-Table * # Powershell by default only prints 10 columns so added *
+        $output | Format-Table * # Powershell by default only prints 10 columns so added *
 
-        }
+    }
      
-        Write-Host
-        Write-Host $Create_LogonTimeline_Total_Logon_Event_Records -NoNewline
-        Write-Host $TotalLogonEvents -ForegroundColor Cyan
+    Write-Host
+    Write-Host $Create_LogonTimeline_Total_Logon_Event_Records -NoNewline
+    Write-Host $TotalLogonEvents -ForegroundColor Cyan
 
-        Write-Host $Create_LogonTimeline_Data_Reduction -NoNewline
-        Write-Host "$LogEventDataReduction%" -ForegroundColor Cyan
+    Write-Host $Create_LogonTimeline_Data_Reduction -NoNewline
+    Write-Host "$LogEventDataReduction%" -ForegroundColor Cyan
 
-        Write-Host $Create_LogonTimeline_Total_Filtered_Logons -NoNewline
-        Write-Host $TotalFilteredLogons -ForegroundColor Cyan
-        Write-Host
+    Write-Host $Create_LogonTimeline_Total_Filtered_Logons -NoNewline
+    Write-Host $TotalFilteredLogons -ForegroundColor Cyan
+    Write-Host
 
-        Write-Host "$Create_LogonTimeline_Type0 " -NoNewline
-        Write-Host $Type0Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type0 " -NoNewline
+    Write-Host $Type0Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type2 " -NoNewline
-        Write-Host $Type2Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type2 " -NoNewline
+    Write-Host $Type2Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type3 " -NoNewline
-        Write-Host $Type3Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type3 " -NoNewline
+    Write-Host $Type3Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type4 " -NoNewline
-        Write-Host $Type4Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type4 " -NoNewline
+    Write-Host $Type4Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type5 " -NoNewline
-        Write-Host $Type5Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type5 " -NoNewline
+    Write-Host $Type5Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type7 " -NoNewline
-        Write-Host $Type7Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type7 " -NoNewline
+    Write-Host $Type7Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type8 " -NoNewline
-        Write-Host $Type8Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type8 " -NoNewline
+    Write-Host $Type8Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type9 " -NoNewline
-        Write-Host $Type9Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type9 " -NoNewline
+    Write-Host $Type9Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type10 " -NoNewline
-        Write-Host $Type10Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type10 " -NoNewline
+    Write-Host $Type10Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type11 " -NoNewline
-        Write-Host $Type11Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type11 " -NoNewline
+    Write-Host $Type11Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type12 " -NoNewline
-        Write-Host $Type12Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type12 " -NoNewline
+    Write-Host $Type12Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_Type13 " -NoNewline
-        Write-Host $Type13Logons -ForegroundColor Cyan
+    Write-Host "$Create_LogonTimeline_Type13 " -NoNewline
+    Write-Host $Type13Logons -ForegroundColor Cyan
 
-        Write-Host "$Create_LogonTimeline_TypeOther " -NoNewline
-        Write-Host $OtherTypeLogon -ForegroundColor Cyan
-        Write-Host
+    Write-Host "$Create_LogonTimeline_TypeOther " -NoNewline
+    Write-Host $OtherTypeLogon -ForegroundColor Cyan
+    Write-Host
         
-    }
-    else {
+}
+else {
 
-        if ( $OutputGUI -eq $true ) { 
+    if ( $OutputGUI -eq $true ) { 
             
-            Write-Host 'Error: you cannot output to GUI with the -SaveOutput parameter'
-            Exit
-
-        }
-
-        if ( $OutputCSV -eq $true ) {
-
-            $output | Export-Csv $SaveOutput
-
-        }
-        Else {
-
-            $output | Format-Table | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Total_Logon_Event_Records $TotalLogonEvents" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Data_Reduction $LogEventDataReduction%" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Total_Filtered_Logons $TotalFilteredLogons" | Out-File $SaveOutput -Append
-            Write-Output "" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type0 $Type0Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type2 $Type2Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type3 $Type3Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type4 $Type4Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type5 $Type5Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type7 $Type7Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type8 $Type8Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type9 $Type9Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type10 $Type10Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type11 $Type11Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type12 $Type12Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type13 $Type13Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_TypeOther $OtherTypeLogon" | Out-File $SaveOutput -Append
-            Write-Output "" | Out-File $SaveOutput -Append
-
-        }
+        Write-Host 'Error: you cannot output to GUI with the -SaveOutput parameter'
+        Exit
 
     }
-        
+
+    if ( $OutputCSV -eq $true ) {
+
+        $output | Export-Csv $SaveOutput
+
+    }
+    Else {
+
+        $output | Format-Table | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Total_Logon_Event_Records $TotalLogonEvents" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Data_Reduction $LogEventDataReduction%" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Total_Filtered_Logons $TotalFilteredLogons" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type0 $Type0Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type2 $Type2Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type3 $Type3Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type4 $Type4Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type5 $Type5Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type7 $Type7Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type8 $Type8Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type9 $Type9Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type10 $Type10Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type11 $Type11Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type12 $Type12Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_Type13 $Type13Logons" | Out-File $SaveOutput -Append
+        Write-Output "$Create_LogonTimeline_TypeOther $OtherTypeLogon" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+
+    }
+
 }
 
 function Create-Timeline {
@@ -958,7 +1034,7 @@ function Create-Timeline {
 
             }
  
-            #Bug: starttime not working: can filter on IDs when 
+            # Bug: starttime not working: can filter on IDs when 
             #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
             #and $logs = iex "Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop"
             #when is change to $logs Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop   I get
@@ -1015,7 +1091,115 @@ function Create-Timeline {
         $TotalLogs += 1
 
         $printMSG = ""
+        # 4768 Kerberos authentication ticket(TGT) was requested
+        if ($event.Id -eq "4768" -and $IsDC) {
+            $eventXML = [xml]$event.ToXml()
 
+            foreach ($data in $eventXML.Event.EventData.data) {
+            
+                switch ( $data.name ) {
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "ServiceName" { $msgTargetService = $data.'#text' }
+                    "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
+                    "IPAddress" { $msgIpAddress = $data.'#text' }
+                    "IPPort" { $msgIpPort = $data.'#text' }
+                    "Status" { $msgResultCode = $data.'#text' }
+                    "PreAuthType" { $msgPreAuthType = $data.'#text' }
+                    default { $LogNoise += 1 }
+                }
+                $TotalPiecesOfData += 1
+            }
+            
+            if ( $UTC -eq $true ) {
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+            }
+            else {
+                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
+            $printMSG = "4768 - Requested Kerberos authentication ticket(TGT) to Service: $msgTargetService from User: $msgTargetUserName from Domain: $msgTargetDomainName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4768 - Requested Kerberos authentication ticket(TGT)" -NoNewline
+                    Write-Host " Status " -NoNewline
+                    Write-Host $msgResultCode -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host " (" -NoNewline
+                    Write-Host $msgStatusReadable -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host ") to Service: " -NoNewline 
+                    Write-Host $msgTargetService -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " from User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " from Domain: " -NoNewline
+                    Write-Host $msgTargetDomainName -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host " IP address: " -NoNewline
+                    Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Port: " -NoNewline
+                    Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " " -NoNewline
+                    Write-Host " ";
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }
+            }
+        }
+        # 4769 Kerberos service ticket was requested
+        if ($event.Id -eq "4769" -and $IsDC) {
+            $eventXML = [xml]$event.ToXml()
+
+            foreach ($data in $eventXML.Event.EventData.data) {
+            
+                switch ( $data.name ) {
+                    "TargetUserName" { $msgTargetUserName = $data.'#text' }
+                    "ServiceName" { $msgTargetService = $data.'#text' }
+                    "TargetDomainName" { $msgTargetDomainName = $data.'#text' }
+                    "IPAddress" { $msgIpAddress = $data.'#text' }
+                    "IPPort" { $msgIpPort = $data.'#text' }
+                    "Status" { $msgResultCode = $data.'#text' }
+                    default { $LogNoise += 1 }
+                }
+                $TotalPiecesOfData += 1
+            }
+            
+            if ( $UTC -eq $true ) {
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+            }
+            else {
+                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+            }
+
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $timestamp = $event.TimeCreated.ToString($DateFormat) 
+            $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
+            $printMSG = "4769 - Requested Kerberos service ticket to Service: $msgTargetService from User: $msgTargetUserName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
+            if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
+                if ( $SaveOutput -eq "") {
+                    Write-Host $timestamp -NoNewline
+                    Write-Host "  4769 - Requested Kerberos service ticket" -NoNewline
+                    Write-Host " Status " -NoNewline
+                    Write-Host $msgResultCode -NoNewline -ForegroundColor $ParameterColor 
+                    Write-Host " (" -NoNewline
+                    Write-Host $msgStatusReadable -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host ") to Service: " -NoNewline 
+                    Write-Host $msgTargetService -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " from User: " -NoNewline
+                    Write-Host $msgTargetUserName -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " IP address: " -NoNewline
+                    Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " Port: " -NoNewline
+                    Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
+                    Write-Host " " -NoNewline
+                    Write-Host "";
+                }
+                Else {
+                    Write-Output "$timestamp $printMSG" | Out-File $SaveOutput -Append
+                }
+            }            
+        }
         #Successful logon
         if ($event.Id -eq "4624") { 
 
@@ -1732,7 +1916,7 @@ foreach ( $LogFile in $evtxFiles ) {
     if ( $EventIDStatistics -eq $true ) {   
 
         Create-EventIDStatistics
-    
+        Create-Timeline
     }
     
     if ( $LogonTimeline -eq $true ) {
