@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_tscon_rdp_redirect";
-    $detectedMessage = "Detects a suspicious RDP session redirect using tscon.exe"
+    $detectedMessage = "Detects a suspicious RDP session redirect using tscon.exe";
 
     $detectRule = {
         function Search-DetectableEvents {
@@ -13,7 +13,8 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | !firstpipe!
+            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.* /dest:rdp-tcp:.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  

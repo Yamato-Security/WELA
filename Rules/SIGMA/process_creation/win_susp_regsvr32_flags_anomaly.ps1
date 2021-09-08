@@ -5,7 +5,7 @@ function Add-Rule {
         [bool] $isLiveAnalysis
     )
     $ruleName = "win_susp_regsvr32_flags_anomaly";
-    $detectedMessage = "!detection!"
+    $detectedMessage = "Detects a flag anomaly in which regsvr32.exe uses a /i flag without using a /n flag at the same time";
 
     $detectRule = {
         function Search-DetectableEvents {
@@ -13,7 +13,8 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | !firstpipe!
+            $result = $event | where { (($_.ID -eq "1") -and ($_.message -match "Image.*.*\regsvr32.exe" -and $_.message -match "CommandLine.*.* /i:.*") -and -not ($_.message -match "CommandLine.*.* /n .*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName"  
