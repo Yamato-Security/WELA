@@ -102,10 +102,10 @@ You will need local Administrator access for live analysis.
         -UTC : 時間をUTC形式で出力する
         -HideDisplayTimezone :  タイムゾーンの表示をしない
         -ShowLogonID : ログオンIDを出力する (デフォルト：$false)
-        -Japanese $true : 日本語で出力する
+        -Japanese : 日本語で出力する
 
     その他:
-        -ShowContributors $true : コントリビューターの一覧表示
+        -ShowContributors : コントリビューターの一覧表示
 
 ## Useful Options
 
