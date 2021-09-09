@@ -354,29 +354,14 @@ function Show-Help {
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
     Write-Host " : Creates a timelime from an offline .evtx file"
 
-    Write-Host "   -LogDirectory <path-to-logdirectory>" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timeline from offline .evtx files in the directory"
-
     Write-Host
     Write-Host "Analysis Type (Specify one):"
 
     Write-Host "   -EventIDStatistics" -NoNewline -ForegroundColor Green
     Write-Host " : Output event ID statistics" 
-
-    Write-Host "   -AccountInformation" -NoNewline -ForegroundColor Green
-    Write-Host " : Output the usernames and SIDs of accounts"
     
-    Write-Host "   -LogonStatistics" -NoNewline -ForegroundColor Green
-    Write-Host " : Output logon statistics"
-
     Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Output a simple timeline of user logons"
-
-    Write-Host "   -CreateBriefHumanReadableTimeline" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a human readable timeline with minimal noise"
-
-    Write-Host "   -CreateFullHumanReadableTimeline" -NoNewline  -ForegroundColor Green
-    Write-Host " : Creates a human readable timeline with all details"
 
     Write-Host 
     Write-Host "Output Types (Default: Standard Output):"

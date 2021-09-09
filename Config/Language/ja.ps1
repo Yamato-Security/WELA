@@ -351,26 +351,14 @@ function Show-Help {
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
     Write-Host " : オフラインの.evtxファイルでタイムラインを作成する"
 
-    Write-Host "   -LogDirectory <path-to-logdirectory>" -NoNewline -ForegroundColor Green
-    Write-Host " : 単一のフォルダに保存された複数の.evtxファイルでタイムラインを作成する"
-
     Write-Host
     Write-Host "解析タイプを一つ指定して下さい:"
 
     Write-Host "   -EventIDStatistics" -NoNewline -ForegroundColor Green
     Write-Host " : イベントIDの統計情報を出力する" 
 
-    Write-Host "   -AccountInformation" -NoNewline -ForegroundColor Green
-    Write-Host " : ユーザ名とSIDのアカウント情報を出力する"
-
-    Write-Host "   -LogonStatistics" -NoNewline -ForegroundColor Green
-    Write-Host " : ログオンの統計を出力する"
-
     Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : ユーザログオンの簡単なタイムラインを出力する"
-
-    Write-Host "   -CreateHumanReadableTimeline" -NoNewline -ForegroundColor Green
-    Write-Host " : 読みやすいタイムラインを出力する"
 
     Write-Host 
     Write-Host "出力方法（デフォルト：標準出力）:"

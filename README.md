@@ -6,7 +6,6 @@
  </p>
 </div>
 
----
  Yamato Security's WELA(Windows Event Log Analyzer) is a fast forensics timeline generator for Windows event logs.
 WELA's main goal is to create easy-to-analyze and as noise-free as possible event timelines to order to aid in quicker and higher quality forensic analysis.
 Currently it only supports analyzing the security event log but will soon support other logs as well as detect attacks with custom rules as well as SIGMA rules.
@@ -25,7 +24,6 @@ WELAは複数のログから情報を簡潔にまとめて、フォレンジッ�
 Windows Powershell 5.1で検証済。Windows、Linux、MacOSでのPowershell Coreに対応する予定です。
 
 ## Features
----
 
  - Written in PowerShell so is easy to read and customize.
  - Live Analysis and Offline Analysis
@@ -35,14 +33,12 @@ Windows Powershell 5.1で検証済。Windows、Linux、MacOSでのPowershell Cor
  - GUI analysis
 
 ## Planned Features
----
 
  - SIGMA rule support
  - Custom attack detection rules
  - Remote analysis
 
 ## Usage
----
 
 At the moment, please use a Windows Powershell 5.1.
 You will need local Administrator access for live analysis.
@@ -51,15 +47,10 @@ You will need local Administrator access for live analysis.
     Analysis Source (Specify one):
         -LiveAnalysis : Creates a timeline based on the live host's log
         -LogFile <path-to-logfile> : Creates a timelime from an offline .evtx file
-        -LogDirectory <path-to-logdirectory> : Creates a timeline from offline .evtx files in the directory
 
     Analysis Type (Specify one):
         -EventIDStatistics : Output event ID statistics
-        -AccountInformation : Output the usernames and SIDs of accounts
-        -LogonStatistics : Output logon statistics
         -LogonTimeline : Output a simple timeline of user logons
-        -CreateBriefHumanReadableTimeline : Creates a human readable timeline with minimal noise
-        -CreateFullHumanReadableTimeline : Creates a human readable timeline with all details
 
     Output Types (Default: Standard Output):
         -SaveOutput <outputfile-path> : Output results to a text file
@@ -83,7 +74,6 @@ You will need local Administrator access for live analysis.
         -ShowContributors : Show the contributors
 
 ## 使い方
----
 
 現在、Windows Powershell 5.1にしか対応していません。
 ライブ調査を行う場合はローカル管理者権限が必用です。
@@ -95,10 +85,7 @@ You will need local Administrator access for live analysis.
 
     解析タイプを一つ指定して下さい:
         -EventIDStatistics : イベントIDの統計情報を出力する
-        -AccountInformation : ユーザ名とSIDのアカウント情報を出力する
-        -LogonStatistics : ログオンの統計を出力する
         -LogonTimeline : ユーザログオンの簡単なタイムラインを出力する
-        -CreateHumanReadableTimeline : 読みやすいタイムラインを出力する
 
     出力方法（デフォルト：標準出力）:
         -SaveOutput <出力パス> : テキストファイルに出力する
@@ -122,7 +109,6 @@ You will need local Administrator access for live analysis.
         -ShowContributors $true : コントリビューターの一覧表示
 
 ## Useful Options
----
 
 Show event ID statistics to get a grasph of what kind of events there are:
 
@@ -133,7 +119,6 @@ Create a timeline via offline analysis outputted to a GUI in UTC time:
     .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline $true -OutputGUI $true -UTC $true
 
 ## 便利なオプション
----
 
 どんなイベントがあるのかを把握するためにイベントIDを集計する：
 
@@ -144,10 +129,14 @@ Create a timeline via offline analysis outputted to a GUI in UTC time:
     .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline $true -OutputGUI $true -UTC $true
 
 ## Related Windows Event Log Threat Hunting Projects
----
 
 - [DeepBlueCLI](https://github.com/sans-blue-team/DeepBlueCLI) Attack detection tool written in Powershell.
 - [RustyBlue](https://github.com/Yamato-Security/RustyBlue) Rust port of DeepBlueCLI.
 - [APT-Hunter](https://github.com/ahmedkhlief/APT-Hunter) Attack detection tool written in Python.
 - [Zircolite](https://github.com/wagga40/Zircolite) SIGMA based attack detection tool written in Python.
 - [Chainsaw](https://github.com/countercept/chainsaw) SIGMA based attack detection tool written in Rust.
+
+## Contributing
+
+We would love any form of contributing. Pull requests are the best but feature requests, notifying us of bugs, etc... is also very welcome.
+コントリビューター大募集中！
