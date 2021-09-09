@@ -390,7 +390,7 @@ function Show-Help {
     Write-Host "   -USDateFormat" -NoNewline -ForegroundColor Green
     Write-Host " : 日付をMM-DD-YYYY形式で出力する (デフォルト： YYYY-MM-DD)"
 
-    Write-Host "   -EuropeDateFormat `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -EuropeDateFormat" -NoNewline -ForegroundColor Green
     Write-Host " : 日付をDD-MM-YYYY形式で出力する (デフォルト： YYYY-MM-DD)" 
 
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
@@ -402,13 +402,13 @@ function Show-Help {
     Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
     Write-Host " : ログオンIDを出力する (デフォルト： `$false)"
      
-    Write-Host "   -Japanese `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
     Write-Host " : 日本語で出力する"
 
     Write-Host
     Write-Host "その他:"
 
-    Write-Host "   -ShowContributors `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -ShowContributors" -NoNewline -ForegroundColor Green
     Write-Host " : コントリビューターの一覧表示" 
 
     Write-Host

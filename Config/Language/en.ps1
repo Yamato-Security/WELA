@@ -384,7 +384,7 @@ function Show-Help {
     Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
     Write-Host " : Specify the end of the timeline"
 
-    Write-Host "   -IsDC `$true" -NoNewline -ForegroundColor Green
+    Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if the logs are from a DC (Default: `$false)"
 
     Write-Host 

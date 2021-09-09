@@ -54,20 +54,20 @@ You will need local Administrator access for live analysis.
 
     Output Types (Default: Standard Output):
         -SaveOutput <outputfile-path> : Output results to a text file
-        -OutputCSV : Outputs to CSV (Default: $false)
-        -OutputGUI : Outputs to the Out-GridView GUI (Default: $false)
+        -OutputCSV : Outputs to CSV
+        -OutputGUI : Outputs to the Out-GridView GUI
 
     Analysis Options:
         -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : Specify the start of the timeline
         -EndTimeline "<YYYY-MM-DD HH:MM:SS>" : Specify the end of the timeline
-        -IsDC $true : Specify if the logs are from a DC (Default: $false)
+        -IsDC $true : Specify if the logs are from a DC
 
     Output Options:
         -USDateFormat : Output the dates in MM-DD-YYYY format (Default: YYYY-MM-DD)
         -EuropeDateFormat : Output the dates in DD-MM-YYYY format (Default: YYYY-MM-DD)
-        -UTC : Output in UTC time (Default: $false)
+        -UTC : Output in UTC time
         -HideDisplayTimezone : Hide Displays the timezone used
-        -ShowLogonID : Specify if you want to see Logon IDs (Default: $false)
+        -ShowLogonID : Specify if you want to see Logon IDs
         -Japanese : Output in Japanese
 
     Other:
@@ -88,8 +88,8 @@ You will need local Administrator access for live analysis.
 
     出力方法（デフォルト：標準出力）:
         -SaveOutput <出力パス> : テキストファイルに出力する
-        -OutputGUI : Out-GridView GUIに出力する (デフォルト：$false)
-        -OutputCSV : CSVファイルに出力する (デフォルト：$false)
+        -OutputGUI : Out-GridView GUIに出力する
+        -OutputCSV : CSVファイルに出力する
 
     解析オプション:
         -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : タイムラインの始まりを指定する
@@ -98,34 +98,34 @@ You will need local Administrator access for live analysis.
 
     出力オプション:
         -USDateFormat : 日付をMM-DD-YYYY形式で出力する (デフォルト：YYYY-MM-DD)
-        -EuropeDateFormat $true : 日付をDD-MM-YYYY形式で出力する (デフォルト：YYYY-MM-DD)
+        -EuropeDateFormat : 日付をDD-MM-YYYY形式で出力する (デフォルト：YYYY-MM-DD)
         -UTC : 時間をUTC形式で出力する
         -HideDisplayTimezone :  タイムゾーンの表示をしない
-        -ShowLogonID : ログオンIDを出力する (デフォルト：$false)
-        -Japanese $true : 日本語で出力する
+        -ShowLogonID : ログオンIDを出力する
+        -Japanese : 日本語で出力する
 
     その他:
-        -ShowContributors $true : コントリビューターの一覧表示
+        -ShowContributors : コントリビューターの一覧表示
 
 ## Useful Options
 
 Show event ID statistics to get a grasph of what kind of events there are:
 
-    .\WELA.ps1 -EventIDStatistics $true
+    .\WELA.ps1 -EventIDStatistics
 
 Create a timeline via offline analysis outputted to a GUI in UTC time:
 
-    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline $true -OutputGUI $true -UTC $true
+    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline -OutputGUI -UTC
 
 ## 便利なオプション
 
 どんなイベントがあるのかを把握するためにイベントIDを集計する：
 
-    ./WELA.ps1 -EventIDStatistics $true
+    ./WELA.ps1 -EventIDStatistics
 
 オフライン解析でタイムラインを作成して、UTC時間でGUIで表示する：
 
-    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline $true -OutputGUI $true -UTC $true
+    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline -OutputGUI -UTC
 
 ## Screenshots (スクリーンショット)
 
