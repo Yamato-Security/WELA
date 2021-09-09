@@ -111,21 +111,21 @@ You will need local Administrator access for live analysis.
 
 Show event ID statistics to get a grasph of what kind of events there are:
 
-    .\WELA.ps1 -EventIDStatistics $true
+    .\WELA.ps1 -EventIDStatistics
 
 Create a timeline via offline analysis outputted to a GUI in UTC time:
 
-    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline $true -OutputGUI $true -UTC $true
+    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline -OutputGUI -UTC
 
 ## 便利なオプション
 
 どんなイベントがあるのかを把握するためにイベントIDを集計する：
 
-    ./WELA.ps1 -EventIDStatistics $true
+    ./WELA.ps1 -EventIDStatistics
 
 オフライン解析でタイムラインを作成して、UTC時間でGUIで表示する：
 
-    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline $true -OutputGUI $true -UTC $true
+    .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline -OutputGUI -UTC
 
 ## Screenshots (スクリーンショット)
 

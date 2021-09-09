@@ -27,28 +27,28 @@
     .\WELA.ps1
 
     Output Event ID Statistics (イベントIDの集計):
-    .\WELA.ps1 -EventIDStatistics $true
+    .\WELA.ps1 -EventIDStatistics
 
     Live Analysis Timeline Generation (ライブ調査のタイムライン作成):
-    .\WELA.ps1 -LiveAnalysis $true -LogonTimeline $true
+    .\WELA.ps1 -LiveAnalysis -LogonTimeline
 
     Offline Analysis Timeline Generation (オフライン調査のタイムライン作成):
-    .\WELA.ps1 -LogFile .\Cobalt-Strike-Security.evtx -LogonTimeline $true
+    .\WELA.ps1 -LogFile .\Cobalt-Strike-Security.evtx -LogonTimeline
     
     Analyze with a GUI(GUIでの解析):
-    -OutputGUI $true
+    -OutputGUI
 
     日本語出力：
-    -Japanese $true
+    -Japanese
 
     Save Output(結果の保存):
     -SaveOutput file.txt
 
     Display in UTC time (by default, it displays in local time) (UTC時間での表示。デフォルトはローカル時間)：
-    -UTC $true
+    -UTC
 
     Show Logon IDs(Default: false)(ログオンIDの表示):
-    -ShowLogonID $true
+    -ShowLogonID
 
     .LINK
     https://github.com/Yamato-Security/WELA
