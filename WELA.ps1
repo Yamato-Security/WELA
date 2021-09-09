@@ -330,12 +330,12 @@ function Create-EventIDStatistics {
     $WineventFilter = @{}
     
     if ( $StartTimeline -ne "" ) { 
-        $StartTimeline = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $StartTimeline = [DateTime]::ParseExact($StartTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "StartTime" , $StartTimeline )   
     }
 
     if ( $EndTimeline -ne "" ) { 
-        $EndTimeline = [DateTime]::ParseExact($EndTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $EndTimeline = [DateTime]::ParseExact($EndTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
@@ -522,12 +522,12 @@ function Create-LogonTimeline {
     $LogServiceShutdownTimeArray = @()
     
     if ( $StartTimeline -ne "" ) { 
-        $StartTimeline = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $StartTimeline = [DateTime]::ParseExact($StartTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "StartTime" , $StartTimeline )   
     }
 
     if ( $EndTimeline -ne "" ) { 
-        $EndTimeline = [DateTime]::ParseExact($EndTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $EndTimeline = [DateTime]::ParseExact($EndTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
@@ -582,13 +582,13 @@ function Create-LogonTimeline {
             }
             
             if ( $UTC -eq $true ) {
-                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogoffTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, $DateFormat, $null) 
             $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
             $LogoffEventArray.Add( $LogoffEvent ) > $null
         }
@@ -608,13 +608,13 @@ function Create-LogonTimeline {
             }
             
             if ( $UTC -eq $true ) {
-                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogoffTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, $DateFormat, $null) 
             $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
             $LogoffEventArray.Add( $LogoffEvent ) > $null
 
@@ -627,13 +627,13 @@ function Create-LogonTimeline {
             $eventXML = [xml]$event.ToXml()
 
             if ( $UTC -eq $true ) {
-                $LogServiceShutdownTimeString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $LogServiceShutdownTimeString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $LogServiceShutdownTimeString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogServiceShutdownTimeString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogServiceShutdownTimeDateTime = [datetime]::ParseExact($LogServiceShutdownTimeString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogServiceShutdownTimeDateTime = [datetime]::ParseExact($LogServiceShutdownTimeString, $DateFormat, $null) 
             $LogServiceShutdownTimeArray += $LogServiceShutdownTimeDateTime 
 
         }
@@ -701,13 +701,13 @@ function Create-LogonTimeline {
             $LogServiceShutdownTimeString = ""
 
             if ( $UTC -eq $true ) {
-                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
             }
             else {
-                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, $DateFormat, $null)
 
             if ( $msgLogonType -eq "0" ) {
                 #if System startup/runtime
@@ -716,7 +716,7 @@ function Create-LogonTimeline {
 
                     if ( $LogServiceShutdownTime -gt $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
                        
-                        $LogoffTimestampString = $LogServiceShutdownTime.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                        $LogoffTimestampString = $LogServiceShutdownTime.ToString($DateFormat) 
                         $ElapsedTime = $LogServiceShutdownTime - $LogonTimestampDateTime
 
                     }     
@@ -734,7 +734,7 @@ function Create-LogonTimeline {
                     # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id (rare case?))
                     if ( $EventIndex[0] -eq $msgTargetLogonID -and $EventIndex[1] -ge $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
                        
-                        $LogoffTimestampString = $EventIndex[1].ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                        $LogoffTimestampString = $EventIndex[1].ToString($DateFormat) 
                         $ElapsedTime = $EventIndex[1] - $LogonTimestampDateTime
 
                     }     
@@ -825,13 +825,13 @@ function Create-LogonTimeline {
             $msgProcessName = "-"
 
             if ( $UTC -eq $true ) {
-                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
             }
             else {
-                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, $DateFormat, $null)
             $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
 
             if ($msgTargetUserName[-1] -ne "$") {
@@ -1060,9 +1060,9 @@ function Create-Timeline {
         $filter = @{}
         $filter.Add("StartTime", $StartingTime)
         $filter.Add("LogName", "Security")
-        #$filter.Add("ID", "4624,4625,4672,4634,4647,4720,4732,1102,4648") #filter not working when specifying a start date..
+        #$filter.Add("ID", "4624, 4625, 4672, 4634, 4647, 4720, 4732, 1102, 4648") #filter not working when specifying a start date..
         
-        #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze;StartTime=$yesterday;EndTime=(Get-Date)}"
+        #$filter = "@{ Logname=""Security""; ID=$EventIDsToAnalyze; StartTime=$yesterday; EndTime=(Get-Date) }"
     }
     #>
     
@@ -1078,10 +1078,10 @@ function Create-Timeline {
             }
  
             # Bug: starttime not working: can filter on IDs when 
-            #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
+            #$filter = "@{ Logname=""Security""; ID=$EventIDsToAnalyze }"
             #and $logs = iex "Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop"
             #when is change to $logs Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop   I get
-            #Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "@{Logname="Security";ID=4624,4625,4672,4634,4647,4720,4732,1102,4648}" value of type "System.String" to type "System.Collections.Hashtable".
+            #Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "@{ Logname="Security"; ID=4624, 4625, 4672, 4634, 4647, 4720, 4732, 1102, 4648 }" value of type "System.String" to type "System.Collections.Hashtable".
             #filter.add method gives me Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "System.Collections.Hashtable" value of type "System.String" to type "System.Collections.Hashtable". error when
             #$filter.Add("ID", $EventIDsToAnalyze) is specified.  
             #Get-WinEvent error:  There is not an event log on the localhost computer that matches "System.Collections.Hashtable". when commented out
@@ -1097,8 +1097,8 @@ function Create-Timeline {
 
     } 
     ElseIf ( $LogFile -ne "" ) {
-        $filter = "@{Path=""$LogFile"";ID=$EventIDsToAnalyze}"
-        $filter2 = "@{Path=""$LogFile""}"
+        $filter = "@{ Path=""$LogFile""; ID=$EventIDsToAnalyze }"
+        $filter2 = "@{Path = ""$LogFile"" }"
         Write-Host
         Write-Host "Creating timeline for $LogFile"
         $filesize = Format-FileSize( (get-item $LogFile).length )
@@ -1154,13 +1154,13 @@ function Create-Timeline {
             }
             
             if ( $UTC -eq $true ) {
-                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $TimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, $DateFormat, $null) 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
             $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
             $printMSG = "4768 - Requested Kerberos authentication ticket(TGT) to Service: $msgTargetService from User: $msgTargetUserName from Domain: $msgTargetDomainName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
@@ -1209,13 +1209,13 @@ function Create-Timeline {
             }
             
             if ( $UTC -eq $true ) {
-                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $TimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, $DateFormat, $null) 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
             $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
             $printMSG = "4769 - Requested Kerberos service ticket to Service: $msgTargetService from User: $msgTargetUserName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
