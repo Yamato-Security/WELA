@@ -1,7 +1,7 @@
 <div align="center">
  <p>
   <h1>
-   WELA (Windows Event Log Analyzer)
+   WELA (Windows Event Log Analyzer) ゑ羅 (ウェラ)
   </h1>
  </p>
 </div>
