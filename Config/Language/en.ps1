@@ -400,7 +400,7 @@ function Show-Help {
     Write-Host " : Output in UTC time (default is the local timezone)"
     
     Write-Host "   -HideTimezone" -NoNewline -ForegroundColor Green
-    Write-Host " : Hide Displays the timezone used"
+    Write-Host " : Hides the timezone"
 
     Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if you want to see Logon IDs"
