@@ -1,31 +1,84 @@
 ﻿<#
-.SYNOPSIS
-Fast forensics timeline generator for the Windows security event log.
+    .SYNOPSIS
+    WELA (Windows Event Log Analyzer) is a fast forensics timeline generator for Windows event logs.
+    WELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査用のタイムライン作成ツールです。
 
-.DESCRIPTION
-WELA is a fast Forensics PowerShell module to create easy to analyze and as noise-free as possible event timeline for the Windows security log.
+    .DESCRIPTION
+    Yamato Security's WELA(Windows Event Log Analyzer) is a fast forensics timeline generator for Windows event logs.
+    WELA's main goal is to create easy-to-analyze and as noise-free as possible event timelines to order to aid in quicker and higher quality forensic analysis.
 
-.Example
-Process the local Windows security event log (Need to run with Administrator privileges):
-.\WELA.ps1
+    Currently it only supports analyzing the security event log but will soon support other logs as well as detect attacks with custom rules as well as SIGMA rules.
+    By combining multiple log entries into single events of interest and ignoring data not relevant to forensic analysis, WELA usually performs data reducution 
+    of noise of around 90%. WELA also will convert any hard to read data (such as hex status codes) into human readable format.
 
-.Example
-Process output Logon timeline an offline Windows security event log:
+    Tested on Windows Powershell 5.1 with future plans to support Powershell Core on Windows, Linux and MacOS.
 
-.\WELA.ps1 -LogFile E:\logs\Security.evtx -LogonTimeline
+    大和セキュリティのWELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査用のタイムライン作成ツールです。
+    WELAの主なゴールはフォレンジック調査をより迅速、より高い精度でできるようになるべくノイズが少ない解析しやすいフォレンジックタイムラインを作ることです。
 
-.LINK
-https://github.com/yamatosecurity
+    現在は主に「セキュリティ」ログを解析していますが、その他のログ、独自ルールによる攻撃検知、SIGMAルールによる攻撃検知等々に対応する予定です。
+    WELAは複数のログから情報を簡潔にまとめて、フォレンジック調査に役立つデータのみを抽出し、16進数のステータスコードなどユーザが理解しやすい形に変換して、
+    フォレンジック調査に役立つデータのみを抽出することができます。
+
+    Windows Powershell 5.1で検証済。Windows、Linux、MacOSでのPowershell Coreに対応する予定です。
+    
+    .Example
+    Get the help menu(ヘルプメニューの表示):
+    .\WELA.ps1
+
+    Output Event ID Statistics (イベントIDの集計):
+    .\WELA.ps1 -EventIDStatistics $true
+
+    Live Analysis Timeline Generation (ライブ調査のタイムライン作成):
+    .\WELA.ps1 -LiveAnalysis $true -LogonTimeline $true
+
+    Offline Analysis Timeline Generation (オフライン調査のタイムライン作成):
+    .\WELA.ps1 -LogFile .\Cobalt-Strike-Security.evtx -LogonTimeline $true
+    
+    Analyze with a GUI(GUIでの解析):
+    -OutputGUI $true
+
+    日本語出力：
+    -Japanese $true
+
+    Save Output(結果の保存):
+    -SaveOutput file.txt
+
+    Display in UTC time (by default, it displays in local time) (UTC時間での表示。デフォルトはローカル時間)：
+    -UTC $true
+
+    Show Logon IDs(Default: false)(ログオンIDの表示):
+    -ShowLogonID $true
+
+    .LINK
+    https://github.com/Yamato-Security/WELA
 #>
 
-# Windows Event Log Analyzer (WELA) Security event timeline generator
-# Zach Mathis, Yamatosecurity founder
+# Tool: Windows Event Log Analyzer (WELA)
+# Author: Zach Mathis, Yamatosecurity founder
+# Other Core Developers: DustInDark, Chihiro (Ogino)
 # Twitter: @yamatosecurity
 # https://yamatosecurity.connpass.com/
+#
+# ツール名: Windows Event Log Analyzer (WELA・ゑ羅・ウェラ)
+# 作者: 田中ザック
+# その他のコア開発者： DustInDark, Chihiro (Ogino)
+# Twitter: @yamatosecurity
+# https://yamatosecurity.connpass.com/
+#
 # 
 # Inspired by Eric Conrad's DeepBlueCLI (https://github.com/sans-blue-team/DeepBlueCLI)
 # Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/en/article/references-pdf)
-# and event log info from www.ultimatewindowssecurity.com
+# and event log info from www.ultimatewindowssecurity.com.
+# Many thanks to SIGMA: https://github.com/SigmaHQ/sigma
+# as well as sbousseaden for providing sample attack event logs at https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
+#
+# Eric Conrad氏のDeepBlueCLIからインスピレーションを受けました。 (https://github.com/sans-blue-team/DeepBlueCLI)
+# Steve Anson氏のWindows Event Log Analysis Cheatsheet (https://www.forwarddefense.com/en/article/references-pdf)と
+# www.ultimatewindowssecurity.comのイベントログ情報も参考にしています。
+# 他に参考にしているプロジェクト：
+#   SIGMA: https://github.com/SigmaHQ/sigma
+#   sbousseaden氏の攻撃のサンプルイベントログ： https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
 
 param (
     [switch]$Japanese,
@@ -120,7 +173,7 @@ function Check-Administrator {
 
 #Global variables
 
-$YEAVersion = "0.1"
+$YEAVersion = "0.9"
 
 $EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,4776"
 # Logs to filter for:

@@ -340,7 +340,7 @@ function Show-Help {
     Write-Host 
     Write-Host "Windows Event Log Analyzer(WELA)" -ForegroundColor Green
     Write-Host "Version: $YEAVersion" -ForegroundColor Green
-    Write-Host "Author: Zach Mathis (@yamatosecurity)" -ForegroundColor Green
+    Write-Host "Authors: Zach Mathis (@yamatosecurity), Yamato Security Members" -ForegroundColor Green
     Write-Host 
 
     Write-Host "Please specify some options:" 
