@@ -1959,7 +1959,7 @@ foreach ( $LogFile in $evtxFiles ) {
     if ( $EventIDStatistics -eq $true ) {   
 
         Create-EventIDStatistics
-        Create-Timeline
+        
     }
     
     if ( $LogonTimeline -eq $true ) {
