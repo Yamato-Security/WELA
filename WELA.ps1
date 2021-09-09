@@ -46,7 +46,8 @@ param (
     [switch]$OutputGUI,
     [switch]$OutputCSV,
     [switch]$UTC,
-    [switch]$HideDisplayTimezone
+    [switch]$HideDisplayTimezone,
+    [string]$UseDetectRules = "0"
 )
 
 $Global:ruleStack = @{};
@@ -57,8 +58,26 @@ $ProgramStartTime = Get-Date
 Import-Module './Config/util.ps1' -Force ;
 
 $flagLiveAnalysis = ($LogFile -eq "");
+
 # Read Rules
-Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+switch ($UseDetectRules) {
+    "0" { break; }
+    "1" { 
+        Get-ChildItem -Path './Rules/DeepBlueCLI' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+        break;
+    }
+    "2" {
+        Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+        break;
+    }
+    "all" {
+        Get-ChildItem -Path './Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+        break;
+    }
+    Default {
+        Get-ChildItem -Path $UseDetectRules -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+    }
+}
 
 Write-Host "RuleStacks:" $Global:ruleStack;
 $str = $Global:ruleStack | Out-String;

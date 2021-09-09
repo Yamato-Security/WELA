@@ -398,6 +398,11 @@ function Show-Help {
     Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : ドメインコントローラーのログの場合は指定して下さい"
 
+    Write-Host "   -UseDetectRule <preset rule | path-to-ruledirectory>(Default:preset rule='0')" -NoNewline -ForegroundColor Green
+    Write-Host "：検知ルールに該当するイベントの出力を行う" -NoNewline -ForegroundColor Green
+    Write-Host "   preset rule| 0:None 1: DeepBlueCLI 2:SIGMA all:all-preset" -ForegroundColor Green
+
+
     Write-Host 
     Write-Host "出力オプション:"
 
