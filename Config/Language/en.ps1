@@ -370,10 +370,10 @@ function Show-Help {
     Write-Host " : Output results to a text file"
 
     Write-Host "   -OutputCSV" -NoNewline -ForegroundColor Green
-    Write-Host " : Outputs to CSV (Default: `$false)"
+    Write-Host " : Outputs to CSV"
 
     Write-Host "   -OutputGUI" -NoNewline -ForegroundColor Green
-    Write-Host " : Outputs to the Out-GridView GUI (Default: `$false)"
+    Write-Host " : Outputs to the Out-GridView GUI"
 
     Write-Host 
     Write-Host "Analysis Options:"
@@ -384,8 +384,8 @@ function Show-Help {
     Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
     Write-Host " : Specify the end of the timeline"
 
-    Write-Host "   -IsDC `$true" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify if the logs are from a DC (Default: `$false)"
+    Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
+    Write-Host " : Specify if the logs are from a DC"
 
     Write-Host 
     Write-Host "Output Options:"
@@ -397,13 +397,13 @@ function Show-Help {
     Write-Host " : Output the dates in DD-MM-YYYY format (Default: YYYY-MM-DD)"
 
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
-    Write-Host " : Output in UTC time (Default: `$false)"
+    Write-Host " : Output in UTC time (default is the local timezone)"
     
-    Write-Host "   -HideDisplayTimezone" -NoNewline -ForegroundColor Green
-    Write-Host " : Hide Displays the timezone used"
+    Write-Host "   -HideTimezone" -NoNewline -ForegroundColor Green
+    Write-Host " : Hides the timezone"
 
     Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify if you want to see Logon IDs (Default: `$false)"
+    Write-Host " : Specify if you want to see Logon IDs"
 
     Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
     Write-Host " : Output in Japanese"
