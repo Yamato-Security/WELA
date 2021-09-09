@@ -81,10 +81,9 @@ You will need local Administrator access for live analysis.
     解析ソースを一つ指定して下さい：
         -LiveAnalysis : ホストOSのログでタイムラインを作成する
         -LogFile <path-to-logfile> : オフラインの.evtxファイルでタイムラインを作成する
-        -LogDirectory <path-to-logdirectory> : 単一のフォルダに保存された複数の.evtxファイルでタイムラインを作成する
 
     解析タイプを一つ指定して下さい:
-        -EventIDStatistics : イベントIDの統計情報を出力する
+        -EventIDStatistics : イベントIDの集計情報を出力する
         -LogonTimeline : ユーザログオンの簡単なタイムラインを出力する
 
     出力方法（デフォルト：標準出力）:
@@ -127,6 +126,20 @@ Create a timeline via offline analysis outputted to a GUI in UTC time:
 オフライン解析でタイムラインを作成して、UTC時間でGUIで表示する：
 
     .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline $true -OutputGUI $true -UTC $true
+
+## Screenshots (スクリーンショット)
+
+Event ID Statistics (イベントID集計):
+
+![Alt text](/Screenshots/Screenshot-EventIDStatistics.png "Event ID Statistics")
+
+Logon Type Summary (ログオンタイプのサマリー):
+
+![Alt text](/Screenshots/Screenshot-LogonTypeSummary.png "Logon Type Summary")
+
+Logon Timeline GUI (ログオンタイムラインのGUI):
+
+![Alt text](/Screenshots/Screenshot-LogonTimelineGUI.png "Logon Timeline GUI")
 
 ## Related Windows Event Log Threat Hunting Projects
 

@@ -355,7 +355,7 @@ function Show-Help {
     Write-Host "解析タイプを一つ指定して下さい:"
 
     Write-Host "   -EventIDStatistics" -NoNewline -ForegroundColor Green
-    Write-Host " : イベントIDの統計情報を出力する" 
+    Write-Host " : イベントIDの集計情報を出力する" 
 
     Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : ユーザログオンの簡単なタイムラインを出力する"

@@ -173,7 +173,7 @@ function Check-Administrator {
 
 #Global variables
 
-$YEAVersion = "0.9"
+$YEAVersion = "1.0"
 
 $EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,4776"
 # Logs to filter for:
@@ -238,9 +238,7 @@ if ( $EuropeDateFormat -eq $true ) {
 } 
 
 function EventInfo ($eventIDNumber) {
-    # TODO
-    # - Add all security event IDs from https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx
-    
+ 
     [hashtable]$return = @{}
 
     switch ( $eventIDNumber ) {
@@ -324,11 +322,6 @@ function EventInfo ($eventIDNumber) {
 
 
 function Create-EventIDStatistics {
-
-    # TODO:
-    # - Implement save-output
-    # - Add comments to event IDs
-    # - Explicitly output results in a table
 
     Write-Host
     Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics. Please be patient." 
@@ -497,13 +490,6 @@ function Get-KerberosStatusStr {
 }
 
 function Create-LogonTimeline {
-
-    #TODO:
-    #Output only odd hour times
-    #Color to table
-    #Add RDP
-    #Add Failed Logons
-    #Explicit logons
 
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
