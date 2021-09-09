@@ -66,7 +66,7 @@ You will need local Administrator access for live analysis.
         -USDateFormat : Output the dates in MM-DD-YYYY format (Default: YYYY-MM-DD)
         -EuropeDateFormat : Output the dates in DD-MM-YYYY format (Default: YYYY-MM-DD)
         -UTC : Output in UTC time
-        -HideDisplayTimezone : Hide Displays the timezone used
+        -HideTimezone : Hides the timezone being used
         -ShowLogonID : Specify if you want to see Logon IDs
         -Japanese : Output in Japanese
 
@@ -88,8 +88,8 @@ You will need local Administrator access for live analysis.
 
     出力方法（デフォルト：標準出力）:
         -SaveOutput <出力パス> : テキストファイルに出力する
-        -OutputGUI : Out-GridView GUIに出力する
         -OutputCSV : CSVファイルに出力する
+        -OutputGUI : Out-GridView GUIに出力する
 
     解析オプション:
         -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : タイムラインの始まりを指定する
@@ -100,7 +100,7 @@ You will need local Administrator access for live analysis.
         -USDateFormat : 日付をMM-DD-YYYY形式で出力する (デフォルト：YYYY-MM-DD)
         -EuropeDateFormat : 日付をDD-MM-YYYY形式で出力する (デフォルト：YYYY-MM-DD)
         -UTC : 時間をUTC形式で出力する
-        -HideDisplayTimezone :  タイムゾーンの表示をしない
+        -HideTimezone :  タイムゾーンの表示をしない
         -ShowLogonID : ログオンIDを出力する
         -Japanese : 日本語で出力する
 

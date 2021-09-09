@@ -366,11 +366,11 @@ function Show-Help {
     Write-Host "   -SaveOutput <出力パス>" -NoNewline -ForegroundColor Green
     Write-Host " : テキストファイルに出力する"
 
-    Write-Host "   -OutputGUI" -NoNewline -ForegroundColor Green
-    Write-Host " : Out-GridView GUIに出力する (デフォルト： `$false)"
-
     Write-Host "   -OutputCSV" -NoNewline -ForegroundColor Green
-    Write-Host " : CSVファイルに出力する (デフォルト： `$false)"
+    Write-Host " : CSVファイルに出力する"
+
+    Write-Host "   -OutputGUI" -NoNewline -ForegroundColor Green
+    Write-Host " : Out-GridView GUIに出力する"
 
     Write-Host 
     Write-Host "解析オプション:"
@@ -394,13 +394,13 @@ function Show-Help {
     Write-Host " : 日付をDD-MM-YYYY形式で出力する (デフォルト： YYYY-MM-DD)" 
 
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
-    Write-Host " : 時間をUTC形式で出力する"
+    Write-Host " : 時間をUTC形式で出力する。（デフォルトはローカルタイムゾーン）"
 
-    Write-Host "   -HideDisplayTimezone" -NoNewline -ForegroundColor Green
+    Write-Host "   -HideTimezone" -NoNewline -ForegroundColor Green
     Write-Host " :  タイムゾーンの表示をしない"
 
     Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
-    Write-Host " : ログオンIDを出力する (デフォルト： `$false)"
+    Write-Host " : ログオンIDを出力する"
      
     Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
     Write-Host " : 日本語で出力する"

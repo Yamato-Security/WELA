@@ -99,10 +99,10 @@ param (
     [switch]$OutputGUI,
     [switch]$OutputCSV,
     [switch]$UTC,
-    [switch]$HideDisplayTimezone
+    [switch]$HideTimezone
 )
 
-$DisplayTimezone = !($HideDisplayTimezone);
+$DisplayTimezone = !($HideTimezone);
 
 $ProgramStartTime = Get-Date
 
@@ -1471,7 +1471,6 @@ function Create-Timeline {
             }
               
        
-
             if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
                 $AlertedEvents += 1
 
@@ -1848,11 +1847,6 @@ function Create-Timeline {
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
     Write-Output "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
-}
-
-function Perform-LiveAnalysis {
-    Write-Host "perform live analyis"
-
 }
 
 function Perform-LiveAnalysisChecks {
