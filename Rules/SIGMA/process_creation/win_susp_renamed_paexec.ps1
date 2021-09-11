@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where { (($_.ID -eq "1") -and (($_.ID -eq "1") -and ($_.message -match "Description.*PAExec Application" -or $_.message -match "OriginalFileName.*PAExec.exe")) -and -not (($_.message -match "Image.*.*\PAexec.exe" -or $_.message -match "Image.*.*\paexec.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

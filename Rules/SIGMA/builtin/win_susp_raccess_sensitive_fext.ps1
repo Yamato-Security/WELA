@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {(($_.ID -eq "5145") -and ($_.message -match "RelativeTargetName.*.*.pst" -or $_.message -match "RelativeTargetName.*.*.ost" -or $_.message -match "RelativeTargetName.*.*.msg" -or $_.message -match "RelativeTargetName.*.*.nst" -or $_.message -match "RelativeTargetName.*.*.oab" -or $_.message -match "RelativeTargetName.*.*.edb" -or $_.message -match "RelativeTargetName.*.*.nsf" -or $_.message -match "RelativeTargetName.*.*.bak" -or $_.message -match "RelativeTargetName.*.*.dmp" -or $_.message -match "RelativeTargetName.*.*.kirbi" -or $_.message -match "RelativeTargetName.*.*\groups.xml" -or $_.message -match "RelativeTargetName.*.*.rdp")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

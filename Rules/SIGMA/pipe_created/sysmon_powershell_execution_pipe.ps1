@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {(($_.ID -eq "17" -or $_.ID -eq "18") -and $_.message -match "PipeName.*\PSHost.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

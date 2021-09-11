@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {((($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*$DoIt.*" -or $_.message -match "ScriptBlockText.*.*harmj0y.*" -or $_.message -match "ScriptBlockText.*.*mattifestation.*" -or $_.message -match "ScriptBlockText.*.*_RastaMouse.*" -or $_.message -match "ScriptBlockText.*.*tifkin_.*" -or $_.message -match "ScriptBlockText.*.*0xdeadbeef.*")) -or ($_.ID -eq "4103" -and ($_.message -match "Payload.*.*$DoIt.*" -or $_.message -match "Payload.*.*harmj0y.*" -or $_.message -match "Payload.*.*mattifestation.*" -or $_.message -match "Payload.*.*_RastaMouse.*" -or $_.message -match "Payload.*.*tifkin_.*" -or $_.message -match "Payload.*.*0xdeadbeef.*")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

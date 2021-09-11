@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {(($_.ID -eq "5145" -and $_.message -match "ShareName.*\.*\IPC$") -and -not ($_.ID -eq "5145" -and $_.message -match "ShareName.*\.*\IPC$" -and ($_.message -match "atsvc" -or $_.message -match "samr" -or $_.message -match "lsarpc" -or $_.message -match "winreg" -or $_.message -match "netlogon" -or $_.message -match "srvsvc" -or $_.message -match "protected_storage" -or $_.message -match "wkssvc" -or $_.message -match "browser" -or $_.message -match "netdfs" -or $_.message -match "svcctl" -or $_.message -match "spoolss" -or $_.message -match "ntsvcs" -or $_.message -match "LSM_API_service" -or $_.message -match "HydraLsPipe" -or $_.message -match "TermSrv_API_service" -or $_.message -match "MsFteWds"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Get-Inbox.ps1.*" -or $_.message -match "ScriptBlockText.*.*Microsoft.Office.Interop.Outlook.*" -or $_.message -match "ScriptBlockText.*.*Microsoft.Office.Interop.Outlook.olDefaultFolders.*" -or $_.message -match "ScriptBlockText.*.*-comobject outlook.application.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

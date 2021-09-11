@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {(($_.ID -eq "7") -and (($_.message -match "Image.*.*\svchost.exe") -and ($_.message -match "ImageLoaded.*.*\tsmsisrv.dll" -or $_.message -match "ImageLoaded.*.*\tsvipsrv.dll" -or $_.message -match "ImageLoaded.*.*\wlbsctrl.dll")) -and -not (($_.message -match "ImageLoaded.*C:\Windows\WinSxS\.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

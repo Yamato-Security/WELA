@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*.CreationTime =.*" -or $_.message -match "ScriptBlockText.*.*.LastWriteTime =.*" -or $_.message -match "ScriptBlockText.*.*.LastAccessTime =.*" -or $_.message -match "ScriptBlockText.*.*[IO.File]::SetCreationTime.*" -or $_.message -match "ScriptBlockText.*.*[IO.File]::SetLastAccessTime.*" -or $_.message -match "ScriptBlockText.*.*[IO.File]::SetLastWriteTime.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

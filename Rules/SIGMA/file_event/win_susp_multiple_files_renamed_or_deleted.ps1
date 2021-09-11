@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {($_.ID -eq "4663" -and $_.message -match "ObjectType.*File" -and $_.message -match "AccessList.*%%1537" -and $_.message -match "Keywords.*0x8020000000000000") } | group-object SubjectLogonId | where { $_.count -gt 10 } | select name,count | sort -desc;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

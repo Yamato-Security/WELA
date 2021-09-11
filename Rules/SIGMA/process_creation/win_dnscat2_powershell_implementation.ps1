@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where {($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\powershell.exe" -and $_.message -match "Image.*.*\nslookup.exe" -and $_.message -match "CommandLine.*.*\nslookup.exe") } | select ParentImage, Image | group ParentImage | foreach { [PSCustomObject]@{'ParentImage'=$_.name;'Count'=($_.group.Image | sort -u).count} } | sort count -desc | where { $_.count -gt 100 };
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

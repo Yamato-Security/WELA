@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where { (($_.ID -eq "7") -and ((($_.ID -eq "7") -and (($_.message -match "ImageLoaded.*.*\dbghelp.dll" -or $_.message -match "ImageLoaded.*.*\dbgcore.dll") -and ($_.message -match "Image.*.*\msbuild.exe" -or $_.message -match "Image.*.*\cmd.exe" -or $_.message -match "Image.*.*\svchost.exe" -or $_.message -match "Image.*.*\rundll32.exe" -or $_.message -match "Image.*.*\powershell.exe" -or $_.message -match "Image.*.*\word.exe" -or $_.message -match "Image.*.*\excel.exe" -or $_.message -match "Image.*.*\powerpnt.exe" -or $_.message -match "Image.*.*\outlook.exe" -or $_.message -match "Image.*.*\monitoringhost.exe" -or $_.message -match "Image.*.*\wmic.exe" -or $_.message -match "Image.*.*\bash.exe" -or $_.message -match "Image.*.*\wscript.exe" -or $_.message -match "Image.*.*\cscript.exe" -or $_.message -match "Image.*.*\mshta.exe" -or $_.message -match "Image.*.*\regsvr32.exe" -or $_.message -match "Image.*.*\schtasks.exe" -or $_.message -match "Image.*.*\dnx.exe" -or $_.message -match "Image.*.*\regsvcs.exe" -or $_.message -match "Image.*.*\sc.exe" -or $_.message -match "Image.*.*\scriptrunner.exe")) -and -not ($_.message -match "Image.*.*Visual Studio.*")) -or (($_.ID -eq "7") -and (($_.message -match "ImageLoaded.*.*\dbghelp.dll" -or $_.message -match "ImageLoaded.*.*\dbgcore.dll") -and $_.message -match "Signed.*FALSE") -and -not ($_.message -match "Image.*.*Visual Studio.*")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             

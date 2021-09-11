@@ -13,11 +13,11 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "TargetObject.*.*\SOFTWARE\Microsoft\Windows NT\CurrentVersion.*") -and (($_.message -match "TargetObject.*.*\Image File Execution Options\.*" -and $_.message -match "TargetObject.*.*\GlobalFlag.*") -or ($_.message -match "TargetObject.*.*SilentProcessExit\.*" -and $_.message -match "TargetObject.*.*\ReportingMode.*") -or ($_.message -match "TargetObject.*.*SilentProcessExit\.*" -and $_.message -match "TargetObject.*.*\MonitorProcess.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "TargetObject.*.*\SOFTWARE\Microsoft\Windows NT\CurrentVersion.*") -and (($_.message -match "TargetObject.*.*\Image File Execution Options\.*" -and $_.message -match "TargetObject.*.*\GlobalFlag.*") -or ($_.message -match "TargetObject.*.*SilentProcessExit\.*" -and $_.message -match "TargetObject.*.*\ReportingMode.*") -or ($_.message -match "TargetObject.*.*SilentProcessExit\.*" -and $_.message -match "TargetObject.*.*\MonitorProcess.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                result;
                 Write-Host $detectedMessage;
             }
             

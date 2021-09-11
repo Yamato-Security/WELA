@@ -16,8 +16,8 @@ function Add-Rule {
             $result = $event |  where { (($_.ID -eq "11") -and ($_.message -match "TargetFilename.*.*\AppData\Local\Temp\.*" -and $_.message -match "TargetFilename.*.*PROCEXP152.sys") -and -not (($_.message -match "Image.*.*\procexp64.exe.*" -or $_.message -match "Image.*.*\procexp.exe.*" -or $_.message -match "Image.*.*\procmon64.exe.*" -or $_.message -match "Image.*.*\procmon.exe.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:$ruleName"  
-                Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             
