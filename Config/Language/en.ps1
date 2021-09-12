@@ -414,6 +414,9 @@ function Show-Help {
     Write-Host "   -ShowContributors" -NoNewline -ForegroundColor Green
     Write-Host " : Show the contributors" 
 
+    Write-Host "   -QuietLogo" -NoNewline -ForegroundColor Green
+    Write-Host " : Hide Execute WELA Logo" 
+
     Write-Host
     
 }
