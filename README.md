@@ -35,6 +35,7 @@ Windows Powershell 5.1で検証済。Windows、Linux、MacOSでのPowershell Cor
 ## Planned Features
 
  - SIGMA rule support
+ - Powershell Core support
  - Custom attack detection rules
  - Remote analysis
 
