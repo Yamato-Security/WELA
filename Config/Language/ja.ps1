@@ -291,6 +291,7 @@ $unregistered = @{
 
 # function Create-LogonTimeline
 $Create_LogonTimeline_Welcome_Message = "サービスアカウント、ローカルシステム、マシンアカウント等の不要なイベントを省いて、ログオンタイムラインを作成します。`n少々お待ち下さい。"
+$Create_LogonTimeline_Filename = "ファイル名 = {0}" 
 $Create_LogonTimeline_Filesize = "ファイルサイズ = {0}" 
 $Create_LogonTimeline_Estimated_Processing_Time = "想定処理時間：{0}時{1}分{2}秒"
 $Create_LogonTimeline_ElapsedTimeOutput = "{0}日{1}時{2}分{3}秒"
@@ -324,6 +325,7 @@ $Create_LogonTimeline_Type11 = "タイプ 11 キャッシュされた認証情�
 $Create_LogonTimeline_Type12 = "タイプ 12 キャッシュされた認証情報によるリモートインタラクティブログオン (例：キャッシュされた認証情報によるRDP、Microsoftライブアカウントの使用):"
 $Create_LogonTimeline_Type13 = "タイプ 13 キャッシュされた認証情報によるロック解除のログオン (例：DCに接続できない場合のロック解除またはRDP再接続):"
 $Create_LogonTimeline_TypeOther = "その他のタイプのログオン:"
+$Create_LogonTimeline_localComputer = "ローカル"
 
 #function Show-Contributors
 $Show_Contributors =
