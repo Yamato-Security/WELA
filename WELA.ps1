@@ -99,10 +99,15 @@ param (
     [switch]$OutputGUI,
     [switch]$OutputCSV,
     [switch]$UTC,
-    [switch]$HideTimezone
+    [switch]$HideTimezone,
+    [switch]$QuietLogo
 )
 
 $DisplayTimezone = !($HideTimezone);
+
+if (!$QuietLogo) {
+    Invoke-Expression './Config/splashlogos.ps1'
+}
 
 $ProgramStartTime = Get-Date
 

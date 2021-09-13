@@ -411,6 +411,10 @@ function Show-Help {
     Write-Host "   -ShowContributors" -NoNewline -ForegroundColor Green
     Write-Host " : コントリビューターの一覧表示" 
 
+    Write-Host "   -QuietLogo" -NoNewline -ForegroundColor Green
+    Write-Host " : ロゴを表示させずに実行する" 
+
+
     Write-Host
 
 }
