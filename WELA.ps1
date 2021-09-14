@@ -1,31 +1,84 @@
 ﻿<#
-.SYNOPSIS
-Fast forensics timeline generator for the Windows security event log.
+    .SYNOPSIS
+    WELA (Windows Event Log Analyzer) is a fast forensics timeline generator for Windows event logs.
+    WELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査用のタイムライン作成ツールです。
 
-.DESCRIPTION
-WELA is a fast Forensics PowerShell module to create easy to analyze and as noise-free as possible event timeline for the Windows security log.
+    .DESCRIPTION
+    Yamato Security's WELA(Windows Event Log Analyzer) is a fast forensics timeline generator for Windows event logs.
+    WELA's main goal is to create easy-to-analyze and as noise-free as possible event timelines to order to aid in quicker and higher quality forensic analysis.
 
-.Example
-Process the local Windows security event log (Need to run with Administrator privileges):
-.\WELA.ps1
+    Currently it only supports analyzing the security event log but will soon support other logs as well as detect attacks with custom rules as well as SIGMA rules.
+    By combining multiple log entries into single events of interest and ignoring data not relevant to forensic analysis, WELA usually performs data reducution 
+    of noise of around 90%. WELA also will convert any hard to read data (such as hex status codes) into human readable format.
 
-.Example
-Process output Logon timeline an offline Windows security event log:
+    Tested on Windows Powershell 5.1 with future plans to support Powershell Core on Windows, Linux and MacOS.
 
-.\WELA.ps1 -LogFile E:\logs\Security.evtx -LogonTimeline
+    大和セキュリティのWELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査用のタイムライン作成ツールです。
+    WELAの主なゴールはフォレンジック調査をより迅速、より高い精度でできるようになるべくノイズが少ない解析しやすいフォレンジックタイムラインを作ることです。
 
-.LINK
-https://github.com/yamatosecurity
+    現在は主に「セキュリティ」ログを解析していますが、その他のログ、独自ルールによる攻撃検知、SIGMAルールによる攻撃検知等々に対応する予定です。
+    WELAは複数のログから情報を簡潔にまとめて、フォレンジック調査に役立つデータのみを抽出し、16進数のステータスコードなどユーザが理解しやすい形に変換して、
+    フォレンジック調査に役立つデータのみを抽出することができます。
+
+    Windows Powershell 5.1で検証済。Windows、Linux、MacOSでのPowershell Coreに対応する予定です。
+    
+    .Example
+    Get the help menu(ヘルプメニューの表示):
+    .\WELA.ps1
+
+    Output Event ID Statistics (イベントIDの集計):
+    .\WELA.ps1 -EventIDStatistics
+
+    Live Analysis Timeline Generation (ライブ調査のタイムライン作成):
+    .\WELA.ps1 -LiveAnalysis -LogonTimeline
+
+    Offline Analysis Timeline Generation (オフライン調査のタイムライン作成):
+    .\WELA.ps1 -LogFile .\Cobalt-Strike-Security.evtx -LogonTimeline
+    
+    Analyze with a GUI(GUIでの解析):
+    -OutputGUI
+
+    日本語出力：
+    -Japanese
+
+    Save Output(結果の保存):
+    -SaveOutput file.txt
+
+    Display in UTC time (by default, it displays in local time) (UTC時間での表示。デフォルトはローカル時間)：
+    -UTC
+
+    Show Logon IDs(Default: false)(ログオンIDの表示):
+    -ShowLogonID
+
+    .LINK
+    https://github.com/Yamato-Security/WELA
 #>
 
-# Windows Event Log Analyzer (WELA) Security event timeline generator
-# Zach Mathis, Yamatosecurity founder
+# Tool: Windows Event Log Analyzer (WELA)
+# Author: Zach Mathis, Yamatosecurity founder
+# Other Core Developers: DustInDark, Chihiro (Ogino)
 # Twitter: @yamatosecurity
 # https://yamatosecurity.connpass.com/
+#
+# ツール名: Windows Event Log Analyzer (WELA・ゑ羅・ウェラ)
+# 作者: 田中ザック
+# その他のコア開発者： DustInDark, Chihiro (Ogino)
+# Twitter: @yamatosecurity
+# https://yamatosecurity.connpass.com/
+#
 # 
 # Inspired by Eric Conrad's DeepBlueCLI (https://github.com/sans-blue-team/DeepBlueCLI)
 # Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/en/article/references-pdf)
-# and event log info from www.ultimatewindowssecurity.com
+# and event log info from www.ultimatewindowssecurity.com.
+# Many thanks to SIGMA: https://github.com/SigmaHQ/sigma
+# as well as sbousseaden for providing sample attack event logs at https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
+#
+# Eric Conrad氏のDeepBlueCLIからインスピレーションを受けました。 (https://github.com/sans-blue-team/DeepBlueCLI)
+# Steve Anson氏のWindows Event Log Analysis Cheatsheet (https://www.forwarddefense.com/en/article/references-pdf)と
+# www.ultimatewindowssecurity.comのイベントログ情報も参考にしています。
+# 他に参考にしているプロジェクト：
+#   SIGMA: https://github.com/SigmaHQ/sigma
+#   sbousseaden氏の攻撃のサンプルイベントログ： https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
 
 param (
     [switch]$Japanese,
@@ -46,12 +99,17 @@ param (
     [switch]$OutputGUI,
     [switch]$OutputCSV,
     [switch]$UTC,
-    [switch]$HideDisplayTimezone,
+    [switch]$HideTimezone,
+    [switch]$QuietLogo,
     [string]$UseDetectRules = "0"
 )
 
 $Global:ruleStack = @{};
-$DisplayTimezone = !($HideDisplayTimezone);
+$DisplayTimezone = !($HideTimezone);
+
+if (!$QuietLogo) {
+    Invoke-Expression './Config/splashlogos.ps1'
+}
 
 $ProgramStartTime = Get-Date
 
@@ -140,7 +198,7 @@ function Is-Logon-Dangerous ( $msgLogonType ) {
 
 #Global variables
 
-$YEAVersion = "0.1"
+$YEAVersion = "1.0"
 
 $EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,4776"
 # Logs to filter for:
@@ -205,9 +263,7 @@ if ( $EuropeDateFormat -eq $true ) {
 } 
 
 function EventInfo ($eventIDNumber) {
-    # TODO
-    # - Add all security event IDs from https://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx
-    
+ 
     [hashtable]$return = @{}
 
     switch ( $eventIDNumber ) {
@@ -292,11 +348,6 @@ function EventInfo ($eventIDNumber) {
 
 function Create-EventIDStatistics {
 
-    # TODO:
-    # - Implement save-output
-    # - Add comments to event IDs
-    # - Explicitly output results in a table
-
     Write-Host
     Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics. Please be patient." 
     Write-Host
@@ -304,152 +355,76 @@ function Create-EventIDStatistics {
     $WineventFilter = @{}
     
     if ( $StartTimeline -ne "" ) { 
-        $StartTimeline = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $StartTimeline = [DateTime]::ParseExact($StartTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "StartTime" , $StartTimeline )   
     }
 
     if ( $EndTimeline -ne "" ) { 
-        $EndTimeline = [DateTime]::ParseExact($EndTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $EndTimeline = [DateTime]::ParseExact($EndTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    #Live Analysis
-    if ( $LogFile -eq "" ) {
+    $WineventFilter.Add( "Path", $LogFile ) 
+    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $eventlist = @{}
+    $TotalNumberOfLogs = 0
+
+    foreach ( $event in $logs ) {
+
+        $id = $event.id.toString()
+
+        if ( $eventlist[$id] -eq $null ) {
+
+            $eventlist[$id] = 1
+
+        } 
         
-        Perform-LiveAnalysisChecks
+        else {
 
-        $WineventFilter.Add("LogName", "Security")
-        $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
-        $eventlist = @{}
-        $TotalNumberOfLogs = 0
-
-        foreach ( $event in $logs ) {
-
-            $id = $event.id.toString()
-
-            if ( $eventlist[$id] -eq $null ) {
-
-                $eventlist[$id] = 1
-
-            } 
-            
-            else {
-
-                $eventlist[$id] += 1
-            }
-
-            $TotalNumberOfLogs++
-        }
-
-        #Print results
-        $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
-        $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
-        $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
-    
-        Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
-        Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
-        Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
-        Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
-    
-        $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
-        [System.Collections.ArrayList]$ArrayWithHeader = @()
-        
-        for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
-                 
-            $Name = $sorted[$i].Name
-            $Value = $sorted[$i].Value
-            $EventInfo = EventInfo($Name)
-            $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
-            $CountPlusPercent = "$value ($PercentOfLogs%)" 
-            $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
-            $ArrayWithHeader.Add($val) > $null
+            $eventlist[$id] += 1
 
         }
 
-        $ProgramEndTime = Get-Date
-        $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-        $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-
-        Write-Host
-        Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
-
-        $ArrayWithHeader
+        $TotalNumberOfLogs++
 
     }
 
-    #Offline Log Analysis
-    Else {
+    #Print results        
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
+    $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
 
-        $WineventFilter.Add( "Path", $LogFile )
-        $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
-        $eventlist = @{}
-        $TotalNumberOfLogs = 0
-        Write-Host $Detect_ProcessingDetectionMessage;
-        # 対象となるログのカウントなどが必要になるため各レコードではなく一旦ログ全体から取得するものとする
-        Start-Detection $logs
+    Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
+    Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
+    Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
+    Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
 
-        foreach ( $event in $logs ) {
-
-            $id = $event.id.toString()
-
-            if ( $eventlist[$id] -eq $null ) {
-
-                $eventlist[$id] = 1
-
-            } 
-            
-            else {
-
-                $eventlist[$id] += 1
-
-            }
-
-            $TotalNumberOfLogs++
-
-        }
-
-        #Print results        
-        $filesize = Format-FileSize( (get-item $LogFile).length )
-        $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
-        $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
-
-        Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
-        Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
-        Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
-        Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
+    $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
+    [System.Collections.ArrayList]$ArrayWithHeader = @()
     
-        $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
-        [System.Collections.ArrayList]$ArrayWithHeader = @()
-        
-        for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
-                 
-            $Name = $sorted[$i].Name
-            $Value = $sorted[$i].Value
-            $EventInfo = EventInfo($Name)
-            $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
-            $CountPlusPercent = "$value ($PercentOfLogs%)" 
-            $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
-            $ArrayWithHeader.Add($val) > $null
-
-        }
-
-        $ProgramEndTime = Get-Date
-        $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-        $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-
-        Write-Host
-        Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
-
-        $ArrayWithHeader
+    for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
+                
+        $Name = $sorted[$i].Name
+        $Value = $sorted[$i].Value
+        $EventInfo = EventInfo($Name)
+        $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
+        $CountPlusPercent = "$value ($PercentOfLogs%)" 
+        $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
+        $ArrayWithHeader.Add($val) > $null
 
     }
 
+    $ProgramEndTime = Get-Date
+    $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
+    $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+
+    Write-Host
+    Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
+
+    $ArrayWithHeader
 
 }
 
@@ -468,14 +443,6 @@ function Get-KerberosStatusStr {
 
 function Create-LogonTimeline {
 
-    #TODO:
-    #Output only odd hour times
-    #Color to table
-    #Add RDP
-    #Add Failed Logons
-    #Add 4776?
-    #Explicit logons
-
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
     #   The log service shutdown time is used for the shutdown time so might be wrong if the log service was turned off while the system was running. (anti-forensics, etc..)
@@ -485,7 +452,7 @@ function Create-LogonTimeline {
     Write-Host
     
     $WineventFilter = @{}
-    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 1100
+    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 4776, 1100, 21, 25
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
     $TotalLogonEvents = 0
     $TotalFilteredLogons = 0
@@ -507,30 +474,18 @@ function Create-LogonTimeline {
     $LogServiceShutdownTimeArray = @()
     
     if ( $StartTimeline -ne "" ) { 
-        $StartTimeline = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $StartTimeline = [DateTime]::ParseExact($StartTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "StartTime" , $StartTimeline )   
     }
 
     if ( $EndTimeline -ne "" ) { 
-        $EndTimeline = [DateTime]::ParseExact($EndTimeline, 'yyyy-MM-dd HH:mm:ss', $null) 
+        $EndTimeline = [DateTime]::ParseExact($EndTimeline, $DateFormat, $null) 
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    #Live Analysis
-    if ( $LogFile -eq "" ) {
-
-        Perform-LiveAnalysisChecks
-        $WineventFilter.Add( "LogName", "Security" )
-        $filesizeMB = (Get-Item "C:\Windows\System32\winevt\Logs\Security.evtx").Length / 1MB
-        $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
-
-    }
-    else {
-
-        $WineventFilter.Add( "Path", $LogFile )
-        $filesize = Format-FileSize( (get-item $LogFile).length )
-        $filesizeMB = (Get-Item $LogFile).length / 1MB 
-    }
+    $WineventFilter.Add( "Path", $LogFile )
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    $filesizeMB = (Get-Item $LogFile).length / 1MB 
 
     $filesizeMB = $filesizeMB * 0.1
     $ApproxTimeInSeconds = $filesizeMB * 60
@@ -539,6 +494,7 @@ function Create-LogonTimeline {
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
+    Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
@@ -567,13 +523,13 @@ function Create-LogonTimeline {
             }
             
             if ( $UTC -eq $true ) {
-                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogoffTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, $DateFormat, $null) 
             $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
             $LogoffEventArray.Add( $LogoffEvent ) > $null
         }
@@ -593,13 +549,13 @@ function Create-LogonTimeline {
             }
             
             if ( $UTC -eq $true ) {
-                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $LogoffTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $LogoffTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogoffTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogoffTimestampDateTime = [datetime]::ParseExact($LogoffTimestampString, $DateFormat, $null) 
             $LogoffEvent = @( $msgTargetLogonID , $LogoffTimestampDateTime )
             $LogoffEventArray.Add( $LogoffEvent ) > $null
 
@@ -612,13 +568,13 @@ function Create-LogonTimeline {
             $eventXML = [xml]$event.ToXml()
 
             if ( $UTC -eq $true ) {
-                $LogServiceShutdownTimeString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $LogServiceShutdownTimeString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $LogServiceShutdownTimeString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogServiceShutdownTimeString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogServiceShutdownTimeDateTime = [datetime]::ParseExact($LogServiceShutdownTimeString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $LogServiceShutdownTimeDateTime = [datetime]::ParseExact($LogServiceShutdownTimeString, $DateFormat, $null) 
             $LogServiceShutdownTimeArray += $LogServiceShutdownTimeDateTime 
 
         }
@@ -684,13 +640,13 @@ function Create-LogonTimeline {
             $LogServiceShutdownTimeString = ""
 
             if ( $UTC -eq $true ) {
-                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
             }
             else {
-                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, $DateFormat, $null)
 
             if ( $msgLogonType -eq "0" ) {
                 #if System startup/runtime
@@ -699,7 +655,7 @@ function Create-LogonTimeline {
 
                     if ( $LogServiceShutdownTime -gt $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
                        
-                        $LogoffTimestampString = $LogServiceShutdownTime.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                        $LogoffTimestampString = $LogServiceShutdownTime.ToString($DateFormat) 
                         $ElapsedTime = $LogServiceShutdownTime - $LogonTimestampDateTime
 
                     }     
@@ -717,7 +673,7 @@ function Create-LogonTimeline {
                     # If the logon ID match and the logoff date is greater than the logon date and $LogoffTimestampString is blank (to prevent skipping to an older duplicate logon id (rare case?))
                     if ( $EventIndex[0] -eq $msgTargetLogonID -and $EventIndex[1] -ge $LogonTimestampDateTime -and $LogoffTimestampString -eq "" ) {
                        
-                        $LogoffTimestampString = $EventIndex[1].ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                        $LogoffTimestampString = $EventIndex[1].ToString($DateFormat) 
                         $ElapsedTime = $EventIndex[1] - $LogonTimestampDateTime
 
                     }     
@@ -808,24 +764,75 @@ function Create-LogonTimeline {
             $msgProcessName = "-"
 
             if ( $UTC -eq $true ) {
-                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
             }
             else {
-                $LogonTimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+            $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, $DateFormat, $null)
             $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
 
             $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_Auth = $msgAuthPackageName ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_isAdmin = $isAdmin ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; "Process Name" = $msgProcessName ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
                 
-            if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
-            if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
+            $outputThisEvent = $TRUE
 
-            $output += [pscustomobject]$tempoutput
-    
-            $TotalFilteredLogons++
+        }
+
+    }
+
+    #RDP logon
+    if ($logs.ProviderName -eq "Microsoft-Windows-TerminalServices-LocalSessionManager") {
+
+        if ($event.Id -eq "21" -or $event.Id -eq "25" ) {
+
+            $TotalLogonEvents++
+
+            $eventXML = [xml]$event.ToXml()
+                
+            $msgTargetUserName = $eventXML.Event.UserData.EventXML.User
+            $msgTargetUserName = $msgTargetUserName.Split("\")[-1]
+            $msgIpAddress = $eventXML.Event.UserData.EventXML.Address
+                
+            $msgWorkstationName = "-"
+            $msgAuthPackageName = "-"
+            $msgIpPort = "-"
+            $msgProcessName = "-"
+
+            if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
+                switch ( $event.Id ) {
+                    "21" {
+                        #RDP
+                        $Type10Logons++
+                        $msgLogonType = 10
+                    } 
+                    "25" {
+                        #RDP reconnect
+                        $Type7Logons++
+                        $msgLogonType = 7
+                    } 
+                }
                     
+                $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings                
+
+                if ( $UTC -eq $true ) {
+                    $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
+                }
+                else {
+                    $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
+                }
+                $Timezone = Get-TimeZone
+                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
+                $StartParen = $TimezoneName.IndexOf('(') #get position of (
+                $EndParen = $TimezoneName.IndexOf(')') #position of )
+                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
+                if ( $UTC -eq $true ) {
+                    $UTCOffset = "UTC"
+                }
+                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
+                    
+                $outputThisEvent = $TRUE
+            }
         }
 
     }
@@ -852,12 +859,40 @@ function Create-LogonTimeline {
         if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
 
         $output += [pscustomobject]$tempoutput
-
+    
         $TotalFilteredLogons++
-
+                    
     }
-           
+
 }
+        
+if ($outputThisEvent -eq $TRUE ) {
+
+    $tempoutput = [Ordered]@{ 
+        $Create_LogonTimeline_Timezone          = $UTCOffset ;
+        $Create_LogonTimeline_LogonTime         = $LogonTimestampString ;
+        $Create_LogonTimeline_LogoffTime        = $LogoffTimestampString ;
+        $Create_LogonTimeline_ElapsedTime       = $ElapsedTimeOutput ;
+        $Create_LogonTimeline_Type              = "$msgLogonType - $msgLogonTypeReadable" ;
+        $Create_LogonTimeline_Auth              = $msgAuthPackageName ;
+        $Create_LogonTimeline_TargetUser        = $msgTargetUserName ;
+        $Create_LogonTimeline_isAdmin           = $isAdmin ;
+        $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
+        $Create_LogonTimeline_SourceIpAddress   = $msgIpAddress ;
+        $Create_LogonTimeline_SourceIpPort      = $msgIpPort ;
+        "Process Name"                          = $msgProcessName ;
+        $Create_LogonTimeline_LogonID           = $msgTargetLogonID
+    }
+
+    if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
+    if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
+
+    $output += [pscustomobject]$tempoutput
+
+    $TotalFilteredLogons++
+
+}
+
     
 $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
 
@@ -1002,106 +1037,34 @@ else {
 
 function Create-Timeline {
 
-    if ( $LogFile -eq "" ) {
+    $filter = "@{ Path=""$LogFile""; ID=$EventIDsToAnalyze }"
+    $filter2 = "@{Path = ""$LogFile"" }"
+    Write-Host
+    Write-Host "Creating timeline for $LogFile"
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    Write-Host "File Size: $filesize"
 
-        If ( $StartTimeline -eq "" -and $EndTimeline -eq "" ) {
-            #No dates specified
-            $filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
-            #$filter = @{}
-            #$filter.Add("LogName", "Security")
-            #$filter.Add("ID", $EventIDsToAnalyze)
-        }
-    
-        ElseIf ( $StartTimeline -ne "" -and $EndTimeline -eq "" ) {
-            #Start date specified but no end date
-        
-            $StartingTime = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd', $null)
+    $filesizeMB = (Get-Item $LogFile).Length / 1MB
+    $filesizeMB = $filesizeMB * 0.1
+    $ApproxTimeInSeconds = $filesizeMB * 60
+    $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+    Write-Host "Please be patient. It should take approximately: " -NoNewline
+    Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
 
-            $filter = @{}
-            $filter.Add("StartTime", $StartingTime)
-            $filter.Add("LogName", "Security")
-            #$filter.Add("ID", "4624,4625,4672,4634,4647,4720,4732,1102,4648") #filtering on IDs does not work when specifying a start date..
-        
-            #$filter = "@{Logname=""Security"";StartDate=$StartingTime}"
-        }
+    Write-Host
 
+    try {
+        $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
 
-
-        <#
-    TODO: fix starttimeline and endtimeline
-    If ( $StartTimeline -eq "" -and $EndTimeline -ne "" ) {  #Start date specified but no end date
-        
-        $StartingTime = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd', $null)
-
-        $filter = @{}
-        $filter.Add("StartTime", $StartingTime)
-        $filter.Add("LogName", "Security")
-        #$filter.Add("ID", "4624,4625,4672,4634,4647,4720,4732,1102,4648") #filter not working when specifying a start date..
-        
-        #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze;StartTime=$yesterday;EndTime=(Get-Date)}"
     }
-    #>
-    
-
-        try {
-            if ( $LogFile -eq "" ) {
-                Write-Host
-                Write-Host "Running a live scan on the Security event log"
-                Write-Host
-
-                $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
-
-            }
- 
-            # Bug: starttime not working: can filter on IDs when 
-            #$filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
-            #and $logs = iex "Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop"
-            #when is change to $logs Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop   I get
-            #Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "@{Logname="Security";ID=4624,4625,4672,4634,4647,4720,4732,1102,4648}" value of type "System.String" to type "System.Collections.Hashtable".
-            #filter.add method gives me Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "System.Collections.Hashtable" value of type "System.String" to type "System.Collections.Hashtable". error when
-            #$filter.Add("ID", $EventIDsToAnalyze) is specified.  
-            #Get-WinEvent error:  There is not an event log on the localhost computer that matches "System.Collections.Hashtable". when commented out
-
-
-        }
-        catch {
-            Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-            Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-            Write-Host "Exiting...`n"
-            exit
-        }       
-
-    } 
-    ElseIf ( $LogFile -ne "" ) {
-        $filter = "@{Path=""$LogFile"";ID=$EventIDsToAnalyze}"
-        $filter2 = "@{Path=""$LogFile""}"
-        Write-Host
-        Write-Host "Creating timeline for $LogFile"
-        $filesize = Format-FileSize( (get-item $LogFile).length )
-        Write-Host "File Size: $filesize"
-
-        $filesizeMB = (Get-Item $LogFile).Length / 1MB
-        $filesizeMB = $filesizeMB * 0.1
-        $ApproxTimeInSeconds = $filesizeMB * 60
-        $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-        Write-Host "Please be patient. It should take approximately: " -NoNewline
-        Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
-
-        Write-Host
-
-        try {
-            $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
-
-        }
-        catch {
-            Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-            Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-            Write-Host "Exiting...`n"
-            exit
-        }
+    catch {
+        Write-Host "Get-WinEvent $filter -ErrorAction Stop"
+        Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
+        Write-Host "Exiting...`n"
+        exit
     }
 
 
@@ -1130,13 +1093,13 @@ function Create-Timeline {
             }
             
             if ( $UTC -eq $true ) {
-                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $TimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, $DateFormat, $null) 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
             $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
             $printMSG = "4768 - Requested Kerberos authentication ticket(TGT) to Service: $msgTargetService from User: $msgTargetUserName from Domain: $msgTargetDomainName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
@@ -1185,13 +1148,13 @@ function Create-Timeline {
             }
             
             if ( $UTC -eq $true ) {
-                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString("yyyy-MM-dd HH:mm:ss.ff")
+                $TimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat)
             }
             else {
-                $TimestampString = $event.TimeCreated.ToString("yyyy-MM-dd HH:mm:ss.ff") 
+                $TimestampString = $event.TimeCreated.ToString($DateFormat) 
             }
 
-            $TimestampDateTime = [datetime]::ParseExact($TimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null) 
+            $TimestampDateTime = [datetime]::ParseExact($TimestampString, $DateFormat, $null) 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
             $msgStatusReadable = Get-KerberosStatusStr $msgResultCode
             $printMSG = "4769 - Requested Kerberos service ticket to Service: $msgTargetService from User: $msgTargetUserName IPAddress: $msgIpAddress Port: $msgIpPort TicketStatus: $msgStatus($msgStatusReadable)";
@@ -1447,7 +1410,6 @@ function Create-Timeline {
             }
               
        
-
             if ($previousMsg -ne $printMSG -and $printMSG -ne "") {
                 $AlertedEvents += 1
 
@@ -1826,11 +1788,6 @@ function Create-Timeline {
     Write-Output "Processing time: $RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
 }
 
-function Perform-LiveAnalysis {
-    Write-Host "perform live analyis"
-
-}
-
 function Perform-LiveAnalysisChecks {
     if ( $IsWindows -eq $true -or $env:OS -eq "Windows_NT" ) {
         
@@ -1911,21 +1868,26 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 }
 
 #Create-Timeline
-<#
-if ( $LiveAnalysis -eq $true ) {
-    Perform-LiveAnalysisChecks
-}
-#>
 
 $evtxFiles = @($LogFile)
 
-if ( $LogDirectory -ne "" ) {
+if ( $LiveAnalysis -eq $true ) {
+
+    Perform-LiveAnalysisChecks
+    $evtxFiles = @(
+        "C:\Windows\System32\winevt\Logs\Security.evtx",
+        "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
+    )
+    
+}
+elseif ( $LogDirectory -ne "" ) {
 
     if ($LogFile -ne "") {
         Write-Host
         Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
         exit
     }
+    
     $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
 
 }
@@ -1935,7 +1897,7 @@ foreach ( $LogFile in $evtxFiles ) {
     if ( $EventIDStatistics -eq $true ) {   
 
         Create-EventIDStatistics
-        Create-Timeline
+        
     }
     
     if ( $LogonTimeline -eq $true ) {
@@ -1944,9 +1906,6 @@ foreach ( $LogFile in $evtxFiles ) {
     
     }
 
-    if ( $LiveAnalysis -eq $true ) {
-        exit
-    }
 }
 
 
