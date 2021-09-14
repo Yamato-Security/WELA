@@ -1769,7 +1769,7 @@ if ( $ShowContributors -eq $true ) {
 
 if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
     Write-Host
-    Write-Host $Warn_DC_LiveAnalysis -ForegroundColor White -BackgroundColor Red
+    Write-Host $Warn_DC_LiveAnalysis -ForegroundColor Black -BackgroundColor Yellow
     Write-Host 
     exit
 }
