@@ -422,7 +422,7 @@ function Get-KerberosStatusStr {
 }
 
 function Create-LogonTimeline {
-
+    param([string] $UTCOffset)
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
     #   The log service shutdown time is used for the shutdown time so might be wrong if the log service was turned off while the system was running. (anti-forensics, etc..)
@@ -704,20 +704,9 @@ function Create-LogonTimeline {
             if ($msgIpAddress -ne "-" -and #IP Address is not blank
                 !($msgTargetUserName[-1] -eq "$" -and $msgIpAddress -eq "127.0.0.1" ) -or #Not a machine account local logon
                 ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) {
-                #To find system boot time システムの起動時間を調べるため
-                $Timezone = Get-TimeZone
-                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                $EndParen = $TimezoneName.IndexOf(')') #position of )
-                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                if ( $UTC -eq $true ) {
-                    $UTCOffset = "UTC"
-                }
 
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-
                 if ( $msgAuthPackageName -eq "NTLM" ) { $msgAuthPackageName = $msgLmPackageName } #NTLMの場合はv1かv2か知りたい。AuthPackageはNTLMしか書いていないので、LmPackageName (例：NTLMv1, NTLMv2）で上書きする。
-                
                 $outputThisEvent = $TRUE
             }
            
@@ -756,19 +745,8 @@ function Create-LogonTimeline {
             $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
 
             if ($msgTargetUserName[-1] -ne "$") {
-            
-                $Timezone = Get-TimeZone
-                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                $EndParen = $TimezoneName.IndexOf(')') #position of )
-                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                if ( $UTC -eq $true ) {
-                    $UTCOffset = "UTC"
-                }
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-                
                 $outputThisEvent = $TRUE
-
             }
 
         }
@@ -782,22 +760,24 @@ function Create-LogonTimeline {
 
                 $eventXML = [xml]$event.ToXml()
                 
-                $msgTargetUserName  = $eventXML.Event.UserData.EventXML.User
-                $msgTargetUserName  = $msgTargetUserName.Split("\")[-1]
-                $msgIpAddress       = $eventXML.Event.UserData.EventXML.Address
+                $msgTargetUserName = $eventXML.Event.UserData.EventXML.User
+                $msgTargetUserName = $msgTargetUserName.Split("\")[-1]
+                $msgIpAddress = $eventXML.Event.UserData.EventXML.Address
                 
                 $msgWorkstationName = "-"
                 $msgAuthPackageName = "-"
-                $msgIpPort          = "-"
-                $msgProcessName     = "-"
+                $msgIpPort = "-"
+                $msgProcessName = "-"
 
                 if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
                     switch ( $event.Id ) {
-                        "21" {              #RDP
+                        "21" {
+                            #RDP
                             $Type10Logons++
                             $msgLogonType = 10
                         } 
-                        "25" {              #RDP reconnect
+                        "25" {
+                            #RDP reconnect
                             $Type7Logons++
                             $msgLogonType = 7
                         } 
@@ -811,16 +791,7 @@ function Create-LogonTimeline {
                     else {
                         $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
                     }
-                    $Timezone = Get-TimeZone
-                    $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                    $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                    $EndParen = $TimezoneName.IndexOf(')') #position of )
-                    $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                    if ( $UTC -eq $true ) {
-                        $UTCOffset = "UTC"
-                    }
-                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-                    
+                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )                    
                     $outputThisEvent = $TRUE
                 }
             }
@@ -888,8 +859,9 @@ function Create-LogonTimeline {
     if ( $SaveOutput -eq "" ) {   
         
         if ( $OutputCSV -eq $true ) { 
-            
-            Write-Host 'Error: you need to specify -SaveOutput'
+            Write-Host 
+            Write-Host $Error_NoSaveOutputWithCSV -ForegroundColor White -BackgroundColor Red
+            Write-Host 
             Exit
 
         }
@@ -960,8 +932,9 @@ function Create-LogonTimeline {
     else {
 
         if ( $OutputGUI -eq $true ) { 
-            
-            Write-Host 'Error: you cannot output to GUI with the -SaveOutput parameter'
+            Write-Host 
+            Write-Host $Error_NoNeedSaveOutputWithGUI -ForegroundColor White -BackgroundColor Red
+            Write-Host 
             Exit
 
         }
@@ -1759,35 +1732,19 @@ function Perform-LiveAnalysisChecks {
         $isAdmin = Check-Administrator
 
         if ( $isAdmin -eq $false ) {
-            if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-                Write-Host
-                Write-Host "エラー： Powershellを管理者として実行する必要があります。"
-                Write-Host
-                Exit
-            }
-            else {
-                Write-Host
-                Write-Host "Error: You need to be running Powershell as Administrator."
-                Write-Host
-                Exit
-            }
+            Write-Host
+            Write-Host $Error_NeedAdministratorPriv -ForegroundColor White -BackgroundColor Red
+            Write-Host
+            Exit
         }
     
     }
     else {
         #Trying to run live analysis on Mac or Linux
-        if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-            Write-Host
-            Write-Host "エラー： ライブ調査はWindowsにしか対応していません。"
-            Write-Host
-            Exit
-        }
-        else {
-            Write-Host
-            Write-Host "Error: Live Analysis is only supported on Windows"
-            Write-Host
-            Exit
-        }
+        Write-Host
+        Write-Host $Error_NotSupport_LiveAnalysys -ForegroundColor White -BackgroundColor Red
+        Write-Host
+        Exit
     }
 }
 
@@ -1802,24 +1759,16 @@ if ( $ShowContributors -eq $true ) {
 
 
 if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "注意：ドメインコントローラーでライブ調査をしない方が良いです。ログをオフラインにコピーしてから解析して下さい。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
     Write-Host
-    Write-Host "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis." -ForegroundColor White -BackgroundColor Red
+    Write-Host $Warn_DC_LiveAnalysis -ForegroundColor Black -BackgroundColor Yellow
+    Write-Host 
     exit
 }
 
 if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "エラー：「-LiveAnalysis `$true」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
     Write-Host
-    Write-Host "Error: you cannot specify -LiveAnalysis `$true and -LogFile at the same time." -ForegroundColor White -BackgroundColor Red
+    Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
+    Write-Host 
     exit
 }
 
@@ -1843,16 +1792,27 @@ if ( $LiveAnalysis -eq $true ) {
         "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
     )
     
-} elseif ( $LogDirectory -ne "" ) {
+}
+elseif ( $LogDirectory -ne "" ) {
 
     if ($LogFile -ne "") {
         Write-Host
-        Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
+        Write-Host $Error_InCompatible_LogDirAndFile -ForegroundColor White -BackgroundColor Red
+        Write-Host 
         exit
     }
     
     $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
 
+}
+
+$Timezone = Get-TimeZone
+$TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
+$StartParen = $TimezoneName.IndexOf('(') #get position of (
+$EndParen = $TimezoneName.IndexOf(')') #position of )
+$UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
+if ( $UTC -eq $true ) {
+    $UTCOffset = "UTC"
 }
 
 foreach ( $LogFile in $evtxFiles ) {
@@ -1865,7 +1825,7 @@ foreach ( $LogFile in $evtxFiles ) {
     
     if ( $LogonTimeline -eq $true ) {
     
-        Create-LogonTimeline
+        Create-LogonTimeline $UTCOffset
     
     }
 
