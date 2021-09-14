@@ -289,6 +289,7 @@ $unregistered_event_id = @{
 
 # function Create-LogonTimeline
 $Create_LogonTimeline_Welcome_Message = "Creating a logon timeline excluding noisy events such as service, system and machine account local logons.`nPlease be patient."
+$Create_LogonTimeline_Filename = "File Name: {0}" 
 $Create_LogonTimeline_Filesize = 'File Size: {0}'
 $Create_LogonTimeline_Estimated_Processing_Time = "Estimated processing time: {0} hours {1} minutes {2} seconds"
 $Create_LogonTimeline_ElapsedTimeOutput = "{0} Days {1} Hours {2} Min. {3} Sec."
@@ -322,7 +323,7 @@ $Create_LogonTimeline_Type11 = "Type 11 CachedInteractive/Cached Credentials Log
 $Create_LogonTimeline_Type12 = "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts):"
 $Create_LogonTimeline_Type13 = "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC):"
 $Create_LogonTimeline_TypeOther = "Other Type Logons:"
-
+$Create_LogonTimeline_localComputer = "LOCAL"
 
 
 #function Show-Contributors

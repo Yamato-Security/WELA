@@ -344,140 +344,67 @@ function Create-EventIDStatistics {
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    #Live Analysis
-    if ( $LogFile -eq "" ) {
+    $WineventFilter.Add( "Path", $LogFile ) 
+    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $eventlist = @{}
+    $TotalNumberOfLogs = 0
+
+    foreach ( $event in $logs ) {
+
+        $id = $event.id.toString()
+
+        if ( $eventlist[$id] -eq $null ) {
+
+            $eventlist[$id] = 1
+
+        } 
         
-        Perform-LiveAnalysisChecks
+        else {
 
-        $WineventFilter.Add("LogName", "Security")
-        $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
-        $eventlist = @{}
-        $TotalNumberOfLogs = 0
-
-        foreach ( $event in $logs ) {
-
-            $id = $event.id.toString()
-
-            if ( $eventlist[$id] -eq $null ) {
-
-                $eventlist[$id] = 1
-
-            } 
-            
-            else {
-
-                $eventlist[$id] += 1
-            }
-
-            $TotalNumberOfLogs++
-        }
-
-        #Print results
-        $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
-        $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
-        $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
-    
-        Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
-        Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
-        Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
-        Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
-    
-        $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
-        [System.Collections.ArrayList]$ArrayWithHeader = @()
-        
-        for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
-                 
-            $Name = $sorted[$i].Name
-            $Value = $sorted[$i].Value
-            $EventInfo = EventInfo($Name)
-            $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
-            $CountPlusPercent = "$value ($PercentOfLogs%)" 
-            $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
-            $ArrayWithHeader.Add($val) > $null
+            $eventlist[$id] += 1
 
         }
 
-        $ProgramEndTime = Get-Date
-        $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-        $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-
-        Write-Host
-        Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
-
-        $ArrayWithHeader
+        $TotalNumberOfLogs++
 
     }
 
-    #Offline Log Analysis
-    Else {
+    #Print results        
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
+    $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
 
-        $WineventFilter.Add( "Path", $LogFile ) 
-        $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
-        $eventlist = @{}
-        $TotalNumberOfLogs = 0
+    Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
+    Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
+    Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
+    Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
 
-        foreach ( $event in $logs ) {
-
-            $id = $event.id.toString()
-
-            if ( $eventlist[$id] -eq $null ) {
-
-                $eventlist[$id] = 1
-
-            } 
-            
-            else {
-
-                $eventlist[$id] += 1
-
-            }
-
-            $TotalNumberOfLogs++
-
-        }
-
-        #Print results        
-        $filesize = Format-FileSize( (get-item $LogFile).length )
-        $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
-        $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
-
-        Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
-        Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
-        Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
-        Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
+    $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
+    [System.Collections.ArrayList]$ArrayWithHeader = @()
     
-        $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
-        [System.Collections.ArrayList]$ArrayWithHeader = @()
-        
-        for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
-                 
-            $Name = $sorted[$i].Name
-            $Value = $sorted[$i].Value
-            $EventInfo = EventInfo($Name)
-            $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
-            $CountPlusPercent = "$value ($PercentOfLogs%)" 
-            $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
-            $ArrayWithHeader.Add($val) > $null
-
-        }
-
-        $ProgramEndTime = Get-Date
-        $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-        $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-
-        Write-Host
-        Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
-
-        $ArrayWithHeader
+    for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
+                
+        $Name = $sorted[$i].Name
+        $Value = $sorted[$i].Value
+        $EventInfo = EventInfo($Name)
+        $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
+        $CountPlusPercent = "$value ($PercentOfLogs%)" 
+        $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
+        $ArrayWithHeader.Add($val) > $null
 
     }
 
+    $ProgramEndTime = Get-Date
+    $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
+    $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+
+    Write-Host
+    Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
+
+    $ArrayWithHeader
 
 }
 
@@ -505,7 +432,7 @@ function Create-LogonTimeline {
     Write-Host
     
     $WineventFilter = @{}
-    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 4776, 1100
+    $EventIDsToAnalyze = 4624, 4634, 4647, 4672, 4776, 1100, 21, 25
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
     $TotalLogonEvents = 0
     $TotalFilteredLogons = 0
@@ -536,21 +463,9 @@ function Create-LogonTimeline {
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    #Live Analysis
-    if ( $LogFile -eq "" ) {
-
-        Perform-LiveAnalysisChecks
-        $WineventFilter.Add( "LogName", "Security" )
-        $filesizeMB = (Get-Item "C:\Windows\System32\winevt\Logs\Security.evtx").Length / 1MB
-        $filesize = Format-FileSize( (get-item "C:\Windows\System32\winevt\Logs\Security.evtx").length )
-
-    }
-    else {
-
-        $WineventFilter.Add( "Path", $LogFile )
-        $filesize = Format-FileSize( (get-item $LogFile).length )
-        $filesizeMB = (Get-Item $LogFile).length / 1MB 
-    }
+    $WineventFilter.Add( "Path", $LogFile )
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    $filesizeMB = (Get-Item $LogFile).length / 1MB 
 
     $filesizeMB = $filesizeMB * 0.1
     $ApproxTimeInSeconds = $filesizeMB * 60
@@ -559,6 +474,7 @@ function Create-LogonTimeline {
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
+    Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
@@ -856,6 +772,60 @@ function Create-LogonTimeline {
             }
 
         }
+
+        #RDP logon
+        if ($logs.ProviderName -eq "Microsoft-Windows-TerminalServices-LocalSessionManager") {
+
+            if ($event.Id -eq "21" -or $event.Id -eq "25" ) {
+
+                $TotalLogonEvents++
+
+                $eventXML = [xml]$event.ToXml()
+                
+                $msgTargetUserName  = $eventXML.Event.UserData.EventXML.User
+                $msgTargetUserName  = $msgTargetUserName.Split("\")[-1]
+                $msgIpAddress       = $eventXML.Event.UserData.EventXML.Address
+                
+                $msgWorkstationName = "-"
+                $msgAuthPackageName = "-"
+                $msgIpPort          = "-"
+                $msgProcessName     = "-"
+
+                if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
+                    switch ( $event.Id ) {
+                        "21" {              #RDP
+                            $Type10Logons++
+                            $msgLogonType = 10
+                        } 
+                        "25" {              #RDP reconnect
+                            $Type7Logons++
+                            $msgLogonType = 7
+                        } 
+                    }
+                    
+                    $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings                
+
+                    if ( $UTC -eq $true ) {
+                        $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
+                    }
+                    else {
+                        $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
+                    }
+                    $Timezone = Get-TimeZone
+                    $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
+                    $StartParen = $TimezoneName.IndexOf('(') #get position of (
+                    $EndParen = $TimezoneName.IndexOf(')') #position of )
+                    $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
+                    if ( $UTC -eq $true ) {
+                        $UTCOffset = "UTC"
+                    }
+                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
+                    
+                    $outputThisEvent = $TRUE
+                }
+            }
+
+        }
         
         if ($outputThisEvent -eq $TRUE ) {
 
@@ -1031,106 +1001,34 @@ function Create-LogonTimeline {
 
 function Create-Timeline {
 
-    if ( $LogFile -eq "" ) {
+    $filter = "@{ Path=""$LogFile""; ID=$EventIDsToAnalyze }"
+    $filter2 = "@{Path = ""$LogFile"" }"
+    Write-Host
+    Write-Host "Creating timeline for $LogFile"
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    Write-Host "File Size: $filesize"
 
-        If ( $StartTimeline -eq "" -and $EndTimeline -eq "" ) {
-            #No dates specified
-            $filter = "@{Logname=""Security"";ID=$EventIDsToAnalyze}"
-            #$filter = @{}
-            #$filter.Add("LogName", "Security")
-            #$filter.Add("ID", $EventIDsToAnalyze)
-        }
-    
-        ElseIf ( $StartTimeline -ne "" -and $EndTimeline -eq "" ) {
-            #Start date specified but no end date
-        
-            $StartingTime = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd', $null)
+    $filesizeMB = (Get-Item $LogFile).Length / 1MB
+    $filesizeMB = $filesizeMB * 0.1
+    $ApproxTimeInSeconds = $filesizeMB * 60
+    $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+    Write-Host "Please be patient. It should take approximately: " -NoNewline
+    Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
 
-            $filter = @{}
-            $filter.Add("StartTime", $StartingTime)
-            $filter.Add("LogName", "Security")
-            #$filter.Add("ID", "4624,4625,4672,4634,4647,4720,4732,1102,4648") #filtering on IDs does not work when specifying a start date..
-        
-            #$filter = "@{Logname=""Security"";StartDate=$StartingTime}"
-        }
+    Write-Host
 
+    try {
+        $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
 
-
-        <#
-    TODO: fix starttimeline and endtimeline
-    If ( $StartTimeline -eq "" -and $EndTimeline -ne "" ) {  #Start date specified but no end date
-        
-        $StartingTime = [DateTime]::ParseExact($StartTimeline, 'yyyy-MM-dd', $null)
-
-        $filter = @{}
-        $filter.Add("StartTime", $StartingTime)
-        $filter.Add("LogName", "Security")
-        #$filter.Add("ID", "4624, 4625, 4672, 4634, 4647, 4720, 4732, 1102, 4648") #filter not working when specifying a start date..
-        
-        #$filter = "@{ Logname=""Security""; ID=$EventIDsToAnalyze; StartTime=$yesterday; EndTime=(Get-Date) }"
     }
-    #>
-    
-
-        try {
-            if ( $LogFile -eq "" ) {
-                Write-Host
-                Write-Host "Running a live scan on the Security event log"
-                Write-Host
-
-                $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
-
-            }
- 
-            # Bug: starttime not working: can filter on IDs when 
-            #$filter = "@{ Logname=""Security""; ID=$EventIDsToAnalyze }"
-            #and $logs = iex "Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop"
-            #when is change to $logs Get-WinEvent -FilterHashTable $filter -Oldest -ErrorAction Stop   I get
-            #Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "@{ Logname="Security"; ID=4624, 4625, 4672, 4634, 4647, 4720, 4732, 1102, 4648 }" value of type "System.String" to type "System.Collections.Hashtable".
-            #filter.add method gives me Get-WinEvent error:  Cannot bind parameter 'FilterHashtable'. Cannot convert the "System.Collections.Hashtable" value of type "System.String" to type "System.Collections.Hashtable". error when
-            #$filter.Add("ID", $EventIDsToAnalyze) is specified.  
-            #Get-WinEvent error:  There is not an event log on the localhost computer that matches "System.Collections.Hashtable". when commented out
-
-
-        }
-        catch {
-            Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-            Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-            Write-Host "Exiting...`n"
-            exit
-        }       
-
-    } 
-    ElseIf ( $LogFile -ne "" ) {
-        $filter = "@{ Path=""$LogFile""; ID=$EventIDsToAnalyze }"
-        $filter2 = "@{Path = ""$LogFile"" }"
-        Write-Host
-        Write-Host "Creating timeline for $LogFile"
-        $filesize = Format-FileSize( (get-item $LogFile).length )
-        Write-Host "File Size: $filesize"
-
-        $filesizeMB = (Get-Item $LogFile).Length / 1MB
-        $filesizeMB = $filesizeMB * 0.1
-        $ApproxTimeInSeconds = $filesizeMB * 60
-        $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
-        $RuntimeHours = $TempTimeSpan.Hours.ToString()
-        $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-        $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-        Write-Host "Please be patient. It should take approximately: " -NoNewline
-        Write-Host "$RuntimeHours hours $RuntimeMinutes minutes $RuntimeSeconds seconds"
-
-        Write-Host
-
-        try {
-            $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
-
-        }
-        catch {
-            Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-            Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-            Write-Host "Exiting...`n"
-            exit
-        }
+    catch {
+        Write-Host "Get-WinEvent $filter -ErrorAction Stop"
+        Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
+        Write-Host "Exiting...`n"
+        exit
     }
 
 
@@ -1934,21 +1832,25 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 }
 
 #Create-Timeline
-<#
-if ( $LiveAnalysis -eq $true ) {
-    Perform-LiveAnalysisChecks
-}
-#>
 
 $evtxFiles = @($LogFile)
 
-if ( $LogDirectory -ne "" ) {
+if ( $LiveAnalysis -eq $true ) {
+
+    Perform-LiveAnalysisChecks
+    $evtxFiles = @(
+        "C:\Windows\System32\winevt\Logs\Security.evtx",
+        "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
+    )
+    
+} elseif ( $LogDirectory -ne "" ) {
 
     if ($LogFile -ne "") {
         Write-Host
         Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
         exit
     }
+    
     $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
 
 }
@@ -1967,7 +1869,4 @@ foreach ( $LogFile in $evtxFiles ) {
     
     }
 
-    if ( $LiveAnalysis -eq $true ) {
-        exit
-    }
 }
