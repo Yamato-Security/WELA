@@ -485,6 +485,15 @@ function Create-LogonTimeline {
     [System.Collections.ArrayList]$LogoffEventArray = @()
     $AdminLogonArray = @()
 
+    $Timezone = Get-TimeZone
+    $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
+    $StartParen = $TimezoneName.IndexOf('(') #get position of (
+    $EndParen = $TimezoneName.IndexOf(')') #position of )
+    $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
+    if ( $UTC -eq $true ) {
+        $UTCOffset = "UTC"
+    }
+
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
 
@@ -704,20 +713,9 @@ function Create-LogonTimeline {
             if ($msgIpAddress -ne "-" -and #IP Address is not blank
                 !($msgTargetUserName[-1] -eq "$" -and $msgIpAddress -eq "127.0.0.1" ) -or #Not a machine account local logon
                 ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) {
-                #To find system boot time システムの起動時間を調べるため
-                $Timezone = Get-TimeZone
-                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                $EndParen = $TimezoneName.IndexOf(')') #position of )
-                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                if ( $UTC -eq $true ) {
-                    $UTCOffset = "UTC"
-                }
 
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-
                 if ( $msgAuthPackageName -eq "NTLM" ) { $msgAuthPackageName = $msgLmPackageName } #NTLMの場合はv1かv2か知りたい。AuthPackageはNTLMしか書いていないので、LmPackageName (例：NTLMv1, NTLMv2）で上書きする。
-                
                 $outputThisEvent = $TRUE
             }
            
@@ -756,19 +754,8 @@ function Create-LogonTimeline {
             $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
 
             if ($msgTargetUserName[-1] -ne "$") {
-            
-                $Timezone = Get-TimeZone
-                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                $EndParen = $TimezoneName.IndexOf(')') #position of )
-                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                if ( $UTC -eq $true ) {
-                    $UTCOffset = "UTC"
-                }
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-                
                 $outputThisEvent = $TRUE
-
             }
 
         }
@@ -811,16 +798,7 @@ function Create-LogonTimeline {
                     else {
                         $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
                     }
-                    $Timezone = Get-TimeZone
-                    $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                    $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                    $EndParen = $TimezoneName.IndexOf(')') #position of )
-                    $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                    if ( $UTC -eq $true ) {
-                        $UTCOffset = "UTC"
-                    }
-                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-                    
+                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )                    
                     $outputThisEvent = $TRUE
                 }
             }
