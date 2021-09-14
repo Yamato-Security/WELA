@@ -422,7 +422,7 @@ function Get-KerberosStatusStr {
 }
 
 function Create-LogonTimeline {
-
+    param([string] $UTCOffset)
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
     #   The log service shutdown time is used for the shutdown time so might be wrong if the log service was turned off while the system was running. (anti-forensics, etc..)
@@ -484,15 +484,6 @@ function Create-LogonTimeline {
 
     [System.Collections.ArrayList]$LogoffEventArray = @()
     $AdminLogonArray = @()
-
-    $Timezone = Get-TimeZone
-    $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-    $StartParen = $TimezoneName.IndexOf('(') #get position of (
-    $EndParen = $TimezoneName.IndexOf(')') #position of )
-    $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-    if ( $UTC -eq $true ) {
-        $UTCOffset = "UTC"
-    }
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
@@ -1815,6 +1806,15 @@ elseif ( $LogDirectory -ne "" ) {
 
 }
 
+$Timezone = Get-TimeZone
+$TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
+$StartParen = $TimezoneName.IndexOf('(') #get position of (
+$EndParen = $TimezoneName.IndexOf(')') #position of )
+$UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
+if ( $UTC -eq $true ) {
+    $UTCOffset = "UTC"
+}
+
 foreach ( $LogFile in $evtxFiles ) {
 
     if ( $EventIDStatistics -eq $true ) {   
@@ -1825,7 +1825,7 @@ foreach ( $LogFile in $evtxFiles ) {
     
     if ( $LogonTimeline -eq $true ) {
     
-        Create-LogonTimeline
+        Create-LogonTimeline $UTCOffset
     
     }
 
