@@ -1742,7 +1742,7 @@ function Perform-LiveAnalysisChecks {
 
         if ( $isAdmin -eq $false ) {
             Write-Host
-            Write-Host $Error_NeedAdministratorPriv
+            Write-Host $Error_NeedAdministratorPriv -ForegroundColor White -BackgroundColor Red
             Write-Host
             Exit
         }
@@ -1751,7 +1751,7 @@ function Perform-LiveAnalysisChecks {
     else {
         #Trying to run live analysis on Mac or Linux
         Write-Host
-        Write-Host $Error_NotSupport_LiveAnalysys -ForegroundColor White -BackgroundColor
+        Write-Host $Error_NotSupport_LiveAnalysys -ForegroundColor White -BackgroundColor Red
         Write-Host
         Exit
     }
