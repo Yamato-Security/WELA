@@ -769,22 +769,24 @@ function Create-LogonTimeline {
 
                 $eventXML = [xml]$event.ToXml()
                 
-                $msgTargetUserName  = $eventXML.Event.UserData.EventXML.User
-                $msgTargetUserName  = $msgTargetUserName.Split("\")[-1]
-                $msgIpAddress       = $eventXML.Event.UserData.EventXML.Address
+                $msgTargetUserName = $eventXML.Event.UserData.EventXML.User
+                $msgTargetUserName = $msgTargetUserName.Split("\")[-1]
+                $msgIpAddress = $eventXML.Event.UserData.EventXML.Address
                 
                 $msgWorkstationName = "-"
                 $msgAuthPackageName = "-"
-                $msgIpPort          = "-"
-                $msgProcessName     = "-"
+                $msgIpPort = "-"
+                $msgProcessName = "-"
 
                 if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
                     switch ( $event.Id ) {
-                        "21" {              #RDP
+                        "21" {
+                            #RDP
                             $Type10Logons++
                             $msgLogonType = 10
                         } 
-                        "25" {              #RDP reconnect
+                        "25" {
+                            #RDP reconnect
                             $Type7Logons++
                             $msgLogonType = 7
                         } 
