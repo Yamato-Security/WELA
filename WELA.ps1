@@ -867,7 +867,7 @@ function Create-LogonTimeline {
         
         if ( $OutputCSV -eq $true ) { 
             
-            Write-Host 'Error: you need to specify -SaveOutput'
+            Write-Host $Error_NoSaveOutputWithCSV -ForegroundColor White -BackgroundColor Red
             Exit
 
         }
@@ -939,7 +939,7 @@ function Create-LogonTimeline {
 
         if ( $OutputGUI -eq $true ) { 
             
-            Write-Host 'Error: you cannot output to GUI with the -SaveOutput parameter'
+            Write-Host $Error_NoNeedSaveOutputWithGUI -ForegroundColor White -BackgroundColor Red
             Exit
 
         }
@@ -1737,35 +1737,19 @@ function Perform-LiveAnalysisChecks {
         $isAdmin = Check-Administrator
 
         if ( $isAdmin -eq $false ) {
-            if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-                Write-Host
-                Write-Host "エラー： Powershellを管理者として実行する必要があります。"
-                Write-Host
-                Exit
-            }
-            else {
-                Write-Host
-                Write-Host "Error: You need to be running Powershell as Administrator."
-                Write-Host
-                Exit
-            }
+            Write-Host
+            Write-Host $Error_NeedAdministratorPriv
+            Write-Host
+            Exit
         }
     
     }
     else {
         #Trying to run live analysis on Mac or Linux
-        if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-            Write-Host
-            Write-Host "エラー： ライブ調査はWindowsにしか対応していません。"
-            Write-Host
-            Exit
-        }
-        else {
-            Write-Host
-            Write-Host "Error: Live Analysis is only supported on Windows"
-            Write-Host
-            Exit
-        }
+        Write-Host
+        Write-Host $Error_NotSupport_LiveAnalysys -ForegroundColor White -BackgroundColor
+        Write-Host
+        Exit
     }
 }
 
@@ -1780,24 +1764,14 @@ if ( $ShowContributors -eq $true ) {
 
 
 if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "注意：ドメインコントローラーでライブ調査をしない方が良いです。ログをオフラインにコピーしてから解析して下さい。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
     Write-Host
-    Write-Host "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis." -ForegroundColor White -BackgroundColor Red
+    Write-Host $Warn_DC_LiveAnalysis -ForegroundColor White -BackgroundColor Red
     exit
 }
 
 if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "エラー：「-LiveAnalysis `$true」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
     Write-Host
-    Write-Host "Error: you cannot specify -LiveAnalysis `$true and -LogFile at the same time." -ForegroundColor White -BackgroundColor Red
+    Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
     exit
 }
 
@@ -1821,11 +1795,12 @@ if ( $LiveAnalysis -eq $true ) {
         "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
     )
     
-} elseif ( $LogDirectory -ne "" ) {
+}
+elseif ( $LogDirectory -ne "" ) {
 
     if ($LogFile -ne "") {
         Write-Host
-        Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
+        Write-Host $Error_InCompatible_LogDirAndFile -ForegroundColor White -BackgroundColor Red
         exit
     }
     
