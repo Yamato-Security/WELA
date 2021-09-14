@@ -868,8 +868,9 @@ function Create-LogonTimeline {
     if ( $SaveOutput -eq "" ) {   
         
         if ( $OutputCSV -eq $true ) { 
-            
+            Write-Host 
             Write-Host $Error_NoSaveOutputWithCSV -ForegroundColor White -BackgroundColor Red
+            Write-Host 
             Exit
 
         }
@@ -940,8 +941,9 @@ function Create-LogonTimeline {
     else {
 
         if ( $OutputGUI -eq $true ) { 
-            
+            Write-Host 
             Write-Host $Error_NoNeedSaveOutputWithGUI -ForegroundColor White -BackgroundColor Red
+            Write-Host 
             Exit
 
         }
@@ -1768,12 +1770,14 @@ if ( $ShowContributors -eq $true ) {
 if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
     Write-Host
     Write-Host $Warn_DC_LiveAnalysis -ForegroundColor White -BackgroundColor Red
+    Write-Host 
     exit
 }
 
 if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
     Write-Host
     Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
+    Write-Host 
     exit
 }
 
@@ -1803,6 +1807,7 @@ elseif ( $LogDirectory -ne "" ) {
     if ($LogFile -ne "") {
         Write-Host
         Write-Host $Error_InCompatible_LogDirAndFile -ForegroundColor White -BackgroundColor Red
+        Write-Host 
         exit
     }
     
