@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "Image.*.*\net.exe" -or $_.message -match "Image.*.*\net1.exe") -and $_.message -match "CommandLine.*.* use .*" -and $_.message -match "CommandLine.*.*\.*\.*$.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_net_use_admin_share";
     $detectedMessage = "Detects when an admin share is mounted using net.exe";
 

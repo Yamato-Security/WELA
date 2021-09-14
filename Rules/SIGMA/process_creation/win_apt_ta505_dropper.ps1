@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\mshta.exe" -and $_.message -match "ParentImage.*.*\wmiprvse.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_apt_ta505_dropper";
     $detectedMessage = "Detects mshta loaded by wmiprvse as parent as used by TA505 malicious documents";
 

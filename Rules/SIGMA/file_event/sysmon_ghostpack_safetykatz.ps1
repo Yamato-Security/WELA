@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\Temp\debug.bin") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_ghostpack_safetykatz";
     $detectedMessage = "Detects possible SafetyKatz Behaviour";
 

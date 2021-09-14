@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "TargetObject.*.*Software\Microsoft\Windows NT\CurrentVersion\Accessibility\ATs.*" -or $_.message -match "TargetObject.*.*Software\Microsoft\Windows NT\CurrentVersion\Accessibility\Configuration.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_susp_atbroker_change";
     $detectedMessage = "Detects creation/modification of Assisitive Technology applications and persistance with usage of ATs";
 

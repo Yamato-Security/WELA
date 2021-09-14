@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\svchost.exe" -and $_.message -match "Image.*.*\mshta.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_lethalhta";
     $detectedMessage = "Detects MSHTA.EXE spwaned by SVCHOST as seen in LethalHTA and described in report";
 

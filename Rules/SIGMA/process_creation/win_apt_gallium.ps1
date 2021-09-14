@@ -3,9 +3,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "e570585edc69f9074cb5e8a790708336bd45ca0f") -and  -not (($_.message -match "Image.*.*:\\Program Files(x86)\\.*" -or $_.message -match "Image.*.*:\\Program Files\\.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_apt_gallium";
     $detectedMessage = "Detects artefacts associated with activity group GALLIUM - Microsoft Threat Intelligence Center indicators released in December 2019.";
 

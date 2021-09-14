@@ -1,8 +1,6 @@
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "powershell_suspicious_download";
     $detectedMessage = "Detects suspicious PowerShell download command";
 

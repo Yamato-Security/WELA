@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {($_.message -match "AuditSourceName.*VSSAudit" -and ($_.ID -eq "4904" -or $_.ID -eq "4905")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_vssaudit_secevent_source_registration";
     $detectedMessage = "Detects the registration of the security event source VSSAudit. It would usually trigger when volume shadow copy operations happen.";
 

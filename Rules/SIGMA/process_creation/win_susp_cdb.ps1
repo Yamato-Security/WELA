@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\cdb.exe" -and $_.message -match "CommandLine.*.*-cf.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_cdb";
     $detectedMessage = "Launch 64-bit shellcode from a debugger script file using cdb.exe.";
 

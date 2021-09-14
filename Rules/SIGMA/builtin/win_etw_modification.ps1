@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {($_.ID -eq "4657" -and $_.message -match "ObjectName.*.*\SOFTWARE\Microsoft\.NETFramework" -and $_.message -match "ObjectValueName.*ETWEnabled" -and $_.message -match "NewValue.*0") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_etw_modification";
     $detectedMessage = "Potential adversaries stopping ETW providers recording loaded .NET assemblies.";
 

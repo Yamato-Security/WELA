@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\AppCompatFlags\Compatibility Assistant\Store\.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_new_application_appcompat";
     $detectedMessage = "A General detection for a new application in AppCompat. This indicates an application executing for the first time on an endpoint.";
 

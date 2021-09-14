@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\ping.exe" -and $_.message -match "CommandLine.*.*0x.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_ping_hex_ip";
     $detectedMessage = "Detects a ping command that uses a hex encoded IP address";
 

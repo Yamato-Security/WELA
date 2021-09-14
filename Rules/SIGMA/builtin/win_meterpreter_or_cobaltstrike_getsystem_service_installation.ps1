@@ -4,9 +4,7 @@
 
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_meterpreter_or_cobaltstrike_getsystem_service_installation";
     $detectedMessage = "Detects the use of getsystem Meterpreter/Cobalt Strike command by detecting a specific service installation";
 

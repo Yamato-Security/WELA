@@ -3,9 +3,7 @@
 
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_apt_pandemic";
     $detectedMessage = "Detects Pandemic Windows Implant";
 

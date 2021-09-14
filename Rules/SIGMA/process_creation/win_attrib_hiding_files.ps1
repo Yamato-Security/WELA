@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "Image.*.*\attrib.exe" -and $_.message -match "CommandLine.*.* +h .*") -and  -not ((($_.ID -eq "1") -and ($_.message -match "CommandLine.*.*\desktop.ini .*" -or ($_.message -match "ParentImage.*.*\cmd.exe" -and $_.message -match "CommandLine.*+R +H +S +A \.*.cui" -and $_.message -match "ParentCommandLine.*C:\WINDOWS\system32\.*.bat"))))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_attrib_hiding_files";
     $detectedMessage = "Detects usage of attrib.exe to hide files from users.";
 

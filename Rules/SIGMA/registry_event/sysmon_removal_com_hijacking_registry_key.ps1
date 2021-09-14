@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "EventType.*DeleteKey" -and $_.message -match "TargetObject.*.*\shell\open\command") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_removal_com_hijacking_registry_key";
     $detectedMessage = "A General detection to trigger for processes removing .*shellopenmmand registry keys. Registry keys that might have been used for COM hijacking activities.";
 

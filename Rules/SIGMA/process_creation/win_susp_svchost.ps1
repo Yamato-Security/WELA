@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "Image.*.*\svchost.exe" -and  -not (($_.message -match "ParentImage.*.*\services.exe" -or $_.message -match "ParentImage.*.*\MsMpEng.exe" -or $_.message -match "ParentImage.*.*\Mrt.exe" -or $_.message -match "ParentImage.*.*\rpcnet.exe" -or $_.message -match "ParentImage.*.*\svchost.exe"))) -and  -not (-not ParentImage="*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_svchost";
     $detectedMessage = "Detects a suspicious svchost process start";
 

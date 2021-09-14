@@ -3,9 +3,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run.*" -and $_.message -match "Details.*%AppData%\\Roaming\\Oracle\\bin\\.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_mal_adwind";
     $detectedMessage = "Detects javaw.exe in AppData folder as used by Adwind / JRAT";
 

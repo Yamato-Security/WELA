@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Function Get-ADRExcelComOb.*" -or $_.message -match "ScriptBlockText.*.*ADRecon-Report.xlsx.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "powershell_adrecon_execution";
     $detectedMessage = " Detects execution of ADRecon.ps1 for AD reconnaissance which has been reported to be actively used by FIN7 ";
 

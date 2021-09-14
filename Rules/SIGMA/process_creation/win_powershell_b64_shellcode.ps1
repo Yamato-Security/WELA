@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*AAAAYInlM.*" -and ($_.message -match "CommandLine.*.*OiCAAAAYInlM.*" -or $_.message -match "CommandLine.*.*OiJAAAAYInlM.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_powershell_b64_shellcode";
     $detectedMessage = "Detects Base64 encoded Shellcode";
 

@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "Image.*.*\msdtc.exe" -or $_.message -match "Image.*.*\gpvc.exe") -and  -not (($_.message -match "Image.*C:\Windows\System32\.*" -or $_.message -match "Image.*C:\Windows\SysWOW64\.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_apt_lazarus_session_highjack";
     $detectedMessage = "Detects executables launched outside their default directories as used by Lazarus Group (Bluenoroff)";
 

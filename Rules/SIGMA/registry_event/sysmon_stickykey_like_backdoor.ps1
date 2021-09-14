@@ -2,9 +2,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\\winlogon.exe" -and $_.message -match "Image.*.*\\cmd.exe" -and ($_.message -match "CommandLine.*.*sethc.exe.*" -or $_.message -match "CommandLine.*.*utilman.exe.*" -or $_.message -match "CommandLine.*.*osk.exe.*" -or $_.message -match "CommandLine.*.*Magnify.exe.*" -or $_.message -match "CommandLine.*.*Narrator.exe.*" -or $_.message -match "CommandLine.*.*DisplaySwitch.exe.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_stickykey_like_backdoor";
     $detectedMessage = "Detects the usage and installation of a backdoor that uses an option to register a malicious debugger for built-in tools that are accessible in the login";
 

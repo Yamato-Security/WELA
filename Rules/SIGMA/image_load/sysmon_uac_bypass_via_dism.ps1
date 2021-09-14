@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "7" -and ($_.message -match "Image.*.*\dism.exe") -and ($_.message -match "ImageLoaded.*.*\dismcore.dll")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_uac_bypass_via_dism";
     $detectedMessage = "Attempts to load dismcore.dll after dropping it";
 

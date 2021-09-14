@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "Image.*.*\powershell.exe") -and ($_.message -match "ParentImage.*.*\excel.exe") -and ($_.message -match "CommandLine.*.*DataExchange.dll.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_apt_muddywater_dnstunnel";
     $detectedMessage = "Detecting DNS tunnel activity for Muddywater actor";
 

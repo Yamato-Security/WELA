@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "CommandLine.*.*\rundll32.exe" -and  -not ($_.message -match "ParentImage.*.*\svchost.exe")) -and  -not (($_.message -match "ParentImage.*.*\AppData\Local\.*" -or $_.message -match "ParentImage.*.*\Microsoft\Edge\.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_rundll32_no_params";
     $detectedMessage = "Detects suspicious start of rundll32.exe without any parameters as found in CobaltStrike beacon activity";
 

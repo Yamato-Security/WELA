@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\powershell.exe" -and $_.message -match "Image.*.*\powershell.exe" -and $_.message -match "CommandLine.*.*Get-Content.*" -and $_.message -match "CommandLine.*.*-Stream.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_run_powershell_script_from_ads";
     $detectedMessage = "Detects PowerShell script execution from Alternate Data Stream (ADS)";
 

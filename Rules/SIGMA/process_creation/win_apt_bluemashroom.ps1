@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\AppData\Local\.*" -and ($_.message -match "CommandLine.*.*\regsvr32.*" -or $_.message -match "CommandLine.*.*,DllEntry.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_apt_bluemashroom";
     $detectedMessage = "Detects a suspicious DLL loading from AppData Local path as described in BlueMashroom report";
 

@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*localgroup.*" -and $_.message -match "CommandLine.*.*admin.*" -and $_.message -match "CommandLine.*.*/add.*") -or ($_.message -match "CommandLine.*.*\Win64.exe.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_apt_hurricane_panda";
     $detectedMessage = "Detects Hurricane Panda Activity";
 

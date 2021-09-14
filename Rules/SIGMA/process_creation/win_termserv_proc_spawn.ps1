@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "ParentCommandLine.*.*\svchost.exe.*" -and $_.message -match "ParentCommandLine.*.*termsvcs.*") -and  -not ($_.message -match "Image.*.*\rdpclip.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_termserv_proc_spawn";
     $detectedMessage = "Detects a process spawned by the terminal service server process (this could be an indicator for an exploitation of CVE-2019-0708)";
 

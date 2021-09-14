@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName System | where {(($_.ID -eq "5829")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_vul_cve_2020_1472";
     $detectedMessage = "Detects that a vulnerable Netlogon secure channel connection was allowed, which could be an indicator of CVE-2020-1472.";
 

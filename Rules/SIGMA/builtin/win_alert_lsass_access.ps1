@@ -1,9 +1,7 @@
 # Get-WinEvent | where {($_.ID -eq "1121" -and $_.message -match "Path.*.*\lsass.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_alert_lsass_access";
     $detectedMessage = "Detects Access to LSASS Process";
 

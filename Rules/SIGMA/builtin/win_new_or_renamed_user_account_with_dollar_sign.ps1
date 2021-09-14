@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {(($_.ID -eq "4720" -or $_.ID -eq "4781") -and $_.message -match "SamAccountName.*.*$.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_new_or_renamed_user_account_with_dollar_sign";
     $detectedMessage = "Detects possible bypass EDR and SIEM via abnormal user account name.";
 

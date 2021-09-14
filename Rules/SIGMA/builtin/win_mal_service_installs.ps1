@@ -2,9 +2,7 @@
 # Get-WinEvent -LogName Security | where {($_.ID -eq "4697" -and $_.message -match "ServiceName.*javamtsup") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_mal_service_installs";
     $detectedMessage = "Detects known malicious service installs that only appear in cases of lateral movement, credential dumping, and other suspicious activities.";
 

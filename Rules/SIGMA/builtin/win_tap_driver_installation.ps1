@@ -3,9 +3,7 @@
 # Get-WinEvent -LogName Security | where { ($_.ID -eq "4697" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_tap_driver_installation";
     $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques";
 

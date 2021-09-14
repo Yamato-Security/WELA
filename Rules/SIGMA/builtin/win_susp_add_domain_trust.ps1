@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {($_.ID -eq "4706") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_add_domain_trust";
     $detectedMessage = "Addition of domains is seldom and should be verified for legitimacy.";
 

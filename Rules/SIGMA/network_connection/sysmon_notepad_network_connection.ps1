@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "3") -and $_.message -match "Image.*.*\notepad.exe" -and  -not ($_.message -match "DestinationPort.*9100")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_notepad_network_connection";
     $detectedMessage = "Detects suspicious network connection by Notepad";
 

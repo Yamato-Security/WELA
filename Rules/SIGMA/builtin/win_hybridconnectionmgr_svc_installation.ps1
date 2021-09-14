@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {(($_.ID -eq "4697") -and $_.message -match "ServiceName.*HybridConnectionManager" -and $_.Service File Name -eq "*HybridConnectionManager*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_hybridconnectionmgr_svc_installation";
     $detectedMessage = "Rule to detect the Hybrid Connection Manager service installation.";
 

@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {(($_.message -match "LogonType.*3" -and $_.message -match "LogonProcessName.*NtLmSsp" -and $_.message -match "WorkstationName.*%Workstations%" -and $_.message -match "ComputerName.*%Workstations%" -and ($_.ID -eq "4624" -or $_.ID -eq "4625")) -and  -not ($_.message -match "AccountName.*ANONYMOUS LOGON")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_pass_the_hash";
     $detectedMessage = "Detects the attack technique pass the hash which is used to move laterally inside the network";
 

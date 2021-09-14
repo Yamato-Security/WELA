@@ -1,8 +1,6 @@
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "powershell_remote_powershell_session";
     $detectedMessage = "Detects remote PowerShell sessions";
 

@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "10" -and $_.message -match "CallTrace.*.*editionupgrademanagerobj.dll.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_load_undocumented_autoelevated_com_interface";
     $detectedMessage = "COM interface (EditionUpgradeManager) that is not used by standard executables.";
 

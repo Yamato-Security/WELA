@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {($_.ID -eq "4624" -and $_.message -match "ProcessName.*.*\WmiPrvSE.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_wmi_login";
     $detectedMessage = "Detection of logins performed with WMI";
 

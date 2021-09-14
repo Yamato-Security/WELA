@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*.dll" -or $_.message -match "CommandLine.*.*.csproj") -and ($_.message -match "Image.*.*\dotnet.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "process_creation_dotnet";
     $detectedMessage = "dotnet.exe will execute any DLL and execute unsigned code";
 

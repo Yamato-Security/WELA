@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "TargetObject.*.*\Services\HybridConnectionManager.*" -or $_.message -match "Details.*.*Microsoft.HybridConnectionManager.Listener.exe.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_hybridconnectionmgr_svc_installation";
     $detectedMessage = "Detects the installation of the Azure Hybrid Connection Manager service to allow remote code execution from Azure function.";
 

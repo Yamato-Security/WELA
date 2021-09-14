@@ -2,9 +2,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and $_.message -match "ParentImage.*.*\\eventvwr.exe" -and  -not ($_.message -match "Image.*.*\\mmc.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_uac_bypass_eventvwr";
     $detectedMessage = "Detects UAC bypass method using Windows event viewer";
 

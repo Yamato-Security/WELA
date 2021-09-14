@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_startup_folder_file_write";
     $detectedMessage = "A General detection for files being created in the Windows startup directory. This could be an indicator of persistence.";
 

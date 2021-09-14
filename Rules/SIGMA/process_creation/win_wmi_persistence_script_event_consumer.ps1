@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*C:\WINDOWS\system32\wbem\scrcons.exe" -and $_.message -match "ParentImage.*C:\Windows\System32\svchost.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_wmi_persistence_script_event_consumer";
     $detectedMessage = "Detects WMI script event consumers";
 

@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\WindowsSensor.exe.*" -and $_.message -match "CommandLine.*.* /uninstall.*" -and $_.message -match "CommandLine.*.* /quiet.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_uninstall_crowdstrike_falcon";
     $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by uninstalling Crowdstrike Falcon";
 

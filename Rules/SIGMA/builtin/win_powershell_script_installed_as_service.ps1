@@ -4,9 +4,7 @@
 
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_powershell_script_installed_as_service";
     $detectedMessage = "Detects powershell script installed as a Service";
 

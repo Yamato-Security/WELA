@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "OriginalFileName.*MpCmdRun.exe" -and $_.message -match "CommandLine.*.* -RemoveDefinitions.*" -and $_.message -match "CommandLine.*.* -All.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_remove_windows_defender_definition_files";
     $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by removing Windows Defender Definition Files";
 

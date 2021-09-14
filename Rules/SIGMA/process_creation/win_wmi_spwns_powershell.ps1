@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ((($_.message -match "ParentImage.*.*\wmiprvse.exe") -and ($_.message -match "Image.*.*\powershell.exe")) -and  -not ($_.message -match "CommandLine.*null")) -and  -not (-not CommandLine="*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_wmi_spwns_powershell";
     $detectedMessage = "Detects WMI spawning PowerShell";
 

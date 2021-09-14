@@ -2,9 +2,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\\AppData\\Local\\Temp\\Advanced IP Scanner 2.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_advanced_ip_scanner";
     $detectedMessage = "Detects the use of Advanced IP Scanner. Seems to be a popular tool for ransomware groups.";
 

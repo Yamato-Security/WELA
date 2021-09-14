@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "Image.*.*\whoami.exe" -or $_.message -match "OriginalFileName.*whoami.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_whoami";
     $detectedMessage = "Detects the execution of whoami, which is often used by attackers after exloitation / privilege escalation but rarely used by administrators";
 

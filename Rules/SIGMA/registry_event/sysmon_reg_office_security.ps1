@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\Security\Trusted Documents\TrustRecords" -or $_.message -match "TargetObject.*.*\Security\AccessVBOM" -or $_.message -match "TargetObject.*.*\Security\VBAWarnings")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_reg_office_security";
     $detectedMessage = "Detects registry changes to Office macro settings";
 

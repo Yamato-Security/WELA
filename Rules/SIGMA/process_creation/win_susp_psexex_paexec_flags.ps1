@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and (($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*\127.0.0.1.*" -and $_.message -match "CommandLine.*.* -s .*" -and $_.message -match "CommandLine.*.*cmd.exe.*") -or ($_.message -match "CommandLine.*.* /accepteula .*" -and $_.message -match "CommandLine.*.*cmd /c .*" -and $_.message -match "CommandLine.*.* -u .*" -and $_.message -match "CommandLine.*.* -p .*"))) -and  -not (($_.message -match "CommandLine.*.*paexec.*" -or $_.message -match "CommandLine.*.*PsExec.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_psexex_paexec_flags";
     $detectedMessage = "Detects suspicious flags used by PsExec and PAExec but no usual program name in command line";
 

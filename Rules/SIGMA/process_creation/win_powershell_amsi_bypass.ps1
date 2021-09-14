@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*System.Management.Automation.AmsiUtils.*") -and ($_.message -match "CommandLine.*.*amsiInitFailed.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_powershell_amsi_bypass";
     $detectedMessage = "Detects Request to amsiInitFailed that can be used to disable AMSI Scanning";
 

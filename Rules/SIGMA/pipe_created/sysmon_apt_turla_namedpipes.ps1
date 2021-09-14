@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "17" -or $_.ID -eq "18") -and ($_.message -match "\atctl" -or $_.message -match "\userpipe" -or $_.message -match "\iehelper" -or $_.message -match "\sdlrpc" -or $_.message -match "\comnap")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_apt_turla_namedpipes";
     $detectedMessage = "Detects a named pipe used by Turla group samples";
 

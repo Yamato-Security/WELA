@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\CurrentControlSet\Services\NTDS\DirectoryServiceExtPt.*" -or $_.message -match "TargetObject.*.*\CurrentControlSet\Services\NTDS\LsaDbExtPt.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_susp_lsass_dll_load";
     $detectedMessage = "Detects a method to load DLL via LSASS process using an undocumented Registry key";
 

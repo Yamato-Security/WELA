@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {(($_.ID -eq "5038" -or $_.ID -eq "6281")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_codeintegrity_check_failure";
     $detectedMessage = "Code integrity failures may indicate tampered executables.";
 

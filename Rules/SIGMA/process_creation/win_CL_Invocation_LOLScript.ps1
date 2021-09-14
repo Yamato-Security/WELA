@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*CL_Invocation.ps1.*" -and $_.message -match "CommandLine.*.*SyncInvoke.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_CL_Invocation_LOLScript";
     $detectedMessage = "Detects Execution via SyncInvoke in CL_Invocation.ps1 module";
 

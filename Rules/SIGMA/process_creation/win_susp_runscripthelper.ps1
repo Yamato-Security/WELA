@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\Runscripthelper.exe" -and $_.message -match "CommandLine.*.*surfacecheck.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_runscripthelper";
     $detectedMessage = "Detects execution of powershell scripts via Runscripthelper.exe";
 

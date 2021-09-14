@@ -2,9 +2,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where { ($_.message -match ".*SyncAppvPublishingServer.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_syncappvpublishingserver_exe";
     $detectedMessage = "Detects SyncAppvPublishingServer process execution which usually utilized by adversaries to bypass PowerShell execution restrictions.";
 

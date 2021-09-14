@@ -3,9 +3,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "ParentImage.*.*updata.exe" -and $_.message -match "CommandLine.*.*config.*" -and $_.message -match "CommandLine.*.*msdtc.*" -and $_.message -match "CommandLine.*.*start.*" -and $_.message -match "CommandLine.*.*auto.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_pingback_backdoor";
     $detectedMessage = "Detects the use of Pingback backdoor that creates ICMP tunnel for C2 as described in the trustwave report";
 

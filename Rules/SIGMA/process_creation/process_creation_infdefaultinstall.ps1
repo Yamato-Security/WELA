@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*InfDefaultInstall.exe .*" -and $_.message -match "CommandLine.*.*.inf.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "process_creation_infdefaultinstall";
     $detectedMessage = "Executes SCT script using scrobj.dll from a command in entered into a specially prepared INF file.";
 

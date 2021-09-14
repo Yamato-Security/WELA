@@ -2,9 +2,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "7" -and $_.message -match "Description.*.*st2stager.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_silenttrinity_stage_use";
     $detectedMessage = "Detects SILENTTRINITY stager use";
 

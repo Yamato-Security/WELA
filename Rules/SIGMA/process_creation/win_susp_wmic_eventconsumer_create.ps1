@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*ActiveScriptEventConsumer.*" -and $_.message -match "CommandLine.*.* CREATE .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_wmic_eventconsumer_create";
     $detectedMessage = "Detects WMIC executions in which a event consumer gets created in order to establish persistence";
 

@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Get-Service .*" -or $_.message -match "ScriptBlockText.*.*Get-ChildItem .*" -or $_.message -match "ScriptBlockText.*.*Get-Process .*") -and $_.message -match "ScriptBlockText.*.*> $env:TEMP\.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "powershell_suspicious_recon";
     $detectedMessage = "Once established within a system or network, an adversary may use automated techniques for collecting internal data";
 

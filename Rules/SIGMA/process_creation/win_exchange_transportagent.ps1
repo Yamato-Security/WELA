@@ -2,9 +2,7 @@ Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq 
 Get-WinEvent -LogName MSExchange Management | where { ($_.message -match ".*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_exchange_transportagent";
     $detectedMessage = "Detects the Installation of a Exchange Transport Agent";
 

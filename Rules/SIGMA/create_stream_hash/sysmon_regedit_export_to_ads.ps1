@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "15" -and $_.message -match "Image.*.*\regedit.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_regedit_export_to_ads";
     $detectedMessage = "Exports the target Registry key and hides it in the specified alternate data stream.";
 

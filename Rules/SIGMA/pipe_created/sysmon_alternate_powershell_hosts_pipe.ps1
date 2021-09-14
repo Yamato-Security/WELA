@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {((($_.ID -eq "17" -or $_.ID -eq "18")) -and $_.message -match "PipeName.*\PSHost.*" -and  -not (($_.message -match "Image.*.*\powershell.exe" -or $_.message -match "Image.*.*\powershell_ise.exe"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_alternate_powershell_hosts_pipe";
     $detectedMessage = "Detects alternate PowerShell hosts potentially bypassing detections looking for powershell.exe";
 

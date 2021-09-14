@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and ($_.message -match "Image.*.*\bcdedit.exe" -and $_.message -match "CommandLine.*.*set.*") -and (($_.message -match "CommandLine.*.*bootstatuspolicy.*" -and $_.message -match "CommandLine.*.*ignoreallfailures.*") -or ($_.message -match "CommandLine.*.*recoveryenabled.*" -and $_.message -match "CommandLine.*.*no.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_bootconf_mod";
     $detectedMessage = "Identifies use of the bcdedit command to delete boot configuration data. This tactic is sometimes used as by malware or an attacker as a destructive";
 

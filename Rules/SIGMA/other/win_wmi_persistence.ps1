@@ -2,9 +2,7 @@
 # Get-WinEvent -LogName Security | where { ($_.ID -eq "4662" -and $_.message -match "ObjectType.*WMI Namespace" -and $_.message -match "ObjectName.*.*subscription.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_wmi_persistence";
     $detectedMessage = "Detects suspicious WMI event filter and command line event consumer based on WMI and Security Logs.";
 

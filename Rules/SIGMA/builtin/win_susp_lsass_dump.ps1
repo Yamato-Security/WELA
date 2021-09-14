@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Security | where {($_.ID -eq "4656" -and $_.message -match "ProcessName.*.*\lsass.exe" -and $_.message -match "AccessMask.*0x705" -and $_.message -match "ObjectType.*SAM_DOMAIN") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_susp_lsass_dump";
     $detectedMessage = "Detects process handle on LSASS process with certain access mask and object type SAM_DOMAIN";
 

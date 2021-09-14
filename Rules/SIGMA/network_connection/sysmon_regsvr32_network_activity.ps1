@@ -3,9 +3,7 @@
 
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_regsvr32_network_activity";
     $detectedMessage = "Detects network connections and DNS queries initiated by Regsvr32.exe";
 

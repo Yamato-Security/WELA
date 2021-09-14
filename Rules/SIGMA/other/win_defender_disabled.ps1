@@ -3,9 +3,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "7036" -and $_.message -match "Message.*The Windows Defender Antivirus Service service entered the stopped state") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_defender_disabled";
     $detectedMessage = "Detects disabling Windows Defender threat protection";
 

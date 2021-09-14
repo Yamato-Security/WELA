@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Description.*Command-line SSH, Telnet, and Rlogin client" -and $_.message -match "CommandLine.*.* -R .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_susp_plink_remote_forward";
     $detectedMessage = "Detects suspicious Plink tunnel remote forarding to a local port";
 

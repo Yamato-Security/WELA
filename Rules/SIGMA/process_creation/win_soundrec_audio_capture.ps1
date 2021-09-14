@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\SoundRecorder.exe" -and $_.message -match "CommandLine.*.*/FILE.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_soundrec_audio_capture";
     $detectedMessage = "Detect attacker collecting audio via SoundRecorder application.";
 

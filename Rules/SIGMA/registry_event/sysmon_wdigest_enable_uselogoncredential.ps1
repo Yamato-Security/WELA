@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*WDigest\UseLogonCredential") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_wdigest_enable_uselogoncredential";
     $detectedMessage = "Detects potential malicious modification of the property value of UseLogonCredential from HKLM:SYSTEMCurrentControlSetControlSecurityProvidersWDigest to enable clear-text credentials";
 

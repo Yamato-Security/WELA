@@ -5,9 +5,7 @@
 
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_apt_chafer_mar18";
     $detectedMessage = "Detects Chafer activity attributed to OilRig as reported in Nyotron report in March 2018";
 

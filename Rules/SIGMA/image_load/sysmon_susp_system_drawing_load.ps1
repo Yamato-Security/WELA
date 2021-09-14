@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "7") -and $_.message -match "ImageLoaded.*.*\System.Drawing.ni.dll" -and  -not ($_.message -match "Image.*.*\WmiPrvSE.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "sysmon_susp_system_drawing_load";
     $detectedMessage = "A General detection for processes loading System.Drawing.ni.dll. This could be an indicator of potential Screen Capture.";
 

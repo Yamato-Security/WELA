@@ -1,9 +1,7 @@
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\SyncAppvPublishingServer.exe" -and $_.message -match "CommandLine.*.*"n; .*" -and $_.message -match "CommandLine.*.* Start-Process .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "process_creation_syncappvpublishingserver_execute_arbitrary_powershell";
     $detectedMessage = "Executes arbitrary PowerShell code using SyncAppvPublishingServer.exe.";
 

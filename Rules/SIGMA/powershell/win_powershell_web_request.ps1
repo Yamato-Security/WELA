@@ -2,9 +2,7 @@ Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq 
 Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where { ($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Invoke-WebRequest.*" -or $_.message -match "ScriptBlockText.*.*iwr .*" -or $_.message -match "ScriptBlockText.*.*wget .*" -or $_.message -match "ScriptBlockText.*.*curl .*" -or $_.message -match "ScriptBlockText.*.*Net.WebClient.*" -or $_.message -match "ScriptBlockText.*.*Start-BitsTransfer.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
+
     $ruleName = "win_powershell_web_request";
     $detectedMessage = "Detects the use of various web request methods (including aliases) via Windows PowerShell";
 
