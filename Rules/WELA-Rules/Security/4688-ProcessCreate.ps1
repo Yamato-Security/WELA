@@ -12,10 +12,10 @@ function Add-Rule {
             if ($event.ProviderName -eq "Security" -and $event.id -eq 4668) {
                 $eventXML = [xml]$event.ToXml();
                 $commandline = $eventXML.EventData.Data[8]."#text"
-                $creator = $eventXML.EventData.Data[8]."#text"
+                $creator = $eventXML.EventData.Data[13]."#text"
 
                 if ($commandline) {
-                    $result = Check-Command -EventID 4688
+                    $result = Check-Command -EventID 4688 $commandline $creator
                     if (!$result) {
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";

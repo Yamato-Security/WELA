@@ -44,7 +44,11 @@ function Check-Administrator {
 
 function Check-Command() {
 
-    Param($EventID)
+    Param(
+        $EventID,
+        $commandline,
+        $creator
+    )
 
     $text = ""
     $base64 = ""
