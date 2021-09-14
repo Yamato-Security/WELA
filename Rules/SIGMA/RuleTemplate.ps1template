@@ -1,9 +1,6 @@
 
 
 function Add-Rule {
-    param (
-        [bool] $isLiveAnalysis
-    )
     $ruleName = "!filename!";
     $detectedMessage = "!detection!"
 
