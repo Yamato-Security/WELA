@@ -115,21 +115,20 @@ $ProgramStartTime = Get-Date
 
 Import-Module './Config/util.ps1' -Force ;
 
-$flagLiveAnalysis = ($LogFile -eq "");
 
 # Read Rules
 switch ($UseDetectRules) {
     "0" { break; }
     "1" { 
-        Get-ChildItem -Path './Rules/DeepBlueCLI' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+        Get-ChildItem -Path './Rules/WELA-Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
         break;
     }
     "2" {
-        Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+        Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
         break;
     }
     "all" {
-        Get-ChildItem -Path './Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
+        Get-ChildItem -Path './Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
         break;
     }
     Default {
