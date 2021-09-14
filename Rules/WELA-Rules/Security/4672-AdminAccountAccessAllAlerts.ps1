@@ -8,23 +8,24 @@ function Add-Rule {
             param (
                 $event
             )
-            $eventXML = [xml]$event.ToXml();
-            $username = $eventXML.Event.EventData.Data[1]."#text"
-            $domain = $eventXML.Event.EventData.Data[2]."#text"
-            $securityid = $eventXML.Event.EventData.Data[3]."#text"
-            $privileges = $eventXML.Event.EventData.Data[4]."#text"
-            if ($privileges -Match "SeDebugPrivilege") {
-                $result = "Username: $username`n"
-                $result += "Domain: $domain`n"
-                $result += "User SID: $securityid`n"
-                $result += "Privileges: $privileges"
-                if ($result.Count -ne 0) {
+            if ($event.ProviderName -eq "Security" -and $event.id -eq 4672) {
+                $eventXML = [xml]$event.ToXml();
+                $username = $eventXML.Event.EventData.Data[1]."#text"
+                $domain = $eventXML.Event.EventData.Data[2]."#text"
+                $securityid = $eventXML.Event.EventData.Data[3]."#text"
+                $privileges = $eventXML.Event.EventData.Data[4]."#text"
+                if ($privileges -Match "SeDebugPrivilege") {
+                    $result = "Username: $username`n"
+                    $result += "Domain: $domain`n"
+                    $result += "User SID: $securityid`n"
+                    $result += "Privileges: $privileges"
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
                     Write-Host $result
                 }
             }
+            
             
         };
         Search-DetectableEvents $args[0];

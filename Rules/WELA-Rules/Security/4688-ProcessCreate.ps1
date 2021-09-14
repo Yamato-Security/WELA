@@ -9,19 +9,22 @@ function Add-Rule {
             param (
                 $event
             )
-            $eventXML = [xml]$event.ToXml();
-            $commandline = $eventXML.EventData.Data[8]."#text"
-            $creator = $eventXML.EventData.Data[8]."#text"
+            if ($event.ProviderName -eq "Security" -and $event.id -eq 4668) {
+                $eventXML = [xml]$event.ToXml();
+                $commandline = $eventXML.EventData.Data[8]."#text"
+                $creator = $eventXML.EventData.Data[8]."#text"
 
-            if ($commandline) {
-                $result = Check-Command -EventID 4688
-                if ($result.Count -ne 0) {
-                    Write-Host
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
-                    Write-Host $result
+                if ($commandline) {
+                    $result = Check-Command -EventID 4688
+                    if (!$result) {
+                        Write-Host
+                        Write-Host "Detected! RuleName:$ruleName";
+                        Write-Host $detectedMessage;
+                        Write-Host $result
+                    }
                 }
             }
+            
             
         };
         Search-DetectableEvents $args[0];
