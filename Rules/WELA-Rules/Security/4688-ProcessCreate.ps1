@@ -1,7 +1,7 @@
 # Get-WinEvent -LogName Security  where {($_.ID -eq "4688" | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
-    $ruleName = "4688-ProcessCreat";
+    $ruleName = "4688-ProcessCreate";
     $detectedMessage = "detected ProcessCreate on DeepBlueCLI Rule";
 
     $detectRule = {
