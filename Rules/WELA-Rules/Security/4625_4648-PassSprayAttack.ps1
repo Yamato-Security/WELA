@@ -27,8 +27,8 @@ function Add-Rule {
                 else {
                     $sourceip = $eventXML.Event.EventData.Data[19]."#text"
                 }
-                $EventTimestampString = $event.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss.ff')
-                $EventTimestampDateTime = [datetime]::ParseExact($EventTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+                $EventTimestampString = $record.TimeCreated.ToString($DateFormat)
+                $EventTimestampDateTime = [datetime]::ParseExact($EventTimestampString, $DateFormat, $null)
                 if (!$PasswordGuessDetection.FirstDetect) {
                     $PasswordGuessDetection.FirstDetect = $EventTimestampString
                     $PasswordGuessDetection.Count++;
@@ -47,7 +47,7 @@ function Add-Rule {
                 }
             }
         };
-        Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $args[0];
     };
     $Global:ruleStack.Add($ruleName, $detectRule);
 }
