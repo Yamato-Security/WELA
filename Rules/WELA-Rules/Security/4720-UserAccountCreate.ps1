@@ -11,16 +11,18 @@ function Add-Rule {
             $target = $event | where { $_.ID -eq 4720 -and $event.ProviderName -eq "Security" }
 
             if ($target) {
-                $eventXML = [xml]$event.ToXml();
-                $username = $eventXML.Event.EventData.Data[0]."#text"
-                $securityid = $eventXML.Event.EventData.Data[2]."#text"
-                $result = "New User Created"
-                $result = "Username: $username`n"
-                $result += "User SID: $securityid`n"
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result
+                foreach ($record in $target) {
+                    $eventXML = [xml]$event.ToXml();
+                    $username = $eventXML.Event.EventData.Data[0]."#text"
+                    $securityid = $eventXML.Event.EventData.Data[2]."#text"
+                    $result = "New User Created"
+                    $result += "Username: $username`n"
+                    $result += "User SID: $securityid`n"
+                    Write-Host
+                    Write-Host "Detected! RuleName:$ruleName";
+                    Write-Host $detectedMessage;
+                    Write-Host $result
+                }
             }
         };
         Search-DetectableEvents $args[0];
