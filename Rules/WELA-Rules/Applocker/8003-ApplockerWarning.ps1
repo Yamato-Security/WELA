@@ -1,7 +1,7 @@
 ﻿
 function Add-Rule {
     $ruleName = "8003-ApplockerWarning";
-    $detectedMessage = "detected Applocker warningon DeepBlueCLI Rule";
+    $detectedMessage = "detected Applocker warning on DeepBlueCLI Rule";
 
     $detectRule = {
         function Search-DetectableEvents {
