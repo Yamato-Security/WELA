@@ -9,7 +9,7 @@ function Add-Rule {
                 $event
             )
 
-            $target = $event | where { $event.ProviderName -eq "Security" -and $event.id -eq 1102 }
+            $target = $event | where { $_.ProviderName -eq "Security" -and $event.id -eq 1102 }
             if ($target) {
                 foreach ($record in $target) {
                     $array = $event.message -split '\n' # Split each line of the message into an array
