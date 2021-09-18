@@ -47,7 +47,8 @@ function Check-Command() {
     Param(
         $EventID,
         $commandline,
-        $creator
+        $creator,
+        $servicecmd
     )
 
     $text = ""
