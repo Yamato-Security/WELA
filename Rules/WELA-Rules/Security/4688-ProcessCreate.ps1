@@ -11,20 +11,18 @@ function Add-Rule {
             )
             $target = $event | where { $_.ID -eq 4668 -and $event.ProviderName -eq "Security" }
 
-            if ($target) {
-                foreach ($record in $target) {
-                    $eventXML = [xml]$record.ToXml();
-                    $commandline = $eventXML.EventData.Data[8]."#text"
-                    $creator = $eventXML.EventData.Data[13]."#text"
+            foreach ($record in $target) {
+                $eventXML = [xml]$record.ToXml();
+                $commandline = $eventXML.EventData.Data[8]."#text"
+                $creator = $eventXML.EventData.Data[13]."#text"
 
-                    if ($commandline) {
-                        $result = Check-Command -EventID 4688 $commandline $creator
-                        if ($result) {
-                            Write-Host
-                            Write-Host "Detected! RuleName:$ruleName";
-                            Write-Host $detectedMessage;
-                            Write-Host $result
-                        }
+                if ($commandline) {
+                    $result = Check-Command -EventID 4688 $commandline $creator
+                    if ($result) {
+                        Write-Host
+                        Write-Host "Detected! RuleName:$ruleName";
+                        Write-Host $detectedMessage;
+                        Write-Host $result
                     }
                 }
             }
