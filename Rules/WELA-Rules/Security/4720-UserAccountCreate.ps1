@@ -8,7 +8,9 @@ function Add-Rule {
             param (
                 $event
             )
-            if ($event.ProviderName -eq "Security" -and $event.id -eq 4720) {
+            $target = $event | where { $_.ID -eq 4720 -and $event.ProviderName -eq "Security" }
+
+            if ($target) {
                 $eventXML = [xml]$event.ToXml();
                 $username = $eventXML.Event.EventData.Data[0]."#text"
                 $securityid = $eventXML.Event.EventData.Data[2]."#text"
@@ -20,8 +22,6 @@ function Add-Rule {
                 Write-Host $detectedMessage;
                 Write-Host $result
             }
-            
-            
         };
         Search-DetectableEvents $args[0];
     };

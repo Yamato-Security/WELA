@@ -9,7 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
-            if ($event.ProviderName -eq "Security" -and $event.id -eq 4668) {
+            $target = $event | where { $_.ID -eq 4668 -and $event.ProviderName -eq "Security" }
+
+            if ($target) {
                 $eventXML = [xml]$event.ToXml();
                 $commandline = $eventXML.EventData.Data[8]."#text"
                 $creator = $eventXML.EventData.Data[13]."#text"
@@ -24,8 +26,6 @@ function Add-Rule {
                     }
                 }
             }
-            
-            
         };
         Search-DetectableEvents $args[0];
     };

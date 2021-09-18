@@ -8,26 +8,37 @@ function Add-Rule {
             param (
                 $event
             )
-            if ($event.ProviderName -eq "Security" -and $event.id -eq 4672) {
-                $eventXML = [xml]$event.ToXml();
-                $username = $eventXML.Event.EventData.Data[1]."#text"
-                $domain = $eventXML.Event.EventData.Data[2]."#text"
-                $securityid = $eventXML.Event.EventData.Data[3]."#text"
-                $privileges = $eventXML.Event.EventData.Data[4]."#text"
-                if ($privileges -Match "SeDebugPrivilege") {
-                    $result = "Username: $username`n"
-                    $result += "Domain: $domain`n"
-                    $result += "User SID: $securityid`n"
-                    $result += "Privileges: $privileges"
-                    Write-Host
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
-                    Write-Host $result
+            $target = $event | where { $_.ID -eq 4672 -and $event.ProviderName -eq "Security" -and $_.message -Match "SeDebugPrivilege" }
+
+            $multipleadminlogons = @{}
+            $adminlogons = @{}
+            if ($target) {
+                foreach ($record in $target) {
+                    $eventXML = [xml]$record.ToXml();
+                    $username = $eventXML.Event.EventData.Data[1]."#text"
+                    $domain = $eventXML.Event.EventData.Data[2]."#text"
+                    $securityid = $eventXML.Event.EventData.Data[3]."#text"
+                    $privileges = $eventXML.Event.EventData.Data[4]."#text"
+                    if ($adminlogons.ContainsKey($username) -and !($adminlogons.$username -Match $securityid)) {
+                        multipleadminlogons.Set_Item($username, 1)
+                        adminlogons.Set_Item($username, $adminlogons.$username)
+                    }
+                    else {
+                        $adminlogons.add($username, $securityid)
+                    }                   
+                }
+                foreach ($usernameKey in $adminlogons.Keys) {
+                    if ($multipleadminlogons.$usernameKey) {
+                        $result = "Multiple admin logons for one account"
+                        $result += "Username: $username`n"
+                        $result += "User SID Access Count: " + $securityid.split().Count
+                        Write-Host "Detected! RuleName:$ruleName";
+                        Write-Host $detectedMessage;
+                        Write-Host $result
+                    }
                 }
             }
-            
-            
-        };
+        }
         Search-DetectableEvents $args[0];
     };
     $Global:ruleStack.Add($ruleName, $detectRule);
