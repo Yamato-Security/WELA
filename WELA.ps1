@@ -441,7 +441,7 @@ function Get-KerberosStatusStr {
 }
 
 function Create-LogonTimeline {
-
+    param([string] $UTCOffset)
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
     #   The log service shutdown time is used for the shutdown time so might be wrong if the log service was turned off while the system was running. (anti-forensics, etc..)
@@ -721,20 +721,9 @@ function Create-LogonTimeline {
             if ($msgIpAddress -ne "-" -and #IP Address is not blank
                 !($msgTargetUserName[-1] -eq "$" -and $msgIpAddress -eq "127.0.0.1" ) -or #Not a machine account local logon
                 ($msgSubjectUserSid -eq "S-1-0-0" -and $msgTargetUserName -eq "SYSTEM")) {
-                #To find system boot time システムの起動時間を調べるため
-                $Timezone = Get-TimeZone
-                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                $EndParen = $TimezoneName.IndexOf(')') #position of )
-                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                if ( $UTC -eq $true ) {
-                    $UTCOffset = "UTC"
-                }
 
                 $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-
                 if ( $msgAuthPackageName -eq "NTLM" ) { $msgAuthPackageName = $msgLmPackageName } #NTLMの場合はv1かv2か知りたい。AuthPackageはNTLMしか書いていないので、LmPackageName (例：NTLMv1, NTLMv2）で上書きする。
-                
                 $outputThisEvent = $TRUE
             }
            
@@ -858,148 +847,123 @@ function Create-LogonTimeline {
         if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
 
         $output += [pscustomobject]$tempoutput
-    
+
         $TotalFilteredLogons++
-                    
+
     }
-
-}
-        
-if ($outputThisEvent -eq $TRUE ) {
-
-    $tempoutput = [Ordered]@{ 
-        $Create_LogonTimeline_Timezone          = $UTCOffset ;
-        $Create_LogonTimeline_LogonTime         = $LogonTimestampString ;
-        $Create_LogonTimeline_LogoffTime        = $LogoffTimestampString ;
-        $Create_LogonTimeline_ElapsedTime       = $ElapsedTimeOutput ;
-        $Create_LogonTimeline_Type              = "$msgLogonType - $msgLogonTypeReadable" ;
-        $Create_LogonTimeline_Auth              = $msgAuthPackageName ;
-        $Create_LogonTimeline_TargetUser        = $msgTargetUserName ;
-        $Create_LogonTimeline_isAdmin           = $isAdmin ;
-        $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
-        $Create_LogonTimeline_SourceIpAddress   = $msgIpAddress ;
-        $Create_LogonTimeline_SourceIpPort      = $msgIpPort ;
-        "Process Name"                          = $msgProcessName ;
-        $Create_LogonTimeline_LogonID           = $msgTargetLogonID
-    }
-
-    if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
-    if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
-
-    $output += [pscustomobject]$tempoutput
-
-    $TotalFilteredLogons++
-
-}
 
     
-$LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
+    $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
 
-$ProgramEndTime = Get-Date
-$TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-$TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-$RuntimeHours = $TempTimeSpan.Hours.ToString()
-$RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-$RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+    $ProgramEndTime = Get-Date
+    $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
+    $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
-Write-Host
-Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
-Write-Host
+    Write-Host
+    Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
+    Write-Host
 
-$output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
+    $output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
 
-#重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
-for ( $i = 0 ; $i -le ( $output.count - 1 ) ; $i++) {
+    #重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
+    for ( $i = 0 ; $i -le ( $output.count - 1 ) ; $i++) {
 
-    if ( $output[$i].$Create_LogonTimeline_LogonTime -eq $output[$i + 1].$Create_LogonTimeline_LogonTime -and
-        $output[$i].$Create_LogonTimeline_Type -eq $output[$i + 1].$Create_LogonTimeline_Type -and
-        $output[$i].$Create_LogonTimeline_TargetUser -eq $output[$i + 1].$Create_LogonTimeline_TargetUser) {
+        if ( $output[$i].$Create_LogonTimeline_LogonTime -eq $output[$i + 1].$Create_LogonTimeline_LogonTime -and
+            $output[$i].$Create_LogonTimeline_Type -eq $output[$i + 1].$Create_LogonTimeline_Type -and
+            $output[$i].$Create_LogonTimeline_TargetUser -eq $output[$i + 1].$Create_LogonTimeline_TargetUser) {
 
-        $output.RemoveAt($i)
-        $TotalFilteredLogons--
+            $output.RemoveAt($i)
+            $TotalFilteredLogons--
+
+        }
 
     }
 
-}
-
-if ( $SaveOutput -eq "" ) {   
+    if ( $SaveOutput -eq "" ) {   
         
-    if ( $OutputCSV -eq $true ) { 
-            
-        Write-Host 'Error: you need to specify -SaveOutput'
-        Exit
+        if ( $OutputCSV -eq $true ) { 
+            Write-Host 
+            Write-Host $Error_NoSaveOutputWithCSV -ForegroundColor White -BackgroundColor Red
+            Write-Host 
+            Exit
 
-    }
+        }
 
-    if ( $OutputGUI -eq $true ) {
+        if ( $OutputGUI -eq $true ) {
 
-        $output | Out-GridView
+            $output | Out-GridView
 
-    }
-    Else {
+        }
+        Else {
 
-        $output | Format-Table * # Powershell by default only prints 10 columns so added *
+            $output | Format-Table * # Powershell by default only prints 10 columns so added *
 
-    }
+        }
      
-    Write-Host
-    Write-Host $Create_LogonTimeline_Total_Logon_Event_Records -NoNewline
-    Write-Host $TotalLogonEvents -ForegroundColor Cyan
+        Write-Host
+        Write-Host $Create_LogonTimeline_Total_Logon_Event_Records -NoNewline
+        Write-Host $TotalLogonEvents -ForegroundColor Cyan
 
-    Write-Host $Create_LogonTimeline_Data_Reduction -NoNewline
-    Write-Host "$LogEventDataReduction%" -ForegroundColor Cyan
+        Write-Host $Create_LogonTimeline_Data_Reduction -NoNewline
+        Write-Host "$LogEventDataReduction%" -ForegroundColor Cyan
 
-    Write-Host $Create_LogonTimeline_Total_Filtered_Logons -NoNewline
-    Write-Host $TotalFilteredLogons -ForegroundColor Cyan
-    Write-Host
+        Write-Host $Create_LogonTimeline_Total_Filtered_Logons -NoNewline
+        Write-Host $TotalFilteredLogons -ForegroundColor Cyan
+        Write-Host
 
-    Write-Host "$Create_LogonTimeline_Type0 " -NoNewline
-    Write-Host $Type0Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type0 " -NoNewline
+        Write-Host $Type0Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type2 " -NoNewline
-    Write-Host $Type2Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type2 " -NoNewline
+        Write-Host $Type2Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type3 " -NoNewline
-    Write-Host $Type3Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type3 " -NoNewline
+        Write-Host $Type3Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type4 " -NoNewline
-    Write-Host $Type4Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type4 " -NoNewline
+        Write-Host $Type4Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type5 " -NoNewline
-    Write-Host $Type5Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type5 " -NoNewline
+        Write-Host $Type5Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type7 " -NoNewline
-    Write-Host $Type7Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type7 " -NoNewline
+        Write-Host $Type7Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type8 " -NoNewline
-    Write-Host $Type8Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type8 " -NoNewline
+        Write-Host $Type8Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type9 " -NoNewline
-    Write-Host $Type9Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type9 " -NoNewline
+        Write-Host $Type9Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type10 " -NoNewline
-    Write-Host $Type10Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type10 " -NoNewline
+        Write-Host $Type10Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type11 " -NoNewline
-    Write-Host $Type11Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type11 " -NoNewline
+        Write-Host $Type11Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type12 " -NoNewline
-    Write-Host $Type12Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type12 " -NoNewline
+        Write-Host $Type12Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_Type13 " -NoNewline
-    Write-Host $Type13Logons -ForegroundColor Cyan
+        Write-Host "$Create_LogonTimeline_Type13 " -NoNewline
+        Write-Host $Type13Logons -ForegroundColor Cyan
 
-    Write-Host "$Create_LogonTimeline_TypeOther " -NoNewline
-    Write-Host $OtherTypeLogon -ForegroundColor Cyan
-    Write-Host
+        Write-Host "$Create_LogonTimeline_TypeOther " -NoNewline
+        Write-Host $OtherTypeLogon -ForegroundColor Cyan
+        Write-Host
         
-}
-else {
+    }
+    else {
 
-    if ( $OutputGUI -eq $true ) { 
-            
-        Write-Host 'Error: you cannot output to GUI with the -SaveOutput parameter'
-        Exit
+        if ( $OutputGUI -eq $true ) { 
+            Write-Host 
+            Write-Host $Error_NoNeedSaveOutputWithGUI -ForegroundColor White -BackgroundColor Red
+            Write-Host 
+            Exit
+
+        }
 
     }
 
@@ -1794,35 +1758,19 @@ function Perform-LiveAnalysisChecks {
         $isAdmin = Check-Administrator
 
         if ( $isAdmin -eq $false ) {
-            if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-                Write-Host
-                Write-Host "エラー： Powershellを管理者として実行する必要があります。"
-                Write-Host
-                Exit
-            }
-            else {
-                Write-Host
-                Write-Host "Error: You need to be running Powershell as Administrator."
-                Write-Host
-                Exit
-            }
+            Write-Host
+            Write-Host $Error_NeedAdministratorPriv -ForegroundColor White -BackgroundColor Red
+            Write-Host
+            Exit
         }
     
     }
     else {
         #Trying to run live analysis on Mac or Linux
-        if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-            Write-Host
-            Write-Host "エラー： ライブ調査はWindowsにしか対応していません。"
-            Write-Host
-            Exit
-        }
-        else {
-            Write-Host
-            Write-Host "Error: Live Analysis is only supported on Windows"
-            Write-Host
-            Exit
-        }
+        Write-Host
+        Write-Host $Error_NotSupport_LiveAnalysys -ForegroundColor White -BackgroundColor Red
+        Write-Host
+        Exit
     }
 }
 
@@ -1837,24 +1785,16 @@ if ( $ShowContributors -eq $true ) {
 
 
 if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "注意：ドメインコントローラーでライブ調査をしない方が良いです。ログをオフラインにコピーしてから解析して下さい。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
     Write-Host
-    Write-Host "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis." -ForegroundColor White -BackgroundColor Red
+    Write-Host $Warn_DC_LiveAnalysis -ForegroundColor Black -BackgroundColor Yellow
+    Write-Host 
     exit
 }
 
 if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "エラー：「-LiveAnalysis `$true」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
     Write-Host
-    Write-Host "Error: you cannot specify -LiveAnalysis `$true and -LogFile at the same time." -ForegroundColor White -BackgroundColor Red
+    Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
+    Write-Host 
     exit
 }
 
@@ -1883,12 +1823,22 @@ elseif ( $LogDirectory -ne "" ) {
 
     if ($LogFile -ne "") {
         Write-Host
-        Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
+        Write-Host $Error_InCompatible_LogDirAndFile -ForegroundColor White -BackgroundColor Red
+        Write-Host 
         exit
     }
     
     $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
 
+}
+
+$Timezone = Get-TimeZone
+$TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
+$StartParen = $TimezoneName.IndexOf('(') #get position of (
+$EndParen = $TimezoneName.IndexOf(')') #position of )
+$UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
+if ( $UTC -eq $true ) {
+    $UTCOffset = "UTC"
 }
 
 foreach ( $LogFile in $evtxFiles ) {
@@ -1901,7 +1851,7 @@ foreach ( $LogFile in $evtxFiles ) {
     
     if ( $LogonTimeline -eq $true ) {
     
-        Create-LogonTimeline
+        Create-LogonTimeline $UTCOffset
     
     }
 

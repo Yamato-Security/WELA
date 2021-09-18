@@ -326,6 +326,14 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
 $Detect_ProcessingDetectionMessage = "Processing rule-base detection...`n"
 
+$Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
+$Error_InCompatible_LiveAnalysisAndLogFile = "Error: you cannot specify -LiveAnalysis and -LogFile at the same time."
+$Error_InCompatible_LogDirAndFile = "Error：you cannot specify -LogDirectory and -LogFile at the same time." 
+$Error_NotSupport_LiveAnalysys = "Error: Live Analysis is only supported on Windows"
+$Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Administrator."
+$Error_NoSaveOutputWithCSV = "Error: you need to specify -SaveOutput"
+$Error_NoNeedSaveOutputWithGUI = "Error: you cannot output to GUI with the -SaveOutput parameter"
+
 
 #function Show-Contributors
 $Show_Contributors =
