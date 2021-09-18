@@ -9,9 +9,6 @@ function Add-Rule {
                 $event
             )
             $target = $event | where { $event.ProviderName -eq "Security" -and ($event.id -eq 4728 -or $event.id -eq 4732 -or $event.id -eq 4756) }
-            foreach ($item in $collection) {
-                
-            }
             if ($target) {
                 foreach ($record in $target) {
                     $eventXML = [xml]$event.ToXml();
