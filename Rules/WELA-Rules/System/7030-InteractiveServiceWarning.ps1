@@ -1,5 +1,4 @@
-﻿# Get-WinEvent -LogName Security  where {($_.ID -eq "4688" | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
-
+﻿
 function Add-Rule {
     $ruleName = "7030-InteractiveServiceWarning";
     $detectedMessage = "detected Interactive service warning on DeepBlueCLI Rule";

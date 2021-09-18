@@ -1,5 +1,4 @@
-﻿# Get-WinEvent -LogName Security  where {($_.ID -eq "4688" | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
-
+﻿
 function Add-Rule {
     $ruleName = "7040-EventLogServiceStopped/Started";
     $detectedMessage = "detected event log serice stopped/started on DeepBlueCLI Rule";
