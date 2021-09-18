@@ -1,0 +1,53 @@
+﻿
+function Add-Rule {
+    $ruleName = "4624_4648-PassSprayAttack";
+    $detectedMessage = "Distributed Account Explicit Credential Use (Password Spray Attack) in timeframe on WELA";
+
+    $detectRule = {
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+
+            $target = $event | where { $event.ProviderName -eq "Security" -and ($event.id -eq 4648 -or $event.id -eq 4624) }
+
+            $PasswordGuessDetection = @{ FirstDetect = $null ; Count = 0 }
+            $PasswordGuessTimeframeMinutes = 1
+            $PasswordGuessCount = 3
+
+            foreach ($record in $target) {
+                $eventXML = [xml]$record.ToXml()
+                $username = $eventXML.Event.EventData.Data[1]."#text"
+                $hostname = $eventXML.Event.EventData.Data[2]."#text"
+                $targetusername = $eventXML.Event.EventData.Data[5]."#text"
+                $sourceip = ""
+                if ($record.id -eq 4648) {
+                    $sourceip = $eventXML.Event.EventData.Data[12]."#text"
+                }
+                else {
+                    $sourceip = $eventXML.Event.EventData.Data[19]."#text"
+                }
+                $EventTimestampString = $event.TimeCreated.ToString('yyyy-MM-dd HH:mm:ss.ff')
+                $EventTimestampDateTime = [datetime]::ParseExact($EventTimestampString, 'yyyy-MM-dd HH:mm:ss.ff', $null)
+                if (!$PasswordGuessDetection.FirstDetect) {
+                    $PasswordGuessDetection.FirstDetect = $EventTimestampString
+                    $PasswordGuessDetection.Count++;
+                }
+                else {
+                    $TimeBetweenEvents = ( $EventTimestampDateTime - $PasswordGuessDetection.FirstDetect ).TotalMinutes
+                    if ( $TimeBetweenEvents -gt $PasswordGuessTimeframeMinutes -and $PasswordGuessDetection.Count -lt $PasswordGuessCount ) {
+                        $PasswordGuessDetection.FirstDetect = $null 
+                        $PasswordGuessDetection.Count = 0
+                    }
+                    if ( $ElapsedTime -le $PasswordGuessTimeframeMinutes -and $PasswordGuessDetection.Count -ge $PasswordGuessCount -and $TimeBetweenEvents -gt 0 ) {    
+                        Write-Host "$EventTimestampString Alert! Password guess attack detected! Target User: $msgTargetUserName IP Address: $msgIpAddress (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
+                        $PasswordGuessDetection.FirstDetect = $PasswordGuessDetection.FirstDetect.Addminutes($PasswordGuessTimeframeMinutes)
+                        $PasswordGuessDetection.Count = 0
+                    } 
+                }
+            }
+        };
+        Search-DetectableEvents $args[0];
+    };
+    $Global:ruleStack.Add($ruleName, $detectRule);
+}
