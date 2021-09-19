@@ -12,7 +12,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Get-Service .*" -or $_.message -match "ScriptBlockText.*.*Get-ChildItem .*" -or $_.message -match "ScriptBlockText.*.*Get-Process .*") -and $_.message -match "ScriptBlockText.*.*> $env:TEMP\.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Get-Service .*" -or $_.message -match "ScriptBlockText.*.*Get-ChildItem .*" -or $_.message -match "ScriptBlockText.*.*Get-Process .*") -and $_.message -match "ScriptBlockText.*.*> $env:TEMP\\.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";

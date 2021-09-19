@@ -12,7 +12,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\profile.ps1.*" -and ($_.message -match "TargetFilename.*.*\My Documents\PowerShell\.*" -or $_.message -match "TargetFilename.*.*C:\Windows\System32\WindowsPowerShell\v1.0\.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\\profile.ps1.*" -and ($_.message -match "TargetFilename.*.*\\My Documents\\PowerShell\\.*" -or $_.message -match "TargetFilename.*.*C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
