@@ -12,7 +12,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {((($_.ID -eq "4765" -or $_.ID -eq "4766") -or (($_.ID -eq "4738" -and -not (($_.message -match "-" -or $_.message -match "%%1793"))) -and -not (-not SidHistory="*")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ((($_.ID -eq "4765" -or $_.ID -eq "4766") -or (($_.ID -eq "4738" -and -not (($_.message -match "-" -or $_.message -match "%%1793"))) -and -not (-not $_.message -match "SidHistory.*")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";

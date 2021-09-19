@@ -9,18 +9,19 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 4104 -and $_.ProviderName -eq "Microsoft-Windows-PowerShell/Operational" }
+            $target = $event | where { $_.ID -eq 4104 -and $_.ProviderName -eq "Microsoft-Windows-PowerShell" }
 
             foreach ($record in $target) {
                 $eventXML = [xml] $record.ToXml()
                 if (-not ($eventxml.Event.EventData.Data[4]."#text")) {
                     $commandline = $eventXML.Event.EventData.Data[2]."#text"
                     if ($commandline) {
-                        $result = Check-Command -EventID 4104
+                        $obj = Create-Obj -event $record 
+                        $result = Check-Command -EventID 4104 -commandline $commandline -obj $obj
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-host $result
+                        Write-output $result
                     }
                 }
             }

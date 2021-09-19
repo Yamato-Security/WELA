@@ -9,7 +9,7 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 4103 -and $_.ProviderName -eq "Microsoft-Windows-PowerShell/Operational" }
+            $target = $event | where { $_.ID -eq 4103 -and $_.ProviderName -eq "Microsoft-Windows-PowerShell" }
 
             foreach ($record in $target) {
                 $eventXML = [xml] $record.ToXml()
@@ -20,11 +20,12 @@ function Add-Rule {
                     # Remove every line after the "Host Application = " line.
                     $commandline = $commandline -Replace "(?ms)`n.*$", ""
                     if ($commandline) {
-                        $result = Check-Command -EventID 4103
+                        $obj = Create-Obj -event $record
+                        $result = Check-Command -EventID 4103 -commandline $commandline -obj $obj
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-host $result
+                        Write-host $result.Result
                     }
                 }
             }
