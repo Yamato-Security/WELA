@@ -12,7 +12,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "Image.*C:\Windows\SysWOW64\cmd.exe" -and $_.message -match "CommandLine.*.*\Windows\Caches\NavShExt.dll .*") -or $_.message -match "CommandLine.*.*\AppData\Roaming\MICROS~1\Windows\Caches\NavShExt.dll,Setting")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "Image.*C:\\Windows\\SysWOW64\\cmd.exe" -and $_.message -match "CommandLine.*.*\\Windows\\Caches\\NavShExt.dll .*") -or $_.message -match "CommandLine.*.*\\AppData\\Roaming\\MICROS~1\\Windows\\Caches\\NavShExt.dll,Setting")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";

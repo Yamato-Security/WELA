@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\sc.exe" -and $_.message -match "IntegrityLevel.*Medium" -and ($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*config.*" -and $_.message -match "CommandLine.*.*binPath.*") -or ($_.message -match "CommandLine.*.*failure.*" -and $_.message -match "CommandLine.*.*command.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\sc.exe" -and $_.message -match "IntegrityLevel.*Medium" -and ($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*config.*" -and $_.message -match "CommandLine.*.*binPath.*") -or ($_.message -match "CommandLine.*.*failure.*" -and $_.message -match "CommandLine.*.*command.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,10 +12,10 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "1" -and $_.message -match "Image.*.*\sc.exe" -and $_.message -match "IntegrityLevel.*Medium" -and ($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*config.*" -and $_.message -match "CommandLine.*.*binPath.*") -or ($_.message -match "CommandLine.*.*failure.*" -and $_.message -match "CommandLine.*.*command.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\sc.exe" -and $_.message -match "IntegrityLevel.*Medium" -and ($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*config.*" -and $_.message -match "CommandLine.*.*binPath.*") -or ($_.message -match "CommandLine.*.*failure.*" -and $_.message -match "CommandLine.*.*command.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:\\$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

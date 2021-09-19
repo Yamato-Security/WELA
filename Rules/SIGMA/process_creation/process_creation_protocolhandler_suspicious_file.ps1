@@ -12,7 +12,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\protocolhandler.exe" -and $_.message -match "CommandLine.*.*.ms-word.*" -and $_.message -match "CommandLine.*.*.docx.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\protocolhandler.exe" -and $_.message -match "CommandLine.*.*.ms-word.*" -and $_.message -match "CommandLine.*.*.docx.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";

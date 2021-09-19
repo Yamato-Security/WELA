@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and $_.message -match "Imphash.*6834B1B94E49701D77CCB3C0895E1AFD" -and  -not ($_.message -match "Image.*.*\dctask64.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "1") -and $_.message -match "Imphash.*6834B1B94E49701D77CCB3C0895E1AFD" -and  -not ($_.message -match "Image.*.*\\dctask64.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,10 +12,10 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "1") -and $_.message -match "Imphash.*6834B1B94E49701D77CCB3C0895E1AFD" -and -not ($_.message -match "Image.*.*\dctask64.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { (($_.ID -eq "1") -and $_.message -match "Imphash.*6834B1B94E49701D77CCB3C0895E1AFD" -and -not ($_.message -match "Image.*.*\\dctask64.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:\\$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }
