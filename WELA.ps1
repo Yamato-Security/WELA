@@ -104,7 +104,7 @@ param (
     [string]$UseDetectRules = "0"
 )
 
-$Global:ruleStack = @{};
+$ruleStack = @{};
 $DisplayTimezone = !($HideTimezone);
 
 if (!$QuietLogo) {
@@ -134,8 +134,8 @@ switch ($UseDetectRules) {
     Default {}
 }
 
-Write-Host "RuleStacks:" $Global:ruleStack;
-$str = $Global:ruleStack | Out-String;
+Write-Host "RuleStacks:" $ruleStack;
+$str = $ruleStack | Out-String;
 Write-Host "StrRuleStacks:" $str;
 
 
@@ -145,7 +145,7 @@ function Start-Detection {
         $LogFilePath
     )
     
-    foreach ($rule in $Global:ruleStack.Values) {
+    foreach ($rule in $ruleStack.Values) {
         Invoke-Command $rule -ArgumentList $LogFilePath;
     }
 }
@@ -1843,5 +1843,10 @@ foreach ( $LogFile in $evtxFiles ) {
         Create-LogonTimeline $UTCOffset
     
     }
-
+    # Execute Rules
+    foreach ($rule in $ruleStack) {
+        Write-Host "Execute Rule $rule.Key"
+        Invoke-Expression $rule 
+    }
 }
+Remove-Variable ruleStack

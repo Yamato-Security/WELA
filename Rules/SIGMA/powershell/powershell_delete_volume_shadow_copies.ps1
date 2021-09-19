@@ -11,7 +11,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.message -match "CommandLine.*.*Get-WmiObject.*" -and $_.message -match "CommandLine.*.* Win32_Shadowcopy.*" -and ($_.message -match "CommandLine.*.*Delete().*" -or $_.message -match "CommandLine.*.*Remove-WmiObject.*") -and $_.ID -eq "400") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ($_.message -match "CommandLine.*.*Get-WmiObject.*" -and $_.message -match "CommandLine.*.* Win32_Shadowcopy.*" -and ($_.message -match "CommandLine.*.*Delete().*" -or $_.message -match "CommandLine.*.*Remove-WmiObject.*") -and $_.ID -eq "400") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
@@ -20,7 +20,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $args[0]0];
     };
-    $Global:ruleStack.Add($ruleName, $detectRule);
+    $ruleStack.Add($ruleName, $detectRule);
 }

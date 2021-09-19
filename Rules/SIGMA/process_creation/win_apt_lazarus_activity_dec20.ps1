@@ -11,7 +11,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {(($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*reg.exe save hklm\sam %temp%\~reg_sam.save.*" -or $_.message -match "CommandLine.*.*1q2w3e4r@#$@#$@#$.*" -or $_.message -match "CommandLine.*.* -hp1q2w3e4 .*" -or $_.message -match "CommandLine.*.*.dat data03 10000 -p .*") -or ($_.message -match "CommandLine.*.*process call create.*" -and $_.message -match "CommandLine.*.* > %temp%\~.*") -or ($_.message -match "CommandLine.*.*netstat -aon | find .*" -and $_.message -match "CommandLine.*.* > %temp%\~.*") -or ($_.message -match "CommandLine.*.*.255 10 C:\ProgramData\.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*reg.exe save hklm\sam %temp%\~reg_sam.save.*" -or $_.message -match "CommandLine.*.*1q2w3e4r@#$@#$@#$.*" -or $_.message -match "CommandLine.*.* -hp1q2w3e4 .*" -or $_.message -match "CommandLine.*.*.dat data03 10000 -p .*") -or ($_.message -match "CommandLine.*.*process call create.*" -and $_.message -match "CommandLine.*.* > %temp%\~.*") -or ($_.message -match "CommandLine.*.*netstat -aon | find .*" -and $_.message -match "CommandLine.*.* > %temp%\~.*") -or ($_.message -match "CommandLine.*.*.255 10 C:\ProgramData\.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
@@ -20,7 +20,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $args[0]0];
     };
-    $Global:ruleStack.Add($ruleName, $detectRule);
+    $ruleStack.Add($ruleName, $detectRule);
 }

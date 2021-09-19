@@ -32,5 +32,5 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args[0];
     };
-    $Global:ruleStack.Add($ruleName, $detectRule);
+    $ruleStack.Add($ruleName, $detectRule);
 }

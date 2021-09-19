@@ -20,7 +20,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $args[0]0];
     };
-    $Global:ruleStack.Add($ruleName, $detectRule);
+    $ruleStack.Add($ruleName, $detectRule);
 }
