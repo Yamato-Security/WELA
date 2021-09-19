@@ -3,7 +3,7 @@
 function Add-Rule {
 
     $ruleName = "sysmon_mimikatz_detection_lsass";
-    $detectedMessage = "Detects process access to LSASS which is typical for Mimikatz (0x1000 PROCESS_QUERY_ LIMITED_INFORMATION, 0x0400 PROCESS_QUERY_ INFORMATION "only old";
+    $detectedMessage = "Detects process access to LSASS which is typical for Mimikatz (0x1000 PROCESS_QUERY_ LIMITED_INFORMATION, 0x0400 PROCESS_QUERY_ INFORMATION only old";
 
     $detectRule = {
         function Search-DetectableEvents {
@@ -11,7 +11,7 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "10" -and $_.message -match "TargetImage.*.*\lsass.exe" -and ($_.message -match "0x1410" -or $_.message -match "0x1010")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $result = $event |  where { ($_.ID -eq 10 -and $_.message -match "TargetImage.*.*\lsass.exe" -and ($_.message -match "0x1410" -or $_.message -match "0x1010")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
@@ -20,7 +20,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0]0];
+        . Search-DetectableEvents $args[0]0]0];
     };
     $Global:ruleStack.Add($ruleName, $detectRule);
 }
