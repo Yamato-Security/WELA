@@ -131,9 +131,7 @@ switch ($UseDetectRules) {
         Get-ChildItem -Path './Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
         break;
     }
-    Default {
-        Get-ChildItem -Path $UseDetectRules -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule $flagLiveAnalysis }
-    }
+    Default {}
 }
 
 Write-Host "RuleStacks:" $Global:ruleStack;
