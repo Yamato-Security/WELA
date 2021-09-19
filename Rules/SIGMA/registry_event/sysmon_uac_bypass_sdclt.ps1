@@ -21,7 +21,7 @@ unasmmandisolatedCommand"
             }
             
         };
-        Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $args[0];
     };
     $Global:ruleStack.Add($ruleName, $detectRule);
 }
