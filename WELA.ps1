@@ -807,16 +807,7 @@ function Create-LogonTimeline {
                 else {
                     $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
                 }
-                $Timezone = Get-TimeZone
-                $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
-                $StartParen = $TimezoneName.IndexOf('(') #get position of (
-                $EndParen = $TimezoneName.IndexOf(')') #position of )
-                $UTCOffset = $TimezoneName.SubString( $StartParen + 1 , $EndParen - $StartParen - 1 ) # UTC+09:00
-                if ( $UTC -eq $true ) {
-                    $UTCOffset = "UTC"
-                }
-                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-                    
+                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )   
                 $outputThisEvent = $TRUE
             }
         }
@@ -1854,55 +1845,3 @@ foreach ( $LogFile in $evtxFiles ) {
     }
 
 }
-
-
-if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "注意：ドメインコントローラーでライブ調査をしない方が良いです。ログをオフラインにコピーしてから解析して下さい。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
-    Write-Host
-    Write-Host "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis." -ForegroundColor White -BackgroundColor Red
-    exit
-}
-
-if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
-    if ($HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true) {
-        Write-Host
-        Write-Host "エラー：「-LiveAnalysis `$true」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
-    Write-Host
-    Write-Host "Error: you cannot specify -LiveAnalysis `$true and -LogFile at the same time." -ForegroundColor White -BackgroundColor Red
-    exit
-}
-
-# Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
-
-    Show-Help
-    exit
-
-}
-
-#Create-Timeline
-<#
-if ( $LiveAnalysis -eq $true ) {
-    Perform-LiveAnalysisChecks
-}
-#>
-
-$evtxFiles = @($LogFile)
-
-if ( $LogDirectory -ne "" ) {
-
-    if ($LogFile -ne "") {
-        Write-Host
-        Write-Host "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。" -ForegroundColor White -BackgroundColor Red
-        exit
-    }
-    $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
-
-}
-
