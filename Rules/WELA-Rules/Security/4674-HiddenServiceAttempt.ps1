@@ -26,7 +26,7 @@ function Add-Rule {
                 Write-host $result
             }
         };
-        . Search-DetectableEvents $args[0]0];
+        . Search-DetectableEvents $args[0];
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

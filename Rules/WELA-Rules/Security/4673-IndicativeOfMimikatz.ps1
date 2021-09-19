@@ -31,7 +31,7 @@ function Add-Rule {
                 }
             }
         };
-        . Search-DetectableEvents $args[0]0]0];
+        . Search-DetectableEvents $args[0];
     };
     $ruleStack.Add($ruleName, $detectRule);
 }
