@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects scheduled task deletion events. Scheduled tasks are likely to be deleted if not used for persistence. Malicious Software often creates tasks directly under the root node e.g. TASKNAME";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the addition of office test registry that allows a user to specify an arbitrary DLL that will be executed everytime an Office application is started";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

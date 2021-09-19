@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the creation of taskmgr.exe process in context of LOCAL_SYSTEM";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

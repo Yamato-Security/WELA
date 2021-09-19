@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = ""Identifies use of various commands to query a systems time. This technique may be used before executing a scheduled task or to discover the time zone of a target system."";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

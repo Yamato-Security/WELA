@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a suspicious program execution in a web service root folder (filter out false positives)";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detect priv users or groups recon based on 4661 eventid and known privileged users or groups SIDs";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

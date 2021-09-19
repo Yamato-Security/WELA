@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "A General detection to trigger for the creation or modification of .*SoftwareSysinternalsSDelete registry keys. Indicators of the use of Sysinternals SDelete tool.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -15,12 +16,12 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
-(.*)Write-Host $result;
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

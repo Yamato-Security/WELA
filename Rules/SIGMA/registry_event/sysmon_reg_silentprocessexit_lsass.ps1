@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects changes to the Registry in which a monitor program gets registered to dump process memory of the lsass.exe process memory";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

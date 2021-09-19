@@ -4,6 +4,7 @@ function Add-Rule {
     $detectedMessage = "detected system log cleared on DeepBlueCLI Rule";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
                 Write-hoss $result
             }
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

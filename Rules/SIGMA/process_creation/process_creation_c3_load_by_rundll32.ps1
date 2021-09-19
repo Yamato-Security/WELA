@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "F-Secure C3 produces DLLs with a default exported StartNodeRelay function.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

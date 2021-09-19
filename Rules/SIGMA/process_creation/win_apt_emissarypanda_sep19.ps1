@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the execution of DLL side-loading malware used by threat group Emissary Panda aka APT27";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

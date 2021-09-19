@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects static QMS 810 and mimikatz driver name used by Mimikatz as exploited in CVE-2021-1675 and CVE-2021-34527";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -15,12 +16,12 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
-(.*)Write-Host $result;
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

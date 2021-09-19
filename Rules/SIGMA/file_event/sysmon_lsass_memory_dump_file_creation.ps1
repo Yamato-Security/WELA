@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "LSASS memory dump creation using operating systems utilities. Procdump will use process name in output file if no name is specified";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

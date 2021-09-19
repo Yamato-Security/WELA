@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects Non-Standard Tools Connecting to TCP port 3389 indicating possible lateral movement";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

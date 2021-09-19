@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Remove the AMSI Provider registry key in HKLMSoftwareMicrosoftAMSI to disable AMSI inspection";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

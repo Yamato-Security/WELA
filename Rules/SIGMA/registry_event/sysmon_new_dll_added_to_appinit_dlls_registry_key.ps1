@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "DLLs that are specified in the AppInit_DLLs value in the Registry key HKLMSoftwareMicrosoftWindows NTCurrentVersionWindows are loaded by user32.dll";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

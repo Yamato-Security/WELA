@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "This rule detects a DHCP server error in which a specified Callout DLL (in registry) could not be loaded";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

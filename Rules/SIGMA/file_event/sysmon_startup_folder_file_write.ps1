@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "A General detection for files being created in the Windows startup directory. This could be an indicator of persistence.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

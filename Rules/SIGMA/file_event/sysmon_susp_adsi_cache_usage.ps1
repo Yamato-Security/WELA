@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the usage of ADSI (LDAP) operations by tools. This may also detect tools like LDAPFragger.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "The CrachMapExec pentesting framework implements a PowerShell obfuscation with some static strings detected by this rule.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

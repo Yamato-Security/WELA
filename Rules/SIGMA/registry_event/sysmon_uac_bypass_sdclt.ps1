@@ -7,21 +7,21 @@ function Add-Rule {
 unasmmandisolatedCommand"
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKU\.*" -and $_.message -match "TargetObject.*.*_Classes\exefile\shell\runas\command\isolatedCommand") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { ($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKU\.*" -and $_.message -match "TargetObject.*.*_Classes\exefile\shell\runas\command\isolatedCommand" } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host "Detected! RuleName:\$ruleName";
-                Write-Host $result; $result; ected! RuleName:$ruleName"  
                 Write-Host
+                Write-Host "Detected! RuleName:\$ruleName";
                 Write-Host $detectedMessage;
+                Write-Host $result;
             }
-            
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "The .SettingContent-ms file type was introduced in Windows 10 and allows a user to create ""shortcuts"" to various Windows 10 setting pages. These files are simply XML and contain paths to various Windows 10 settings binaries.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

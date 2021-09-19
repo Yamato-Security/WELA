@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects potential malicious modification of the property value of fDenyTSConnections and UserAuthentication to enable remote desktop connections.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

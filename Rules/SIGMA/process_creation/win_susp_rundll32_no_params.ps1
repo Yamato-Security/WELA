@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious start of rundll32.exe without any parameters as found in CobaltStrike beacon activity";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

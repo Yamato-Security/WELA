@@ -9,6 +9,7 @@ function Add-Rule {
     $detectedMessage = "Detects the use of getsystem Meterpreter/Cobalt Strike command by detecting a specific service installation";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -27,7 +28,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

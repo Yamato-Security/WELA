@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a Powershell process that opens network connections - check for suspicious target ports and target systems - adjust to your environment (e.g.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

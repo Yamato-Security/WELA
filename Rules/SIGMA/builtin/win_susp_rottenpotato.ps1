@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects logon events that have characteristics of events generated during an attack with RottenPotato and the like";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

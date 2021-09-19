@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a renamed dctask64.exe used for process injection, command execution, process creation with a signed binary by ZOHO Corporation";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

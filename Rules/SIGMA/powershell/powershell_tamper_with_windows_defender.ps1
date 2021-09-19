@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Attempting to disable scheduled scanning and other parts of windows defender atp.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

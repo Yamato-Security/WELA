@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detect Attempt PrintNightmare (CVE-2021-1675) Remote code execution in Windows Spooler Service";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

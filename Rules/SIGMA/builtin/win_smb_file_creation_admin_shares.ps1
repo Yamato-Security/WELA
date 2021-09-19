@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Look for non-system accounts SMB accessing a file with write (0x2) access mask via administrative share (i.e C$).";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects Golden Chickens deployment method as used by Evilnum in report published in July 2020";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

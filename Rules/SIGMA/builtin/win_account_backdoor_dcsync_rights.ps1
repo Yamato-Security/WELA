@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "backdooring domain object to grant the rights associated with DCSync to a regular user or machine account using PowerviewAdd-DomainObjectAcl DCSync";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

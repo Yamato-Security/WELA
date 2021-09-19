@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Accesschk is an access and privilege audit tool developed by SysInternal and often being used by attacker to verify if a privilege escalation process succesfull or not ";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

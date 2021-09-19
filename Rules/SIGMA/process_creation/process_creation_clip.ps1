@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Adversaries may collect data stored in the clipboard from users copying information within or between applications. ";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -7,6 +7,7 @@ function Add-Rule {
     $detectedMessage = "Adversaries may install a root certificate on a compromised system to avoid warnings when connecting to adversary controlled web servers.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -25,7 +26,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -8,6 +8,7 @@ function Add-Rule {
     $detectedMessage = "Detects well-known credential dumping tools execution via service execution events";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -25,7 +26,7 @@ function Add-Rule {
                 }
             }
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Executes SCT script using scrobj.dll from a command in entered into a specially prepared INF file.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "This method uses uncommon error codes on failed logons to determine suspicious activity and tampering with accounts that have been disabled or somehow";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

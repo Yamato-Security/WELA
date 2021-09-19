@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects dropping of dll files in system32 that may be used to retrieve user credentials from LSASS";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

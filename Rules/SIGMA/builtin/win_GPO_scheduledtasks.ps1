@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detect lateral movement using GPO scheduled task, usually used to deploy ransomware at scale";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

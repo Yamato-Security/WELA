@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "This rule triggers on user accounts that are added to the local Administrators group, which could be legitimate activity or a sign of privilege escalation";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

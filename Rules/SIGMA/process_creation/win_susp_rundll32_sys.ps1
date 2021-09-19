@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious process related to rundll32 based on command line that includes a *.sys file as seen being used by UNC2452";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

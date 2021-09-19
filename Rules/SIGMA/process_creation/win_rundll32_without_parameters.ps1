@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects rundll32 execution without parameters as observed when running Metasploit windows/smb/psexec exploit module";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

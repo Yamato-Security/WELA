@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the modification of PortProxy registry key which is used for port forwarding. For command execution see rule win_netsh_port_fwd.yml.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -15,12 +16,12 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
-(.*)Write-Host $result;
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

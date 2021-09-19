@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "This rule detects that the path to the DLL written in the registry is different from the default one. Launched WAB.exe tries to load the DLL from Registry.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -15,12 +16,12 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:\$ruleName";
-(.*)Write-Host $result;
+                Write-Host $result;
                 Write-Host $detectedMessage;
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

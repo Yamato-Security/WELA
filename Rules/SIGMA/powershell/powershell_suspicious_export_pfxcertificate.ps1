@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects Commandlet that is used to export certificates from the local certificate store and sometimes used by threat actors to steal provate keys from compromised machines";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

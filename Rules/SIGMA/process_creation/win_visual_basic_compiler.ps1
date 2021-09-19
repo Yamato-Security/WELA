@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects successful code compilation via Visual Basic Command Line Compiler that utilizes Windows Resource to Object Converter.";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

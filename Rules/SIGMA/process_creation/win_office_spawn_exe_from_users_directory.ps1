@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects an executable in the users directory started from Microsoft Word, Excel, Powerpoint, Publisher or Visio";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

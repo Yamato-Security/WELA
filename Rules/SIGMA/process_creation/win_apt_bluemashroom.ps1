@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a suspicious DLL loading from AppData Local path as described in BlueMashroom report";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,6 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious calls of DLLs in rundll32.dll exports by ordinal";
 
     $detectRule = {
+        param($input)
         function Search-DetectableEvents {
             param (
                 $event
@@ -20,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $args[0];
+        . Search-DetectableEvents $input;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }
