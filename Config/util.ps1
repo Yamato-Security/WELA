@@ -19,6 +19,18 @@ https://github.com/yamatosecurity
 
 
 #Functions:
+function Get-WinEventWithFilter {
+    param($WinEventFilter)
+    $logs = $null
+    try {
+        $logs = Get-WinEvent -FilterHashtable $WinEventFilter -Oldest
+    }
+    catch {
+        Write-Host $Warn_GetEvent $_.Exception.Message -ForegroundColor Black -BackgroundColor Yellow
+    }
+    return $logs
+}
+
 function Show-Contributors {
     Write-Host 
     Write-Host $Show_Contributors -ForegroundColor Cyan

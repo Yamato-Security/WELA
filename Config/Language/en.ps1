@@ -326,6 +326,7 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
 $Detect_ProcessingDetectionMessage = "Processing rule-base detection...`n"
 
+$Warn_GetEvent = "Warning:Get-WinEvent error record skip. :"
 $Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
 $Error_InCompatible_LiveAnalysisAndLogFile = "Error: you cannot specify -LiveAnalysis and -LogFile at the same time."
 $Error_InCompatible_LogDirAndFile = "Error：you cannot specify -LogDirectory and -LogFile at the same time." 

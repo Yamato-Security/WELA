@@ -362,28 +362,18 @@ function Create-EventIDStatistics {
     }
 
     $WineventFilter.Add( "Path", $LogFile ) 
-    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
     $eventlist = @{}
-    $TotalNumberOfLogs = 0
+    $TotalNumberOfLogs = $logs.Count
 
     foreach ( $event in $logs ) {
-
         $id = $event.id.toString()
-
         if ( $eventlist[$id] -eq $null ) {
-
             $eventlist[$id] = 1
-
         } 
-        
         else {
-
             $eventlist[$id] += 1
-
         }
-
-        $TotalNumberOfLogs++
-
     }
 
     #Print results        
@@ -495,7 +485,7 @@ function Create-LogonTimeline {
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
-    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter 
     $eventlist = @{}
     $TotalNumberOfLogs = 0
 
@@ -1008,17 +998,7 @@ function Create-Timeline {
 
     Write-Host
 
-    try {
-        $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
-
-    }
-    catch {
-        Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-        Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-        Write-Host "Exiting...`n"
-        exit
-    }
-
+    $logs = Get-WinEventWithFilter $filter
 
     #Start reading in the logs.
     foreach ($event in $logs) {
