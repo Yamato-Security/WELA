@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_eventlog_cleared";
-    $detectedMessage = "One of the Windows Eventlogs has been cleared. e.g. caused by ""wevtutil cl"" command execution";
-
     $detectRule = {
         
         function Search-DetectableEvents {

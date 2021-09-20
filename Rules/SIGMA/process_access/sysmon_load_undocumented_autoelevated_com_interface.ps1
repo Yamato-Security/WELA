@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_load_undocumented_autoelevated_com_interface";
-    $detectedMessage = "COM interface (EditionUpgradeManager) that is not used by standard executables.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "10" -and $_.message -match "CallTrace.*.*editionupgrademanagerobj.dll.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+                $ruleName = "sysmon_load_undocumented_autoelevated_com_interface";
+                    $detectedMessage = "COM interface (EditionUpgradeManager) that is not used by standard executables.";
+                $result = $event |  where {($_.ID -eq "10" -and $_.message -match "CallTrace.*.*editionupgrademanagerobj.dll.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

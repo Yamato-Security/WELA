@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_ghostpack_safetykatz";
-    $detectedMessage = "Detects possible SafetyKatz Behaviour";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_ghostpack_safetykatz";
+            $detectedMessage = "Detects possible SafetyKatz Behaviour";
             $result = $event |  where { ($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\\Temp\\debug.bin") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

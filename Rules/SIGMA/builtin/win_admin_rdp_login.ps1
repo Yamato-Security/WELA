@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_admin_rdp_login";
-    $detectedMessage = "Detect remote login by Administrator user (depending on internal pattern).";
-
     $detectRule = {
         
         function Search-DetectableEvents {

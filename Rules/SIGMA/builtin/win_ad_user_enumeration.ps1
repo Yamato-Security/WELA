@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_ad_user_enumeration";
-    $detectedMessage = "Detects access to a domain user from a non-machine account";
-
     $detectRule = {
         
         function Search-DetectableEvents {

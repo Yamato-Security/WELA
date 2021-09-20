@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_zip_compress";
-    $detectedMessage = "Use living off the land tools to zip a file and stage it in the Windows temporary folder for later exfiltration";
-
     $detectRule = {
         
         function Search-DetectableEvents {

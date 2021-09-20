@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_arbitrary_shell_execution_via_settingcontent";
-    $detectedMessage = "The .SettingContent-ms file type was introduced in Windows 10 and allows a user to create ""shortcuts"" to various Windows 10 setting pages. These files are simply XML and contain paths to various Windows 10 settings binaries.";
-
     $detectRule = {
         
         function Search-DetectableEvents {

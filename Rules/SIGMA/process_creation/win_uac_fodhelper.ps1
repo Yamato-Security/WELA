@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_uac_fodhelper";
-    $detectedMessage = "Identifies use of Fodhelper.exe to bypass User Account Control. Adversaries use this technique to execute privileged processes.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\\fodhelper.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+                $ruleName = "win_uac_fodhelper";
+                    $detectedMessage = "Identifies use of Fodhelper.exe to bypass User Account Control. Adversaries use this technique to execute privileged processes.";
+                $result = $event |  where {($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\\fodhelper.exe") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

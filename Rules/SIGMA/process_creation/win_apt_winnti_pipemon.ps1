@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_winnti_pipemon";
-    $detectedMessage = "Detects specific process characteristics of Winnti Pipemon malware reported by ESET";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*setup0.exe -p.*") -or ($_.message -match "CommandLine.*.*setup.exe.*" -and ($_.message -match "CommandLine.*.*-x:0" -or $_.message -match "CommandLine.*.*-x:1" -or $_.message -match "CommandLine.*.*-x:2")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_apt_winnti_pipemon";
+                    $detectedMessage = "Detects specific process characteristics of Winnti Pipemon malware reported by ESET";
+                $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*setup0.exe -p.*") -or ($_.message -match "CommandLine.*.*setup.exe.*" -and ($_.message -match "CommandLine.*.*-x:0" -or $_.message -match "CommandLine.*.*-x:1" -or $_.message -match "CommandLine.*.*-x:2")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

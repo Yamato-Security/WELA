@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "4625_4648-PassSprayAttack";
-    $detectedMessage = "Distributed Account Explicit Credential Use (Password Spray Attack) in timeframe on WELA";
-
     $detectRule = {
         
         function Search-DetectableEvents {

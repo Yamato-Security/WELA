@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_uac_bypass_via_dism";
-    $detectedMessage = "Attempts to load dismcore.dll after dropping it";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "7" -and ($_.message -match "Image.*.*\\dism.exe") -and ($_.message -match "ImageLoaded.*.*\\dismcore.dll")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "sysmon_uac_bypass_via_dism";
+                    $detectedMessage = "Attempts to load dismcore.dll after dropping it";
+                $result = $event |  where { ($_.ID -eq "7" -and ($_.message -match "Image.*.*\\dism.exe") -and ($_.message -match "ImageLoaded.*.*\\dismcore.dll")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

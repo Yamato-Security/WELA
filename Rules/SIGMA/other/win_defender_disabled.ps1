@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "win_defender_disabled";
-    $detectedMessage = "Detects disabling Windows Defender threat protection";
-
     $detectRule = {
         
         function Search-DetectableEvents {

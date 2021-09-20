@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_pcre_net_load";
-    $detectedMessage = "Detects processes loading modules related to PCRE.NET package";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_pcre_net_load";
+            $detectedMessage = "Detects processes loading modules related to PCRE.NET package";
             $result = $event |  where { ($_.ID -eq "7" -and $_.message -match "ImageLoaded.*.*\\AppData\\Local\\Temp\\ba9ea7344a4a5f591d6e5dc32a13494b\\.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

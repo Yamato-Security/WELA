@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_hh_chm";
-    $detectedMessage = "Identifies usage of hh.exe executing recently modified .chm files.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\hh.exe" -and $_.message -match "CommandLine.*.*.chm.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_hh_chm";
+                    $detectedMessage = "Identifies usage of hh.exe executing recently modified .chm files.";
+                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\hh.exe" -and $_.message -match "CommandLine.*.*.chm.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

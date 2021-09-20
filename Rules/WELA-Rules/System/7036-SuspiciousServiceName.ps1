@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "7036-SuspiciousServiceName";
-    $detectedMessage = "detected Suspicious Service on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

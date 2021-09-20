@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_hidden_user_creation";
-    $detectedMessage = "Detects the creation of a local hidden user account which should not happen for event ID 4720.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "4720" -and $_.message -match "TargetUserName.*.*$") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $ruleName = "win_hidden_user_creation";
+            $detectedMessage = "Detects the creation of a local hidden user account which should not happen for event ID 4720.";
+            $result = $event |  where { ($_.ID -eq "4720" -and $_.message -match "TargetUserName.*.*$") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

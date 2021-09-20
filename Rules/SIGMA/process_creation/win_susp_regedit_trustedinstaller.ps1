@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_regedit_trustedinstaller";
-    $detectedMessage = "Detects a regedit started with TrustedInstaller privileges or by ProcessHacker.exe";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\regedit.exe" -and ($_.message -match "ParentImage.*.*\\TrustedInstaller.exe" -or $_.message -match "ParentImage.*.*\\ProcessHacker.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_regedit_trustedinstaller";
+                    $detectedMessage = "Detects a regedit started with TrustedInstaller privileges or by ProcessHacker.exe";
+                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\regedit.exe" -and ($_.message -match "ParentImage.*.*\\TrustedInstaller.exe" -or $_.message -match "ParentImage.*.*\\ProcessHacker.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

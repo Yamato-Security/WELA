@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_psexec_eula";
-    $detectedMessage = "Detect ed user accept agreement execution in psexec commandline";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\psexec.exe" -and $_.message -match "CommandLine.*.*accepteula.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_psexec_eula";
+                    $detectedMessage = "Detect ed user accept agreement execution in psexec commandline";
+                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\psexec.exe" -and $_.message -match "CommandLine.*.*accepteula.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

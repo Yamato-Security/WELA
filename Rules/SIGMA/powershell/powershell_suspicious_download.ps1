@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_suspicious_download";
-    $detectedMessage = "Detects suspicious PowerShell download command";
-
     $detectRule = {
         
         function Search-DetectableEvents {

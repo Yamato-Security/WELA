@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_carbonpaper_turla";
-    $detectedMessage = "This method detects a service install of malicious services mentioned in Carbon Paper - Turla report by ESET";
-
     $detectRule = {
         
         function Search-DetectableEvents {

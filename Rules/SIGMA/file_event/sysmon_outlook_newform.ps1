@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_outlook_newform";
-    $detectedMessage = "Detects the creation of new Outlook form which can contain malicious code";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_outlook_newform";
+            $detectedMessage = "Detects the creation of new Outlook form which can contain malicious code";
             $result = $event |  where { ($_.ID -eq "11" -and $_.message -match "Image.*\\outlook.exe" -and $_.message -match "TargetFilename.*.*\\appdata\\local\\microsoft\\FORMS\\.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

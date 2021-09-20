@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "104-SystemLogClear";
-    $detectedMessage = "detected system log cleared on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

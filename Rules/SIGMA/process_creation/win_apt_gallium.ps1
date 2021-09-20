@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_gallium";
-    $detectedMessage = "Detects artefacts associated with activity group GALLIUM - Microsoft Threat Intelligence Center indicators released in December 2019.";
-
     $detectRule = {
         
         function Search-DetectableEvents {

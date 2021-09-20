@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_alert_lsass_access";
-    $detectedMessage = "Detects Access to LSASS Process";
-
     $detectRule = {
         
         function Search-DetectableEvents {

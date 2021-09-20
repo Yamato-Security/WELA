@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_cmstp_execution_by_registry";
-    $detectedMessage = "Detects various indicators of Microsoft Connection Manager Profile Installer execution";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\cmmgr32.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "sysmon_cmstp_execution_by_registry";
+                    $detectedMessage = "Detects various indicators of Microsoft Connection Manager Profile Installer execution";
+                $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\cmmgr32.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

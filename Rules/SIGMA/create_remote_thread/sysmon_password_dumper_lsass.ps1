@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_password_dumper_lsass";
-    $detectedMessage = "Detects password dumper activity by monitoring remote thread creation EventID 8 in combination with the lsass.exe process as TargetImage. The process in field Process is the malicious program. A single execution can lead to hundreds of events.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_password_dumper_lsass";
+            $detectedMessage = "Detects password dumper activity by monitoring remote thread creation EventID 8 in combination with the lsass.exe process as TargetImage. The process in field Process is the malicious program. A single execution can lead to hundreds of events.";
             $result = $event |  where { ($_.ID -eq "8" -and $_.message -match "TargetImage.*.*\\lsass.exe" -and $_.message -match "StartModule.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

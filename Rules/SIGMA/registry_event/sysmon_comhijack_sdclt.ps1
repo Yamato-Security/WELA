@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_comhijack_sdclt";
-    $detectedMessage = "Detects changes to 'HKCUSoftwareClassesFoldershellopenmmandDelegateExecute'";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "HKCU\\Software\\Classes\\Folder\\shell\\open\\command\\DelegateExecute")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "sysmon_comhijack_sdclt";
+                    $detectedMessage = "Detects changes to 'HKCUSoftwareClassesFoldershellopenmmandDelegateExecute'";
+                $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "HKCU\\Software\\Classes\\Folder\\shell\\open\\command\\DelegateExecute")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

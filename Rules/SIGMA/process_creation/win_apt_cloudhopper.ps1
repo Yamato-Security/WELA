@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_cloudhopper";
-    $detectedMessage = "Detects suspicious file execution by wscript and cscript";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\cscript.exe" -and $_.message -match "CommandLine.*.*.vbs.*" -and $_.message -match "CommandLine.*.*/shell.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_apt_cloudhopper";
+                    $detectedMessage = "Detects suspicious file execution by wscript and cscript";
+                $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\cscript.exe" -and $_.message -match "CommandLine.*.*.vbs.*" -and $_.message -match "CommandLine.*.*/shell.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

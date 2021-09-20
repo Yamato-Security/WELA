@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "4673_IndicativeOfMimikatz";
-    $detectedMessage = "Potentially indicative of Mimikatz, multiple sensitive privilege calls have been made on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

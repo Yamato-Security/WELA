@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "1-ProcessCreation";
-    $detectedMessage = "detected Sysmon process creation on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

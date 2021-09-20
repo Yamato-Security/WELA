@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "win_tap_driver_installation";
-    $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques";
-
     $detectRule = {
         
         function Search-DetectableEvents {

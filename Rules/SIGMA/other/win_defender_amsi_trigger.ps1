@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_defender_amsi_trigger";
-    $detectedMessage = "Detects triggering of AMSI by Windows Defender.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "1116" -and $_.message -match "DetectionSource.*AMSI") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_defender_amsi_trigger";
+                    $detectedMessage = "Detects triggering of AMSI by Windows Defender.";
+                $result = $event |  where { ($_.ID -eq "1116" -and $_.message -match "DetectionSource.*AMSI") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

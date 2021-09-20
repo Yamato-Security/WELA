@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "7030-InteractiveServiceWarning";
-    $detectedMessage = "detected Interactive service warning on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "4625_FailedLogonAndPasswordSpray";
-    $detectedMessage = "High number of logon failures for one /multi account on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

@@ -6,8 +6,6 @@
 function Add-Rule {
 
     $ruleName = "win_tool_psexec";
-    $detectedMessage = "Detects PsExec service installation and execution events (service and Sysmon)";
-
     $detectRule = {
         
         function Search-DetectableEvents {

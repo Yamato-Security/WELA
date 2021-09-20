@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_defender_exclusions";
-    $detectedMessage = "Detects the Setting of Windows Defender Exclusions";
-
     $detectRule = {
         
         function Search-DetectableEvents {

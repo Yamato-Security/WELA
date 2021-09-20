@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_explorer_break_proctree";
-    $detectedMessage = "Detects a command line process that uses explorer.exe /root, which is similar to cmd.exe /c, only it breaks the process tree and makes its parent a new instance of explorer";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,8 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*explorer.exe.*" -and $_.message -match "CommandLine.*.* /root,.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_explorer_break_proctree";
+                $result = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*explorer.exe.*" -and $_.message -match "CommandLine.*.* /root,.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
                 Write-Host

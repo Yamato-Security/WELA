@@ -4,8 +4,6 @@ Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where { ($_.ID 
 function Add-Rule {
 
     $ruleName = "win_powershell_web_request";
-    $detectedMessage = "Detects the use of various web request methods (including aliases) via Windows PowerShell";
-
     $detectRule = {
         
         function Search-DetectableEvents {

@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_prompt_credentials";
-    $detectedMessage = "Detects PowerShell calling a credential prompt";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*PromptForCredential.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+                $ruleName = "powershell_prompt_credentials";
+                    $detectedMessage = "Detects PowerShell calling a credential prompt";
+                $result = $event |  where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*PromptForCredential.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

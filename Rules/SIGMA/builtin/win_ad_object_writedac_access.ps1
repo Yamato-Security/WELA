@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_ad_object_writedac_access";
-    $detectedMessage = "Detects WRITE_DAC access to a domain object";
-
     $detectRule = {
         
         function Search-DetectableEvents {

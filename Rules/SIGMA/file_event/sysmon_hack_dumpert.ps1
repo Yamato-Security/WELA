@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_hack_dumpert";
-    $detectedMessage = "Detects the use of Dumpert process dumper, which dumps the lsass.exe process memory";
-
     $detectRule = {
         
         function Search-DetectableEvents {

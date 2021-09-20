@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_add_domain_trust";
-    $detectedMessage = "Addition of domains is seldom and should be verified for legitimacy.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "4706") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $ruleName = "win_susp_add_domain_trust";
+            $detectedMessage = "Addition of domains is seldom and should be verified for legitimacy.";
+            $result = $event |  where { ($_.ID -eq "4706") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

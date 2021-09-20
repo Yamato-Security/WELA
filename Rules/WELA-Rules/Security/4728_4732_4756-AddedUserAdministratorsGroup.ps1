@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "4728_4732_4756-AddedUserAdministratorsGroup";
-    $detectedMessage = "User account added to Administrators group on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

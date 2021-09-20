@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_config_modification";
-    $detectedMessage = "Someone try to hide from Sysmon";
-
     $detectRule = {
         
         function Search-DetectableEvents {

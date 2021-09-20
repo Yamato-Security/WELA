@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_susp_powershell_rundll32";
-    $detectedMessage = "Detects PowerShell remote thread creation in Rundll32.exe";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_susp_powershell_rundll32";
+            $detectedMessage = "Detects PowerShell remote thread creation in Rundll32.exe";
             $result = $event |  where { ($_.ID -eq "8" -and $_.message -match "SourceImage.*.*\\powershell.exe" -and $_.message -match "TargetImage.*.*\\rundll32.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

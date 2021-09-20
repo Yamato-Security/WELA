@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_diskshadow";
-    $detectedMessage = "Detects using Diskshadow.exe to execute arbitrary code in text file";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\diskshadow.exe" -and ($_.message -match "CommandLine.*.*/s.*" -or $_.message -match "CommandLine.*.*-s.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_diskshadow";
+                    $detectedMessage = "Detects using Diskshadow.exe to execute arbitrary code in text file";
+                $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\diskshadow.exe" -and ($_.message -match "CommandLine.*.*/s.*" -or $_.message -match "CommandLine.*.*-s.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
                 Write-Host

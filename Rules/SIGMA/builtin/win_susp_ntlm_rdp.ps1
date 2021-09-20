@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_ntlm_rdp";
-    $detectedMessage = "Detects logons using NTLM to hosts that are potentially not part of the domain.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "8001" -and $_.message -match "TargetName.*TERMSRV.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $ruleName = "win_susp_ntlm_rdp";
+            $detectedMessage = "Detects logons using NTLM to hosts that are potentially not part of the domain.";
+            $result = $event |  where { ($_.ID -eq "8001" -and $_.message -match "TargetName.*TERMSRV.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

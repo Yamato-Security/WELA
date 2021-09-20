@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_quarkspwdump_clearing_hive_access_history";
-    $detectedMessage = "Detects QuarksPwDump clearing access history in hive";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "win_quarkspwdump_clearing_hive_access_history";
+            $detectedMessage = "Detects QuarksPwDump clearing access history in hive";
             $result = $event |  where { ($_.ID -eq "16" -and $_.message -match "HiveName.*.*\\AppData\\Local\\Temp\\SAM.*" -and $_.message -match "HiveName.*.*.dmp") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_atsvc_task";
-    $detectedMessage = "Detects remote task creation via at.exe or API interacting with ATSVC namedpipe";
-
     $detectRule = {
         
         function Search-DetectableEvents {

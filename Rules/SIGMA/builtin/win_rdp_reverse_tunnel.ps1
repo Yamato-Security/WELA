@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_rdp_reverse_tunnel";
-    $detectedMessage = "Detects svchost hosting RDP termsvcs communicating with the loopback address";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "5156" -and (($_.message -match "SourcePort.*3389" -and ($_.message -match "DestAddress.*127..*" -or $_.message -match "::1")) -or ($_.message -match "DestPort.*3389" -and ($_.message -match "SourceAddress.*127..*" -or $_.message -match "::1")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $ruleName = "win_rdp_reverse_tunnel";
+            $detectedMessage = "Detects svchost hosting RDP termsvcs communicating with the loopback address";
+            $result = $event |  where { ($_.ID -eq "5156" -and (($_.message -match "SourcePort.*3389" -and ($_.message -match "DestAddress.*127..*" -or $_.message -match "::1")) -or ($_.message -match "DestPort.*3389" -and ($_.message -match "SourceAddress.*127..*" -or $_.message -match "::1")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

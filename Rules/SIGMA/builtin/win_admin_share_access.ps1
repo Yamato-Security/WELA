@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_admin_share_access";
-    $detectedMessage = "Detects access to $ADMIN share";
-
     $detectRule = {
         
         function Search-DetectableEvents {

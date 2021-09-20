@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_devtoolslauncher";
-    $detectedMessage = "The Devtoolslauncher.exe executes other binary";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\devtoolslauncher.exe" -and $_.message -match "CommandLine.*.*LaunchForDeploy.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_devtoolslauncher";
+                    $detectedMessage = "The Devtoolslauncher.exe executes other binary";
+                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\devtoolslauncher.exe" -and $_.message -match "CommandLine.*.*LaunchForDeploy.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

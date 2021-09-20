@@ -4,8 +4,6 @@ Get-WinEvent -LogName MSExchange Management | where { ($_.message -match ".*Inst
 function Add-Rule {
 
     $ruleName = "win_exchange_transportagent";
-    $detectedMessage = "Detects the Installation of a Exchange Transport Agent";
-
     $detectRule = {
         
         function Search-DetectableEvents {

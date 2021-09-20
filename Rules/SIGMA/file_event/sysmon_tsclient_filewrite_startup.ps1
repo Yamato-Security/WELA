@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_tsclient_filewrite_startup";
-    $detectedMessage = "Detects the usage of tsclient share to place a backdoor on the RDP source machine's startup folder";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_tsclient_filewrite_startup";
+            $detectedMessage = "Detects the usage of tsclient share to place a backdoor on the RDP source machine's startup folder";
             $result = $event |  where { ($_.ID -eq "11" -and $_.message -match "Image.*.*\\mstsc.exe" -and $_.message -match "TargetFilename.*.*\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

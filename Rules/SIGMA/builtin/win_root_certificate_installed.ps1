@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_root_certificate_installed";
-    $detectedMessage = "Adversaries may install a root certificate on a compromised system to avoid warnings when connecting to adversary controlled web servers.";
-
     $detectRule = {
         
         function Search-DetectableEvents {

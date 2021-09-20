@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_usb_device_plugged";
-    $detectedMessage = "Detects plugged USB devices";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {(($_.ID -eq "2003" -or $_.ID -eq "2100" -or $_.ID -eq "2102")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $ruleName = "win_usb_device_plugged";
+            $detectedMessage = "Detects plugged USB devices";
+            $result = $event |  where { (($_.ID -eq "2003" -or $_.ID -eq "2100" -or $_.ID -eq "2102")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

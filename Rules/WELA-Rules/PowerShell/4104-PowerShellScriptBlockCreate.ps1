@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "4104-PowerShellScriptBlockCreate";
-    $detectedMessage = "detected PowerShell script block created on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

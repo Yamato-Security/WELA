@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_athremotefxvgpudisablementcommand";
-    $detectedMessage = "RemoteFXvGPUDisablement.exe is an abusable, signed PowerShell host executable that was introduced in Windows 10 and Server 2019 (OS Build 17763.1339).";
-
     $detectRule = {
         
         function Search-DetectableEvents {

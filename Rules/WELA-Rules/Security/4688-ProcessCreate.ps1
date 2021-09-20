@@ -2,8 +2,6 @@
 
 function Add-Rule {
     $ruleName = "4688-ProcessCreate";
-    $detectedMessage = "detected ProcessCreate on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

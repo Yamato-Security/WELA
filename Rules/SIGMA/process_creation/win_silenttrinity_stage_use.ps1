@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_silenttrinity_stage_use";
-    $detectedMessage = "Detects SILENTTRINITY stager use";
-
     $detectRule = {
         
         function Search-DetectableEvents {

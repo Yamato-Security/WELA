@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_data_compressed";
-    $detectedMessage = "An adversary may compress data (e.g., sensitive documents) that is collected prior to exfiltration in order to make it portable and minimize the amount of data sent over the network.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*-Recurse.*" -and $_.message -match "ScriptBlockText.*.*|.*" -and $_.message -match "ScriptBlockText.*.*Compress-Archive.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "powershell_data_compressed";
+                    $detectedMessage = "An adversary may compress data (e.g., sensitive documents) that is collected prior to exfiltration in order to make it portable and minimize the amount of data sent over the network.";
+                $result = $event |  where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*-Recurse.*" -and $_.message -match "ScriptBlockText.*.*|.*" -and $_.message -match "ScriptBlockText.*.*Compress-Archive.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

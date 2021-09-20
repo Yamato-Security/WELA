@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_regedit_export_to_ads";
-    $detectedMessage = "Exports the target Registry key and hides it in the specified alternate data stream.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_regedit_export_to_ads";
+            $detectedMessage = "Exports the target Registry key and hides it in the specified alternate data stream.";
             $result = $event |  where { ($_.ID -eq "15" -and $_.message -match "Image.*.*\\regedit.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

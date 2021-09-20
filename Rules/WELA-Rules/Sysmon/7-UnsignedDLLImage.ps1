@@ -2,8 +2,6 @@
 function Add-Rule {
     $ruleName = "7-UnsignedDLLImage";
     # This can be very chatty, so Recommend disabled.
-    $detectedMessage = "detected Sysmon Unsigned Image(DLL) on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

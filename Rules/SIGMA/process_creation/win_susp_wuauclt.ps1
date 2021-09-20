@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_wuauclt";
-    $detectedMessage = "Detects code execution via the Windows Update client (wuauclt)";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "ProcessCommandLine.*.*/UpdateDeploymentProvider.*" -and $_.message -match "ProcessCommandLine.*.*/RunHandlerComServer.*" -and ($_.message -match "Image.*.*\\wuauclt.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_wuauclt";
+                    $detectedMessage = "Detects code execution via the Windows Update client (wuauclt)";
+                $result = $event | where { ($_.ID -eq "1" -and $_.message -match "ProcessCommandLine.*.*/UpdateDeploymentProvider.*" -and $_.message -match "ProcessCommandLine.*.*/RunHandlerComServer.*" -and ($_.message -match "Image.*.*\\wuauclt.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
                 Write-Host

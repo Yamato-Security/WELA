@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_slingshot";
-    $detectedMessage = "Detects the deactivation and disabling of the Scheduled defragmentation task as seen by Slingshot APT group";
-
     $detectRule = {
         
         function Search-DetectableEvents {

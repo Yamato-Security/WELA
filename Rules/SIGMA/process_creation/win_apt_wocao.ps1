@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_wocao";
-    $detectedMessage = "Detects activity mentioned in Operation Wocao report";
-
     $detectRule = {
         
         function Search-DetectableEvents {

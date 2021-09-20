@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_dhcp_calloutdll";
-    $detectedMessage = "Detects the installation of a Callout DLL via CalloutDlls and CalloutEnabled parameter in Registry, which can be used to execute code in context of the";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\Services\\DHCPServer\\Parameters\\CalloutDlls" -or $_.message -match "TargetObject.*.*\\Services\\DHCPServer\\Parameters\\CalloutEnabled")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "sysmon_dhcp_calloutdll";
+                    $detectedMessage = "Detects the installation of a Callout DLL via CalloutDlls and CalloutEnabled parameter in Registry, which can be used to execute code in context of the";
+                $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\Services\\DHCPServer\\Parameters\\CalloutDlls" -or $_.message -match "TargetObject.*.*\\Services\\DHCPServer\\Parameters\\CalloutEnabled")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

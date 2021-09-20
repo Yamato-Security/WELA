@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "4103-PowerShellExecute";
-    $detectedMessage = "detected PowerShell execute on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

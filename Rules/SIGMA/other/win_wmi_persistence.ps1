@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_wmi_persistence";
-    $detectedMessage = "Detects suspicious WMI event filter and command line event consumer based on WMI and Security Logs.";
-
     $detectRule = {
         
         function Search-DetectableEvents {

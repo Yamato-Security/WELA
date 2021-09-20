@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "win_mal_creddumper";
-    $detectedMessage = "Detects well-known credential dumping tools execution via service execution events";
-
     $detectRule = {
         
         function Search-DetectableEvents {

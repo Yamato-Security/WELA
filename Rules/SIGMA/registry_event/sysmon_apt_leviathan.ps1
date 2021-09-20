@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_apt_leviathan";
-    $detectedMessage = "Detects registry key used by Leviathan APT in Malaysian focused campaign";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\ntkd") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "sysmon_apt_leviathan";
+                    $detectedMessage = "Detects registry key used by Leviathan APT in Malaysian focused campaign";
+                $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\ntkd") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

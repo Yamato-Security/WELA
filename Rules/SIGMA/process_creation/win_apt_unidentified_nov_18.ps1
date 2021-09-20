@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_unidentified_nov_18";
-    $detectedMessage = "A sigma rule detecting an unidetefied attacker who used phishing emails to target high profile orgs on November 2018. The Actor shares some TTPs with";
-
     $detectRule = {
         
         function Search-DetectableEvents {

@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_net_ntlm_downgrade";
-    $detectedMessage = "Detects NetNTLM downgrade attack";
-
     $detectRule = {
         
         function Search-DetectableEvents {

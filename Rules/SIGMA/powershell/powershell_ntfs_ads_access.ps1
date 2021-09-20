@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_ntfs_ads_access";
-    $detectedMessage = "Detects writing data into NTFS alternate data streams from powershell. Needs Script Block Logging.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {(($_.message -match "set-content" -or $_.message -match "add-content") -and $_.message -match "-stream") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+                $ruleName = "powershell_ntfs_ads_access";
+                    $detectedMessage = "Detects writing data into NTFS alternate data streams from powershell. Needs Script Block Logging.";
+                $result = $event |  where {(($_.message -match "set-content" -or $_.message -match "add-content") -and $_.message -match "-stream") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

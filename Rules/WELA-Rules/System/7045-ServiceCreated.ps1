@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "7045-ServiceCreated";
-    $detectedMessage = "detected Service Create on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

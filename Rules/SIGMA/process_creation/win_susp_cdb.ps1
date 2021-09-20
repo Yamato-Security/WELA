@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_cdb";
-    $detectedMessage = "Launch 64-bit shellcode from a debugger script file using cdb.exe.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\cdb.exe" -and $_.message -match "CommandLine.*.*-cf.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_cdb";
+                    $detectedMessage = "Launch 64-bit shellcode from a debugger script file using cdb.exe.";
+                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\cdb.exe" -and $_.message -match "CommandLine.*.*-cf.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_volume_shadow_copy_mount";
-    $detectedMessage = "Detects volume shadow copy mount";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.message -match "Source.*Microsoft-Windows-Ntfs" -and $_.ID -eq "98" -and $_.message -match "DeviceName.*.*HarddiskVolumeShadowCopy.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+            $ruleName = "win_volume_shadow_copy_mount";
+            $detectedMessage = "Detects volume shadow copy mount";
+            $result = $event |  where { ($_.message -match "Source.*Microsoft-Windows-Ntfs" -and $_.ID -eq "98" -and $_.message -match "DeviceName.*.*HarddiskVolumeShadowCopy.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_etw_disabled";
-    $detectedMessage = "Potential adversaries stopping ETW providers recording loaded .NET assemblies.";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "sysmon_etw_disabled";
+            $detectedMessage = "Potential adversaries stopping ETW providers recording loaded .NET assemblies.";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*SOFTWARE\\Microsoft\\.NETFramework\\ETWEnabled" -and $_.message -match "Details.*DWORD (0x00000000)") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

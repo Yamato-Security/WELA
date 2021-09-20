@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_alert_ruler";
-    $detectedMessage = "This events that are generated when using the hacktool Ruler by Sensepost";
-
     $detectRule = {
         
         function Search-DetectableEvents {

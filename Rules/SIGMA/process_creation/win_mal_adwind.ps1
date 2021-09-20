@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "win_mal_adwind";
-    $detectedMessage = "Detects javaw.exe in AppData folder as used by Adwind / JRAT";
-
     $detectRule = {
         
         function Search-DetectableEvents {

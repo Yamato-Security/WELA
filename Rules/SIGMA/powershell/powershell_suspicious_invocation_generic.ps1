@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_suspicious_invocation_generic";
-    $detectedMessage = "Detects suspicious PowerShell invocation command parameters";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {(($_.message -match " -enc " -or $_.message -match " -EncodedCommand ") -and ($_.message -match " -w hidden " -or $_.message -match " -window hidden " -or $_.message -match " -windowstyle hidden ") -and ($_.message -match " -noni " -or $_.message -match " -noninteractive ")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+                $ruleName = "powershell_suspicious_invocation_generic";
+                    $detectedMessage = "Detects suspicious PowerShell invocation command parameters";
+                $result = $event |  where {(($_.message -match " -enc " -or $_.message -match " -EncodedCommand ") -and ($_.message -match " -w hidden " -or $_.message -match " -window hidden " -or $_.message -match " -windowstyle hidden ") -and ($_.message -match " -noni " -or $_.message -match " -noninteractive ")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

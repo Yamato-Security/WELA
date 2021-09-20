@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_finger_usage";
-    $detectedMessage = "Detects suspicious aged finger.exe tool execution often used in malware attacks nowadays";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\finger.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "win_susp_finger_usage";
+                    $detectedMessage = "Detects suspicious aged finger.exe tool execution often used in malware attacks nowadays";
+                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\finger.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

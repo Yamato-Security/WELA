@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "7040-EventLogServiceStopped/Started";
-    $detectedMessage = "detected event log serice stopped/started on DeepBlueCLI Rule";
-
     $detectRule = {
         function Search-DetectableEvents {
             param (

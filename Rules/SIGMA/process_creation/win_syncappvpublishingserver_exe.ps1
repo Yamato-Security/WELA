@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_syncappvpublishingserver_exe";
-    $detectedMessage = "Detects SyncAppvPublishingServer process execution which usually utilized by adversaries to bypass PowerShell execution restrictions.";
-
     $detectRule = {
         
         function Search-DetectableEvents {

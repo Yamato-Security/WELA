@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_susp_lsass_dll_load";
-    $detectedMessage = "Detects a method to load DLL via LSASS process using an undocumented Registry key";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\CurrentControlSet\\Services\\NTDS\\DirectoryServiceExtPt.*" -or $_.message -match "TargetObject.*.*\\CurrentControlSet\\Services\\NTDS\\LsaDbExtPt.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $ruleName = "sysmon_susp_lsass_dll_load";
+                    $detectedMessage = "Detects a method to load DLL via LSASS process using an undocumented Registry key";
+                $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\CurrentControlSet\\Services\\NTDS\\DirectoryServiceExtPt.*" -or $_.message -match "TargetObject.*.*\\CurrentControlSet\\Services\\NTDS\\LsaDbExtPt.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

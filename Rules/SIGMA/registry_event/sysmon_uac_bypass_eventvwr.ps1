@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_uac_bypass_eventvwr";
-    $detectedMessage = "Detects UAC bypass method using Windows event viewer";
-
     $detectRule = {
         
         function Search-DetectableEvents {

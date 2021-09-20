@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_alert_ad_user_backdoors";
-    $detectedMessage = "Detects scenarios where one can control another users or computers account without having to use their credentials.";
-
     $detectRule = {
         
         function Search-DetectableEvents {

@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_sam_dump";
-    $detectedMessage = "Detects suspicious SAM dump activity as cause by QuarksPwDump and other password dumpers";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "win_susp_sam_dump";
+            $detectedMessage = "Detects suspicious SAM dump activity as cause by QuarksPwDump and other password dumpers";
             $result = $event |  where { ($_.ID -eq "16" -and $_.message -match ".*\\AppData\\Local\\Temp\\SAM-.*" -and $_.message -match ".*.dmp.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

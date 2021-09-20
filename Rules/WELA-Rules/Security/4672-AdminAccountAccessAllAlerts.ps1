@@ -1,8 +1,6 @@
 
 function Add-Rule {
     $ruleName = "4672-AdminAccountAccessAllAlerts";
-    $detectedMessage = "Logon with SeDebugPrivilege (admin access)`nSpecial privileges assgned to new logons on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

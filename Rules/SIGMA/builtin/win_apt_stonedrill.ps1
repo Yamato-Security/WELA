@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_apt_stonedrill";
-    $detectedMessage = "This method detects a service install of the malicious Microsoft Network Realtime Inspection Service service described in StoneDrill report by Kaspersky";
-
     $detectRule = {
         
         function Search-DetectableEvents {

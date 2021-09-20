@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_exe_calling_ps";
-    $detectedMessage = "Detects PowerShell called from an executable by the version mismatch method";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,6 +10,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "powershell_exe_calling_ps";
+            $detectedMessage = "Detects PowerShell called from an executable by the version mismatch method";
             $result = $event |  where { ($_.ID -eq "400" -and ($_.message -match "EngineVersion.*2..*" -or $_.message -match "EngineVersion.*4..*" -or $_.message -match "EngineVersion.*5..*") -and $_.message -match "HostVersion.*3..*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

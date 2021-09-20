@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_sysinternals_eula_accepted";
-    $detectedMessage = "Detects the usage of Sysinternals Tools due to accepteula key being added to Registry";
-
     $detectRule = {
         
         function Search-DetectableEvents {

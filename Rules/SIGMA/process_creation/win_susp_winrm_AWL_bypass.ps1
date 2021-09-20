@@ -4,8 +4,6 @@
 function Add-Rule {
 
     $ruleName = "win_susp_winrm_AWL_bypass";
-    $detectedMessage = "Detects execution of attacker-controlled WsmPty.xsl or WsmTxt.xsl via winrm.vbs and copied cscript.exe (can be renamed)";
-
     $detectRule = {
         
         function Search-DetectableEvents {

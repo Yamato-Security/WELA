@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "2-EMETBlocked";
-    $detectedMessage = "detected EMET blocked on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

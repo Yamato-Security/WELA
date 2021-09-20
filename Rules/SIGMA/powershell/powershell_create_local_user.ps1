@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_create_local_user";
-    $detectedMessage = "Detects creation of a local user via PowerShell";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*New-LocalUser.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+                $ruleName = "powershell_create_local_user";
+                    $detectedMessage = "Detects creation of a local user via PowerShell";
+                $result = $event |  where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*New-LocalUser.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

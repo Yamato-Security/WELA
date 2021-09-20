@@ -1,8 +1,6 @@
 
 function Add-Rule {
     $ruleName = "4720-UserAccountCreate";
-    $detectedMessage = "User account create on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

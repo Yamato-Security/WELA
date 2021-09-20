@@ -1,8 +1,6 @@
 ﻿
 function Add-Rule {
     $ruleName = "4674_HiddenServiceAttempt";
-    $detectedMessage = "User requested to modify the Dynamic Access Control (DAC) permissions of a service, possibly to hide it from view on DeepBlueCLI Rule";
-
     $detectRule = {
         
         function Search-DetectableEvents {

@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_shellcode_b64";
-    $detectedMessage = "Detects Base64 encoded Shellcode";
-
     $detectRule = {
         
         function Search-DetectableEvents {
@@ -12,7 +10,9 @@ function Add-Rule {
                 $event
             )
             
-            $result = $event |  where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*AAAAYInlM.*" -and ($_.message -match "ScriptBlockText.*.*OiCAAAAYInlM.*" -or $_.message -match "ScriptBlockText.*.*OiJAAAAYInlM.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
+                $ruleName = "powershell_shellcode_b64";
+                    $detectedMessage = "Detects Base64 encoded Shellcode";
+                $result = $event |  where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*AAAAYInlM.*" -and ($_.message -match "ScriptBlockText.*.*OiCAAAAYInlM.*" -or $_.message -match "ScriptBlockText.*.*OiJAAAAYInlM.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

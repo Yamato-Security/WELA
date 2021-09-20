@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_alert_enable_weak_encryption";
-    $detectedMessage = "Detects scenario where weak encryption is enabled for a user profile which could be used for hash/password cracking.";
-
     $detectRule = {
         
         function Search-DetectableEvents {

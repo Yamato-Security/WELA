@@ -3,8 +3,6 @@
 function Add-Rule {
 
     $ruleName = "win_account_backdoor_dcsync_rights";
-    $detectedMessage = "backdooring domain object to grant the rights associated with DCSync to a regular user or machine account using PowerviewAdd-DomainObjectAcl DCSync";
-
     $detectRule = {
         
         function Search-DetectableEvents {

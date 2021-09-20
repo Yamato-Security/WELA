@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "powershell_alternate_powershell_hosts";
-    $detectedMessage = "Detects alternate PowerShell hosts potentially bypassing detections looking for powershell.exe";
-
     $detectRule = {
         
         function Search-DetectableEvents {

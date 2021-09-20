@@ -5,8 +5,6 @@
 function Add-Rule {
 
     $ruleName = "sysmon_pingback_backdoor";
-    $detectedMessage = "Detects the use of Pingback backdoor that creates ICMP tunnel for C2 as described in the trustwave report";
-
     $detectRule = {
         
         function Search-DetectableEvents {
