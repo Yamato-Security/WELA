@@ -54,6 +54,12 @@ function Check-Administrator {
 
 # following check function in DeepBlueCLI.
 
+$minlength = 1000 # Minimum length of command line to alert
+# Load cmd match regexes from csv file, ignore comments
+$regexes = Get-Content ".\Config\regexes.txt" | Select-String '^[^#]' | ConvertFrom-Csv
+# Load cmd whitelist regexes from csv file, ignore comments
+$whitelist = Get-Content ".\Config\whitelist.txt" | Select-String '^[^#]' | ConvertFrom-Csv 
+
 # Custom reporting object:
 function Create-Obj {
     param($event, $logname)
@@ -91,6 +97,7 @@ function Check-Command() {
     if ($commandline.length -gt $minlength) {
         $text += "Long Command Line: greater than $minlength bytes`n"
     }
+    Write-Output "clineOutput-cline:" $commandline
     $text += (Check-Obfu $commandline)
     $text += (Check-Regex $commandline 0)
     $text += (Check-Creator $commandline $creator)
@@ -105,6 +112,7 @@ function Check-Command() {
     }
     if ($base64) {
         if ($commandline -Match "Compression.GzipStream.*Decompress") {
+            Write-Output "decodedOutput=test:" $decoded
             # Metasploit-style compressed and base64-encoded function. Uncompress it.
             $decoded = New-Object IO.MemoryStream(, [Convert]::FromBase64String($base64))
             $uncompressed = (New-Object IO.StreamReader(((New-Object IO.Compression.GzipStream($decoded, [IO.Compression.CompressionMode]::Decompress))), [Text.Encoding]::ASCII)).ReadToEnd()
@@ -112,6 +120,7 @@ function Check-Command() {
             $text += "Base64-encoded and compressed function`n"
         }
         else {
+            Write-Output "decodedOutput=test:" $decoded
             $decoded = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($base64))
             $obj.Decoded = $decoded
             $text += "Base64-encoded function`n"
@@ -155,6 +164,9 @@ function Check-Obfu($string) {
     # Check for special characters in the command. Inspired by Invoke-Obfuscation: https://twitter.com/danielhbohannon/status/778268820242825216
     #
     $obfutext = ""       # Local variable for return output
+    if (!$string) {
+        return $null
+    }
     $lowercasestring = $string.ToLower()
     $length = $lowercasestring.length
     $noalphastring = $lowercasestring -replace "[a-z0-9/\;:|.]"
