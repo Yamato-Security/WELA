@@ -1,14 +1,15 @@
 ﻿
 function Add-Rule {
     $ruleName = "1102_AuditLogFileClear";
-    $detectedMessage = "The Audit log was cleared on DeepBlueCLI Rule";
-
+    
     $detectRule = {
         
         function Search-DetectableEvents {
             param (
                 $event
             )
+            $ruleName = "1102_AuditLogFileClear";
+            $detectedMessage = "The Audit log was cleared on DeepBlueCLI Rule";
 
             $target = $event | where { $_.LogName -eq "Security" -and $event.id -eq 1102 }
             if ($target) {

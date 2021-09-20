@@ -9,6 +9,8 @@ function Add-Rule {
             param (
                 $event
             )
+            $ruleName = "4103-PowerShellExecute";
+            $detectedMessage = "detected PowerShell execute on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 4103 -and $_.LogName -eq "Microsoft-Windows-PowerShell" }
 
             foreach ($record in $target) {
@@ -20,7 +22,7 @@ function Add-Rule {
                     # Remove every line after the "Host Application = " line.
                     $commandline = $commandline -Replace "(?ms)`n.*$", ""
                     if ($commandline) {
-                        $obj = Create-Obj -event $record
+                        $obj = Create-Obj -event $record                            
                         $result = Check-Command -EventID 4103 -commandline $commandline -obj $obj
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";

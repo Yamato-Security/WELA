@@ -9,6 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "4720-UserAccountCreate";
+            $detectedMessage = "User account create on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 4720 -and $_.LogName -eq "Security" }
 
             if ($target) {

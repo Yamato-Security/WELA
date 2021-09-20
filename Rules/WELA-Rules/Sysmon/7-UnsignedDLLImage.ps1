@@ -10,6 +10,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "7-UnsignedDLLImage";
+            $detectedMessage = "detected Sysmon Unsigned Image(DLL) on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 7 -and $_.LogName -eq "Microsoft-Windows-Sysmon/Operational" }
 
             foreach ($record in $target) {

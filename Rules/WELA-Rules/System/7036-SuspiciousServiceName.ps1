@@ -9,6 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "7036-SuspiciousServiceName";
+            $detectedMessage = "detected Suspicious Service on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 7036 -and $_.LogName -eq "System" }
 
             foreach ($record in $target) {

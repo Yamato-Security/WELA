@@ -10,12 +10,14 @@ function Add-Rule {
                 $event
             )
 
+            $ruleName = "4673_IndicativeOfMimikatz";
+            $detectedMessage = "Potentially indicative of Mimikatz, multiple sensitive privilege calls have been made on DeepBlueCLI Rule";        
             $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4673) }
             $maxtotalsensprivuse = 4
             $resultoutput = @{}
 
             foreach ($record in $target) {
-                $eventXML = [xml]$event.ToXml();
+                $eventXML = [xml]$record.ToXml();
                 $username = $eventXML.Event.EventData.Data[1]."#text"
                 $domainname = $eventXML.Event.EventData.Data[2]."#text"
                 $key = "$username\\$domainname"

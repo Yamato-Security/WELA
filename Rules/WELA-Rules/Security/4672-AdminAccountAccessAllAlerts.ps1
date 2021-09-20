@@ -9,6 +9,8 @@ function Add-Rule {
             param (
                 $event
             )
+            $ruleName = "4672-AdminAccountAccessAllAlerts";
+            $detectedMessage = "Logon with SeDebugPrivilege (admin access)`nSpecial privileges assgned to new logons on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 4672 -and $_.LogName -eq "Security" -and $_.message -Match "SeDebugPrivilege" }
 
             $multipleadminlogons = @{}

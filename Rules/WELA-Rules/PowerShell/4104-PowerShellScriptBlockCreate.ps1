@@ -9,6 +9,8 @@ function Add-Rule {
             param (
                 $event
             )
+            $ruleName = "4104-PowerShellScriptBlockCreate";
+            $detectedMessage = "detected PowerShell script block created on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 4104 -and $_.LogName -eq "Microsoft-Windows-PowerShell" }
 
             foreach ($record in $target) {

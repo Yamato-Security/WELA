@@ -9,6 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "7045-ServiceCreated";
+            $detectedMessage = "detected Service Create on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 7045 -and $_.LogName -eq "System" }
 
             foreach ($record in $target) {
@@ -29,6 +32,8 @@ function Add-Rule {
                 # Check for suspicious cmd
                 if ($commandline) {
                     $servicecmd = 1 # CLIs via service creation get extra checks 
+                    $ruleName = "7045-ServiceCreated";
+                    $detectedMessage = "detected Service Create on DeepBlueCLI Rule";
                     $result = Check-Command -EventID 7045 -servicecmd $servicecmd
                     if ($result) {
                         Write-Host

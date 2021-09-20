@@ -9,6 +9,8 @@ function Add-Rule {
             param (
                 $event
             )
+            $ruleName = "8004-ApplockerBlock";
+            $detectedMessage = "detected Applocker block on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 8004 -and $_.LogName -eq "Microsoft-Windows-AppLocker/EXE and DLL" }
 
             if ($target) {
@@ -17,7 +19,6 @@ function Add-Rule {
                 Write-Host $detectedMessage;
             }
             foreach ($record in $target) {
-                $result = $record.message
                 Write-host $result
             }
         };

@@ -9,6 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "4728_4732_4756-AddedUserAdministratorsGroup";
+            $detectedMessage = "User account added to Administrators group on DeepBlueCLI Rule";
             $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4728 -or $event.id -eq 4732 -or $event.id -eq 4756) }
             if ($target) {
                 foreach ($record in $target) {

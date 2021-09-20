@@ -10,7 +10,8 @@ function Add-Rule {
                 $event
             )
             $target = $event | where { $_.ID -eq 2 -and $_.LogName -eq "Application" }
-
+            $ruleName = "2-EMETBlocked";
+            $detectedMessage = "detected EMET blocked on DeepBlueCLI Rule";
             foreach ($record in $target) {
                 if ($record.message) {
                     $array = $event.message -split '\n' # Split each line of the message into an array
@@ -19,7 +20,7 @@ function Add-Rule {
                     $command = $application -Replace "^Application: ", ""
                     $username = Remove-Spaces($array[4])
                     $result = "$text`n"
-                    $reuslt += "command: $command`n"
+                    $result += "command: $command`n"
                     $result += "$username`n" 
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";

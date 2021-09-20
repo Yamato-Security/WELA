@@ -9,6 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "7030-InteractiveServiceWarning";
+            $detectedMessage = "detected Interactive service warning on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 7030 -and $_.LogName -eq "System" }
 
             if ($target) {

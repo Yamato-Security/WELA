@@ -10,6 +10,8 @@ function Add-Rule {
                 $event
             )
             $maxfailedlogons = 5
+            $ruleName = "4625_FailedLogonAndPasswordSpray";
+            $detectedMessage = "High number of logon failures for one /multi account on DeepBlueCLI Rule";
 
             $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4625) }
             if ($target) {

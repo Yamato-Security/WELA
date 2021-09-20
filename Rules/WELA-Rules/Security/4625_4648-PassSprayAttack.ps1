@@ -10,6 +10,8 @@ function Add-Rule {
                 $event
             )
 
+            $ruleName = "4625_4648-PassSprayAttack";
+            $detectedMessage = "Distributed Account Explicit Credential Use (Password Spray Attack) in timeframe on WELA";        
             $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4648 -or $event.id -eq 4625) }
 
             $PasswordGuessDetection = @{ FirstDetect = $null ; Count = 0 }

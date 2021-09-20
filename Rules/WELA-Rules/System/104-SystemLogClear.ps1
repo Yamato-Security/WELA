@@ -9,6 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "104-SystemLogClear";
+            $detectedMessage = "detected system log cleared on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 104 -and $_.LogName -eq "System" }
 
             if ($target) {

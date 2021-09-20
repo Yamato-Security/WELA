@@ -10,6 +10,8 @@ function Add-Rule {
             param (
                 $event
             )
+            $ruleName = "4688-ProcessCreate";
+            $detectedMessage = "detected ProcessCreate on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 4668 -and $_.LogName -eq "Security" }
 
             foreach ($record in $target) {

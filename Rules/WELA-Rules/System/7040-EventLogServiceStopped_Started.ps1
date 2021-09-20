@@ -8,6 +8,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "7040-EventLogServiceStopped/Started";
+            $detectedMessage = "detected event log serice stopped/started on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 7040 -and $_.LogName -match "System" }
             foreach ($record in $target) {
                 $eventXML = [xml]$record.ToXml();

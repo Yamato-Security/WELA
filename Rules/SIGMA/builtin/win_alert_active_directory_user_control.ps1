@@ -12,6 +12,8 @@ function Add-Rule {
                 $event
             )
             
+            $ruleName = "win_alert_active_directory_user_control";
+            $detectedMessage = "Detects scenario where if a user is assigned the SeEnableDelegationPrivilege right in Active Directory it would allow control of other AD user objects.";
             $result = $event |  where { ($_.ID -eq "4704" -and ($_.message -match ".*SeEnableDelegationPrivilege.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host

@@ -9,6 +9,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "1-ProcessCreation";
+            $detectedMessage = "detected Sysmon process creation on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 1 -and $_.LogName -eq "Microsoft-Windows-Sysmon/Operational" }
 
             foreach ($record in $target) {
