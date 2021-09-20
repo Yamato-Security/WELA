@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects writing data into NTFS alternate data streams from powershell. Needs Script Block Logging.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

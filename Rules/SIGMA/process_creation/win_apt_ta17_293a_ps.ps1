@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects renamed SysInternals tool execution with a binary named ps.exe as used by Dragonfly APT group and documented in TA17-293A report";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

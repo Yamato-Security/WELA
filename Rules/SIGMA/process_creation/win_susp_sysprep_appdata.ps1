@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious sysprep process start with AppData folder as target (as used by Trojan Syndicasec in Thrip report by Symantec)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

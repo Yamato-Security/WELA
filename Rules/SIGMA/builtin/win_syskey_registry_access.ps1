@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects handle requests and access operations to specific registry keys to calculate the SysKey";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

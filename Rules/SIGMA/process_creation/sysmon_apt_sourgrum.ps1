@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Suspicious behaviours related to an actor tracked by Microsoft as SOURGUM";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

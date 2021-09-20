@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a suspicious execution of csc.exe, which uses a source in a suspicious folder (e.g. AppData)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

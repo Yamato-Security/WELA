@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the creation of a named pipe with a pattern found in CobaltStrike malleable C2 profiles";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

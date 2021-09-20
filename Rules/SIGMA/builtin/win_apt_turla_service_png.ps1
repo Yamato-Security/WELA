@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "This method detects malicious services mentioned in Turla PNG dropper report by NCC Group in November 2018";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

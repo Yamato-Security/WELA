@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects renamed ftp.exe, ftp.exe script execution and child processes ran by ftp.exe";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

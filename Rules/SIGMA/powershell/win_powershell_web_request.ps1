@@ -7,7 +7,7 @@ function Add-Rule {
     $detectedMessage = "Detects the use of various web request methods (including aliases) via Windows PowerShell";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -26,7 +26,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

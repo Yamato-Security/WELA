@@ -7,7 +7,7 @@ function Add-Rule {
     $detectedMessage = "Detects the usage of Sysinternals Tools due to accepteula key being added to Registry";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -26,7 +26,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

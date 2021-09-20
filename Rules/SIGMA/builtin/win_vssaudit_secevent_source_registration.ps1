@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the registration of the security event source VSSAudit. It would usually trigger when volume shadow copy operations happen.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a flag anomaly in which regsvr32.exe uses a /i flag without using a /n flag at the same time";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detect VBoxDrvInst.exe run whith parameters allowing processing INF file. This allows to create values in the registry and install drivers.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

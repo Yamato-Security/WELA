@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects installation of a new shim using sdbinst.exe. A shim can be used to load malicious DLLs into applications.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

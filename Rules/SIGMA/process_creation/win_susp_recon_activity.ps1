@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious command line activity on Windows systems";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

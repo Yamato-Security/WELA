@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a command that clears or disables any ETW trace log which could indicate a logging evasion.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

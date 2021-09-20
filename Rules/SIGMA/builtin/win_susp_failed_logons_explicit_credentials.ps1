@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a source user failing to authenticate with multiple users using explicit credentials on a host.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "A General detection for the Get-Clipboard commands in PowerShell logs. This could be an adversary capturing clipboard contents.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

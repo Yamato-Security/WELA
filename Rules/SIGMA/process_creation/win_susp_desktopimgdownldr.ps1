@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a suspicious Microsoft desktopimgdownldr execution with parameters used to download files from the Internet";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

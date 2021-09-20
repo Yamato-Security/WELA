@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects ScreenConnect program starts that establish a remote access to that system (not meeting, not remote support)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Windows Defender logs when the history of detected infections is deleted. Log file will contain the message ""Windows Defender Antivirus has removed history of malware and other potentially unwanted software"".";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

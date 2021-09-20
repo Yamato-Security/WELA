@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects mshta loaded by wmiprvse as parent as used by TA505 malicious documents";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

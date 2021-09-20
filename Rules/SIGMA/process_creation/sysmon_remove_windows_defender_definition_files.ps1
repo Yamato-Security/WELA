@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Adversaries may disable security tools to avoid possible detection of their tools and activities by removing Windows Defender Definition Files";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

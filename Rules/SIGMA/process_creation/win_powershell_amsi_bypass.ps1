@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects Request to amsiInitFailed that can be used to disable AMSI Scanning";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

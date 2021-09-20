@@ -8,7 +8,7 @@ function Add-Rule {
     $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -27,7 +27,7 @@ function Add-Rule {
                 }
             }            
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

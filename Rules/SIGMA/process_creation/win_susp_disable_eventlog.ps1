@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects command that is used to disable or delete Windows eventlog via logman Windows utility";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "A General detection for sdclt spawning new processes. This could be an indicator of sdclt being used for bypass UAC techniques.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

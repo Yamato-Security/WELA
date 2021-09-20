@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects multiple file rename or delete events occurrence within a specified period of time by a same user (these events may signalize about ransomware activity).";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

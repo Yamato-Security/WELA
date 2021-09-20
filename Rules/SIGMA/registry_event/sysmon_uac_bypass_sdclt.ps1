@@ -7,7 +7,7 @@ function Add-Rule {
 unasmmandisolatedCommand"
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ unasmmandisolatedCommand"
                 Write-Host $result;
             }
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

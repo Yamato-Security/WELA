@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects Netlogon Elevation of Privilege Vulnerability aka Zerologon (CVE-2020-1472)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

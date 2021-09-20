@@ -8,7 +8,7 @@ function Add-Rule {
     $detectedMessage = "Detects alternate PowerShell hosts potentially bypassing detections looking for powershell.exe";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -28,7 +28,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "A General detection for specific decompress commands in PowerShell logs. This could be an adversary decompressing files.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

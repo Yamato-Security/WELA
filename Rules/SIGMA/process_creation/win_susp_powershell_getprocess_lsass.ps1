@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a Get-Process command on lsass process, which is in almost all cases a sign of malicious activity";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

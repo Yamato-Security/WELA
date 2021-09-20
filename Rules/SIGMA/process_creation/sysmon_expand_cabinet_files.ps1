@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Adversaries can use the inbuilt expand utility to decompress cab files as seen in recent Iranian MeteorExpress attack";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

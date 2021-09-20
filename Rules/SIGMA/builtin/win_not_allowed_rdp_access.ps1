@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "This event is generated when an authenticated user who is not allowed to log on remotely attempts to connect to this computer through Remote Desktop.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspect access to svchost process memory such as that used by Invoke-Phantom to kill the winRM windows event logging service.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

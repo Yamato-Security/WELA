@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects process patterns found in Cobalt Strike beacon activity (see reference for more details)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

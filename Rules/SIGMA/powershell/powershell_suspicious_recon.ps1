@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Once established within a system or network, an adversary may use automated techniques for collecting internal data";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious a certutil command that used to encode files, which is sometimes used for data exfiltration";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

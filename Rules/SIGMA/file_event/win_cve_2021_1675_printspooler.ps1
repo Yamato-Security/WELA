@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the default filename used in PoC code against print spooler vulnerability CVE-2021-1675";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

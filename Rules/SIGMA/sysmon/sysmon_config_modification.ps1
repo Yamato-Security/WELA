@@ -7,7 +7,7 @@ function Add-Rule {
     $detectedMessage = "Someone try to hide from Sysmon";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -26,7 +26,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $Global:ruleStack.Add($ruleName, $detectRule);
 }

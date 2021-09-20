@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious start of program that usually requires a DLL as parameter, which can be a sign of process injection or hollowing activity";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

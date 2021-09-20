@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects usage of findstr to identify and execute a lnk file as seen within the HHS redirect attack";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

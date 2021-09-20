@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects potential malicious modification of the property value of IsCredGuardEnabled from HKLM:SYSTEMCurrentControlSetControlSecurityProvidersWDigest to disable Cred Guard on a system. This is usually used with UseLogonCredential to manipulate the caching credentials.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

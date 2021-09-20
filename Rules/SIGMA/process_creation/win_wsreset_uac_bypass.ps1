@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a method that uses Wsreset.exe tool that can be used to reset the Windows Store to bypass UAC";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

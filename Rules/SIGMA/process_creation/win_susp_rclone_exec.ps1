@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects Rclone which is commonly used by ransomware groups for exfiltration";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

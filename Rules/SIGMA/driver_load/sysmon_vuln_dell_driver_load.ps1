@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the load of the vulnerable Dell BIOS update driver as reported in CVE-2021-21551";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

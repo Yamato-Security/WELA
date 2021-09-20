@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects using Rasautou.exe for loading arbitrary .DLL specified in -d option and executes the export specified in -p. ";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

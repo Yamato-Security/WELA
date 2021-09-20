@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "A General detection to trigger for processes removing .*shellopenmmand registry keys. Registry keys that might have been used for COM hijacking activities.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

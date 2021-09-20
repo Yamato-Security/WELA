@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects certain command line parameters often used during reconnaissance activity via web shells";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

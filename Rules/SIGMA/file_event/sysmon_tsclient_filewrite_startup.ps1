@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the usage of tsclient share to place a backdoor on the RDP source machine's startup folder";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

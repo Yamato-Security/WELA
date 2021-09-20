@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects WMI SquiblyTwo Attack with possible renamed WMI by looking for imphash";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

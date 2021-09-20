@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Injects arbitrary DLL into running process specified by process ID. Requires Windows 10.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a WMI backdoor in Exchange Transport Agents via WMI event filters";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

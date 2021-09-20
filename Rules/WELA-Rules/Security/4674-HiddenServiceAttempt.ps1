@@ -4,7 +4,7 @@ function Add-Rule {
     $detectedMessage = "User requested to modify the Dynamic Access Control (DAC) permissions of a service, possibly to hide it from view on DeepBlueCLI Rule";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -27,7 +27,7 @@ function Add-Rule {
                 Write-host $result
             }
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

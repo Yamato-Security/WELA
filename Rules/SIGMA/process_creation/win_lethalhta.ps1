@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects MSHTA.EXE spwaned by SVCHOST as seen in LethalHTA and described in report";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

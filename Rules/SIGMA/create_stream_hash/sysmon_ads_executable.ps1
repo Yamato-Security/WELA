@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the creation of an ADS data stream that contains an executable (non-empty imphash)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

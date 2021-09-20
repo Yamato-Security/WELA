@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects scenario where weak encryption is enabled for a user profile which could be used for hash/password cracking.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

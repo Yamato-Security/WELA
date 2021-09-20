@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Rundll32 can be use by Cobalt Strike with StartW function to load DLLs from the command line.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects EnableUnsafeClientMailRules used for Script Execution from Outlook";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

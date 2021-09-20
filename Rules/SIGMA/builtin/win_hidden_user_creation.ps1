@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the creation of a local hidden user account which should not happen for event ID 4720.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

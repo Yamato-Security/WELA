@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "A General detection to trigger for the deletion of files by Sysinternals SDelete. It looks for the common name pattern used to rename files.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

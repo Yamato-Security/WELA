@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects possible successful exploitation for vulnerability described in CVE-2021-26857 by looking for |";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

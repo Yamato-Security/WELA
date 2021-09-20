@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a whoami.exe executed by LOCAL SYSTEM. This may be a sign of a successful local privilege escalation.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects non-interactive PowerShell activity by looking at powershell.exe with not explorer.exe as a parent.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

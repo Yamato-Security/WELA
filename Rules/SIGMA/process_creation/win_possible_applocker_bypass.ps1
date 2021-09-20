@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects execution of executables that can be used to bypass Applocker whitelisting";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

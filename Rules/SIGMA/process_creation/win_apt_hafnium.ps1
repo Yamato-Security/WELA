@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects activity observed by different researchers to be HAFNIUM group acitivity (or related) on Exchange servers";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

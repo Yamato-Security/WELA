@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Adversaries may interact with the Windows Registry to gather information about the system, configuration, and installed software.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

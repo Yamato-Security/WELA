@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "This rule will looks for Windows Installer service (msiexec.exe) when it tries to install MSI packages with SYSTEM privilege ";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

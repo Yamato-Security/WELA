@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Identifies use of Fodhelper.exe to bypass User Account Control. Adversaries use this technique to execute privileged processes.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

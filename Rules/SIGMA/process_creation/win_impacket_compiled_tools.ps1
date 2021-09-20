@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the execution of different compiled Windows binaries of the impacket toolset (based on names or part of their names - could lead to false positives)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

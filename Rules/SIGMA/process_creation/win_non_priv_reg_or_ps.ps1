@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Search for usage of reg or Powershell by non-priveleged users to modify service configuration in registry";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

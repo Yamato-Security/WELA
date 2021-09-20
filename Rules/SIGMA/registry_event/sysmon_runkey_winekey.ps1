@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects potential malicious modification of run keys by winekey or team9 backdoor";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

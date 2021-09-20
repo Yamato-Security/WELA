@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects activity as ""net user administrator /domain"" and ""net group domain admins /domain""";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

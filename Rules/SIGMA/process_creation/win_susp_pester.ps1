@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects code execution via Pester.bat (Pester - Powershell Modulte for testing) ";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects failed logins with multiple invalid domain accounts from a single source system using the Kerberos protocol.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

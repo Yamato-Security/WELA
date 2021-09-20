@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Network sniffing refers to using the network interface on a system to monitor or capture information sent over a wired or wireless connection. An adversary";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

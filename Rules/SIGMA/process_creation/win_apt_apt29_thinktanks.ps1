@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "This method detects a suspicious PowerShell command line combination as used by APT29 in a campaign against U.S. think tanks.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

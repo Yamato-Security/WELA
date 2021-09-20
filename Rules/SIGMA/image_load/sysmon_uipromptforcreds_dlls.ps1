@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects potential use of UIPromptForCredentials functions by looking for some of the DLLs needed for it.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

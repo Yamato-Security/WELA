@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a regsvr.exe execution that doesn't contain a DLL in the command line";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Adversaries may use scripts signed with trusted certificates to proxy execution of malicious files.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

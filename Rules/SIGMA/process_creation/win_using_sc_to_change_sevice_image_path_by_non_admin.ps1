@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detection of sc.exe utility spawning by user with Medium integrity level to change service ImagePath or FailureCommand";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

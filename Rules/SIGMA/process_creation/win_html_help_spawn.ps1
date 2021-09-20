@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a suspicious child process of a Microsoft HTML Help system when executing compiled HTML files (.chm)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

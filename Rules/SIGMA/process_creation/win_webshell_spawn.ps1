@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Web servers that spawn shell processes could be the result of a successfully placed web shell or an other attack";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

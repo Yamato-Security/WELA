@@ -7,7 +7,7 @@ function Add-Rule {
     $detectedMessage = "Detects the use of Moriya rootkit as described in the securelist's Operation TunnelSnake report";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -26,7 +26,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

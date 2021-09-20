@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "IKEEXT and SessionEnv service, as they call LoadLibrary on files that do not exist within C:WindowsSystem32 by default. An attacker can place their";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

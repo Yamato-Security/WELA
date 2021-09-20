@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Attackers can use findstr to hide their artifacts or search specific strings and evade defense mechanism";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

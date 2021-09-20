@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a usage of the manage-bde.wsf script that may indicate an attempt of proxy execution from script";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

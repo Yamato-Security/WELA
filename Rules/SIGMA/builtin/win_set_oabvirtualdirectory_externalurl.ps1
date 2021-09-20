@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Rule to detect an adversary setting OabVirtualDirectory External URL property to a script";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

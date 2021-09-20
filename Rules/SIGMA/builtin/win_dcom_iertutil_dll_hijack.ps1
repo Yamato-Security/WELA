@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a threat actor creating a file named `iertutil.dll` in the `C:Program FilesInternet Explorer` directory over the network for a DCOM InternetExplorer DLL Hijack scenario.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

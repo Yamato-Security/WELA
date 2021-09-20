@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects a process spawned by the terminal service server process (this could be an indicator for an exploitation of CVE-2019-0708)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

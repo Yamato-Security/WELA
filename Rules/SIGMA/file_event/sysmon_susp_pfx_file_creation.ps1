@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "A general detection for processes creating PFX files. This could be an indicator of an adversary exporting a local certificate to a PFX file.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

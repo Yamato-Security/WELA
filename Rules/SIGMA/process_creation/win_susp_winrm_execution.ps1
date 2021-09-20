@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects an attempt to execude code or create service on remote host via winrm.vbs.";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

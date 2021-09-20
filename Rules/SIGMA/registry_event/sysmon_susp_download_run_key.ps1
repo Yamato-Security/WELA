@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects the suspicious RUN keys created by software located in Download or temporary Outlook/Internet Explorer directories";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

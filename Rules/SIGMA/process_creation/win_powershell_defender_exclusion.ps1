@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects requests to exclude files, folders or processes from Antivirus scanning using PowerShell cmdlets";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

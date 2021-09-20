@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Offensive tradecraft is switching away from using APIs like ""CreateRemoteThread"", however, this is still largely observed in the wild. This rule aims";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

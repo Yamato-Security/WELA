@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious powershell process starts with base64 encoded commands (e.g. Emotet)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

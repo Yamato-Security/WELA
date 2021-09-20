@@ -8,7 +8,7 @@ function Add-Rule {
     $detectedMessage = "Detects javaw.exe in AppData folder as used by Adwind / JRAT";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -29,7 +29,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

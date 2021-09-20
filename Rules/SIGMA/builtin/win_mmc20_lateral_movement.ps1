@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects MMC20.Application Lateral Movement; specifically looks for the spawning of the parent MMC.exe with a command line of ""-Embedding"" as a child of svchost.exe";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

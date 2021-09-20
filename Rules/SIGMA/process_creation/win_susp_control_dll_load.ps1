@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects suspicious Rundll32 execution from control.exe as used by Equation Group and Exploit Kits";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

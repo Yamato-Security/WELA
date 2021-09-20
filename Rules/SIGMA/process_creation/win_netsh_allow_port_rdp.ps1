@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects netsh commands that opens the port 3389 used for RDP, used in Sarwent Malware";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

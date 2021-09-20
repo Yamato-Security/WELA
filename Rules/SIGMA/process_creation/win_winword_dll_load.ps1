@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects Winword.exe loading of custmom dll via /l cmd switch";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

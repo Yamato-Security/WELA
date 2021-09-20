@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects block of attempt to disable real time protection of Microsoft Defender by tamper protection";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

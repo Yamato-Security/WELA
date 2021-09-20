@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects process command line patterns and locations used by REvil group in Kaseya incident (can also match on other malware)";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

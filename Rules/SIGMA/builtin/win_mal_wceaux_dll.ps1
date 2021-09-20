@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detects wceaux.dll access while WCE pass-the-hash remote command execution on source host";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -21,7 +21,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

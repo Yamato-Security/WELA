@@ -6,7 +6,7 @@ function Add-Rule {
     $detectedMessage = "Detect child processes of automatically elevated instances of Microsoft Connection Manager Profile Installer (cmstp.exe).";
 
     $detectRule = {
-        param($input)
+        
         function Search-DetectableEvents {
             param (
                 $event
@@ -22,7 +22,7 @@ function Add-Rule {
             }
             
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }
