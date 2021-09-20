@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event |  where {($_.ID -eq "1" -and ($_.message -match "Image.*.*.doc.exe" -or $_.message -match "Image.*.*.docx.exe" -or $_.message -match "Image.*.*.xls.exe" -or $_.message -match "Image.*.*.xlsx.exe" -or $_.message -match "Image.*.*.ppt.exe" -or $_.message -match "Image.*.*.pptx.exe" -or $_.message -match "Image.*.*.rtf.exe" -or $_.message -match "Image.*.*.pdf.exe" -or $_.message -match "Image.*.*.txt.exe" -or $_.message -match "Image.*.* .exe" -or $_.message -match "Image.*.*______.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

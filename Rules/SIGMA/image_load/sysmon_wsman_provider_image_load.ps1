@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event |  where { (($_.ID -eq "7") -and ((($_.ID -eq "7") -and (($_.message -match "ImageLoaded.*.*\\WsmSvc.dll" -or $_.message -match "ImageLoaded.*.*\\WsmAuto.dll" -or $_.message -match "ImageLoaded.*.*\\Microsoft.WSMan.Management.ni.dll") -or ($_.message -match "WsmSvc.dll" -or $_.message -match "WSMANAUTOMATION.DLL" -or $_.message -match "Microsoft.WSMan.Management.dll")) -and -not ($_.message -match "Image.*.*\\powershell.exe")) -or ($_.message -match "Image.*.*\\svchost.exe" -and $_.message -match "OriginalFileName.*WsmWmiPl.dll"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

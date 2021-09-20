@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event |  where {($_.ID -eq "4673" -and $_.message -match "Service.*LsaRegisterLogonProcess()" -and $_.message -match "Keywords.*0x8010000000000000") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

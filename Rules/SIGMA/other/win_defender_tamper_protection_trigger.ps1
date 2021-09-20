@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event |  where { (($_.ID -eq "5013") -and ($_.message -match "Value.*.*\\Windows Defender\\DisableAntiSpyware = 0x1()" -or $_.message -match "Value.*.*\\Real-Time Protection\\DisableRealtimeMonitoring = (Current)")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

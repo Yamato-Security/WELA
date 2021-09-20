@@ -17,7 +17,7 @@ function Add-Rule {
             $results += $event | where { ($_.ID -eq "400" -and $_.message -match "HostName.*ServerRemoteHost" -and $_.message -match "HostApplication.*.*wsmprovhost.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($results.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $detectedMessage;
             }
             foreach ($result in $results) {

@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*netsh.*" -and $_.message -match "CommandLine.*.*trace.*" -and $_.message -match "CommandLine.*.*start.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

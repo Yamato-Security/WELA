@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event |  where { (($_.message -match "CommandLine.*.*echo .*" -or $_.message -match "CommandLine.*.*copy .*" -or $_.message -match "CommandLine.*.*type .*" -or $_.message -match "CommandLine.*.*file createnew.*") -and ($_.message -match "CommandLine.*.* C:\\Windows\\System32\\Tasks\\.*" -or $_.message -match "CommandLine.*.* C:\\Windows\\SysWow64\\Tasks\\.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

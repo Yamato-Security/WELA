@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\sqldumper.exe" -and ($_.message -match "CommandLine.*.*0x0110.*" -or $_.message -match "CommandLine.*.*0x01100:40.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }

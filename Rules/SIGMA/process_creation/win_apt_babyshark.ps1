@@ -15,7 +15,7 @@ function Add-Rule {
             $result = $event | where { ($_.ID -eq "1" -and ($_.message -match "reg query ""HKEY_CURRENT_USER\\Software\\Microsoft\\Terminal Server Client\\Default""" -or $_.message -match "CommandLine.*powershell.exe mshta.exe http.*" -or $_.message -match "cmd.exe /c taskkill /im cmd.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
-                Write-Host "Detected! RuleName:\$ruleName";
+                Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $result;
                 Write-Host $detectedMessage;
             }
