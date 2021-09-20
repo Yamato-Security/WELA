@@ -134,12 +134,6 @@ switch ($UseDetectRules) {
     Default {}
 }
 
-Write-Host "RuleStacks:" $ruleStack;
-$str = $ruleStack | Out-String;
-Write-Host "StrRuleStacks:" $str;
-
-
-
 function Start-Detection {
     param(
         $LogFilePath
@@ -980,7 +974,7 @@ function Create-LogonTimeline {
 function Create-Timeline {
 
     $filter = "@{ Path=""$LogFile""; ID=$EventIDsToAnalyze }"
-    $filter2 = "@{Path = ""$LogFile"" }"
+
     Write-Host
     Write-Host "Creating timeline for $LogFile"
     $filesize = Format-FileSize( (get-item $LogFile).length )
