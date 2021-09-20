@@ -1,7 +1,7 @@
 ﻿
 function Add-Rule {
-    $ruleName = "7045-ProcessCreated";
-    $detectedMessage = "detected ProcessCreate on DeepBlueCLI Rule";
+    $ruleName = "7045-ServiceCreated";
+    $detectedMessage = "detected Service Create on DeepBlueCLI Rule";
 
     $detectRule = {
         
