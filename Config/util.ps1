@@ -54,13 +54,29 @@ function Check-Administrator {
 
 # following check function in DeepBlueCLI.
 
+# Custom reporting object:
+function Create-Obj {
+    param($event, $logname)
+    $obj = [PSCustomObject]@{
+        Date    = $event.TimeCreated
+        Log     = "test/"#$logname
+        EventID = $event.id
+        Message = $event.message
+        Results = ""
+        Command = ""
+        Decoded = ""
+    }
+    return $obj
+}
+
 function Check-Command() {
 
     Param(
         $EventID,
         $commandline,
         $creator,
-        $servicecmd
+        $servicecmd,
+        $obj
     )
 
     $text = ""
