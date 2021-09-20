@@ -398,8 +398,8 @@ function Show-Help {
     Write-Host " : Specify if the logs are from a DC"
 
     Write-Host "   -UseDetectRule <preset-rule | path-to-ruledirectory>(Default: preset-rule='0')" -NoNewline -ForegroundColor Green
-    Write-Host "：Specify detected event output on Rule Base" -NoNewline -ForegroundColor Green
-    Write-Host "   preset-rule| 0:None 1: DeepBlueCLI 2:SIGMA all:all-preset" -ForegroundColor Green
+    Write-Host "：Specify detected event output on Rule Base"
+    Write-Host "   preset-rule| 0:None 1: DeepBlueCLI 2:SIGMA all:all-preset"
 
     Write-Host 
     Write-Host "Output Options:"
