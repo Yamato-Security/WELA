@@ -341,9 +341,9 @@ $Error_NoNeedSaveOutputWithGUI = "エラー： 「-OutputGUI」と「-SaveOutput
 $Show_Contributors =
 "コントリビューター:
 
-oginoPmP - 開発
-DustInDark - ローカライゼーション、和訳
-つぼっく - 和訳
+ogino(GitHub:@oginoPmP) - 開発
+DustInDark(GitHub:@hitenkoku) - 開発、ローカライゼーション、和訳
+つぼっく(twitter: @ytsuboi0322) - 和訳
 
 コントリビューターを募集しています！
 "

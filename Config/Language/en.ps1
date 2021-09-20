@@ -339,9 +339,9 @@ $Error_NoNeedSaveOutputWithGUI = "Error: you cannot output to GUI with the -Save
 $Show_Contributors =
 "Contributors:
 
-oginoPmP - Developer
-DustInDark - Localization, Japanese Translations
-Tsubokku - Japanese Translations
+ogino(GitHub:@oginoPmP) - Developer
+DustInDark(GitHub:@hitenkoku) - Developer, Localization, Japanese Translations
+Tsubokku(twitter: @ytsuboi0322) - Japanese Translations
 
 Please contribute to this project for fame and glory!
 "
