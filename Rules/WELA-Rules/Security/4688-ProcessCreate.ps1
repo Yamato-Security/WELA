@@ -16,9 +16,10 @@ function Add-Rule {
                 $eventXML = [xml]$record.ToXml();
                 $commandline = $eventXML.EventData.Data[8]."#text"
                 $creator = $eventXML.EventData.Data[13]."#text"
-
+                $obj = Create-Obj -event $record                            
+                        
                 if ($commandline) {
-                    $result = Check-Command -EventID 4688 $commandline $creator
+                    $result = Check-Command -EventID 4688 $commandline $creator -obj $obj
                     if ($result) {
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
