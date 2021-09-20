@@ -1827,7 +1827,7 @@ foreach ($LogFile in $evtxFiles) {
     write-host "execute rule to $LogFile"
     $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
     foreach ($rule in $ruleStack.keys) {
-        write-host "execute rule:$rule"
+        # write-host "execute rule:$rule"
         Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
     }
 }
