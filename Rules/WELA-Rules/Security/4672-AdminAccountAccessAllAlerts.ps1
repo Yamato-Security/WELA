@@ -20,9 +20,11 @@ function Add-Rule {
                     $domain = $eventXML.Event.EventData.Data[2]."#text"
                     $securityid = $eventXML.Event.EventData.Data[3]."#text"
                     $privileges = $eventXML.Event.EventData.Data[4]."#text"
-                    if ($adminlogons.ContainsKey($username) -and !($adminlogons.$username -Match $securityid)) {
-                        multipleadminlogons.Set_Item($username, 1)
-                        adminlogons.Set_Item($username, $adminlogons.$username)
+                    if ($adminlogons.ContainsKey($username)) {
+                        if (!($adminlogons.$username -Match $securityid)) {
+                            multipleadminlogons.Set_Item($username, 1)
+                            adminlogons.Set_Item($username, $adminlogons.$username)
+                        }
                     }
                     else {
                         $adminlogons.add($username, $securityid)
