@@ -946,27 +946,29 @@ function Create-LogonTimeline {
 
     }
     Else {
-
-        $output | Format-Table | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Total_Logon_Event_Records $TotalLogonEvents" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Data_Reduction $LogEventDataReduction%" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Total_Filtered_Logons $TotalFilteredLogons" | Out-File $SaveOutput -Append
-        Write-Output "" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type0 $Type0Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type2 $Type2Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type3 $Type3Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type4 $Type4Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type5 $Type5Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type7 $Type7Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type8 $Type8Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type9 $Type9Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type10 $Type10Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type11 $Type11Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type12 $Type12Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_Type13 $Type13Logons" | Out-File $SaveOutput -Append
-        Write-Output "$Create_LogonTimeline_TypeOther $OtherTypeLogon" | Out-File $SaveOutput -Append
-        Write-Output "" | Out-File $SaveOutput -Append
-
+        $outfiledata = @()
+        $output | Format-Table | % { write-output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Total_Logon_Event_Records $TotalLogonEvents" | % { Write-output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Data_Reduction $LogEventDataReduction%"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Total_Filtered_Logons $TotalFilteredLogons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output ""  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type0 $Type0Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type2 $Type2Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type3 $Type3Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type4 $Type4Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type5 $Type5Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type7 $Type7Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type8 $Type8Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type9 $Type9Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type10 $Type10Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type11 $Type11Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type12 $Type12Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_Type13 $Type13Logons"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output "$Create_LogonTimeline_TypeOther $OtherTypeLogon"  | % { Write-Output $_; $outfiledata += $_ }
+        Write-Output ""  | % { Write-Output $_; $outfiledata += $_ }
+        if ($SaveOutput) {
+            $outfiledata | out-file $SaveOutput -Append
+        }
     }
 
 }
