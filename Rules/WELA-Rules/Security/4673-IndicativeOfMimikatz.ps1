@@ -10,7 +10,7 @@ function Add-Rule {
                 $event
             )
 
-            $target = $event | where { $_.ProviderName -eq "Security" -and ($event.id -eq 4673) }
+            $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4673) }
             $maxtotalsensprivuse = 4
             $resultoutput = @{}
 

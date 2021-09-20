@@ -9,7 +9,7 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 7036 -and $_.ProviderName -eq "System" }
+            $target = $event | where { $_.ID -eq 7036 -and $_.LogName -eq "System" }
 
             foreach ($record in $target) {
                 $eventXML = [xml]$record.ToXml();

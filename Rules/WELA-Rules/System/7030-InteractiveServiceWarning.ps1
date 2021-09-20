@@ -9,7 +9,7 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 7030 -and $_.ProviderName -eq "System" }
+            $target = $event | where { $_.ID -eq 7030 -and $_.LogName -eq "System" }
 
             if ($target) {
                 Write-Host

@@ -9,7 +9,7 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 4672 -and $_.ProviderName -eq "Security" -and $_.message -Match "SeDebugPrivilege" }
+            $target = $event | where { $_.ID -eq 4672 -and $_.LogName -eq "Security" -and $_.message -Match "SeDebugPrivilege" }
 
             $multipleadminlogons = @{}
             $adminlogons = @{}

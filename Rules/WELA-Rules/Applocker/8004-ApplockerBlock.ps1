@@ -9,7 +9,7 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 8004 -and $_.ProviderName -eq "Microsoft-Windows-AppLocker/EXE and DLL" }
+            $target = $event | where { $_.ID -eq 8004 -and $_.LogName -eq "Microsoft-Windows-AppLocker/EXE and DLL" }
 
             if ($target) {
                 Write-Host

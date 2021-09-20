@@ -9,7 +9,7 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 4720 -and $_.ProviderName -eq "Security" }
+            $target = $event | where { $_.ID -eq 4720 -and $_.LogName -eq "Security" }
 
             if ($target) {
                 foreach ($record in $target) {

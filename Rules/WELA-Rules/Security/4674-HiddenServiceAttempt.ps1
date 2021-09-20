@@ -10,7 +10,7 @@ function Add-Rule {
                 $event
             )
 
-            $target = $event | where { $_.ProviderName -eq "Security" -and ($event.id -eq 4674 -and $event.message -match "C:\WINDOWS\SYSTEM32\SERVICES.EXE" -and $event.message -match "write_dac") }
+            $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4674 -and $event.message -match "C:\WINDOWS\SYSTEM32\SERVICES.EXE" -and $event.message -match "write_dac") }
             if ($target) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";

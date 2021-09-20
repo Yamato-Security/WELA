@@ -11,7 +11,7 @@ function Add-Rule {
             )
             $maxfailedlogons = 5
 
-            $target = $event | where { $_.ProviderName -eq "Security" -and ($event.id -eq 4625) }
+            $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4625) }
             if ($target) {
                 $totalfailedaccounts = 0;
                 $failedlogons = @{}

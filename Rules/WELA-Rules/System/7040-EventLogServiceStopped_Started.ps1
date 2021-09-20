@@ -4,13 +4,11 @@ function Add-Rule {
     $detectedMessage = "detected event log serice stopped/started on DeepBlueCLI Rule";
 
     $detectRule = {
-        param($input)
         function Search-DetectableEvents {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 7040 -and $_.ProviderName -eq "System" }
-
+            $target = $event | where { $_.ID -eq 7040 -and $_.LogName -match "System" }
             foreach ($record in $target) {
                 $eventXML = [xml]$record.ToXml();
                 $servicename = $eventXML.Event.EventData.Data[0]."#text"
@@ -31,7 +29,7 @@ function Add-Rule {
                 }
             }
         };
-        . Search-DetectableEvents $input;
+        . Search-DetectableEvents $args;
     };
     $ruleStack.Add($ruleName, $detectRule);
 }

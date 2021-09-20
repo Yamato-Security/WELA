@@ -10,7 +10,7 @@ function Add-Rule {
                 $event
             )
 
-            $target = $event | where { $_.ProviderName -eq "Security" -and ($event.id -eq 4648 -or $event.id -eq 4625) }
+            $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4648 -or $event.id -eq 4625) }
 
             $PasswordGuessDetection = @{ FirstDetect = $null ; Count = 0 }
             $PasswordGuessTimeframeMinutes = 1

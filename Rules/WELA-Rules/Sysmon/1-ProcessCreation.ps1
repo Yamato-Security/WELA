@@ -9,7 +9,7 @@ function Add-Rule {
             param (
                 $event
             )
-            $target = $event | where { $_.ID -eq 1 -and $_.ProviderName -eq "Microsoft-Windows-Sysmon/Operational" }
+            $target = $event | where { $_.ID -eq 1 -and $_.LogName -eq "Microsoft-Windows-Sysmon/Operational" }
 
             foreach ($record in $target) {
                 $eventXML = [xml] $record.ToXml()
