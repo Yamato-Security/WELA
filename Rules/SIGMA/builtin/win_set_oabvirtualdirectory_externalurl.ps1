@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName MSExchange Management | where {($_.message -match ".*Set-OabVirtualDirectory.*" -and $_.message -match ".*ExternalUrl.*" -and $_.message -match ".*Page_Load.*" -and $_.message -match ".*script.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName MSExchange Management | where {($_.message -match ".*Set-OabVirtualDirectory.*" -and $_.message -match ".*ExternalUrl.*" -and $_.message -match ".*Page_Load.*" -and $_.message -match ".*script.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -16,10 +16,10 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $result;
                 Write-Host $detectedMessage;
+                Write-Host $result;
+                Write-Host
             }
-            
         };
         . Search-DetectableEvents $args;
     };

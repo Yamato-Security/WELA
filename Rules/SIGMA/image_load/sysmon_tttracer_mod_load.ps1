@@ -10,6 +10,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "sysmon_tttracer_mod_load";
+            $detectedMessage = "Detects usage of Time Travel Debugging Utility. Adversaries can execute malicious processes and dump processes, such as lsass.exe, via tttracer.exe.";
             $results = @();
             $results += $event | where { ($_.ID -eq "7" -and ($_.message -match "ImageLoaded.*.*\\ttdrecord.dll" -or $_.message -match "ImageLoaded.*.*\\ttdwriter.dll" -or $_.message -match "ImageLoaded.*.*\\ttdloader.dll")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             $results += $event | where { ($_.ID -eq "1" -and ($_.message -match "ParentImage.*.*\\tttracer.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
@@ -18,8 +21,9 @@ function Add-Rule {
                 if ($result.Count -ne 0) {
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $result
                     Write-Host $detectedMessage;    
+                    Write-Host $result;
+                    Write-Host
                 }
             }            
         };

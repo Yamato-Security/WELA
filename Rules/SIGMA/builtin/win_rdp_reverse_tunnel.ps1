@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Security | where {($_.ID -eq "5156" -and (($_.message -match "SourcePort.*3389" -and ($_.message -match "DestAddress.*127..*" -or $_.message -match "::1")) -or ($_.message -match "DestPort.*3389" -and ($_.message -match "SourceAddress.*127..*" -or $_.message -match "::1")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Security | where {($_.ID -eq "5156" -and (($_.message -match "SourcePort.*3389" -and ($_.message -match "DestAddress.*127..*" -or $_.message -match "::1")) -or ($_.message -match "DestPort.*3389" -and ($_.message -match "SourceAddress.*127..*" -or $_.message -match "::1")))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -16,10 +16,10 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $result;
                 Write-Host $detectedMessage;
+                Write-Host $result;
+                Write-Host
             }
-            
         };
         . Search-DetectableEvents $args;
     };

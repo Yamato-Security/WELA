@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName System | where {($_.ID -eq "7045") }  | group-object ServiceFileName | where { $_.count -lt 5 } | select name,count | sort -desc
+﻿# Get-WinEvent -LogName System | where {($_.ID -eq "7045") }  | group-object ServiceFileName | where { $_.count -lt 5 } | select name,count | sort -desc
 
 function Add-Rule {
 
@@ -16,10 +16,10 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $result;
                 Write-Host $detectedMessage;
+                Write-Host $result;
+                Write-Host
             }
-            
         };
         . Search-DetectableEvents $args;
     };

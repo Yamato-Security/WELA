@@ -24,7 +24,8 @@ function Add-Rule {
                 $result = "User: $user`n"
                 $result += "Target service: $service`n"
                 $result += "Desired Access: $accessreq`n"
-                Write-host $result
+                Write-Host $result;
+Write-Host
             }
         };
         . Search-DetectableEvents $args;

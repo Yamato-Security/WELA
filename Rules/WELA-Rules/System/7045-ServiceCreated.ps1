@@ -25,7 +25,8 @@ function Add-Rule {
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-host $result
+                    Write-Host $result;
+Write-Host
                 }
                 # Check for suspicious cmd
                 if ($commandline) {
@@ -38,7 +39,8 @@ function Add-Rule {
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-Host $result
+                        Write-Host $result;
+Write-Host
                     }
                 }
             }

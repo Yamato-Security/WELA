@@ -37,7 +37,8 @@ function Add-Rule {
                         $result += "User SID Access Count: " + $securityid.split().Count
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-Host $result
+                        Write-Host $result;
+Write-Host
                     }
                 }
             }

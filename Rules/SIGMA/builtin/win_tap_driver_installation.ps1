@@ -11,6 +11,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "win_tap_driver_installation";
+            $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques";
             $results = @();
             $results += $event | where { ($_.ID -eq "7045" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             $results += $event | where { ($_.ID -eq "6" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
@@ -20,7 +23,8 @@ function Add-Rule {
                 if ($result.Count -ne 0) {
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $result
+                    Write-Host $result;
+                    Write-Host
                     Write-Host $detectedMessage;    
                 }
             }            

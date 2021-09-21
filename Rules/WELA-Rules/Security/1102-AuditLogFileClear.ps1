@@ -22,7 +22,8 @@ function Add-Rule {
                     Write-Host
                     Write-Host "$eventTimestampString Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-Host $result    
+                    Write-Host $result;
+Write-Host    
                 }
             }
         };

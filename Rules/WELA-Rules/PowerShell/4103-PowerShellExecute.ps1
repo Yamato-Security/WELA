@@ -25,7 +25,8 @@ function Add-Rule {
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-host $result.Result
+                        Write-Host $result;
+Write-Host.Result
                     }
                 }
             }

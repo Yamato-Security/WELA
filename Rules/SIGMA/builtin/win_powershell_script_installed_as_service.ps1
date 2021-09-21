@@ -12,6 +12,9 @@ function Add-Rule {
             param (
                 $event
             )
+            
+            $ruleName = "win_powershell_script_installed_as_service";
+            $detectedMessage = "Detects powershell script installed as a Service"
             $results = @();
             $results += $event | where { ($_.ID -eq "7045" -and ($_.message -match "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             $results += $event | where { ($_.ID -eq "6" -and ($_.message -match "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
@@ -21,11 +24,11 @@ function Add-Rule {
                 if ($result.Count -ne 0) {
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $result
                     Write-Host $detectedMessage;    
+                    Write-Host $result;
+                    Write-Host
                 }
             }
-            
         };
         . Search-DetectableEvents $args;
     };

@@ -10,6 +10,9 @@ function Add-Rule {
             param (
                 $event
             )
+
+            $ruleName = "win_silenttrinity_stage_use";
+            $detectedMessage = "Detects SILENTTRINITY stager use";
             $results = @();
             $results += $event | where { ($_.ID -eq "1" -and $_.message -match "Description.*.*st2stager.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             $results += $event | where { ($_.ID -eq "7" -and $_.message -match "Description.*.*st2stager.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
@@ -18,8 +21,9 @@ function Add-Rule {
                 if ($result.Count -ne 0) {
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $result
                     Write-Host $detectedMessage;    
+                    Write-Host $result;
+                    Write-Host
                 }
             }
             

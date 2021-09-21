@@ -17,7 +17,8 @@ function Add-Rule {
                 Write-Host $detectedMessage;
             }
             foreach ($record in $target) {
-                Write-host $result
+                Write-Host $result;
+Write-Host
             }
         };
         . Search-DetectableEvents $args;

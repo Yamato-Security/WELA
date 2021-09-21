@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "EventType.*SetValue" -and ($_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Outlook\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Word\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Excel\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Powerpoint\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\VSTO\\Security\\Inclusion\\.*")) -and  -not ($_.message -match "Image.*.*\\msiexec.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "EventType.*SetValue" -and ($_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Outlook\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Word\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Excel\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Powerpoint\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\VSTO\\Security\\Inclusion\\.*")) -and  -not ($_.message -match "Image.*.*\\msiexec.exe")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -10,16 +10,16 @@ function Add-Rule {
                 $event
             )
             
-                $ruleName = "sysmon_office_vsto_persistence";
-                    $detectedMessage = "Detects persistence via Visual Studio Tools for Office (VSTO) add-ins in Office applications.";
-                $result = $event |  where { ((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "EventType.*SetValue" -and ($_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Outlook\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Word\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Excel\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Powerpoint\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\VSTO\\Security\\Inclusion\\.*")) -and -not ($_.message -match "Image.*.*\\msiexec.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $ruleName = "sysmon_office_vsto_persistence";
+            $detectedMessage = "Detects persistence via Visual Studio Tools for Office (VSTO) add-ins in Office applications.";
+            $result = $event |  where { ((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "EventType.*SetValue" -and ($_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Outlook\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Word\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Excel\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\Office\\Powerpoint\\Addins\\.*" -or $_.message -match "TargetObject.*.*\\Software\\Microsoft\\VSTO\\Security\\Inclusion\\.*")) -and -not ($_.message -match "Image.*.*\\msiexec.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $result;
                 Write-Host $detectedMessage;
+                Write-Host $result;
+                Write-Host
             }
-            
         };
         . Search-DetectableEvents $args;
     };

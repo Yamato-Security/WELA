@@ -37,7 +37,8 @@ function Add-Rule {
                     
                         $result = "Username: $username`n"
                         $result += "Total logon failures: $count"
-                        Write-Host $result    
+                        Write-Host $result;
+Write-Host    
                         $detectcount += 1
                     }
                 }
@@ -49,7 +50,8 @@ function Add-Rule {
                     Write-Host 
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;                    
-                    Write-host $result
+                    Write-Host $result;
+Write-Host
                 }
             }
         };

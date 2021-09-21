@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Security | where {(($_.ID -eq "4625" -and $_.message -match "LogonType.*2") -and  -not ($_.message -match "ProcessName.*-")) }  | select ProcessName, TargetUserName | group ProcessName | foreach { [PSCustomObject]@{'ProcessName'=$_.name;'Count'=($_.group.TargetUserName | sort -u).count} }  | sort count -desc | where { $_.count -gt 10 }
+﻿# Get-WinEvent -LogName Security | where {(($_.ID -eq "4625" -and $_.message -match "LogonType.*2") -and  -not ($_.message -match "ProcessName.*-")) }  | select ProcessName, TargetUserName | group ProcessName | foreach { [PSCustomObject]@{'ProcessName'=$_.name;'Count'=($_.group.TargetUserName | sort -u).count} }  | sort count -desc | where { $_.count -gt 10 }
 
 function Add-Rule {
 
@@ -16,10 +16,10 @@ function Add-Rule {
             if ($result.Count -ne 0) {
                 Write-Host
                 Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $result;
                 Write-Host $detectedMessage;
+                Write-Host $result;
+                Write-Host
             }
-            
         };
         . Search-DetectableEvents $args;
     };
