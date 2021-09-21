@@ -12,7 +12,7 @@ function Add-Rule {
             $detectedMessage = "detected EMET blocked on DeepBlueCLI Rule";
             foreach ($record in $target) {
                 if ($record.message) {
-                    $array = $event.message -split '\n' # Split each line of the message into an array
+                    $array = $record.message -split '\n' # Split each line of the message into an array
                     $text = $array[0]
                     $application = Remove-Spaces($array[3])
                     $command = $application -Replace "^Application: ", ""

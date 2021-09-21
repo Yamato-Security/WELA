@@ -14,7 +14,7 @@ function Add-Rule {
 
             if ($target) {
                 foreach ($record in $target) {
-                    $eventXML = [xml]$event.ToXml();
+                    $eventXML = [xml]$record.ToXml();
                     $username = $eventXML.Event.EventData.Data[0]."#text"
                     $securityid = $eventXML.Event.EventData.Data[2]."#text"
                     $result = "New User Created"

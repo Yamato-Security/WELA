@@ -10,7 +10,7 @@ function Add-Rule {
 
             $ruleName = "4673_IndicativeOfMimikatz";
             $detectedMessage = "Potentially indicative of Mimikatz, multiple sensitive privilege calls have been made on DeepBlueCLI Rule";        
-            $target = $event | where { $_.LogName -eq "Security" -and ($event.id -eq 4673) }
+            $target = $event | where { $_.LogName -eq "Security" -and ($_.id -eq 4673) }
             $maxtotalsensprivuse = 4
             $resultoutput = @{}
 
