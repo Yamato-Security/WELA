@@ -31,7 +31,7 @@ function Add-Rule {
                 $EventTimestampString = $record.TimeCreated.ToString($DateFormat)
                 $EventTimestampDateTime = [datetime]::ParseExact($EventTimestampString, $DateFormat, $null)
                 if (!$PasswordGuessDetection.FirstDetect) {
-                    $PasswordGuessDetection.FirstDetect = $EventTimestampString
+                    $PasswordGuessDetection.FirstDetect = [datetime]::ParseExact($EventTimestampString, $DateFormat, $null);
                     $PasswordGuessDetection.Count++;
                 }
                 else {

@@ -22,8 +22,8 @@ function Add-Rule {
                     $privileges = $eventXML.Event.EventData.Data[4]."#text"
                     if ($adminlogons.ContainsKey($username)) {
                         if (!($adminlogons.$username -Match $securityid)) {
-                            multipleadminlogons.Set_Item($username, 1)
-                            adminlogons.Set_Item($username, $adminlogons.$username)
+                            $multipleadminlogons.Set_Item($username, 1)
+                            $adminlogons.Set_Item($username, $adminlogons.$username)
                         }
                     }
                     else {
@@ -38,7 +38,7 @@ function Add-Rule {
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
                         Write-Host $result;
-Write-Host
+                        Write-Host
                     }
                 }
             }
