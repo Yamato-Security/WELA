@@ -97,7 +97,6 @@ function Check-Command() {
     if ($commandline.length -gt $minlength) {
         $text += "Long Command Line: greater than $minlength bytes`n"
     }
-    Write-Output "clineOutput-cline:" $commandline
     $text += (Check-Obfu $commandline)
     $text += (Check-Regex $commandline 0)
     $text += (Check-Creator $commandline $creator)
