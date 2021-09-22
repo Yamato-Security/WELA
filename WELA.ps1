@@ -1806,21 +1806,23 @@ foreach ( $LogFile in $evtxFiles ) {
     }
     
     if ( $LogonTimeline -eq $true ) {
-    
+        Write-host "callLogon Time!!" -ForegroundColor Red
         Create-LogonTimeline $UTCOffset
     
     }
 }
 
-foreach ($LogFile in $evtxFiles) {
-    $WineventFilter = @{}
-    $WineventFilter.Add( "Path", $LogFile ) 
-    write-host "execute rule to $LogFile"
-    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
-    foreach ($rule in $ruleStack.keys) {
-        # write-host "execute rule:$rule"
-        Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
-    }
+if ($ruleStack) {
+    foreach ($LogFile in $evtxFiles) {
+        $WineventFilter = @{}
+        $WineventFilter.Add( "Path", $LogFile ) 
+        write-host "execute rule to $LogFile"
+        $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
+        foreach ($rule in $ruleStack.keys) {
+            # write-host "execute rule:$rule"
+            Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
+        }
+    }    
 }
 
 Remove-Variable ruleStack
