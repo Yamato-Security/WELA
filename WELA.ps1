@@ -586,10 +586,7 @@ function Create-LogonTimeline {
 
         }
                       
-    }  
-
-    foreach ( $event in $logs ) {
-        
+    
         #Successful logon
 
         if ($event.Id -eq "4624") { 
@@ -749,80 +746,77 @@ function Create-LogonTimeline {
 
         }
 
-    }
 
-    #RDP logon
-    if ($logs.ProviderName -eq "Microsoft-Windows-TerminalServices-LocalSessionManager") {
+        #RDP logon
+        if ($logs.ProviderName -eq "Microsoft-Windows-TerminalServices-LocalSessionManager") {
 
-        if ($event.Id -eq "21" -or $event.Id -eq "25" ) {
+            if ($event.Id -eq "21" -or $event.Id -eq "25" ) {
 
-            $TotalLogonEvents++
+                $TotalLogonEvents++
 
-            $eventXML = [xml]$event.ToXml()
+                $eventXML = [xml]$event.ToXml()
                 
-            $msgTargetUserName = $eventXML.Event.UserData.EventXML.User
-            $msgTargetUserName = $msgTargetUserName.Split("\")[-1]
-            $msgIpAddress = $eventXML.Event.UserData.EventXML.Address
+                $msgTargetUserName = $eventXML.Event.UserData.EventXML.User
+                $msgTargetUserName = $msgTargetUserName.Split("\")[-1]
+                $msgIpAddress = $eventXML.Event.UserData.EventXML.Address
+                $msgWorkstationName = "-"
+                $msgAuthPackageName = "-"
+                $msgIpPort = "-"
+                $msgProcessName = "-"
                 
-            $msgWorkstationName = "-"
-            $msgAuthPackageName = "-"
-            $msgIpPort = "-"
-            $msgProcessName = "-"
-
-            if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
-                switch ( $event.Id ) {
-                    "21" {
-                        #RDP
-                        $Type10Logons++
-                        $msgLogonType = 10
-                    } 
-                    "25" {
-                        #RDP reconnect
-                        $Type7Logons++
-                        $msgLogonType = 7
-                    } 
-                }
+                if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
+                    switch ( $event.Id ) {
+                        "21" {
+                            #RDP
+                            $Type10Logons++
+                            $msgLogonType = 10
+                        } 
+                        "25" {
+                            #RDP reconnect
+                            $Type7Logons++
+                            $msgLogonType = 7
+                        } 
+                    }
                     
-                $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings                
+                    $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings                
 
-                if ( $UTC -eq $true ) {
-                    $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
+                    if ( $UTC -eq $true ) {
+                        $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
+                    }
+                    else {
+                        $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
+                    }
+                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )   
+                    $outputThisEvent = $TRUE
                 }
-                else {
-                    $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
-                }
-                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )   
-                $outputThisEvent = $TRUE
             }
         }
 
-    }
-        
-    if ($outputThisEvent -eq $TRUE ) {
+        if ($outputThisEvent -eq $TRUE ) {
+            $tempoutput = [Ordered]@{ 
+                $Create_LogonTimeline_Timezone          = $UTCOffset ;
+                $Create_LogonTimeline_LogonTime         = $LogonTimestampString ;
+                $Create_LogonTimeline_LogoffTime        = $LogoffTimestampString ;
+                $Create_LogonTimeline_ElapsedTime       = $ElapsedTimeOutput ;
+                $Create_LogonTimeline_Type              = "$msgLogonType - $msgLogonTypeReadable" ;
+                $Create_LogonTimeline_Auth              = $msgAuthPackageName ;
+                $Create_LogonTimeline_TargetUser        = $msgTargetUserName ;
+                $Create_LogonTimeline_isAdmin           = $isAdmin ;
+                $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
+                $Create_LogonTimeline_SourceIpAddress   = $msgIpAddress ;
+                $Create_LogonTimeline_SourceIpPort      = $msgIpPort ;
+                "Process Name"                          = $msgProcessName ;
+                $Create_LogonTimeline_LogonID           = $msgTargetLogonID
+            }
 
-        $tempoutput = [Ordered]@{ 
-            $Create_LogonTimeline_Timezone          = $UTCOffset ;
-            $Create_LogonTimeline_LogonTime         = $LogonTimestampString ;
-            $Create_LogonTimeline_LogoffTime        = $LogoffTimestampString ;
-            $Create_LogonTimeline_ElapsedTime       = $ElapsedTimeOutput ;
-            $Create_LogonTimeline_Type              = "$msgLogonType - $msgLogonTypeReadable" ;
-            $Create_LogonTimeline_Auth              = $msgAuthPackageName ;
-            $Create_LogonTimeline_TargetUser        = $msgTargetUserName ;
-            $Create_LogonTimeline_isAdmin           = $isAdmin ;
-            $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
-            $Create_LogonTimeline_SourceIpAddress   = $msgIpAddress ;
-            $Create_LogonTimeline_SourceIpPort      = $msgIpPort ;
-            "Process Name"                          = $msgProcessName ;
-            $Create_LogonTimeline_LogonID           = $msgTargetLogonID
+            if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
+            if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
+
+            $output += [pscustomobject]$tempoutput
+
+            $TotalFilteredLogons++
+
         }
-
-        if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
-        if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
-
-        $output += [pscustomobject]$tempoutput
-
-        $TotalFilteredLogons++
-
     }
 
     
