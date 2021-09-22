@@ -1806,7 +1806,7 @@ foreach ( $LogFile in $evtxFiles ) {
     }
     
     if ( $LogonTimeline -eq $true ) {
-        Write-host "callLogon Time!!" -ForegroundColor Red
+
         Create-LogonTimeline $UTCOffset
     
     }
