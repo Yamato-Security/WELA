@@ -1812,7 +1812,7 @@ foreach ( $LogFile in $evtxFiles ) {
     }
 }
 
-if ($ruleStack) {
+if ($ruleStack.Count -ne 0) {
     foreach ($LogFile in $evtxFiles) {
         $WineventFilter = @{}
         $WineventFilter.Add( "Path", $LogFile ) 
