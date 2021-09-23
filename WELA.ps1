@@ -488,7 +488,7 @@ function Create-LogonTimeline {
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
-
+        $outputThisEvent = $False
         # 4634 Logoff
         if ($event.Id -eq "4634") { 
             
