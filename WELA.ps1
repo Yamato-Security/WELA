@@ -164,7 +164,7 @@ function Logon-Number-To-String($msgLogonType) {
     return $msgLogonTypeReadable
 }
 
-function Is-Logon-Dangerous ( $msgLogonType ) {
+function Check-Logon-Dangerous ( $msgLogonType ) {
     switch ( $msgLogonType ) {
         "0" { $msgIsLogonDangerous = "" }
         "2" { $msgIsLogonDangerous = "(Dangerous! Credential information is stored in memory and maybe be stolen for account hijacking.)" }
@@ -1120,7 +1120,7 @@ function Create-Timeline {
         
                 $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
-                $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
+                $msgIsLogonDangerous = Check-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
             }
        
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
