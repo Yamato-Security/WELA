@@ -214,3 +214,50 @@ function Remove-Spaces($string) {
     $string = $string.trim() -Replace "\s+:", ":"
     return $string
 }
+
+function Get-RemoteComputerInfo {
+    $Computername = Read-Host $remoteAnalysis_getComputername
+    $trustedhosts = Get-Item WSMan:\localhost\client\trustedhosts
+    $policy = Get-ExecutionPolicy
+    If ( $policy -ne "RemoteSigned" ) {
+
+        Write-Host ""
+        Write-Host $Error_remoteAnalysis_InvalidExecutionPolicy -ForegroundColor White -BackgroundColor Red
+        Write-Host ""
+        Exit
+
+    }
+
+    If ($Computername -contains $trustedhosts.Value -or $trustedhosts.Value -eq "*"){
+
+        $creds = Get-Credential -Message $remoteAnalysis_getCredential
+        $Test = Test-WSMan -ComputerName $Computername -Credential $creds -Authentication Negotiate
+
+        If ( $Test -eq $NULL ) {
+
+            Write-Host ""
+            write-host "Error: Failed to run Test-WSMan." -ForegroundColor White -BackgroundColor Red
+            write-host "Warning: WinRM service on the remote computer may be stopped." -ForegroundColor Black -BackgroundColor Yellow
+            write-host "Warning: Either ComputerName or Credentials, or both, are wrong." -ForegroundColor Black -BackgroundColor Yellow
+            Write-Host ""
+            Exit
+
+        }
+        
+        $RemoteComputerInfo = @{
+            "Computername" = $Computername;
+            "Credential" = $creds
+        }
+        return $RemoteComputerInfo
+
+    }
+
+    else {
+
+        Write-Host ""
+        Write-Host $Error_remoteAnalysis_UnregisteredComputername -ForegroundColor White -BackgroundColor Red
+        Write-Host ""
+        Exit
+
+    }
+}
