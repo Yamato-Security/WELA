@@ -144,7 +144,7 @@ function Start-Detection {
     }
 }
 
-function Logon-Number-To-String($msgLogonType) {
+function Convert-Logon-Number-To-String($msgLogonType) {
     switch ( $msgLogonType ) {
         "0" { $msgLogonTypeReadable = "System" }
         "2" { $msgLogonTypeReadable = "Interactive" }
@@ -613,7 +613,7 @@ function Create-LogonTimeline {
 
             }
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
             $LogoffTimestampString = "" 
             $LogServiceShutdownTimeString = ""
 
@@ -778,7 +778,7 @@ function Create-LogonTimeline {
                         } 
                     }
                     
-                    $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings                
+                    $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
                     if ( $UTC -eq $true ) {
                         $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
@@ -1118,7 +1118,7 @@ function Create-Timeline {
                 }
                 $TotalPiecesOfData += 1
         
-                $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+                $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
                 $msgIsLogonDangerous = Check-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
             }
@@ -1258,7 +1258,7 @@ function Create-Timeline {
                 $TotalPiecesOfData += 1
             }
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
  
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
         
@@ -1376,7 +1376,7 @@ function Create-Timeline {
 
             $TotalPiecesOfData += 1
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
             <# Switching to checking status code and sub status code instead of failurereason for more granular info
             switch ( $msgFailureReason ) {
