@@ -820,10 +820,10 @@ function Create-LogonTimeline {
     }
 
     $LogEventDataReduction = "-"
-    if ($TotalLogs -ne 0) {
-        $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
+    if ($TotalLogonEvents -eq 0) {
+        return;
     }
-
+    $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
     $ProgramEndTime = Get-Date
     $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
     $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
@@ -1685,9 +1685,10 @@ function Create-Timeline {
 
     $GoodData = $TotalPiecesOfData - $LogNoise
     $LogEventDataReduction = "-"
-    if ($TotalLogs -ne 0) {
-        $LogEventDataReduction = [math]::Round( ( ($TotalLogs - $AlertedEvents) / $TotalLogs * 100 ), 1 )
+    if ($TotalLogs -eq 0) {
+        return;
     }
+    $LogEventDataReduction = [math]::Round( ( ($TotalLogs - $AlertedEvents) / $TotalLogs * 100 ), 1 )
     $PercentOfLogNoise = [math]::Round( ( $LogNoise / $TotalPiecesOfData * 100 ), 1 )
     $ProgramEndTime = Get-Date
     $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
