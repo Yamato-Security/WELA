@@ -408,7 +408,7 @@ function Create-EventIDStatistics {
     Write-Host
     Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
 
-    $ArrayWithHeader
+    $ArrayWithHeader | Format-Table *
 
 }
 
