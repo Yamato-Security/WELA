@@ -356,8 +356,8 @@ function Create-EventIDStatistics {
     }
 
     $WineventFilter.Add( "Path", $LogFile ) 
+    $filesize = Format-FileSize( (get-item $LogFile).length )
     Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
-    Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
 
     $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
     $eventlist = @{}
