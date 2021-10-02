@@ -40,8 +40,11 @@ function Add-Rule {
                         $PasswordGuessDetection.FirstDetect = $null 
                         $PasswordGuessDetection.Count = 0
                     }
-                    if ( $ElapsedTime -le $PasswordGuessTimeframeMinutes -and $PasswordGuessDetection.Count -ge $PasswordGuessCount -and $TimeBetweenEvents -gt 0 ) {    
-                        Write-Host "$EventTimestampString Alert! Password guess attack detected! Target User: $msgTargetUserName IP Address: $msgIpAddress (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
+                    if ( $ElapsedTime -le $PasswordGuessTimeframeMinutes -and $PasswordGuessDetection.Count -ge $PasswordGuessCount -and $TimeBetweenEvents -gt 0 ) {
+                        $result = Create-Obj $record $LogFile
+                        $result.Message = $detectedMessage
+                        $result.Results = "Target User: $msgTargetUserName IP Address: $msgIpAddress (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
+                        Write-Output $result | Format-Table * -Wrap
                         $PasswordGuessDetection.FirstDetect = $PasswordGuessDetection.FirstDetect.Addminutes($PasswordGuessTimeframeMinutes)
                         $PasswordGuessDetection.Count = 0
                     } 

@@ -18,9 +18,10 @@ function Add-Rule {
                 Write-Host $detectedMessage;
             }
             foreach ($record in $target) {
-                $result = $record.message
-                Write-Host $result;
-Write-Host
+                $result = Create-Obj $record $LogFile
+                $result.Message = $record.message
+                Write-Output $result | Format-Table * -Wrap;
+                Write-Host
             }
         };
         . Search-DetectableEvents $args;

@@ -20,13 +20,13 @@ function Add-Rule {
                     # Remove every line after the "Host Application = " line.
                     $commandline = $commandline -Replace "(?ms)`n.*$", ""
                     if ($commandline) {
-                        $obj = Create-Obj -event $record                            
+                        $obj = Create-Obj -event $record $LogFile
                         $result = Check-Command -EventID 4103 -commandline $commandline -obj $obj
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-Host $result;
-Write-Host.Result
+                        Write-Output $result | Format-Table * -Wrap;
+                        Write-Host
                     }
                 }
             }

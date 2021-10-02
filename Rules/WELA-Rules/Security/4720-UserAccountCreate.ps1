@@ -14,17 +14,19 @@ function Add-Rule {
 
             if ($target) {
                 foreach ($record in $target) {
+                    $result = Create-Obj $record $LogFile
                     $eventXML = [xml]$record.ToXml();
                     $username = $eventXML.Event.EventData.Data[0]."#text"
                     $securityid = $eventXML.Event.EventData.Data[2]."#text"
-                    $result = "New User Created"
-                    $result += "Username: $username`n"
-                    $result += "User SID: $securityid`n"
+                    $result.Message = $detectedMessage
+                    $result.Results = "New User Created"
+                    $result.Results += "Username: $username`n"
+                    $result.Results += "User SID: $securityid`n"
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-Host $result;
-Write-Host
+                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Host
                 }
             }
         };

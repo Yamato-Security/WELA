@@ -17,7 +17,9 @@ function Add-Rule {
                 $eventXML = [xml] $record.ToXml()
                 if ($eventXML.Event.EventData.Data[6]."#text" -eq "false") {
                     $image = $eventXML.Event.EventData.Data[3]."#text"
-                    $result = "Loaded by: $image"
+                    $result = Create-Obj $record $LogFile
+                    $result.Message = $detectedMessage
+                    $result.Results = "Loaded by: $image"
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;

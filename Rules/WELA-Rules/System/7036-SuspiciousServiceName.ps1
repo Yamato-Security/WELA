@@ -17,13 +17,15 @@ function Add-Rule {
                 $servicename = $eventXML.Event.EventData.Data[0]."#text"
                 $text = (Check-Regex $servicename 1)
                 if ($text) {
-                    $result = "Service name: $servicename`n"
-                    $result += $text
+                    $result = Create-Obj $record $LogFile
+                    $result.Message = $detectedMessage
+                    $result.Results = "Service name: $servicename`n"
+                    $result.Results += $text
                     
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-Output $result
+                    Write-Output $result | Format-Table * -Wrap;
                 }
             }
         };

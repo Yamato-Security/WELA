@@ -15,19 +15,20 @@ function Add-Rule {
                 $servicename = $eventXML.Event.EventData.Data[0]."#text"
                 $action = $eventXML.Event.EventData.Data[1]."#text"
                 if ($servicename -ccontains "Windows Event Log") {
-                    $result = "Service name: $servicename`n"
-                    $result += $text
+                    $result = Create-Obj $record $LogFile
+                    $result.Results = "Service name: $servicename`n"
+                    $result.Results += $text
                     if ($action -eq "disabled") {
-                        $result += "Selective event log manipulation may follow this event."
+                        $result.Message += "Selective event log manipulation may follow this event."
                     }
                     elseIf ($action -eq "auto start") {
-                        $result += "Selective event log manipulation may precede this event."
+                        $result.Message += "Selective event log manipulation may precede this event."
                     }
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-Host $result;
-Write-Host
+                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Host
                 }
             }
         };

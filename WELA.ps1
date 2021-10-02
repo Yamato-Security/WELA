@@ -1821,6 +1821,9 @@ foreach ( $LogFile in $evtxFiles ) {
     }
 }
 
+$progcnt = 0;
+$maxprogcnt = $evtxFiles.Count - 1
+$interval = $maxprogcnt * 0.1
 if ($ruleStack.Count -ne 0) {
     foreach ($LogFile in $evtxFiles) {
         $WineventFilter = @{}
@@ -1831,7 +1834,11 @@ if ($ruleStack.Count -ne 0) {
             # write-host "execute rule:$rule"
             Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
         }
-    }    
+        if ($progcnt % $interval -eq 0) {
+            Write-Host "Check Detect Rule... Checked File($progcnt of $maxprogcnt)" -ForegroundColor Black -BackgroundColor Green
+        }
+        $progcnt += 1;
+    }
 }
 
 Remove-Variable ruleStack

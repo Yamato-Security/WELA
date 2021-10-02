@@ -20,13 +20,15 @@ function Add-Rule {
                 # Check for suspicious service name
                 $text = (Check-Regex $servicename 1)
                 if ($text) {
-                    $result = "Service name: $servicename`n"
-                    $result += $text 
+                    $result = Create-Obj $record $LogFile
+                    $result.Command = $commandline
+                    $result.Results = "Service name: $servicename`n"
+                    $result.Results += $text 
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-Host $result;
-Write-Host
+                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Host
                 }
                 # Check for suspicious cmd
                 if ($commandline) {
@@ -39,8 +41,8 @@ Write-Host
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-Host $result;
-Write-Host
+                        Write-Output $result | Format-Table * -Wrap;
+                        Write-Host
                     }
                 }
             }

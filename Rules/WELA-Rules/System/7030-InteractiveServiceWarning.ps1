@@ -20,12 +20,13 @@ function Add-Rule {
             foreach ($record in $target) {
                 $eventXML = [xml]$record.ToXml();
                 $servicename = $eventXML.Event.EventData.Data."#text"
-                $result = "Service name: $servicename`n"
-                $result += "Malware (and some third party software) trigger this warning"
+                $result = Create-Obj $record $Logfile
+                $result.Results = "Service name: $servicename`n"
+                $result.Results += "Malware (and some third party software) trigger this warning"
                 # Check for suspicious service name
-                $result += (Check-Regex $servicename 1)
-                Write-Host $result;
-Write-Host
+                $result.Results += (Check-Regex $servicename 1)
+                Write-Output $result | Format-Table * -Wrap;
+                Write-Host
             }
         };
         . Search-DetectableEvents $args;

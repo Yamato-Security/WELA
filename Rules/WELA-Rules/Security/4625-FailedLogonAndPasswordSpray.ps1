@@ -15,6 +15,7 @@ function Add-Rule {
             if ($target) {
                 $totalfailedaccounts = 0;
                 $failedlogons = @{}
+                $failedLogonTriedTimeRecord = @{}
                 foreach ($record in $target) {
                     $eventXML = [xml]$record.ToXml();
                     $username = $eventXML.Event.EventData.Data[5]."#text"
@@ -25,33 +26,38 @@ function Add-Rule {
                         $failedlogons[$username] = 1
                         $totalfailedaccounts += 1
                     }
+                    $failedLogonTriedTimeRecord[$username] = $record
                 }
                 $detectcount = 0
                 foreach ($username in $failedlogons.Keys) {
-                    if ($count -gt $maxfailedlogons) {
+                    if ($detectcount -gt $maxfailedlogons) {
                         if ($detectcount -eq 0) {
                             Write-Host
                             Write-Host "Detected! RuleName:$ruleName";
                             Write-Host $detectedMessage;
                         }
-                    
-                        $result = "Username: $username`n"
-                        $result += "Total logon failures: $count"
-                        Write-Host $result;
-Write-Host    
+                        $result = Create-Obj $failedLogonTriedTimeRecord[$usename] $LogFile
+                        $result.Message = $detectedMessage
+                        $result.Results = "Username: $username`n"
+                        $result.Results += "Total logon failures: $detectcount"
+                        Write-Output $result | Format-Table * -Wrap;
+                        Write-Host    
                         $detectcount += 1
                     }
                 }
                 # Password spraying:
                 if (($target.Count -gt $maxfailedlogons) -and ($target.Count -gt 1)) {
-                    $result = "Total accounts: $totalfailedaccounts`n"
-                    $result += "Total logon failures: $totalfailedlogons`n"
+                    $result = Create-Obj -logname $LogFile;
+                    $result.Message = $detectedMessage
+                    $result.EventID = 4625
+                    $result.Results = "Total accounts: $totalfailedaccounts`n"
+                    $result.Results += "Total logon failures: $totalfailedlogons`n"
 
                     Write-Host 
                     Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;                    
-                    Write-Host $result;
-Write-Host
+                    Write-Host $detectedMessage;
+                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Host
                 }
             }
         };

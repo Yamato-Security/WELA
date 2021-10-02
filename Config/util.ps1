@@ -66,14 +66,27 @@ $whitelist = Get-Content ".\Config\whitelist.txt" | Select-String '^[^#]' | Conv
 # Custom reporting object:
 function Create-Obj {
     param($event, $logname)
-    $obj = [PSCustomObject]@{
-        Date    = $event.TimeCreated
-        Log     = "test/"#$logname
-        EventID = $event.id
-        Message = $event.message
-        Results = ""
-        Command = ""
-        Decoded = ""
+    if ($event) {
+        $obj = [PSCustomObject]@{
+            Date    = $event.TimeCreated
+            Log     = $logname
+            EventID = $event.id
+            Message = $event.message
+            Results = ""
+            Command = ""
+            Decoded = ""
+        }
+    }
+    else {
+        $obj = [PSCustomObject]@{
+            Date    = ""
+            Log     = $logname
+            EventID = ""
+            Message = ""
+            Results = ""
+            Command = ""
+            Decoded = ""
+        }
     }
     return $obj
 }

@@ -16,20 +16,22 @@ function Add-Rule {
                     $eventXML = [xml]$record.ToXml();
                     $groupname = $eventXML.Event.EventData.Data[2]."#text"
                     if ($groupname -eq "Administrators") {
+                        $result = Create-Obj $record $LogFile
                         $username = $eventXML.Event.EventData.Data[0]."#text"
                         $securityid = $eventXML.Event.EventData.Data[1]."#text"
+                        $result.Message = $detectedMessage
                         switch ($record.id) {
-                            4728 { $result = "User added to global $groupname group" }
-                            4732 { $result = "User added to local $groupname group" }
-                            4756 { $result = "User added to universal $groupname group" }
+                            4728 { $result.Results = "User added to global $groupname group`n" }
+                            4732 { $result.Results = "User added to local $groupname group`n" }
+                            4756 { $result.Results = "User added to universal $groupname group`n" }
                         }
-                        $result += "Username: $username`n"
-                        $result += "User SID: $securityid`n"   
+                        $result.Results += "Username: $username`n"
+                        $result.Results += "User SID: $securityid`n"   
                         Write-Host
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-Host $result;
-Write-Host    
+                        Write-Output $result | Format-Table * -Wrap;
+                        Write-Host    
                     }
                 }
                     

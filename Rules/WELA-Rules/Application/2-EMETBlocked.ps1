@@ -12,23 +12,25 @@ function Add-Rule {
             $detectedMessage = "detected EMET blocked on DeepBlueCLI Rule";
             foreach ($record in $target) {
                 if ($record.message) {
+                    $result = Create-Obj $record $LogFile
                     $array = $record.message -split '\n' # Split each line of the message into an array
                     $text = $array[0]
                     $application = Remove-Spaces($array[3])
                     $command = $application -Replace "^Application: ", ""
                     $username = Remove-Spaces($array[4])
-                    $result = "$text`n"
-                    $result += "command: $command`n"
-                    $result += "$username`n" 
+                    $result.Message = $detectedMessage
+                    $result.Command = "$command"
+                    $result.Results = "$text`n"
+                    $result.Results += "$username`n" 
                     Write-Host
                     Write-Host "Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-Host $result;
-Write-Host
-    
+                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Host
                 }
                 else {
                     Write-Host "Warning: EMET Message field is blank. Install EMET locally to see full details of this alert"
+                    Write-Host
                 }
             }
         };

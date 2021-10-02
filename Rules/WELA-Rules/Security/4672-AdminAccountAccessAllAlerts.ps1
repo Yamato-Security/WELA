@@ -10,7 +10,7 @@ function Add-Rule {
             $ruleName = "4672-AdminAccountAccessAllAlerts";
             $detectedMessage = "Logon with SeDebugPrivilege (admin access)`nSpecial privileges assgned to new logons on DeepBlueCLI Rule";
             $target = $event | where { $_.ID -eq 4672 -and $_.LogName -eq "Security" -and $_.message -Match "SeDebugPrivilege" }
-
+            $RecentLogonTimeRecord = @{}
             $multipleadminlogons = @{}
             $adminlogons = @{}
             if ($target) {
@@ -28,16 +28,20 @@ function Add-Rule {
                     }
                     else {
                         $adminlogons.add($username, $securityid)
-                    }                   
+                    }
+                    $RecentLogonTimeRecord[$username] = $record
                 }
                 foreach ($usernameKey in $adminlogons.Keys) {
                     if ($multipleadminlogons.$usernameKey) {
-                        $result = "Multiple admin logons for one account"
-                        $result += "Username: $username`n"
-                        $result += "User SID Access Count: " + $securityid.split().Count
+
+                        $result = Create-Obj $RecentLogonTimeRecord[$usernameKey] $LofFile
+                        $result.Message = $detectedMessage
+                        $result.Results = "Multiple admin logons for one account"
+                        $result.Results += "Username: $username`n"
+                        $result.Results += "User SID Access Count: " + $securityid.split().Count
                         Write-Host "Detected! RuleName:$ruleName";
                         Write-Host $detectedMessage;
-                        Write-Host $result;
+                        Write-Output $result | Format-Table * -Wrap;
                         Write-Host
                     }
                 }

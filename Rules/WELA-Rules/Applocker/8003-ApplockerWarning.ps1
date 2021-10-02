@@ -17,8 +17,13 @@ function Add-Rule {
                 Write-Host $detectedMessage;
             }
             foreach ($record in $target) {
-                Write-Host $result;
-Write-Host
+                $result = Create-Obj $record $LogFile
+                $result.Message = $detectedMessage
+                $command = $event.message -Replace " was .*$", ""
+                $result.Command = $command
+                $result.Results = $record.message
+                Write-Output $result | Format-Table * -Wrap;
+                Write-Host
             }
         };
         . Search-DetectableEvents $args;

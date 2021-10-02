@@ -20,7 +20,9 @@ function Add-Rule {
                 $domainname = $eventXML.Event.EventData.Data[2]."#text"
                 $key = "$username\\$domainname"
                 if (!$resultoutput.ContainsKey($key)) {
-                    $resultoutput.Add($key, "Username: $username`nDomain Name:$domainname`n")
+                    $result = Create-Obj $record $LogFile
+                    $result.Results = "Username: $username`nDomain Name:$domainname`n"
+                    $resultoutput.Add($key, $result)
                 }
             }
             if ($target.Count -ge $maxtotalsensprivuse) {
@@ -28,8 +30,8 @@ function Add-Rule {
                 Write-Host "Detected! RuleName:$ruleName";
                 Write-Host $detectedMessage;
                 foreach ($result in $resultoutput.Values) {
-                    Write-Host $result;
-Write-Host
+                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Host
                 }
             }
         };

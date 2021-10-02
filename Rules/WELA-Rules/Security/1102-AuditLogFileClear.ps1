@@ -14,16 +14,17 @@ function Add-Rule {
             $target = $event | where { $_.LogName -eq "Security" -and $_.id -eq 1102 }
             if ($target) {
                 foreach ($record in $target) {
+                    $result = Create-Obj $record $LogFile
                     $array = $record.message -split '\n' # Split each line of the message into an array
                     $user = Remove-Spaces($array[3])
-                    $result = "The Audit log was cleared."
+                    $result.Message = $detectedMessage
                     $eventTimestampString = $record.TimeCreated.ToString($DateFormat)
-                    $result += $user
+                    $result.Results = "User:$user"
                     Write-Host
                     Write-Host "$eventTimestampString Detected! RuleName:$ruleName";
                     Write-Host $detectedMessage;
-                    Write-Host $result;
-Write-Host    
+                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Host    
                 }
             }
         };
