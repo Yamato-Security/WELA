@@ -9,7 +9,7 @@ function Add-Rule {
             )
             $ruleName = "4103-PowerShellExecute";
             $detectedMessage = "detected PowerShell execute on DeepBlueCLI Rule";
-            $target = $event | where { $_.ID -eq 4103 -and $_.LogName -eq "Microsoft-Windows-PowerShell" }
+            $target = $event | where { $_.ID -eq 4103 -and $_.LogName -eq "Microsoft-Windows-PowerShell/Operational" }
 
             foreach ($record in $target) {
                 $eventXML = [xml] $record.ToXml()
