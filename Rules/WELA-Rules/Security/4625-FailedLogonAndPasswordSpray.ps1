@@ -26,24 +26,26 @@ function Add-Rule {
                         $failedlogons[$username] = 1
                         $totalfailedaccounts += 1
                     }
+                    $totalfailedlogons += 1
                     $failedLogonTriedTimeRecord[$username] = $record
                 }
                 $detectcount = 0
                 foreach ($username in $failedlogons.Keys) {
-                    if ($detectcount -gt $maxfailedlogons) {
+                    if ($failedlogons[$username] -gt $maxfailedlogons) {
                         if ($detectcount -eq 0) {
                             Write-Host
                             Write-Host "Detected! RuleName:$ruleName";
                             Write-Host $detectedMessage;
                         }
-                        $result = Create-Obj $failedLogonTriedTimeRecord[$usename] $LogFile
+                        $cnt = $failedlogons[$username]
+                        $result = Create-Obj $failedLogonTriedTimeRecord[$username] $LogFile
                         $result.Message = $detectedMessage
                         $result.Results = "Username: $username`n"
-                        $result.Results += "Total logon failures: $detectcount"
+                        $result.Results += "Total logon failures: $cnt"
                         Write-Output $result | Format-Table * -Wrap;
                         Write-Host    
-                        $detectcount += 1
                     }
+                    $detectcount += 1
                 }
                 # Password spraying:
                 if (($target.Count -gt $maxfailedlogons) -and ($target.Count -gt 1)) {
