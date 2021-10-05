@@ -1,0 +1,27 @@
+﻿# Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Function Get-ADRExcelComOb.*" -or $_.message -match "ScriptBlockText.*.*ADRecon-Report.xlsx.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+
+function Add-Rule {
+
+    $ruleName = "powershell_adrecon_execution";
+    $detectRule = {
+        
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+            
+            $ruleName = "powershell_adrecon_execution";
+            $detectedMessage = " Detects execution of ADRecon.ps1 for AD reconnaissance which has been reported to be actively used by FIN7 ";
+            $result = $event | where { ($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Function Get-ADRExcelComOb.*" -or $_.message -match "ScriptBlockText.*.*ADRecon-Report.xlsx.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            if ($result.Count -ne 0) {
+                Write-Host
+                Write-Host "Detected! RuleName:$ruleName";
+                Write-Host $detectedMessage;
+                Write-Host $result;
+                Write-Host
+            }
+        };
+        . Search-DetectableEvents $args;
+    };
+    $ruleStack.Add($ruleName, $detectRule);
+}

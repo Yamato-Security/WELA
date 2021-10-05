@@ -1,0 +1,27 @@
+
+
+function Add-Rule {
+    $ruleName = "!filename!";
+    $detectedMessage = "!detection!"
+
+    $detectRule = {
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+            $results = @();
+            $results += $event !firstpipe!;
+            foreach ($result in $results) {
+                if ($result.Count -ne 0) {
+                    Write-Host
+                    Write-Host "Detected! RuleName:$ruleName";
+                    Write-Host $result
+                    Write-Host $detectedMessage;    
+                }
+            }
+            
+        };
+        Search-DetectableEvents $args[0];
+    };
+    $Global:ruleStack.Add($ruleName, $detectRule);
+}

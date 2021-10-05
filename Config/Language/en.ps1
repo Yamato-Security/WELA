@@ -324,7 +324,10 @@ $Create_LogonTimeline_Type12 = "Type 12 CachedRemoteInteractive (Ex: RDP with ca
 $Create_LogonTimeline_Type13 = "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC):"
 $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
+$Detect_ProcessingDetectionMessage = "Processing rule-base detection...`n"
 
+$Info_GetEventNoMatch = "Info:No events were found that match in Get-WinEvent."
+$Warn_GetEvent = "Warning:Get-WinEvent error record skip."
 $Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
 $Error_InCompatible_LiveAnalysisAndLogFile = "Error: you cannot specify -LiveAnalysis and -LogFile at the same time."
 $Error_InCompatible_LogDirAndFile = "Error：you cannot specify -LogDirectory and -LogFile at the same time." 
@@ -333,14 +336,22 @@ $Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Admi
 $Error_NoSaveOutputWithCSV = "Error: you need to specify -SaveOutput"
 $Error_NoNeedSaveOutputWithGUI = "Error: you cannot output to GUI with the -SaveOutput parameter"
 
+#Remote live analysis
+$remoteAnalysis_getComputername = "Please enter a remote machine name (IP address or Hostname) "
+$remoteAnalysis_getCredential = "Please enter the remote computer credential."
+$Error_remoteAnalysis_InvalidExecutionPolicy = "Error: ExecutionPolicy must be ""RemoteSigned""."
+$Error_remoteAnalysis_UnregisteredComputername = "Error: you need to registered this remote computer in trustedhosts."
+$Error_remoteAnalysis_FailedTestWSMan = "Error: Failed to run Test-WSMan."
+$Warn_remoteAnalysis_Stopped_WinRMservice = "Warning: WinRM service on the remote computer may be stopped."
+$Warn_remoteAnalysis_wrongRemoteComputerInfo = "Warning: Either ComputerName or Credentials, or both, are wrong."
 
 #function Show-Contributors
 $Show_Contributors =
 "Contributors:
 
-oginoPmP - Developer
-DustInDark - Localization, Japanese Translations
-Tsubokku - Japanese Translations
+ogino(GitHub:@oginoPmP) - Developer
+DustInDark(GitHub:@hitenkoku) - Developer, Localization, Japanese Translations
+Tsubokku(twitter: @ytsuboi0322) - Japanese Translations
 
 Please contribute to this project for fame and glory!
 "
@@ -395,6 +406,10 @@ function Show-Help {
 
     Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if the logs are from a DC"
+
+    Write-Host "   -UseDetectRule <preset-rule | path-to-ruledirectory>(Default: preset-rule='0')" -NoNewline -ForegroundColor Green
+    Write-Host "：Specify detected event output on Rule Base"
+    Write-Host "   preset-rule| 0:None 1: DeepBlueCLI 2:SIGMA all:all-preset"
 
     Write-Host 
     Write-Host "Output Options:"

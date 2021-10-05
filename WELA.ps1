@@ -90,6 +90,7 @@ param (
     [switch]$IsDC,
     [switch]$ShowLogonID,
     [switch]$LiveAnalysis,
+    [switch]$RemoteLiveAnalysis,
     [string]$LogFile = "",
     [string]$LogDirectory = "",
     [switch]$ShowContributors,
@@ -100,9 +101,11 @@ param (
     [switch]$OutputCSV,
     [switch]$UTC,
     [switch]$HideTimezone,
-    [switch]$QuietLogo
+    [switch]$QuietLogo,
+    [string]$UseDetectRules = "0"
 )
 
+$ruleStack = @{};
 $DisplayTimezone = !($HideTimezone);
 
 if (!$QuietLogo) {
@@ -111,16 +114,38 @@ if (!$QuietLogo) {
 
 $ProgramStartTime = Get-Date
 
+Import-Module './Config/util.ps1' -Force ;
 
-#Functions:
-function Show-Contributors {
-    Write-Host 
-    Write-Host $Show_Contributors -ForegroundColor Cyan
-    Write-Host
+
+# Read Rules
+switch ($UseDetectRules) {
+    "0" { break; }
+    "1" { 
+        Get-ChildItem -Path './Rules/WELA-Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
+        break;
+    }
+    "2" {
+        Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
+        break;
+    }
+    "all" {
+        Get-ChildItem -Path './Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
+        break;
+    }
+    Default {}
 }
 
+function Start-Detection {
+    param(
+        $LogFilePath
+    )
+    
+    foreach ($rule in $ruleStack.Values) {
+        Invoke-Command $rule -ArgumentList $LogFilePath;
+    }
+}
 
-function Logon-Number-To-String($msgLogonType) {
+function Convert-Logon-Number-To-String($msgLogonType) {
     switch ( $msgLogonType ) {
         "0" { $msgLogonTypeReadable = "System" }
         "2" { $msgLogonTypeReadable = "Interactive" }
@@ -140,7 +165,7 @@ function Logon-Number-To-String($msgLogonType) {
     return $msgLogonTypeReadable
 }
 
-function Is-Logon-Dangerous ( $msgLogonType ) {
+function Check-Logon-Dangerous ( $msgLogonType ) {
     switch ( $msgLogonType ) {
         "0" { $msgIsLogonDangerous = "" }
         "2" { $msgIsLogonDangerous = "(Dangerous! Credential information is stored in memory and maybe be stolen for account hijacking.)" }
@@ -160,20 +185,7 @@ function Is-Logon-Dangerous ( $msgLogonType ) {
     return $msgIsLogonDangerous
 }
 
-Function Format-FileSize {
-    Param ([int]$size)
-    If ($size -gt 1TB) { [string]::Format("{0:0.00} TB", $size / 1TB) }
-    ElseIf ($size -gt 1GB) { [string]::Format("{0:0.00} GB", $size / 1GB) }
-    ElseIf ($size -gt 1MB) { [string]::Format("{0:0.00} MB", $size / 1MB) }
-    ElseIf ($size -gt 1KB) { [string]::Format("{0:0.00} kB", $size / 1KB) }
-    ElseIf ($size -gt 0) { [string]::Format("{0:0.00} B", $size) }
-    Else { "" }
-}
 
-function Check-Administrator {  
-    $user = [Security.Principal.WindowsIdentity]::GetCurrent();
-    (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)  
-}
 
 
 #Global variables
@@ -221,6 +233,12 @@ $TotalPiecesOfData = 0
 $AlertedEvents = 0
 $SkippedLogs = 0
 $TotalLogs = 0
+
+$RemoteComputerInfo = @{
+    "RemoteLiveAnalysis" = $RemoteLiveAnalysis;
+    "Computername" = "";
+    "Credential" = ""
+}
 
 $HostLanguage = Get-WinSystemLocale | Select-Object Name # en-US, ja-JP, etc..
 
@@ -345,28 +363,21 @@ function Create-EventIDStatistics {
     }
 
     $WineventFilter.Add( "Path", $LogFile ) 
-    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
+
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
     $eventlist = @{}
-    $TotalNumberOfLogs = 0
+    $TotalNumberOfLogs = $logs.Count
 
     foreach ( $event in $logs ) {
-
         $id = $event.id.toString()
-
         if ( $eventlist[$id] -eq $null ) {
-
             $eventlist[$id] = 1
-
         } 
-        
         else {
-
             $eventlist[$id] += 1
-
         }
-
-        $TotalNumberOfLogs++
-
     }
 
     #Print results        
@@ -404,7 +415,7 @@ function Create-EventIDStatistics {
     Write-Host
     Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
 
-    $ArrayWithHeader
+    $ArrayWithHeader | Format-Table *
 
 }
 
@@ -478,7 +489,7 @@ function Create-LogonTimeline {
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
-    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
     $eventlist = @{}
     $TotalNumberOfLogs = 0
 
@@ -487,7 +498,7 @@ function Create-LogonTimeline {
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
-
+        $outputThisEvent = $False
         # 4634 Logoff
         if ($event.Id -eq "4634") { 
             
@@ -585,12 +596,7 @@ function Create-LogonTimeline {
 
         }
                       
-    }  
-
-    foreach ( $event in $logs ) {
-        
-        $outputThisEvent = $FALSE
-
+    
         #Successful logon
 
         if ($event.Id -eq "4624") { 
@@ -617,7 +623,7 @@ function Create-LogonTimeline {
 
             }
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
             $LogoffTimestampString = "" 
             $LogServiceShutdownTimeString = ""
 
@@ -744,12 +750,12 @@ function Create-LogonTimeline {
             $LogonTimestampDateTime = [datetime]::ParseExact($LogonTimestampString, $DateFormat, $null)
             $LogoffTimestampString = $Create_LogonTimeline_NoLogoffEvent # "No logoff event"
 
-            if ($msgTargetUserName[-1] -ne "$") {
-                $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )
-                $outputThisEvent = $TRUE
-            }
+            $tempoutput = [Ordered]@{ $Create_LogonTimeline_Timezone = $UTCOffset ; $Create_LogonTimeline_LogonTime = $LogonTimestampString ; $Create_LogonTimeline_LogoffTime = $LogoffTimestampString ; $Create_LogonTimeline_ElapsedTime = $ElapsedTimeOutput ; $Create_LogonTimeline_Type = "$msgLogonType - $msgLogonTypeReadable" ; $Create_LogonTimeline_Auth = $msgAuthPackageName ; $Create_LogonTimeline_TargetUser = $msgTargetUserName ; $Create_LogonTimeline_isAdmin = $isAdmin ; $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ; $Create_LogonTimeline_SourceIpAddress = $msgIpAddress ; $Create_LogonTimeline_SourceIpPort = $msgIpPort ; "Process Name" = $msgProcessName ; $Create_LogonTimeline_LogonID = $msgTargetLogonID }
+                
+            $outputThisEvent = $TRUE
 
         }
+
 
         #RDP logon
         if ($logs.ProviderName -eq "Microsoft-Windows-TerminalServices-LocalSessionManager") {
@@ -763,12 +769,11 @@ function Create-LogonTimeline {
                 $msgTargetUserName = $eventXML.Event.UserData.EventXML.User
                 $msgTargetUserName = $msgTargetUserName.Split("\")[-1]
                 $msgIpAddress = $eventXML.Event.UserData.EventXML.Address
-                
                 $msgWorkstationName = "-"
                 $msgAuthPackageName = "-"
                 $msgIpPort = "-"
                 $msgProcessName = "-"
-
+                
                 if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
                     switch ( $event.Id ) {
                         "21" {
@@ -783,7 +788,7 @@ function Create-LogonTimeline {
                         } 
                     }
                     
-                    $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings                
+                    $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
                     if ( $UTC -eq $true ) {
                         $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
@@ -791,15 +796,13 @@ function Create-LogonTimeline {
                     else {
                         $LogonTimestampString = $event.TimeCreated.ToString($DateFormat) 
                     }
-                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )                    
+                    $isAdmin = $AdminLogonArray.Contains( $msgTargetUserName )   
                     $outputThisEvent = $TRUE
                 }
             }
-
         }
-        
-        if ($outputThisEvent -eq $TRUE ) {
 
+        if ($outputThisEvent -eq $TRUE ) {
             $tempoutput = [Ordered]@{ 
                 $Create_LogonTimeline_Timezone          = $UTCOffset ;
                 $Create_LogonTimeline_LogonTime         = $LogonTimestampString ;
@@ -824,11 +827,13 @@ function Create-LogonTimeline {
             $TotalFilteredLogons++
 
         }
-           
     }
-    
-    $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
 
+    $LogEventDataReduction = "-"
+    if ($TotalLogonEvents -eq 0) {
+        return;
+    }
+    $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
     $ProgramEndTime = Get-Date
     $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
     $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
@@ -939,43 +944,42 @@ function Create-LogonTimeline {
 
         }
 
-        if ( $OutputCSV -eq $true ) {
+    }
 
-            $output | Export-Csv $SaveOutput
+    if ( $OutputCSV -eq $true ) {
 
-        }
-        Else {
-
-            $output | Format-Table | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Total_Logon_Event_Records $TotalLogonEvents" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Data_Reduction $LogEventDataReduction%" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Total_Filtered_Logons $TotalFilteredLogons" | Out-File $SaveOutput -Append
-            Write-Output "" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type0 $Type0Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type2 $Type2Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type3 $Type3Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type4 $Type4Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type5 $Type5Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type7 $Type7Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type8 $Type8Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type9 $Type9Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type10 $Type10Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type11 $Type11Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type12 $Type12Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_Type13 $Type13Logons" | Out-File $SaveOutput -Append
-            Write-Output "$Create_LogonTimeline_TypeOther $OtherTypeLogon" | Out-File $SaveOutput -Append
-            Write-Output "" | Out-File $SaveOutput -Append
-
-        }
+        $output | Export-Csv $SaveOutput
 
     }
-        
+    Else {
+        if ($SaveOutput) {
+            $output | Format-Table | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Total_Logon_Event_Records $TotalLogonEvents" | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Data_Reduction $LogEventDataReduction%"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Total_Filtered_Logons $TotalFilteredLogons"  | Out-File $SaveOutput -Append
+            Write-Output ""  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type0 $Type0Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type2 $Type2Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type3 $Type3Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type4 $Type4Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type5 $Type5Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type7 $Type7Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type8 $Type8Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type9 $Type9Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type10 $Type10Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type11 $Type11Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type12 $Type12Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_Type13 $Type13Logons"  | Out-File $SaveOutput -Append
+            Write-Output "$Create_LogonTimeline_TypeOther $OtherTypeLogon"  | Out-File $SaveOutput -Append
+            Write-Output ""  | Out-File $SaveOutput -Append
+        }
+    }
 }
 
 function Create-Timeline {
 
     $filter = "@{ Path=""$LogFile""; ID=$EventIDsToAnalyze }"
-    $filter2 = "@{Path = ""$LogFile"" }"
+
     Write-Host
     Write-Host "Creating timeline for $LogFile"
     $filesize = Format-FileSize( (get-item $LogFile).length )
@@ -993,17 +997,7 @@ function Create-Timeline {
 
     Write-Host
 
-    try {
-        $logs = iex "Get-WinEvent $filter -Oldest -ErrorAction Stop"
-
-    }
-    catch {
-        Write-Host "Get-WinEvent $filter -ErrorAction Stop"
-        Write-Host "Get-WinEvent error: " $_.Exception.Message "`n"
-        Write-Host "Exiting...`n"
-        exit
-    }
-
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
 
     #Start reading in the logs.
     foreach ($event in $logs) {
@@ -1136,9 +1130,9 @@ function Create-Timeline {
                 }
                 $TotalPiecesOfData += 1
         
-                $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+                $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
-                $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
+                $msgIsLogonDangerous = Check-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
             }
        
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
@@ -1276,7 +1270,7 @@ function Create-Timeline {
                 $TotalPiecesOfData += 1
             }
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
  
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
         
@@ -1394,7 +1388,7 @@ function Create-Timeline {
 
             $TotalPiecesOfData += 1
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
             <# Switching to checking status code and sub status code instead of failurereason for more granular info
             switch ( $msgFailureReason ) {
@@ -1700,6 +1694,10 @@ function Create-Timeline {
     }
 
     $GoodData = $TotalPiecesOfData - $LogNoise
+    $LogEventDataReduction = "-"
+    if ($TotalLogs -eq 0) {
+        return;
+    }
     $LogEventDataReduction = [math]::Round( ( ($TotalLogs - $AlertedEvents) / $TotalLogs * 100 ), 1 )
     $PercentOfLogNoise = [math]::Round( ( $LogNoise / $TotalPiecesOfData * 100 ), 1 )
     $ProgramEndTime = Get-Date
@@ -1758,14 +1756,14 @@ if ( $ShowContributors -eq $true ) {
 }
 
 
-if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
+if ( ($LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) -and $IsDC -eq $true ) {
     Write-Host
     Write-Host $Warn_DC_LiveAnalysis -ForegroundColor Black -BackgroundColor Yellow
     Write-Host 
     exit
 }
 
-if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
+if ( ($LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) -and $LogFile -ne "" ) {
     Write-Host
     Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
     Write-Host 
@@ -1773,7 +1771,7 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
 }
 
 # Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
+if ( $LiveAnalysis -eq $false -and $RemoteLiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
 
     Show-Help
     exit
@@ -1784,14 +1782,23 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 
 $evtxFiles = @($LogFile)
 
-if ( $LiveAnalysis -eq $true ) {
+if ( $LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) {
 
     Perform-LiveAnalysisChecks
+    
     $evtxFiles = @(
         "C:\Windows\System32\winevt\Logs\Security.evtx",
         "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
     )
     
+    if ( $LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) {
+        Perform-LiveAnalysisChecks
+    
+        if ( $RemoteLiveAnalysis -eq $true ) {
+            $RemoteComputerInfo = Get-RemoteComputerInfo #Get credential and computername
+        }
+    }
+
 }
 elseif ( $LogDirectory -ne "" ) {
 
@@ -1802,7 +1809,7 @@ elseif ( $LogDirectory -ne "" ) {
         exit
     }
     
-    $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
+    $evtxFiles = Get-ChildItem -Recurse -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
 
 }
 
@@ -1824,9 +1831,23 @@ foreach ( $LogFile in $evtxFiles ) {
     }
     
     if ( $LogonTimeline -eq $true ) {
-    
+
         Create-LogonTimeline $UTCOffset
     
     }
-
 }
+
+if ($ruleStack.Count -ne 0) {
+    foreach ($LogFile in $evtxFiles) {
+        $WineventFilter = @{}
+        $WineventFilter.Add( "Path", $LogFile ) 
+        write-host "execute rule to $LogFile"
+        $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
+        foreach ($rule in $ruleStack.keys) {
+            # write-host "execute rule:$rule"
+            Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
+        }
+    }    
+}
+
+Remove-Variable ruleStack
