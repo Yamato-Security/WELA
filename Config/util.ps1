@@ -20,9 +20,19 @@ https://github.com/yamatosecurity
 
 #Functions:
 function Get-WinEventWithFilter {
-    param($WinEventFilter)
+    param(
+        $WinEventFilter,
+        $RemoteComputerInfo
+    )
     $logs = $null
-    $logs = Get-WinEvent -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
+
+    if ( $RemoteComputerInfo.RemoteLiveAnalysis -eq $true ){
+        $logs = Get-WinEvent -ComputerName $RemoteComputerInfo.Computername -Credential $RemoteComputerInfo.Credential -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
+    }
+    else {
+        $logs = Get-WinEvent -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
+    }
+
     if ($LASTEXITCODE -ne 0) {
         if ($logs) {
             Write-Host $Warn_GetEvent -ForegroundColor Black -BackgroundColor Yellow
@@ -223,28 +233,23 @@ function Get-RemoteComputerInfo {
     $trustedhosts = Get-Item WSMan:\localhost\client\trustedhosts
     $policy = Get-ExecutionPolicy
     If ( $policy -ne "RemoteSigned" ) {
-
         Write-Host ""
         Write-Host $Error_remoteAnalysis_InvalidExecutionPolicy -ForegroundColor White -BackgroundColor Red
         Write-Host ""
         Exit
-
     }
 
     If ($Computername -contains $trustedhosts.Value -or $trustedhosts.Value -eq "*"){
-
         $creds = Get-Credential -Message $remoteAnalysis_getCredential
         $Test = Test-WSMan -ComputerName $Computername -Credential $creds -Authentication Negotiate
 
         If ( $Test -eq $NULL ) {
-
             Write-Host ""
-            write-host "Error: Failed to run Test-WSMan." -ForegroundColor White -BackgroundColor Red
-            write-host "Warning: WinRM service on the remote computer may be stopped." -ForegroundColor Black -BackgroundColor Yellow
-            write-host "Warning: Either ComputerName or Credentials, or both, are wrong." -ForegroundColor Black -BackgroundColor Yellow
+            write-host $Error_remoteAnalysis_FailedTestWSMan -ForegroundColor White -BackgroundColor Red
+            write-host $Warn_remoteAnalysis_Stopped_WinRMservice -ForegroundColor Black -BackgroundColor Yellow
+            write-host $Warn_remoteAnalysis_wrongRemoteComputerInfo -ForegroundColor Black -BackgroundColor Yellow
             Write-Host ""
             Exit
-
         }
         
         $RemoteComputerInfo = @{
@@ -252,15 +257,12 @@ function Get-RemoteComputerInfo {
             "Credential" = $creds
         }
         return $RemoteComputerInfo
-
     }
 
     else {
-
         Write-Host ""
         Write-Host $Error_remoteAnalysis_UnregisteredComputername -ForegroundColor White -BackgroundColor Red
         Write-Host ""
         Exit
-
     }
 }

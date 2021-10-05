@@ -90,6 +90,7 @@ param (
     [switch]$IsDC,
     [switch]$ShowLogonID,
     [switch]$LiveAnalysis,
+    [switch]$RemoteLiveAnalysis,
     [string]$LogFile = "",
     [string]$LogDirectory = "",
     [switch]$ShowContributors,
@@ -233,6 +234,12 @@ $AlertedEvents = 0
 $SkippedLogs = 0
 $TotalLogs = 0
 
+$RemoteComputerInfo = @{
+    "RemoteLiveAnalysis" = $RemoteLiveAnalysis;
+    "Computername" = "";
+    "Credential" = ""
+}
+
 $HostLanguage = Get-WinSystemLocale | Select-Object Name # en-US, ja-JP, etc..
 
 if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
@@ -359,7 +366,7 @@ function Create-EventIDStatistics {
     $filesize = Format-FileSize( (get-item $LogFile).length )
     Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
 
-    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
     $eventlist = @{}
     $TotalNumberOfLogs = $logs.Count
 
@@ -482,7 +489,7 @@ function Create-LogonTimeline {
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
-    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter 
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
     $eventlist = @{}
     $TotalNumberOfLogs = 0
 
@@ -990,7 +997,7 @@ function Create-Timeline {
 
     Write-Host
 
-    $logs = Get-WinEventWithFilter $filter
+    $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
 
     #Start reading in the logs.
     foreach ($event in $logs) {
@@ -1749,14 +1756,14 @@ if ( $ShowContributors -eq $true ) {
 }
 
 
-if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
+if ( ($LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) -and $IsDC -eq $true ) {
     Write-Host
     Write-Host $Warn_DC_LiveAnalysis -ForegroundColor Black -BackgroundColor Yellow
     Write-Host 
     exit
 }
 
-if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
+if ( ($LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) -and $LogFile -ne "" ) {
     Write-Host
     Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
     Write-Host 
@@ -1764,7 +1771,7 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
 }
 
 # Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
+if ( $LiveAnalysis -eq $false -and $RemoteLiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
 
     Show-Help
     exit
@@ -1775,14 +1782,23 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $
 
 $evtxFiles = @($LogFile)
 
-if ( $LiveAnalysis -eq $true ) {
+if ( $LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) {
 
     Perform-LiveAnalysisChecks
+    
     $evtxFiles = @(
         "C:\Windows\System32\winevt\Logs\Security.evtx",
         "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
     )
     
+    if ( $LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) {
+        Perform-LiveAnalysisChecks
+    
+        if ( $RemoteLiveAnalysis -eq $true ) {
+            $RemoteComputerInfo = Get-RemoteComputerInfo #Get credential and computername
+        }
+    }
+
 }
 elseif ( $LogDirectory -ne "" ) {
 
@@ -1826,7 +1842,7 @@ if ($ruleStack.Count -ne 0) {
         $WineventFilter = @{}
         $WineventFilter.Add( "Path", $LogFile ) 
         write-host "execute rule to $LogFile"
-        $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
+        $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
         foreach ($rule in $ruleStack.keys) {
             # write-host "execute rule:$rule"
             Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
