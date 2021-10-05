@@ -144,7 +144,7 @@ function Start-Detection {
     }
 }
 
-function Logon-Number-To-String($msgLogonType) {
+function Convert-Logon-Number-To-String($msgLogonType) {
     switch ( $msgLogonType ) {
         "0" { $msgLogonTypeReadable = "System" }
         "2" { $msgLogonTypeReadable = "Interactive" }
@@ -164,7 +164,7 @@ function Logon-Number-To-String($msgLogonType) {
     return $msgLogonTypeReadable
 }
 
-function Is-Logon-Dangerous ( $msgLogonType ) {
+function Check-Logon-Dangerous ( $msgLogonType ) {
     switch ( $msgLogonType ) {
         "0" { $msgIsLogonDangerous = "" }
         "2" { $msgIsLogonDangerous = "(Dangerous! Credential information is stored in memory and maybe be stolen for account hijacking.)" }
@@ -356,6 +356,9 @@ function Create-EventIDStatistics {
     }
 
     $WineventFilter.Add( "Path", $LogFile ) 
+    $filesize = Format-FileSize( (get-item $LogFile).length )
+    Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
+
     $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter
     $eventlist = @{}
     $TotalNumberOfLogs = $logs.Count
@@ -405,7 +408,7 @@ function Create-EventIDStatistics {
     Write-Host
     Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
 
-    $ArrayWithHeader
+    $ArrayWithHeader | Format-Table *
 
 }
 
@@ -613,7 +616,7 @@ function Create-LogonTimeline {
 
             }
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
             $LogoffTimestampString = "" 
             $LogServiceShutdownTimeString = ""
 
@@ -778,7 +781,7 @@ function Create-LogonTimeline {
                         } 
                     }
                     
-                    $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings                
+                    $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
                     if ( $UTC -eq $true ) {
                         $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
@@ -819,9 +822,11 @@ function Create-LogonTimeline {
         }
     }
 
-    
+    $LogEventDataReduction = "-"
+    if ($TotalLogonEvents -eq 0) {
+        return;
+    }
     $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
-
     $ProgramEndTime = Get-Date
     $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
     $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
@@ -1118,9 +1123,9 @@ function Create-Timeline {
                 }
                 $TotalPiecesOfData += 1
         
-                $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+                $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
-                $msgIsLogonDangerous = Is-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
+                $msgIsLogonDangerous = Check-Logon-Dangerous($msgLogonType) #Check to see if the logon was dangerous (saving credentials in memory)
             }
        
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
@@ -1258,7 +1263,7 @@ function Create-Timeline {
                 $TotalPiecesOfData += 1
             }
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
  
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
         
@@ -1376,7 +1381,7 @@ function Create-Timeline {
 
             $TotalPiecesOfData += 1
 
-            $msgLogonTypeReadable = Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
+            $msgLogonTypeReadable = Convert-Logon-Number-To-String($msgLogonType) #Convert logon numbers to readable strings
 
             <# Switching to checking status code and sub status code instead of failurereason for more granular info
             switch ( $msgFailureReason ) {
@@ -1682,6 +1687,10 @@ function Create-Timeline {
     }
 
     $GoodData = $TotalPiecesOfData - $LogNoise
+    $LogEventDataReduction = "-"
+    if ($TotalLogs -eq 0) {
+        return;
+    }
     $LogEventDataReduction = [math]::Round( ( ($TotalLogs - $AlertedEvents) / $TotalLogs * 100 ), 1 )
     $PercentOfLogNoise = [math]::Round( ( $LogNoise / $TotalPiecesOfData * 100 ), 1 )
     $ProgramEndTime = Get-Date

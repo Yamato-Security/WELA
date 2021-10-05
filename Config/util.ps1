@@ -22,11 +22,14 @@ https://github.com/yamatosecurity
 function Get-WinEventWithFilter {
     param($WinEventFilter)
     $logs = $null
-    try {
-        $logs = Get-WinEvent -FilterHashtable $WinEventFilter -Oldest
-    }
-    catch {
-        Write-Host $Warn_GetEvent $_.Exception.Message -ForegroundColor Black -BackgroundColor Yellow
+    $logs = Get-WinEvent -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
+    if ($LASTEXITCODE -ne 0) {
+        if ($logs) {
+            Write-Host $Warn_GetEvent -ForegroundColor Black -BackgroundColor Yellow
+        }
+        else {
+            Write-Host $Info_GetEventNoMatch -ForegroundColor Green
+        }
     }
     return $logs
 }
