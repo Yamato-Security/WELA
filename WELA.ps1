@@ -235,7 +235,7 @@ $SkippedLogs = 0
 $TotalLogs = 0
 
 $RemoteComputerInfo = @{
-    "RemoteLiveAnalysis" = $RemoteLiveAnalysis;
+    "RemoteLiveAnalysis" = $False;
     "Computername" = "";
     "Credential" = ""
 }

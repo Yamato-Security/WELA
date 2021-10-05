@@ -253,6 +253,7 @@ function Get-RemoteComputerInfo {
         }
         
         $RemoteComputerInfo = @{
+            "RemoteLiveAnalysis" = $True;
             "Computername" = $Computername;
             "Credential" = $creds
         }

@@ -374,6 +374,9 @@ function Show-Help {
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
     Write-Host " : オフラインの.evtxファイルでタイムラインを作成する"
 
+    Write-Host "   -RemoteLiveAnalysis" -NoNewline -ForegroundColor Green
+    Write-Host " : リモートマシンのログでタイムラインを作成する"
+
     Write-Host
     Write-Host "解析タイプを一つ指定して下さい:"
 
