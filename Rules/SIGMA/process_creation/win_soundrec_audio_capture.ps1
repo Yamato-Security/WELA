@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "win_soundrec_audio_capture";
             $detectedMessage = "Detect attacker collecting audio via SoundRecorder application.";
-            $result = Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\SoundRecorder.exe" -and $_.message -match "CommandLine.*.*/FILE.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\SoundRecorder.exe" -and $_.message -match "CommandLine.*.*/FILE.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
                 Write-Host
@@ -24,9 +24,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error" -Foreground Yellow;
     }
 }
