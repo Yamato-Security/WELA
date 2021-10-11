@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects commands used by Turla group as reported by ESET in May 2020";
             $result = $event | where { $_.ID -eq "1" -and (($_.message -match "CommandLine.*.*tracert -h 10 yahoo.com.*" -or $_.message -match "CommandLine.*.*.WSqmCons\)\)|iex;.*" -or $_.message -match "CommandLine.*.*Fr`omBa`se6`4Str`ing.*") -or ($_.message -match "CommandLine.*.*net use https://docs.live.net.*" -and $_.message -match "CommandLine.*.*@aol.co.uk.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMesssage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;

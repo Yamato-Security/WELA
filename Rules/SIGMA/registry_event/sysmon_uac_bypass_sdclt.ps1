@@ -17,11 +17,11 @@ unasmmandisolatedCommand"
             $detectedMessage = "Detects changes to HKCU:SoftwareClassesexefileshell"
             $result = $event |  where { ($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKU\\.*" -and $_.message -match "TargetObject.*.*_Classes\\exefile\\shell\\runas\\command\\isolatedCommand" } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMesssage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;

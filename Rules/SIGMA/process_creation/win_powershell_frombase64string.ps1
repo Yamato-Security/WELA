@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious FromBase64String expressions in command line arguments";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*::FromBase64String\(.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMesssage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
