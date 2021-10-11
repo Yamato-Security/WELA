@@ -30,5 +30,9 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    $ruleStack.Add($ruleName, $detectRule);
+    if(! $ruleStack[$ruleName]) {
+        $ruleStack.Add($ruleName, $detectRule);
+    } else {
+       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
 }
