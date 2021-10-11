@@ -1,5 +1,5 @@
-Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
-Get-WinEvent -LogName MSExchange Management | where { ($_.message -match ".*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName MSExchange Management | where { ($_.message -match ".*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
 
@@ -29,9 +29,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error" -Foreground Yellow;
     }
 }
