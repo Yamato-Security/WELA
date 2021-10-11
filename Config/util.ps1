@@ -127,7 +127,6 @@ function Check-Command() {
     }
     if ($base64) {
         if ($commandline -Match "Compression.GzipStream.*Decompress") {
-            Write-Output "decodedOutput=test:" $decoded
             # Metasploit-style compressed and base64-encoded function. Uncompress it.
             $decoded = New-Object IO.MemoryStream(, [Convert]::FromBase64String($base64))
             $uncompressed = (New-Object IO.StreamReader(((New-Object IO.Compression.GzipStream($decoded, [IO.Compression.CompressionMode]::Decompress))), [Text.Encoding]::ASCII)).ReadToEnd()
@@ -135,7 +134,6 @@ function Check-Command() {
             $text += "Base64-encoded and compressed function`n"
         }
         else {
-            Write-Output "decodedOutput=test:" $decoded
             $decoded = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String($base64))
             $obj.Decoded = $decoded
             $text += "Base64-encoded function`n"
