@@ -231,13 +231,6 @@ function Remove-Spaces($string) {
 function Get-RemoteComputerInfo {
     $Computername = Read-Host $remoteAnalysis_getComputername
     $trustedhosts = Get-Item WSMan:\localhost\client\trustedhosts
-    $policy = Get-ExecutionPolicy
-    If ( $policy -ne "RemoteSigned" ) {
-        Write-Host ""
-        Write-Host $Error_remoteAnalysis_InvalidExecutionPolicy -ForegroundColor White -BackgroundColor Red
-        Write-Host ""
-        Exit
-    }
 
     If ($Computername -contains $trustedhosts.Value -or $trustedhosts.Value -eq "*"){
         $creds = Get-Credential -Message $remoteAnalysis_getCredential
