@@ -24,11 +24,11 @@ function Add-Rule {
                     elseIf ($action -eq "auto start") {
                         $result.Message += "Selective event log manipulation may precede this event."
                     }
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

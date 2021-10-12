@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects potential use of Rubeus via registered new trusted logon process";
             $result = $event |  where { ($_.ID -eq "4611" -and $_.message -match "LogonProcessName.*User32LogonProcesss") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

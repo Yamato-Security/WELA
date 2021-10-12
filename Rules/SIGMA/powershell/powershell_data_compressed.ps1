@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "An adversary may compress data (e.g., sensitive documents) that is collected prior to exfiltration in order to make it portable and minimize the amount of data sent over the network.";
             $result = $event |  where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*-Recurse.*" -and $_.message -match "ScriptBlockText.*.*|.*" -and $_.message -match "ScriptBlockText.*.*Compress-Archive.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

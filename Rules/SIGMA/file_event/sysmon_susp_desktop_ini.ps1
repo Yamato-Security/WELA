@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects unusual processes accessing desktop.ini, which can be leveraged to alter how Explorer displays a folder's content (i.e. renaming files) without changing them on disk.";
             $result = $event |  where { (($_.ID -eq "11") -and $_.message -match "TargetFilename.*.*\\desktop.ini" -and -not (($_.message -match "C:\\Windows\\explorer.exe" -or $_.message -match "C:\\Windows\\System32\\msiexec.exe" -or $_.message -match "C:\\Windows\\System32\\mmc.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

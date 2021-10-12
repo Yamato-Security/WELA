@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects PowerShell script execution from Alternate Data Stream (ADS)";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\\powershell.exe" -and $_.message -match "Image.*.*\\powershell.exe" -and $_.message -match "CommandLine.*.*Get-Content.*" -and $_.message -match "CommandLine.*.*-Stream.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

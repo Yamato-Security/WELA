@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects execution of PowerShell";
             $result = $event |  where { (($_.ID -eq "17" -or $_.ID -eq "18") -and $_.message -match "PipeName.*\\PSHost.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

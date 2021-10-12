@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious network connection by Notepad";
             $result = $event |  where { (($_.ID -eq "3") -and $_.message -match "Image.*.*\\notepad.exe" -and -not ($_.message -match "DestinationPort.*9100")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

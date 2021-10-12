@@ -13,7 +13,7 @@ function Add-Rule {
             $target = $event | where { $_.ID -eq 104 -and $_.LogName -eq "System" }
 
             if ($target) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
             }
@@ -21,7 +21,7 @@ function Add-Rule {
                 $result = Create-Obj $record $LogFile
                 $result.Message = $record.message
                 Write-Output $result | Format-Table * -Wrap;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

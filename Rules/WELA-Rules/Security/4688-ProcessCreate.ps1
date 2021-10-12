@@ -21,11 +21,11 @@ function Add-Rule {
                 if ($commandline) {
                     $result = Check-Command -EventID 4688 $commandline $creator -obj $obj
                     if ($result) {
-                        Write-Output
+                        Write-Output ""; 
                         Write-Output "Detected! RuleName:$ruleName";
                         Write-Output $detectedMessage;
                         Write-Output $result | Format-Table * -Wrap;
-                        Write-Output
+                        Write-Output ""; 
                     }
                 }
             }

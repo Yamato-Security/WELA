@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects execution of ntdsutil.exe, which can be used for various attacks against the NTDS database (NTDS.DIT)";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\ntdsutil.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

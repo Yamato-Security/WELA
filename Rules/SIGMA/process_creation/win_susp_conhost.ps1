@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the conhost execution as parent process. Can be used to evaded defense mechanism.";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\\conhost.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

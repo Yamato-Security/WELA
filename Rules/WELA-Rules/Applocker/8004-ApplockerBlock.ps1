@@ -12,7 +12,7 @@ function Add-Rule {
             $target = $event | where { $_.ID -eq 8004 -and $_.LogName -eq "Microsoft-Windows-AppLocker/EXE and DLL" }
 
             if ($target) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
             }
@@ -24,7 +24,7 @@ function Add-Rule {
                 $result.Result = $record.message
                 
                 Write-Output $result | Format-Table * -Wrap;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

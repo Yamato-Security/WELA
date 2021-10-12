@@ -15,11 +15,11 @@ function Add-Rule {
                 $result = $event  | where { (($_.ID -eq "1") -and $_.message -match "OriginalFileName.*sdelete.exe" -and -not (($_.message -match "CommandLine.*.* -h.*" -or $_.message -match "CommandLine.*.* -c.*" -or $_.message -match "CommandLine.*.* -z.*" -or $_.message -match "CommandLine.*.* /?.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
 Write-Output $result;
-Write-Output
+Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

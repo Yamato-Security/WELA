@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects a suspicious printer driver installation with an empty Manufacturer value";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\Control\\Print\\Environments\\Windows x64\\Drivers.*" -and $_.message -match "TargetObject.*.*\\Manufacturer.*" -and $_.message -match "Details.*(Empty)") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

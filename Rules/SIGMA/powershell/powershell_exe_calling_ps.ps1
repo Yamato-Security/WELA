@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects PowerShell called from an executable by the version mismatch method";
             $result = $event |  where { ($_.ID -eq "400" -and ($_.message -match "EngineVersion.*2..*" -or $_.message -match "EngineVersion.*4..*" -or $_.message -match "EngineVersion.*5..*") -and $_.message -match "HostVersion.*3..*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

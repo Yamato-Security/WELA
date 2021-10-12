@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "This rule triggers on user accounts that are added to the local Administrators group, which could be legitimate activity or a sign of privilege escalation";
             $result = $event |  where { (($_.ID -eq "4732" -and ($_.message -match "TargetUserName.*Administr.*" -or $_.message -match "TargetSid.*S-1-5-32-544")) -and -not ($_.message -match "SubjectUserName.*.*$")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

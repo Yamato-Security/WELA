@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects registry changes to Office macro settings";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\Security\\Trusted Documents\\TrustRecords" -or $_.message -match "TargetObject.*.*\\Security\\AccessVBOM" -or $_.message -match "TargetObject.*.*\\Security\\VBAWarnings")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

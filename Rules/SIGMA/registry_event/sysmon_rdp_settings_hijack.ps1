@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects changes to RDP terminal service sensitive settings";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\services\\TermService\\Parameters\\ServiceDll.*" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fSingleSessionPerUser.*" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fDenyTSConnections.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

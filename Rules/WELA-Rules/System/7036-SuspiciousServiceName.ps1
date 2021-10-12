@@ -22,7 +22,7 @@ function Add-Rule {
                     $result.Results = "Service name: $servicename`n"
                     $result.Results += $text
                     
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects potential use of UIPromptForCredentials functions by looking for some of the DLLs needed for it.";
             $result = $event |  where { (($_.ID -eq "7") -and (($_.message -match "ImageLoaded.*.*\\credui.dll" -or $_.message -match "ImageLoaded.*.*\\wincredui.dll") -or ($_.message -match "credui.dll" -or $_.message -match "wincredui.dll"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

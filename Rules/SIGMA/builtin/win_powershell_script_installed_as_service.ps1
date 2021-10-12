@@ -22,11 +22,11 @@ function Add-Rule {
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;    
                     Write-Output $result;
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

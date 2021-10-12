@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects files written by the different tools that exploit HiveNightmare";
             $result = $event |  where { (($_.ID -eq "11") -and (($_.message -match "TargetFilename.*.*\\hive_sam_.*" -or $_.message -match "TargetFilename.*.*\\SAM-2021-.*" -or $_.message -match "TargetFilename.*.*\\SAM-2022-.*" -or $_.message -match "TargetFilename.*.*\\SAM-haxx.*" -or $_.message -match "TargetFilename.*.*\\Sam.save.*") -or ($_.message -match "C:\\windows\\temp\\sam"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

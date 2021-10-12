@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects Registry modifications performed by Ke3chang malware in campaigns running in 2019 and 2020";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*-Property DWORD -name DisableFirstRunCustomize -value 2 -Force.*" -or $_.message -match "CommandLine.*.*-Property String -name Check_Associations -value.*" -or $_.message -match "CommandLine.*.*-Property DWORD -name IEHarden -value 0 -Force.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

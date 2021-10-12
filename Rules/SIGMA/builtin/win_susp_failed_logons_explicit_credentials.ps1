@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects a source user failing to authenticate with multiple users using explicit credentials on a host.";
             $result = $event |  where { ($_.ID -eq "4648") } | select ComputerName, Account_Name | group ComputerName | foreach { [PSCustomObject]@{'ComputerName' = $_.name; 'Count' = ($_.group.Account_Name | sort -u).count } } | sort count -desc | where { $_.count -gt 10 };
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

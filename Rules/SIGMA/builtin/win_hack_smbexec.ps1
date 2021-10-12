@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the use of smbexec.py tool by detecting a specific service installation";
             $result = $event |  where { ($_.ID -eq "7045" -and $_.message -match "ServiceName.*BTOBTO" -and $_.message -Like "*\\execute.bat") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

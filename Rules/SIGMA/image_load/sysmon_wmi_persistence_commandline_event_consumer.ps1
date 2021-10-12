@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects WMI command line event consumers";
             $result = $event |  where { ($_.ID -eq "7" -and $_.message -match "Image.*C:\\Windows\\System32\\wbem\\WmiPrvSE.exe" -and $_.message -match "ImageLoaded.*.*\\wbemcons.dll") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

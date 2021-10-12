@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects failed logins with multiple disabled domain accounts from a single source system using the Kerberos protocol.";
             $result = $event |  where { (($_.ID -eq "4768" -and $_.message -match "Status.*0x12") -and -not ($_.message -match "TargetUserName.*.*$")) } | select IpAddress, TargetUserName | group IpAddress | foreach { [PSCustomObject]@{'IpAddress' = $_.name; 'Count' = ($_.group.TargetUserName | sort -u).count } } | sort count -desc | where { $_.count -gt 10 };
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

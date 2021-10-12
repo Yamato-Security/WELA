@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects creation of WMI event subscription persistence method";
             $result = $event |  where { (($_.ID -eq "19" -or $_.ID -eq "20" -or $_.ID -eq "21")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $result;
                 Write-Output $detectedMesssage;

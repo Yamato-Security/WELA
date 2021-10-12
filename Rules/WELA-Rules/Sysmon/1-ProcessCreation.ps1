@@ -19,11 +19,11 @@ function Add-Rule {
                 $obj = Create-Obj -event $record
                 if ($commandline) {
                     $result = Check-Command -EventID 1 -creator $creator -obj $obj
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious powershell command line parameters used in Empire";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.* -NoP -sta -NonI -W Hidden -Enc .*" -or $_.message -match "CommandLine.*.* -noP -sta -w 1 -enc .*" -or $_.message -match "CommandLine.*.* -NoP -NonI -W Hidden -enc .*" -or $_.message -match "CommandLine.*.* -noP -sta -w 1 -enc.*" -or $_.message -match "CommandLine.*.* -enc SQB.*" -or $_.message -match "CommandLine.*.* -nop -exec bypass -EncodedCommand .*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

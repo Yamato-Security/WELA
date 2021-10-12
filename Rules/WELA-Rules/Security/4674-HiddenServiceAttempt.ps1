@@ -12,7 +12,7 @@ function Add-Rule {
             $detectedMessage = "User requested to modify the Dynamic Access Control (DAC) permissions of a service, possibly to hide it from view on DeepBlueCLI Rule";
             $target = $event | where { $_.LogName -eq "Security" -and ($_.id -eq 4674) }
             if ($target) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
             }
@@ -29,7 +29,7 @@ function Add-Rule {
                     $result.Results += "Target service: $service`n"
                     $result.Results += "Desired Access: $accessreq`n"
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

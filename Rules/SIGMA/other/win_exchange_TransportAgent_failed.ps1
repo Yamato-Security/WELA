@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects a failed installation of a Exchange Transport Agent";
             $result = $event |  where { ($_.message -match ".*Install-TransportAgent.*" -and $_.ID -eq "6") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

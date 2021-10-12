@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects access to $ADMIN share";
             $result = $event |  where { (($_.ID -eq "5140" -and $_.message -match "ShareName.*Admin$") -and -not ($_.message -match "SubjectUserName.*.*$")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

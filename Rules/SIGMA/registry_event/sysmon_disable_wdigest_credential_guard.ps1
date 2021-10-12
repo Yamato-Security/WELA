@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects potential malicious modification of the property value of IsCredGuardEnabled from HKLM:SYSTEMCurrentControlSetControlSecurityProvidersWDigest to disable Cred Guard on a system. This is usually used with UseLogonCredential to manipulate the caching credentials.";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\IsCredGuardEnabled") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

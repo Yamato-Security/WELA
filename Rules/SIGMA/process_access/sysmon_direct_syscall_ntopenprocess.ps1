@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the usage of the direct syscall of NtOpenProcess which might be done from a CobaltStrike BOF.";
             $result = $event |  where { ($_.ID -eq "10" -and $_.message -match "CallTrace.*UNKNOWN.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

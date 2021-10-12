@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects a process memory dump performed via ordinal function 24 in comsvcs.dll";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*comsvcs.dll,#24.*" -or $_.message -match "CommandLine.*.*comsvcs.dll,MiniDump.*" -or $_.message -match "CommandLine.*.*comsvcs.dll MiniDump.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

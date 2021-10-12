@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects changes to the Registry in which a monitor program gets registered to monitor the exit of another process";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*Microsoft\\Windows NT\\CurrentVersion\\SilentProcessExit.*" -and $_.message -match "Details.*.*MonitorProcess.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

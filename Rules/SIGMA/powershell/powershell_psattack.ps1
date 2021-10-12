@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the use of PSAttack PowerShell hack tool";
             $result = $event |  where { ($_.ID -eq "4103" -and $_.message -match "PS ATTACK!!!") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Search for dropping of files to Windows/Program Files fodlers by non-priviledged processes";
             $result = $event |  where { ($_.ID -eq "11" -and $_.message -match "IntegrityLevel.*Medium" -and ($_.ID -eq "11") -and (($_.message -match "TargetFilename.*.*\\Program Files\\.*" -or $_.message -match "TargetFilename.*.*\\Program Files (x86)\\.*") -or ($_.message -match "TargetFilename.*\\Windows\\.*" -and -not ($_.message -match "TargetFilename.*.*temp.*")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

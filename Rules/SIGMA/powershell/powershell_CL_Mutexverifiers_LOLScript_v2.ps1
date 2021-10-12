@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects Execution via runAfterCancelProcess in CL_Mutexverifiers.ps1 module";
             $result = $event |  where { ($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*CL_Mutexverifiers.ps1.*" -or $_.message -match "ScriptBlockText.*.*runAfterCancelProcess.*")) } | select Computer, ScriptBlockText | group Computer | foreach { [PSCustomObject]@{'Computer' = $_.name; 'Count' = ($_.group.ScriptBlockText | sort -u).count } } | sort count -desc | where { $_.count -gt 2 };
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

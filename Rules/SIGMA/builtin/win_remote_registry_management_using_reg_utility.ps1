@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Remote registry management using REG utility from non-admin workstation";
             $result = $event |  where { (($_.ID -eq "5145" -and $_.message -match "RelativeTargetName.*.*\\winreg.*") -and -not ($_.message -match "IpAddress.*%Admins_Workstations%")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

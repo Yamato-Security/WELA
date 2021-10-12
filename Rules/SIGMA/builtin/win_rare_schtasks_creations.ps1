@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects rare scheduled tasks creations that only appear a few times per time frame and could reveal password dumpers, backdoor installs or other types of malicious code";
             $result = $event |  where { ($_.ID -eq "4698") } | group-object TaskName | where { $_.count -lt 5 } | select name, count | sort -desc;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detection well-known mimikatz command line arguments";
             $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*DumpCreds.*" -or $_.message -match "CommandLine.*.*invoke-mimikatz.*") -or (($_.message -match "CommandLine.*.*rpc.*" -or $_.message -match "CommandLine.*.*token.*" -or $_.message -match "CommandLine.*.*crypto.*" -or $_.message -match "CommandLine.*.*dpapi.*" -or $_.message -match "CommandLine.*.*sekurlsa.*" -or $_.message -match "CommandLine.*.*kerberos.*" -or $_.message -match "CommandLine.*.*lsadump.*" -or $_.message -match "CommandLine.*.*privilege.*" -or $_.message -match "CommandLine.*.*process.*") -and ($_.message -match "CommandLine.*.*::.*")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

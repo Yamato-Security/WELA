@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Downloads payload from remote server";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "Image.*.*\\powerpnt.exe" -or $_.message -match "Image.*.*\\winword.exe" -or $_.message -match "Image.*.*\\excel.exe") -and $_.message -match "CommandLine.*.*http.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

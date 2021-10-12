@@ -20,7 +20,7 @@ function Add-Rule {
                     $result.Message = $detectedMessage
                     $eventTimestampString = $record.TimeCreated.ToString($DateFormat)
                     $result.Results = "User:$user"
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "$eventTimestampString Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;

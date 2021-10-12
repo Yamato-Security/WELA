@@ -15,11 +15,11 @@ function Add-Rule {
             $result = $event | where { (($_.ID -eq "1") -and ($_.message -match "Image.*.*\\regedit.exe" -and $_.message -match "CommandLine.*.* /E .*") -and -not (($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*hklm.*" -or $_.message -match "CommandLine.*.*hkey_local_machine.*") -and ($_.message -match "CommandLine.*.*\\system" -or $_.message -match "CommandLine.*.*\\sam" -or $_.message -match "CommandLine.*.*\\security")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

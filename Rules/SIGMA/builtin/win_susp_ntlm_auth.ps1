@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects logons using NTLM, which could be caused by a legacy source or attackers";
             $result = $event |  where { ($_.ID -eq "8002" -and $_.message -match "CallingProcessName.*.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
             
         };

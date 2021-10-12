@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects non-interactive PowerShell activity by looking at powershell.exe with not explorer.exe as a parent.";
             $result = $event |  where { (($_.ID -eq "1") -and $_.message -match "Image.*.*\\powershell.exe" -and -not (($_.message -match "ParentImage.*.*\\explorer.exe" -or $_.message -match "ParentImage.*.*\\CompatTelRunner.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

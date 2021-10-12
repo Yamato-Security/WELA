@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "This event is generated when an authenticated user who is not allowed to log on remotely attempts to connect to this computer through Remote Desktop.";
             $result = $event |  where { ($_.ID -eq "4825") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

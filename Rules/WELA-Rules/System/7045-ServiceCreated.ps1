@@ -24,11 +24,11 @@ function Add-Rule {
                     $result.Command = $commandline
                     $result.Results = "Service name: $servicename`n"
                     $result.Results += $text 
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Output
+                    Write-Output ""; 
                 }
                 # Check for suspicious cmd
                 if ($commandline) {
@@ -38,11 +38,11 @@ function Add-Rule {
                     $obj = Create-Obj -event $record                            
                     $result = Check-Command -EventID 7045 -servicecmd $servicecmd -obj $obj
                     if ($result) {
-                        Write-Output
+                        Write-Output ""; 
                         Write-Output "Detected! RuleName:$ruleName";
                         Write-Output $detectedMessage;
                         Write-Output $result | Format-Table * -Wrap;
-                        Write-Output
+                        Write-Output ""; 
                     }
                 }
             }

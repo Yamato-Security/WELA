@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Addition of domains is seldom and should be verified for legitimacy.";
             $result = $event |  where { ($_.ID -eq "4706") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

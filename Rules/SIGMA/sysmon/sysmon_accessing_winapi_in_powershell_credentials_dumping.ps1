@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects Accessing to lsass.exe by Powershell";
             $result = $event |  where { (($_.ID -eq "8" -or $_.ID -eq "10") -and $_.message -match "SourceImage.*.*\\powershell.exe" -and $_.message -match "TargetImage.*.*\\lsass.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
             
         };

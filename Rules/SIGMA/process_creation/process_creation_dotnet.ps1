@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "dotnet.exe will execute any DLL and execute unsigned code";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*.dll" -or $_.message -match "CommandLine.*.*.csproj") -and ($_.message -match "Image.*.*\\dotnet.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

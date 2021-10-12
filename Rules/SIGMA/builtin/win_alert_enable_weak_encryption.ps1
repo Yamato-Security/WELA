@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects scenario where weak encryption is enabled for a user profile which could be used for hash/password cracking.";
             $result = $event |  where { ($_.ID -eq "4738" -and ($_.message -match ".*DES.*" -or $_.message -match ".*Preauth.*" -or $_.message -match ".*Encrypted.*") -and ($_.message -match ".*Enabled.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

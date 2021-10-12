@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects actions caused by the RedMimicry Winnti playbook";
             $result = $event |  where { ($_.ID -eq "11" -and ($_.message -match "TargetFilename.*.*gthread-3.6.dll.*" -or $_.message -match "TargetFilename.*.*sigcmm-2.4.dll.*" -or $_.message -match "TargetFilename.*.*\\Windows\\Temp\\tmp.bat.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

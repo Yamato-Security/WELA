@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious start of rundll32.exe without any parameters as found in CobaltStrike beacon activity";
             $result = $event |  where { (($_.ID -eq "1") -and ($_.message -match "CommandLine.*.*\\rundll32.exe" -and -not ($_.message -match "ParentImage.*.*\\svchost.exe")) -and -not (($_.message -match "ParentImage.*.*\\AppData\\Local\\.*" -or $_.message -match "ParentImage.*.*\\Microsoft\\Edge\\.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious renamed SysInternals DebugView execution";
             $result = $event |  where { (($_.ID -eq "1") -and ($_.message -match "Sysinternals DebugView" -or $_.message -match "Sysinternals Debugview") -and -not ($_.message -match "OriginalFileName.*Dbgview.exe" -and $_.message -match "Image.*.*\\Dbgview.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

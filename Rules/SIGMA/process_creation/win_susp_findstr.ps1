@@ -15,11 +15,11 @@ function Add-Rule {
             $result = $event | where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*findstr.*") -and ($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*/V.*" -and $_.message -match "CommandLine.*.*/L.*") -or ($_.message -match "CommandLine.*.*/S.*" -and $_.message -match "CommandLine.*.*/I.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

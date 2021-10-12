@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects tools extracting LSA secret DPAPI domain backup key from Domain Controllers";
             $result = $event |  where { ($_.ID -eq "4662" -and $_.message -match "ObjectType.*SecretObject" -and $_.message -match "AccessMask.*0x2" -and $_.message -match "ObjectName.*BCKUPKEY") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

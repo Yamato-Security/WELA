@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Launch 64-bit shellcode from a debugger script file using cdb.exe.";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\cdb.exe" -and $_.message -match "CommandLine.*.*-cf.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

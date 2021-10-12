@@ -33,7 +33,7 @@ function Add-Rule {
                 foreach ($username in $failedlogons.Keys) {
                     if ($failedlogons[$username] -gt $maxfailedlogons) {
                         if ($detectcount -eq 0) {
-                            Write-Output
+                            Write-Output ""; 
                             Write-Output "Detected! RuleName:$ruleName";
                             Write-Output $detectedMessage;
                         }
@@ -55,11 +55,11 @@ function Add-Rule {
                     $result.Results = "Total accounts: $totalfailedaccounts`n"
                     $result.Results += "Total logon failures: $totalfailedlogons`n"
 
-                    Write-Output 
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects changes to 'HKCUSoftwareClassesFoldershellopenmmandDelegateExecute'";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "HKCU\\Software\\Classes\\Folder\\shell\\open\\command\\DelegateExecute")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

@@ -18,11 +18,11 @@ function Add-Rule {
             $results += $event | where { ($_.ID -eq "4103" -and ($_.message -match "ContextInfo.*.*powercat .*" -or $_.message -match "ContextInfo.*.*powercat.ps1.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result;
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

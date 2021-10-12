@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "This rule detects cor_enable_profiling and cor_profiler environment variables being set and configured.";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\COR_ENABLE_PROFILING" -or $_.message -match "TargetObject.*.*\\COR_PROFILER")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

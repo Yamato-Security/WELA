@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the use of Ditsnap tool. Seems to be a tool for ransomware groups.";
             $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "Image.*.*\\ditsnap.exe") -or ($_.message -match "CommandLine.*.*ditsnap.exe.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

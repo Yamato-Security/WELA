@@ -22,15 +22,15 @@ function Add-Rule {
                     $result.Command = "$command"
                     $result.Results = "$text`n"
                     $result.Results += "$username`n" 
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Output
+                    Write-Output ""; 
                 }
                 else {
                     Write-Output "Warning: EMET Message field is blank. Install EMET locally to see full details of this alert"
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

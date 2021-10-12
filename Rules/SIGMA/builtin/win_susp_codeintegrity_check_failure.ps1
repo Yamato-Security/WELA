@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Code integrity failures may indicate tampered executables.";
             $result = $event |  where { (($_.ID -eq "5038" -or $_.ID -eq "6281")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

@@ -26,12 +26,12 @@ function Add-Rule {
                 }
             }
             if ($target.Count -ge $maxtotalsensprivuse) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 foreach ($result in $resultoutput.Values) {
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Output
+                    Write-Output ""; 
                 }
             }
         };

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects possible successful exploitation for vulnerability described in CVE-2021-26857 by looking for |";
             $result = $event |  where { (($_.ID -eq "1") -and $_.message -match "ParentImage.*.*UMWorkerProcess.exe" -and -not (($_.message -match "Image.*.*wermgr.exe" -or $_.message -match "Image.*.*WerFault.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

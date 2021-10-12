@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects remote PowerShell connections by monitoring network outbound connections to ports 5985 or 5986 from a non-network service account.";
             $result = $event |  where { (($_.ID -eq "3") -and ($_.message -match "5985" -or $_.message -match "5986") -and -not ($_.message -match "User.*NT AUTHORITY\NETWORK SERVICE")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

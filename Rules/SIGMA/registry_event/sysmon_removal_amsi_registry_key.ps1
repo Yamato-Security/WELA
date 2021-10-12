@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Remove the AMSI Provider registry key in HKLMSoftwareMicrosoftAMSI to disable AMSI inspection";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "EventType.*DeleteKey" -and ($_.message -match "TargetObject.*.*{2781761E-28E0-4109-99FE-B9D127C57AFE}" -or $_.message -match "TargetObject.*.*{A7C452EF-8E9F-42EB-9F2B-245613CA0DC9}")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

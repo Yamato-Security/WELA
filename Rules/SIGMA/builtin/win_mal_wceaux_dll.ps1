@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects wceaux.dll access while WCE pass-the-hash remote command execution on source host";
             $result = $event |  where { (($_.ID -eq "4656" -or $_.ID -eq "4658" -or $_.ID -eq "4660" -or $_.ID -eq "4663") -and $_.message -match "ObjectName.*.*\\wceaux.dll") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

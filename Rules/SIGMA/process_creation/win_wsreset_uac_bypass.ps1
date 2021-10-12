@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects a method that uses Wsreset.exe tool that can be used to reset the Windows Store to bypass UAC";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "ParentImage.*.*\\WSreset.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

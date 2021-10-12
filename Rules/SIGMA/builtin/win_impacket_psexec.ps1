@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects execution of Impacket's psexec.py.";
             $result = $event |  where { ($_.ID -eq "5145" -and $_.message -match "ShareName.*\\.*\\IPC$" -and ($_.message -match "RelativeTargetName.*.*RemCom_stdint.*" -or $_.message -match "RelativeTargetName.*.*RemCom_stdoutt.*" -or $_.message -match "RelativeTargetName.*.*RemCom_stderrt.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "A General detection to trigger for the creation or modification of .*SoftwareSysinternalsSDelete registry keys. Indicators of the use of Sysinternals SDelete tool.";
             $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\Software\\Sysinternals\\SDelete.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Output
+                Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
                 Write-Output $result;
-                Write-Output
+                Write-Output ""; 
             }
         };
         . Search-DetectableEvents $args;

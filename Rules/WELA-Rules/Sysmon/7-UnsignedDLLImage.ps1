@@ -20,7 +20,7 @@ function Add-Rule {
                     $result = Create-Obj $record $LogFile
                     $result.Message = $detectedMessage
                     $result.Results = "Loaded by: $image"
-                    Write-Output
+                    Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
                     Write-Output $result
