@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects process patterns found in Cobalt Strike beacon activity (see reference for more details)";
             $result = $event | where { (($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*\\cmd.exe /C whoami.*" -and $_.message -match "ParentImage.*C:\\Temp.*") -or ($_.message -match "CommandLine.*.*conhost.exe 0xffffffff -ForceV1.*" -and ($_.message -match "ParentCommandLine.*.*/C whoami.*" -or $_.message -match "ParentCommandLine.*.*cmd.exe /C echo.*" -or $_.message -match "ParentCommandLine.*.* > \\.\\pipe.*")) -or (($_.message -match "CommandLine.*.*cmd.exe /c echo.*" -or $_.message -match "CommandLine.*.*> \\.\\pipe.*" -or $_.message -match "CommandLine.*.*\\whoami.exe.*") -and $_.message -match "ParentImage.*.*\\dllhost.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

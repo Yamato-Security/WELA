@@ -13,15 +13,15 @@ function Add-Rule {
             $target = $event | where { $_.ID -eq 104 -and $_.LogName -eq "System" }
 
             if ($target) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
             }
             foreach ($record in $target) {
                 $result = Create-Obj $record $LogFile
                 $result.Message = $record.message
                 Write-Output $result | Format-Table * -Wrap;
-                Write-Host
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -30,6 +30,6 @@ function Add-Rule {
         $ruleStack.Add($ruleName, $detectRule);
     }
     else {
-        Write-Host "Rule Import Error" -Foreground Yellow;
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

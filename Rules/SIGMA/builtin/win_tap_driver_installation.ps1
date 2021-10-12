@@ -21,11 +21,11 @@ function Add-Rule {
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
-                    Write-Host
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $result;
-                    Write-Host
-                    Write-Host $detectedMessage;    
+                    Write-Output
+                    Write-Output "Detected! RuleName:$ruleName";
+                    Write-Output $result;
+                    Write-Output
+                    Write-Output $detectedMessage;    
                 }
             }            
         };
@@ -34,6 +34,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

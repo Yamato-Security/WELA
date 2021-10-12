@@ -14,10 +14,10 @@ function Add-Rule {
             $detectedMessage = "Detects Azure Hybrid Connection Manager services querying the Azure service bus service";
             $result = $event |  where { ($_.ID -eq "22" -and $_.message -match "QueryName.*.*servicebus.windows.net.*" -and $_.message -match "Image.*.*HybridConnectionManager.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
                 result;
-                Write-Host $detectedMessage;
+                Write-Output $detectedMessage;
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
         $ruleStack.Add($ruleName, $detectRule);
     }
     else {
-        Write-Host "Rule Import Error" -Foreground Yellow;
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

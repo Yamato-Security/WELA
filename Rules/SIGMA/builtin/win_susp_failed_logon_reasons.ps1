@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "This method uses uncommon error codes on failed logons to determine suspicious activity and tampering with accounts that have been disabled or somehow";
             $result = $event |  where { (($_.ID -eq "4625" -or $_.ID -eq "4776") -and ($_.message -match "0xC0000072" -or $_.message -match "0xC000006F" -or $_.message -match "0xC0000070" -or $_.message -match "0xC0000413" -or $_.message -match "0xC000018C" -or $_.message -match "0xC000015B")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

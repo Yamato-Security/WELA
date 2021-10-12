@@ -19,11 +19,11 @@ function Add-Rule {
                 $obj = Create-Obj -event $record
                 if ($commandline) {
                     $result = Check-Command -EventID 1 -creator $creator -obj $obj
-                    Write-Host
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
+                    Write-Output
+                    Write-Output "Detected! RuleName:$ruleName";
+                    Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Host
+                    Write-Output
                 }
             }
         };
@@ -33,6 +33,6 @@ function Add-Rule {
         $ruleStack.Add($ruleName, $detectRule);
     }
     else {
-        Write-Host "Rule Import Error" -Foreground Yellow;
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

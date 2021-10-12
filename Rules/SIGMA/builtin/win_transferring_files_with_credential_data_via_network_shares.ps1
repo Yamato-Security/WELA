@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Transferring files with well-known filenames (sensitive files with credential data) using network shares";
             $result = $event |  where { ($_.ID -eq "5145" -and ($_.message -match "RelativeTargetName.*.*\\mimidrv.*" -or $_.message -match "RelativeTargetName.*.*\\lsass.*" -or $_.message -match "RelativeTargetName.*.*\\windows\\minidump\\.*" -or $_.message -match "RelativeTargetName.*.*\\hiberfil.*" -or $_.message -match "RelativeTargetName.*.*\\sqldmpr.*" -or $_.message -match "RelativeTargetName.*.*\\sam.*" -or $_.message -match "RelativeTargetName.*.*\\ntds.dit.*" -or $_.message -match "RelativeTargetName.*.*\\security.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

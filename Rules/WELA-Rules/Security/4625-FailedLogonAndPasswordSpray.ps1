@@ -33,9 +33,9 @@ function Add-Rule {
                 foreach ($username in $failedlogons.Keys) {
                     if ($failedlogons[$username] -gt $maxfailedlogons) {
                         if ($detectcount -eq 0) {
-                            Write-Host
-                            Write-Host "Detected! RuleName:$ruleName";
-                            Write-Host $detectedMessage;
+                            Write-Output
+                            Write-Output "Detected! RuleName:$ruleName";
+                            Write-Output $detectedMessage;
                         }
                         $cnt = $failedlogons[$username]
                         $result = Create-Obj $failedLogonTriedTimeRecord[$username] $LogFile
@@ -43,7 +43,7 @@ function Add-Rule {
                         $result.Results = "Username: $username`n"
                         $result.Results += "Total logon failures: $cnt"
                         Write-Output $result | Format-Table * -Wrap;
-                        Write-Host    
+                        Write-Output    
                     }
                     $detectcount += 1
                 }
@@ -55,19 +55,20 @@ function Add-Rule {
                     $result.Results = "Total accounts: $totalfailedaccounts`n"
                     $result.Results += "Total logon failures: $totalfailedlogons`n"
 
-                    Write-Host 
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
+                    Write-Output 
+                    Write-Output "Detected! RuleName:$ruleName";
+                    Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Host
+                    Write-Output
                 }
             }
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

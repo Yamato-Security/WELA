@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects process LSASS memory dump using procdump or taskmgr based on the CallTrace pointing to dbghelp.dll or dbgcore.dll for win10";
             $result = $event |  where { ($_.ID -eq "10" -and $_.message -match "TargetImage.*.*\\lsass.exe" -and $_.message -match "GrantedAccess.*0x1fffff" -and ($_.message -match "CallTrace.*.*dbghelp.dll.*" -or $_.message -match "CallTrace.*.*dbgcore.dll.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

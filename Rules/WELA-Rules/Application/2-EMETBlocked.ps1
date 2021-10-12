@@ -22,23 +22,24 @@ function Add-Rule {
                     $result.Command = "$command"
                     $result.Results = "$text`n"
                     $result.Results += "$username`n" 
-                    Write-Host
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
+                    Write-Output
+                    Write-Output "Detected! RuleName:$ruleName";
+                    Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Host
+                    Write-Output
                 }
                 else {
-                    Write-Host "Warning: EMET Message field is blank. Install EMET locally to see full details of this alert"
-                    Write-Host
+                    Write-Output "Warning: EMET Message field is blank. Install EMET locally to see full details of this alert"
+                    Write-Output
                 }
             }
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

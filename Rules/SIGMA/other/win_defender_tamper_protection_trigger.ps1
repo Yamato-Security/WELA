@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects block of attempt to disable real time protection of Microsoft Defender by tamper protection";
             $result = $event |  where { (($_.ID -eq "5013") -and ($_.message -match "Value.*.*\\Windows Defender\\DisableAntiSpyware = 0x1()" -or $_.message -match "Value.*.*\\Real-Time Protection\\DisableRealtimeMonitoring = (Current)")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

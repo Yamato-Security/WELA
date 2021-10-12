@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects WRITE_DAC access to a domain object";
             $result = $event |  where { ($_.ID -eq "4662" -and $_.message -match "ObjectServer.*DS" -and $_.message -match "AccessMask.*0x40000" -and ($_.message -match "19195a5b-6da0-11d0-afd3-00c04fd930c9" -or $_.message -match "domainDNS")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

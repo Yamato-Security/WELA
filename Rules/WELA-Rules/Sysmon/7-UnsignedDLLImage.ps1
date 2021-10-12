@@ -20,9 +20,9 @@ function Add-Rule {
                     $result = Create-Obj $record $LogFile
                     $result.Message = $detectedMessage
                     $result.Results = "Loaded by: $image"
-                    Write-Host
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
+                    Write-Output
+                    Write-Output "Detected! RuleName:$ruleName";
+                    Write-Output $detectedMessage;
                     Write-Output $result
                 }
             }
@@ -33,6 +33,6 @@ function Add-Rule {
         $ruleStack.Add($ruleName, $detectRule);
     }
     else {
-        Write-Host "Rule Import Error" -Foreground Yellow;
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

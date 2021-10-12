@@ -24,11 +24,11 @@ function Add-Rule {
                     $result.Command = $commandline
                     $result.Results = "Service name: $servicename`n"
                     $result.Results += $text 
-                    Write-Host
-                    Write-Host "Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
+                    Write-Output
+                    Write-Output "Detected! RuleName:$ruleName";
+                    Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Host
+                    Write-Output
                 }
                 # Check for suspicious cmd
                 if ($commandline) {
@@ -38,11 +38,11 @@ function Add-Rule {
                     $obj = Create-Obj -event $record                            
                     $result = Check-Command -EventID 7045 -servicecmd $servicecmd -obj $obj
                     if ($result) {
-                        Write-Host
-                        Write-Host "Detected! RuleName:$ruleName";
-                        Write-Host $detectedMessage;
+                        Write-Output
+                        Write-Output "Detected! RuleName:$ruleName";
+                        Write-Output $detectedMessage;
                         Write-Output $result | Format-Table * -Wrap;
-                        Write-Host
+                        Write-Output
                     }
                 }
             }
@@ -53,6 +53,6 @@ function Add-Rule {
         $ruleStack.Add($ruleName, $detectRule);
     }
     else {
-        Write-Host "Rule Import Error" -Foreground Yellow;
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

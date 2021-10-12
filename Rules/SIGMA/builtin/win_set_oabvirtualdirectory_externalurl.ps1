@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Rule to detect an adversary setting OabVirtualDirectory External URL property to a script";
             $result = $event |  where { ($_.message -match ".*Set-OabVirtualDirectory.*" -and $_.message -match ".*ExternalUrl.*" -and $_.message -match ".*Page_Load.*" -and $_.message -match ".*script.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

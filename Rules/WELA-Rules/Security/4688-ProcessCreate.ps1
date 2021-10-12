@@ -21,20 +21,21 @@ function Add-Rule {
                 if ($commandline) {
                     $result = Check-Command -EventID 4688 $commandline $creator -obj $obj
                     if ($result) {
-                        Write-Host
-                        Write-Host "Detected! RuleName:$ruleName";
-                        Write-Host $detectedMessage;
+                        Write-Output
+                        Write-Output "Detected! RuleName:$ruleName";
+                        Write-Output $detectedMessage;
                         Write-Output $result | Format-Table * -Wrap;
-                        Write-Host
+                        Write-Output
                     }
                 }
             }
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

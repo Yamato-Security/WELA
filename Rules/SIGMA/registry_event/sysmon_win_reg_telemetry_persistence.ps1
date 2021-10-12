@@ -14,10 +14,10 @@ function Add-Rule {
             $detectedMessage = "Detects persistence method using windows telemetry ";
             $result = $event |  where { ((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and ($_.message -match "TargetObject.*.*\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\TelemetryController\\.*" -and $_.message -match "TargetObject.*.*\\Command.*" -and $_.message -match "Details.*.*.exe.*") -and -not (($_.message -match "Details.*.*\\system32\\CompatTelRunner.exe.*" -or $_.message -match "Details.*.*\\system32\\DeviceCensus.exe.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
                 result;
-                Write-Host $detectedMessage;
+                Write-Output $detectedMessage;
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
         $ruleStack.Add($ruleName, $detectRule);
     }
     else {
-        Write-Host "Rule Import Error" -Foreground Yellow;
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

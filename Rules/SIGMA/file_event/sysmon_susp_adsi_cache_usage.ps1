@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the usage of ADSI (LDAP) operations by tools. This may also detect tools like LDAPFragger.";
             $result = $event |  where { (($_.ID -eq "11") -and ($_.message -match "TargetFilename.*.*\\Local\\Microsoft\\Windows\\SchCache\\.*" -and $_.message -match "TargetFilename.*.*.sch") -and -not (($_.message -match "C:\\windows\\system32\\svchost.exe" -or $_.message -match "C:\\windows\\system32\\dllhost.exe" -or $_.message -match "C:\\windows\\system32\\mmc.exe" -or $_.message -match "C:\\windows\\system32\\WindowsPowerShell\\v1.0\\powershell.exe" -or $_.message -match "C:\\Windows\\CCM\\CcmExec.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

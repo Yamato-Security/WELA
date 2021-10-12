@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects activity as ""net user administrator /domain"" and ""net group domain admins /domain""";
             $result = $event |  where { ($_.ID -eq "4661" -and ($_.message -match "SAM_USER" -or $_.message -match "SAM_GROUP") -and $_.message -match "ObjectName.*S-1-5-21-.*" -and $_.message -match "AccessMask.*0x2d" -and ($_.message -match "ObjectName.*.*-500" -or $_.message -match "ObjectName.*.*-512")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

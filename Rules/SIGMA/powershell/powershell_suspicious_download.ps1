@@ -18,13 +18,13 @@ function Add-Rule {
             $results += $event |  where { ($_.message -match ".*System.Net.WebClient.*" -and ($_.message -match ".*.DownloadFile(.*" -or $_.message -match ".*.DownloadString(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
             $results += $event | where { ($_.ID -eq "400" -and $_.message -match "HostApplication.*.*System.Net.WebClient.*" -and ($_.message -match "HostApplication.*.*.DownloadFile(.*" -or $_.message -match "HostApplication.*.*.DownloadString(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
             }
             foreach ($result in $results) {
-                Write-Host $result;
-                Write-Host
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -32,6 +32,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

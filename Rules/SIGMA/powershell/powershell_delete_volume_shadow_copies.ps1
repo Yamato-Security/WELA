@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Shadow Copies deletion using operating systems utilities via PowerShell";
             $result = $event |  where { ($_.message -match "CommandLine.*.*Get-WmiObject.*" -and $_.message -match "CommandLine.*.* Win32_Shadowcopy.*" -and ($_.message -match "CommandLine.*.*Delete().*" -or $_.message -match "CommandLine.*.*Remove-WmiObject.*") -and $_.ID -eq "400") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

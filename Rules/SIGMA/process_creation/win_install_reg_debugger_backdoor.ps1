@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the registration of a debugger for a program that is available in the logon screen (sticky key backdoor).";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\\CurrentVersion\\Image File Execution Options\\.*" -and ($_.message -match "CommandLine.*.*sethc.exe.*" -or $_.message -match "CommandLine.*.*utilman.exe.*" -or $_.message -match "CommandLine.*.*osk.exe.*" -or $_.message -match "CommandLine.*.*magnify.exe.*" -or $_.message -match "CommandLine.*.*narrator.exe.*" -or $_.message -match "CommandLine.*.*displayswitch.exe.*" -or $_.message -match "CommandLine.*.*atbroker.exe.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

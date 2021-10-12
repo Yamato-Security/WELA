@@ -14,10 +14,10 @@ function Add-Rule {
             $detectedMessage = "Detects the volume shadow copy service initialization and processing. Registry keys such as HKLM\System\CurrentControlSet\Services\VSS\Diag\VolSnap\Volume are captured.";
             $result = $event |  where { ((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and $_.message -match "TargetObject.*.*System\\CurrentControlSet\\Services\\VSS.*" -and -not ($_.message -match "TargetObject.*.*System\\CurrentControlSet\\Services\\VSS\\Start.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
                 result;
-                Write-Host $detectedMessage;
+                Write-Output $detectedMessage;
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
         $ruleStack.Add($ruleName, $detectRule);
     }
     else {
-        Write-Host "Rule Import Error" -Foreground Yellow;
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

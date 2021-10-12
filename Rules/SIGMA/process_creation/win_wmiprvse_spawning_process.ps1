@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects wmiprvse spawning processes";
             $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "ParentImage.*.*\\WmiPrvSe.exe" -and -not (($_.message -match "0x3e7" -or $_.message -match "null") -or ($_.message -match "0x3e7" -or $_.message -match "null") -or $_.message -match "User.*NT AUTHORITY\\SYSTEM" -or ($_.message -match "Image.*.*\\WmiPrvSE.exe" -or $_.message -match "Image.*.*\\WerFault.exe"))) -and -not (-not $_.message -match "LogonId.*")) -and -not (-not $_.message -match "SubjectLogonId.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

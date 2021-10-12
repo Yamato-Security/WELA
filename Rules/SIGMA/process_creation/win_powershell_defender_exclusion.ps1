@@ -14,11 +14,11 @@ function Add-Rule {
                     $detectedMessage = "Detects requests to exclude files, folders or processes from Antivirus scanning using PowerShell cmdlets";
                 $result = $event |  where {(($_.ID -eq "1") -and (($_.ID -eq "1" -and $_.message -match "CommandLine.*.*Add-MpPreference .*" -and ($_.message -match "CommandLine.*.* -ExclusionPath .*" -or $_.message -match "CommandLine.*.* -ExclusionExtension .*" -or $_.message -match "CommandLine.*.* -ExclusionProcess .*")) -or ($_.message -match "CommandLine.*.*QWRkLU1wUHJlZmVyZW5jZ.*" -or $_.message -match "CommandLine.*.*FkZC1NcFByZWZlcmVuY2.*" -or $_.message -match "CommandLine.*.*BZGQtTXBQcmVmZXJlbmNl.*"))) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-Write-Host $result;
-Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+Write-Output $result;
+Write-Output
             }
             
         };
@@ -27,6 +27,6 @@ Write-Host
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

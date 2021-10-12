@@ -14,11 +14,11 @@ function Add-Rule {
                     $detectedMessage = "There is an option for a MS VS Just-In-Time Debugger ""vsjitdebugger.exe"" to launch specified executable and attach a debugger. This option may be used adversaries to execute malicious code by signed verified binary. The debugger is installed alongside with Microsoft Visual Studio package.";
                 $result = $event |  where { (($_.ID -eq "1") -and $_.message -match "ParentImage.*.*\\vsjitdebugger.exe" -and -not ((($_.ID -eq "1") -and ($_.message -match "Image.*.*\\vsimmersiveactivatehelper.*.exe" -or $_.message -match "Image.*.*\\devenv.exe")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-Write-Host $result;
-Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+Write-Output $result;
+Write-Output
             }
             
         };
@@ -27,6 +27,6 @@ Write-Host
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

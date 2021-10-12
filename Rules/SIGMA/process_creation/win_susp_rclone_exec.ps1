@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects Rclone which is commonly used by ransomware groups for exfiltration";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.* pass .*" -or $_.message -match "CommandLine.*.* user .*" -or $_.message -match "CommandLine.*.* copy .*" -or $_.message -match "CommandLine.*.* mega .*" -or $_.message -match "CommandLine.*.* sync .*" -or $_.message -match "CommandLine.*.* config .*" -or $_.message -match "CommandLine.*.* lsd .*" -or $_.message -match "CommandLine.*.* remote .*" -or $_.message -match "CommandLine.*.* ls .*") -and ($_.ID -eq "1") -and ($_.message -match "Description.*Rsync for cloud storage" -or ($_.message -match "Image.*.*\\rclone.exe" -and ($_.message -match "ParentImage.*.*\\PowerShell.exe" -or $_.message -match "ParentImage.*.*\\cmd.exe")))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

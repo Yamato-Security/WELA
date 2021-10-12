@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects signs of the WMI script host process %SystemRoot%system32wbemscrcons.exe functionality being used via images being loaded by a process.";
             $result = $event |  where { ($_.ID -eq "7" -and $_.message -match "Image.*.*\\scrcons.exe" -and ($_.message -match "ImageLoaded.*.*\\vbscript.dll" -or $_.message -match "ImageLoaded.*.*\\wbemdisp.dll" -or $_.message -match "ImageLoaded.*.*\\wshom.ocx" -or $_.message -match "ImageLoaded.*.*\\scrrun.dll")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

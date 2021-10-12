@@ -12,9 +12,9 @@ function Add-Rule {
             $target = $event | where { $_.ID -eq 8004 -and $_.LogName -eq "Microsoft-Windows-AppLocker/EXE and DLL" }
 
             if ($target) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
             }
             foreach ($record in $target) {
                 $result = Create-Obj $record $LogFile
@@ -24,14 +24,15 @@ function Add-Rule {
                 $result.Result = $record.message
                 
                 Write-Output $result | Format-Table * -Wrap;
-                Write-Host
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

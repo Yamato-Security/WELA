@@ -20,19 +20,20 @@ function Add-Rule {
                     $result.Message = $detectedMessage
                     $eventTimestampString = $record.TimeCreated.ToString($DateFormat)
                     $result.Results = "User:$user"
-                    Write-Host
-                    Write-Host "$eventTimestampString Detected! RuleName:$ruleName";
-                    Write-Host $detectedMessage;
+                    Write-Output
+                    Write-Output "$eventTimestampString Detected! RuleName:$ruleName";
+                    Write-Output $detectedMessage;
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Host    
+                    Write-Output    
                 }
             }
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

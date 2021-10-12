@@ -15,11 +15,11 @@ function Add-Rule {
             $result = $result | where { (($_.message -match "ObjectName.*.*WINEVT\\Publishers\\{5770385f-c22a-43e0-bf4c-06f5698ffbd9}.*" -or $_.message -match "ObjectName.*.*WINEVT\\Channels\\Microsoft-Windows-Sysmon/Operational.*") -and (($_.ID -eq "4657" -and $_.message -match "ObjectValueName.*Enabled" -and $_.message -match "NewValue.*0") -or ($_.ID -eq "4663" -and $_.message -match "AccessMask.*65536"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -27,6 +27,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

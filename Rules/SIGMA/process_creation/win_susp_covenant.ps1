@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious command lines used in Covenant luanchers";
             $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "CommandLine.*.*-Sta.*" -and $_.message -match "CommandLine.*.*-Nop.*" -and $_.message -match "CommandLine.*.*-Window.*" -and $_.message -match "CommandLine.*.*Hidden.*" -and ($_.message -match "CommandLine.*.*-Command.*" -or $_.message -match "CommandLine.*.*-EncodedCommand.*")) -or ($_.message -match "CommandLine.*.*sv o (New-Object IO.MemorySteam);sv d .*" -or $_.message -match "CommandLine.*.*mshta file.hta.*" -or $_.message -match "CommandLine.*.*GruntHTTP.*" -or $_.message -match "CommandLine.*.*-EncodedCommand cwB2ACAAbwAgA.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

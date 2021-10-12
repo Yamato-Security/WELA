@@ -12,9 +12,9 @@ function Add-Rule {
             $detectedMessage = "User requested to modify the Dynamic Access Control (DAC) permissions of a service, possibly to hide it from view on DeepBlueCLI Rule";
             $target = $event | where { $_.LogName -eq "Security" -and ($_.id -eq 4674) }
             if ($target) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
             }
             foreach ($record in $target) {
                 $array = $record.message -split '\n' # Split each line of the message into an array
@@ -29,15 +29,16 @@ function Add-Rule {
                     $result.Results += "Target service: $service`n"
                     $result.Results += "Desired Access: $accessreq`n"
                     Write-Output $result | Format-Table * -Wrap;
-                    Write-Host
+                    Write-Output
                 }
             }
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

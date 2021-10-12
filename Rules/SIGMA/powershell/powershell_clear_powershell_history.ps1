@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects keywords that could indicate clearing PowerShell history";
             $result = $event |  where { ((($_.ID -eq "4104" -and ((($_.message -match "ScriptBlockText.*.*del.*" -or $_.message -match "ScriptBlockText.*.*Remove-Item.*" -or $_.message -match "ScriptBlockText.*.*rm.*") -and $_.message -match "ScriptBlockText.*.*(Get-PSReadlineOption).HistorySavePath.*") -or ($_.message -match "ScriptBlockText.*.*Set-PSReadlineOption.*" -and $_.message -match "ScriptBlockText.*.*–HistorySaveStyle.*" -and $_.message -match "ScriptBlockText.*.*SaveNothing.*"))) -or ($_.ID -eq "4103" -and ((($_.message -match "Payload.*.*del.*" -or $_.message -match "Payload.*.*Remove-Item.*" -or $_.message -match "Payload.*.*rm.*") -and $_.message -match "Payload.*.*(Get-PSReadlineOption).HistorySavePath.*") -or ($_.message -match "Payload.*.*Set-PSReadlineOption.*" -and $_.message -match "Payload.*.*–HistorySaveStyle.*" -and $_.message -match "Payload.*.*SaveNothing.*"))))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

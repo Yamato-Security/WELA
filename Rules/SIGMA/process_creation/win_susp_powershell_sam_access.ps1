@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious PowerShell scripts accessing SAM hives";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\\HarddiskVolumeShadowCopy.*" -and $_.message -match "CommandLine.*.*ystem32\\config\\sam.*" -and ($_.message -match "CommandLine.*.*Copy-Item.*" -or $_.message -match "CommandLine.*.*cp $_..*" -or $_.message -match "CommandLine.*.*cpi $_..*" -or $_.message -match "CommandLine.*.*copy $_..*" -or $_.message -match "CommandLine.*.*.File]::Copy(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

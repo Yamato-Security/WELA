@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects actions caused by the RedMimicry Winnti playbook";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "Image.*.*rundll32.exe.*" -or $_.message -match "Image.*.*cmd.exe.*") -and ($_.message -match "CommandLine.*.*gthread-3.6.dll.*" -or $_.message -match "CommandLine.*.*\\Windows\\Temp\\tmp.bat.*" -or $_.message -match "CommandLine.*.*sigcmm-2.4.dll.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

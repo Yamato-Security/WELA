@@ -14,11 +14,11 @@ function Add-Rule {
             $detectedMessage = "Detects the attack technique pass the hash which is used to move laterally inside the network";
             $result = $event |  where { (($_.ID -eq "4624" -and (($_.message -match "SubjectUserSid.*S-1-0-0" -and $_.message -match "LogonType.*3" -and $_.message -match "LogonProcessName.*NtLmSsp" -and $_.message -match "KeyLength.*0") -or ($_.message -match "LogonType.*9" -and $_.message -match "LogonProcessName.*seclogo"))) -and -not ($_.message -match "AccountName.*ANONYMOUS LOGON")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -26,6 +26,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

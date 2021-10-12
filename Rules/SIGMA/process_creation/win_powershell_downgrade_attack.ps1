@@ -14,11 +14,11 @@ function Add-Rule {
                     $detectedMessage = "Detects PowerShell downgrade attack by comparing the host versions with the actually used engine version 2.0";
                 $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.* -version 2 .*" -or $_.message -match "CommandLine.*.* -versio 2 .*" -or $_.message -match "CommandLine.*.* -versi 2 .*" -or $_.message -match "CommandLine.*.* -vers 2 .*" -or $_.message -match "CommandLine.*.* -ver 2 .*" -or $_.message -match "CommandLine.*.* -ve 2 .*") -and $_.message -match "Image.*.*\\powershell.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-Write-Host $result;
-Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+Write-Output $result;
+Write-Output
             }
             
         };
@@ -27,6 +27,6 @@ Write-Host
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

@@ -15,11 +15,11 @@ function Add-Rule {
                 $result = $event | where { (($_.ID -eq "1") -and -not (($_.message -match "Image.*C:\\Windows\\System32\\.*" -or $_.message -match "Image.*C:\\Windows\\SysWOW64\\.*")) -and ($_.message -match "ParentCommandLine.*.*cmd.exe /c.*" -and $_.message -match "ParentCommandLine.*.*RoamDiag.cmd.*" -and $_.message -match "ParentCommandLine.*.*-outputpath.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-Write-Host $result;
-Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+Write-Output $result;
+Write-Output
             }
             
         };
@@ -28,6 +28,6 @@ Write-Host
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

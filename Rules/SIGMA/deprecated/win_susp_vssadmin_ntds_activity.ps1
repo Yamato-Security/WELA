@@ -15,11 +15,11 @@ function Add-Rule {
             $result = $event | where { ($_.ID -eq "1" -and ($_.message -match "vssadmin.exe Delete Shadows" -or $_.message -match "vssadmin create shadow /for=C:" -or $_.message -match "CommandLine.*copy \\?\\GLOBALROOT\\Device\\.*\\windows\\ntds\\ntds.dit" -or $_.message -match "CommandLine.*copy \\?\\GLOBALROOT\\Device\\.*\\config\\SAM" -or $_.message -match "vssadmin delete shadows /for=C:" -or $_.message -match "reg SAVE HKLM\\SYSTEM " -or $_.message -match "CommandLine.*esentutl.exe /y /vss .*\\ntds.dit.*" -or $_.message -match "CommandLine.*esentutl.exe /y /vss .*\\SAM" -or $_.message -match "CommandLine.*esentutl.exe /y /vss .*\\SYSTEM")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result.Count -ne 0) {
-                Write-Host
-                Write-Host "Detected! RuleName:$ruleName";
-                Write-Host $detectedMessage;
-                Write-Host $result;
-                Write-Host
+                Write-Output
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output
             }
         };
         . Search-DetectableEvents $args;
@@ -27,6 +27,6 @@ function Add-Rule {
     if(! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
     } else {
-       Write-Host "Rule Import Error" -Foreground Yellow;
+       Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }
