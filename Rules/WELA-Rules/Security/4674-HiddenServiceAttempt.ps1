@@ -22,7 +22,7 @@ function Add-Rule {
                 $service = Remove-Spaces(($array[11] -split ':')[1])
                 $application = Remove-Spaces(($array[16] -split ':	')[1])
                 $accessreq = Remove-Spaces(($array[19] -split ':')[1])
-                if ($application.ToUpper() -match "C:\WINDOWS\SYSTEM32\SERVICES.EXE" -and $accessreq.ToUpper() -match "WRITE_DAC") {
+                if ($application.ToUpper() -eq "C:\WINDOWS\SYSTEM32\SERVICES.EXE" -and $accessreq.ToUpper() -eq "WRITE_DAC") {
                     $result = Create-Obj $record $LogFile
                     $result.message = $detectedMessage
                     $result.Results = "User: $user`n"
