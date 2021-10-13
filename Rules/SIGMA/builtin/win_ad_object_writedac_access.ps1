@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Security | where {($_.ID -eq "4662" -and $_.message -match "ObjectServer.*DS" -and $_.message -match "AccessMask.*0x40000" -and ($_.message -match "19195a5b-6da0-11d0-afd3-00c04fd930c9" -or $_.message -match "domainDNS")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Security | where {($_.ID -eq "4662" -and $_.message -match "ObjectServer.*DS" -and $_.message -match "AccessMask.*0x40000" -and ($_.message -match "19195a5b-6da0-11d0-afd3-00c04fd930c9" -or $_.message -match "domainDNS")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -23,9 +23,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

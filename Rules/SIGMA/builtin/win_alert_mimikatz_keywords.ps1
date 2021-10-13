@@ -1,4 +1,4 @@
-# Get-WinEvent | where {($_.message -match ".*mimikatz.*" -or $_.message -match ".*mimilib.*" -or $_.message -match ".*<3 eo.oe.*" -or $_.message -match ".*eo.oe.kiwi.*" -or $_.message -match ".*privilege::debug.*" -or $_.message -match ".*sekurlsa::logonpasswords.*" -or $_.message -match ".*lsadump::sam.*" -or $_.message -match ".*mimidrv.sys.*" -or $_.message -match ".* p::d .*" -or $_.message -match ".* s::l .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent | where {($_.message -match ".*mimikatz.*" -or $_.message -match ".*mimilib.*" -or $_.message -match ".*<3 eo.oe.*" -or $_.message -match ".*eo.oe.kiwi.*" -or $_.message -match ".*privilege::debug.*" -or $_.message -match ".*sekurlsa::logonpasswords.*" -or $_.message -match ".*lsadump::sam.*" -or $_.message -match ".*mimidrv.sys.*" -or $_.message -match ".* p::d .*" -or $_.message -match ".* s::l .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 

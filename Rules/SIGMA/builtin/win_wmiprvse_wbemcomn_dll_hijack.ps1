@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Security | where {(($_.ID -eq "5145" -and $_.message -match "RelativeTargetName.*.*\wbem\wbemcomn.dll") -and  -not ($_.message -match "SubjectUserName.*.*$")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Security | where {(($_.ID -eq "5145" -and $_.message -match "RelativeTargetName.*.*\wbem\wbemcomn.dll") -and  -not ($_.message -match "SubjectUserName.*.*$")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -23,9 +23,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

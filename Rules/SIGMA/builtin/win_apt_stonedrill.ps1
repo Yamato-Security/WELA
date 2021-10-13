@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName System | where {($_.ID -eq "7045" -and $_.message -match "ServiceName.*NtsSrv" -and $_.Service File Name -eq "* LocalService") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName System | where {($_.ID -eq "7045" -and $_.message -match "ServiceName.*NtsSrv" -and $_.Service File Name -eq "* LocalService") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -24,9 +24,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

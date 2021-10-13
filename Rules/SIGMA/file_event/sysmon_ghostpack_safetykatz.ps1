@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\Temp\debug.bin") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\Temp\debug.bin") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 

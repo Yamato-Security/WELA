@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Imphash.*09D278F9DE118EF09163C6140255C690") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Imphash.*09D278F9DE118EF09163C6140255C690") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "11" -and $_.message -match "TargetFilename.*C:\\Windows\\Temp\\dumpert.dmp") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
@@ -29,9 +29,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

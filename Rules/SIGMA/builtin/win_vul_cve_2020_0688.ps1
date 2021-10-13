@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Application | where {($_.ID -eq "4" -and $_.message -match "Source.*MSExchange Control Panel" -and $_.message -match "Level.*Error" -and ($_.message -match ".*&__VIEWSTATE=.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Application | where {($_.ID -eq "4" -and $_.message -match "Source.*MSExchange Control Panel" -and $_.message -match "Level.*Error" -and ($_.message -match ".*&__VIEWSTATE=.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 

@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName System | where { ($_.ID -eq "7045" -and ($_.Service File Name -eq "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+﻿# Get-WinEvent -LogName System | where { ($_.ID -eq "7045" -and ($_.Service File Name -eq "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 # Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "6" -and ($_.Service File Name -eq "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 # Get-WinEvent -LogName Security | where { ($_.ID -eq "4697" -and ($_.Service File Name -eq "*powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 

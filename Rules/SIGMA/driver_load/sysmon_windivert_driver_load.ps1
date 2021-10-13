@@ -1,4 +1,4 @@
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "6" -and ($_.message -match "ImageLoaded.*.*\WinDivert.sys.*" -or $_.message -match "ImageLoaded.*.*\WinDivert64.sys.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "6" -and ($_.message -match "ImageLoaded.*.*\WinDivert.sys.*" -or $_.message -match "ImageLoaded.*.*\WinDivert64.sys.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -23,9 +23,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }
