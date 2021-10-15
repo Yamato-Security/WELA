@@ -25,7 +25,6 @@ function Add-Rule {
             $tmp = $event | where { ($_.ID -eq "4697" -and ($_.message -match "powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             [void]$results.Add($tmp);
 
-            
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
                     Write-Output ""; 

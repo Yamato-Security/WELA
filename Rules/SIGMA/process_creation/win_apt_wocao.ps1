@@ -18,10 +18,9 @@ function Add-Rule {
             [void]$results.Add($tmp);
             $tmp = $event | where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*checkadmin.exe 127.0.0.1 -all.*" -or $_.message -match "CommandLine.*.*netsh advfirewall firewall add rule name=powershell dir=in.*" -or $_.message -match "CommandLine.*.*cmd /c powershell.exe -ep bypass -file c:\\s.ps1.*" -or $_.message -match "CommandLine.*.*/tn win32times /f.*" -or $_.message -match "CommandLine.*.*create win32times binPath=.*" -or $_.message -match "CommandLine.*.*\\c$\\windows\\system32\\devmgr.dll.*" -or $_.message -match "CommandLine.*.* -exec bypass -enc JgAg.*" -or $_.message -match "CommandLine.*.*type .*keepass\\KeePass.config.xml.*" -or $_.message -match "CommandLine.*.*iie.exe iie.txt.*" -or $_.message -match "CommandLine.*.*reg query HKEY_CURRENT_USER\\Software\\.*\\PuTTY\\Sessions\\.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             [void]$results.Add($tmp);
-            $results = $results | where { $_ }
             
-            if ($results.count() -ne 0) {
-                foreach ($result in $results) {
+            foreach ($result in $results) {
+                if ($result.count() -ne 0) {
                     Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;    
