@@ -101,7 +101,8 @@ param (
     [switch]$UTC,
     [switch]$HideTimezone,
     [switch]$QuietLogo,
-    [switch]$AnalyzeNTLMBasic
+    [switch]$AnalyzeNTLMBasic,
+    [switch]$AnalyzeNTLMDetailed
 )
 
 $DisplayTimezone = !($HideTimezone);
@@ -452,8 +453,8 @@ function Create-LogonTimeline {
     $Type13Logons = 0
     $OtherTypeLogon = 0
 
-    $output = @()
-    $LogServiceShutdownTimeArray = @()
+    [System.Collections.ArrayList]$output = @()
+    [System.Collections.ArrayList]$LogServiceShutdownTimeArray = @()
     
     if ( $StartTimeline -ne "" ) { 
         $StartTimeline = [DateTime]::ParseExact($StartTimeline, $DateFormat, $null) 
@@ -485,7 +486,7 @@ function Create-LogonTimeline {
     $TotalNumberOfLogs = 0
 
     [System.Collections.ArrayList]$LogoffEventArray = @()
-    $AdminLogonArray = @()
+    [System.Collections.ArrayList]$AdminLogonArray = @()
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
@@ -557,7 +558,7 @@ function Create-LogonTimeline {
             }
 
             $LogServiceShutdownTimeDateTime = [datetime]::ParseExact($LogServiceShutdownTimeString, $DateFormat, $null) 
-            $LogServiceShutdownTimeArray += $LogServiceShutdownTimeDateTime 
+            [void]$LogServiceShutdownTimeArray.Add( $LogServiceShutdownTimeDateTime )
 
         }
 
@@ -581,7 +582,7 @@ function Create-LogonTimeline {
 
             if ( $AdminLogonArray.Contains( $msgSubjectUserName ) -eq $false ) {
 
-                $AdminLogonArray += $msgSubjectUserName
+                [void]$AdminLogonArray.Add( $msgSubjectUserName )
 
             }
 
@@ -821,7 +822,7 @@ function Create-LogonTimeline {
             if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
             if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
 
-            $output += [pscustomobject]$tempoutput
+            [void]$output.Add( [pscustomobject]$tempoutput )
 
             $TotalFilteredLogons++
 
@@ -841,8 +842,6 @@ function Create-LogonTimeline {
     Write-Host
     Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
     Write-Host
-
-    $output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
 
     #重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
     for ( $i = 0 ; $i -le ( $output.count - 1 ) ; $i++) {
@@ -1844,6 +1843,13 @@ foreach ( $LogFile in $evtxFiles ) {
         .  ($AnalyzersPath + "NTLM-Operational.ps1")
         Analyze-NTLMOperationalBasic
 
+    }
+
+    if ( $AnalyzeNTLMDetailed -eq $true){
+
+        .  ($AnalyzersPath + "NTLM-Operational.ps1")
+        Analyze-NTLMOperationalDetailed
+        
     }
 
 }
