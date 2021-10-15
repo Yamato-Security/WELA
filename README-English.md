@@ -27,6 +27,7 @@ Tested on Windows Powershell 5.1 but may work with previous versions. It will un
  - Japanese support
  - Event ID Statistics
  - Output to CSV to analyze in Timeline Explorer, etc...
+ - Analyze NTLM usage before disabling NTLM
 
 ## Planned Features
 
@@ -87,6 +88,7 @@ Create a timeline via offline analysis outputted to a GUI in UTC time:
     .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline -OutputGUI -UTC
 
 Analyze NTLM Operational logs for NTLM usage before disabling it:
+
     .\WELA.ps1 -AnalyzeNTLM_UsageBasic -LogFile .\DC1-NTLM-Operational.evtx
 
 ## Screenshots

@@ -27,6 +27,7 @@ Windows Powershell 5.1で動作確認済みですが、以前のバージョン�
  - 日本語対応
  - イベントIDの集計
  - Timeline Explorer等で解析するためのCSV出力
+ - NTLM認証を無効にする前に使用の確認
 
 ## 予定している機能
 
@@ -85,6 +86,10 @@ Windows Powershell 5.1で動作確認済みですが、以前のバージョン�
 オフライン解析でタイムラインを作成して、UTC時間でGUIで表示する：
 
     .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline -OutputGUI -UTC
+
+NTLM認証を無効にする前に使用を確認する:
+
+    .\WELA.ps1 -AnalyzeNTLM_UsageBasic -LogFile .\DC1-NTLM-Operational.evtx
 
 ## スクリーンショット
 
