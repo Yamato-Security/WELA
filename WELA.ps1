@@ -68,7 +68,7 @@
 #
 # 
 # Inspired by Eric Conrad's DeepBlueCLI (https://github.com/sans-blue-team/DeepBlueCLI)
-# Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/en/article/references-pdf)
+# Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/media/attachments/2021/05/15/windows-event-log-analyst-reference.pdf)
 # and event log info from www.ultimatewindowssecurity.com.
 # Many thanks to SIGMA: https://github.com/SigmaHQ/sigma
 # as well as sbousseaden for providing sample attack event logs at https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
@@ -82,6 +82,7 @@
 
 param (
     [switch]$Japanese,
+    [switch]$English,
     [switch]$USDateFormat,
     [switch]$EuropeDateFormat,
     [string]$SaveOutput = "",
@@ -94,7 +95,7 @@ param (
     [string]$LogFile = "",
     [string]$LogDirectory = "",
     [switch]$ShowContributors,
-    [switch]$EventIDStatistics,
+    [switch]$EventID_Statistics,
     [switch]$LogonTimeline,
     [switch]$AccountInformation,
     [switch]$OutputGUI,
@@ -102,7 +103,9 @@ param (
     [switch]$UTC,
     [switch]$HideTimezone,
     [switch]$QuietLogo,
-    [string]$UseDetectRules = "0"
+    [string]$UseDetectRules = "0",
+    [switch]$AnalyzeNTLM_UsageBasic,
+    [switch]$AnalyzeNTLM_UsageDetailed
 )
 
 $ruleStack = @{};
@@ -210,6 +213,7 @@ $EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,477
 # 4769 - SERVICE TICKET ISSUED
 # 4776 - NTLM auth. non-standard tool used?
 
+$AnalyzersPath = $PSScriptRoot + "\Analyzers\"
 $TotalLogsNoFilters = 0
 $BadWorkstations = @("kali", "SLINGSHOT") #Highlight with the red alert background when the workstation comes from a pentesting distro.
 
@@ -236,13 +240,16 @@ $TotalLogs = 0
 
 $RemoteComputerInfo = @{
     "RemoteLiveAnalysis" = $False;
-    "Computername" = "";
-    "Credential" = ""
+    "Computername"       = "";
+    "Credential"         = ""
 }
 
 $HostLanguage = Get-WinSystemLocale | Select-Object Name # en-US, ja-JP, etc..
 
-if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
+if ( $HostLanguage.Name -eq "ja-JP" -and $English -eq $true ) {
+    Import-Module './Config/Language/en.ps1' -Force;
+}
+elseif ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
     Import-Module './Config/Language/ja.ps1' -Force;
 }
 else {
@@ -461,8 +468,8 @@ function Create-LogonTimeline {
     $Type13Logons = 0
     $OtherTypeLogon = 0
 
-    $output = @()
-    $LogServiceShutdownTimeArray = @()
+    [System.Collections.ArrayList]$output = @()
+    [System.Collections.ArrayList]$LogServiceShutdownTimeArray = @()
     
     if ( $StartTimeline -ne "" ) { 
         $StartTimeline = [DateTime]::ParseExact($StartTimeline, $DateFormat, $null) 
@@ -494,7 +501,7 @@ function Create-LogonTimeline {
     $TotalNumberOfLogs = 0
 
     [System.Collections.ArrayList]$LogoffEventArray = @()
-    $AdminLogonArray = @()
+    [System.Collections.ArrayList]$AdminLogonArray = @()
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
@@ -566,7 +573,7 @@ function Create-LogonTimeline {
             }
 
             $LogServiceShutdownTimeDateTime = [datetime]::ParseExact($LogServiceShutdownTimeString, $DateFormat, $null) 
-            $LogServiceShutdownTimeArray += $LogServiceShutdownTimeDateTime 
+            [void]$LogServiceShutdownTimeArray.Add( $LogServiceShutdownTimeDateTime )
 
         }
 
@@ -590,7 +597,7 @@ function Create-LogonTimeline {
 
             if ( $AdminLogonArray.Contains( $msgSubjectUserName ) -eq $false ) {
 
-                $AdminLogonArray += $msgSubjectUserName
+                [void]$AdminLogonArray.Add( $msgSubjectUserName )
 
             }
 
@@ -822,7 +829,7 @@ function Create-LogonTimeline {
             if ( $DisplayTimezone -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_Timezone) }
             if ( $ShowLogonID -eq $false ) { $tempoutput.Remove($Create_LogonTimeline_LogonID ) }
 
-            $output += [pscustomobject]$tempoutput
+            [void]$output.Add( [pscustomobject]$tempoutput )
 
             $TotalFilteredLogons++
 
@@ -844,8 +851,6 @@ function Create-LogonTimeline {
     Write-Host
     Write-Host ( $Create_LogonTimeline_Processing_Time -f $RuntimeHours , $RuntimeMinutes , $RuntimeSeconds )  # "Estimated processing time: {0} hours {1} minutes {2} seconds"
     Write-Host
-
-    $output = [System.Collections.ArrayList]$output #Make array mutable so we can delete duplicate logon events
 
     #重複しているログオンイベントがよくあるので、一個目（紐づいているログオフイベントがないやつ）を削除する
     for ( $i = 0 ; $i -le ( $output.count - 1 ) ; $i++) {
@@ -1771,10 +1776,24 @@ if ( ($LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) -and $LogFile 
 }
 
 # Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
-if ( $LiveAnalysis -eq $false -and $RemoteLiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
+if ( $LiveAnalysis -eq $false -and $RemoteLiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and $AnalyzeNTLM_UsageBasic -eq $false -and $AnalyzeNTLM_UsageDetailed -eq $false) {
 
     Show-Help
     exit
+
+}
+
+#No analysis source was specified
+if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
+
+    if ( $LiveAnalysis -ne $true -and $LogFile -ne $true -and $LogDirectory -ne $true) {
+
+        Write-Host
+        Write-Host $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified -ForegroundColor White -BackgroundColor Red
+        Write-Host 
+        exit
+
+    }
 
 }
 
@@ -1785,20 +1804,25 @@ $evtxFiles = @($LogFile)
 if ( $LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) {
 
     Perform-LiveAnalysisChecks
-    
-    $evtxFiles = @(
-        "C:\Windows\System32\winevt\Logs\Security.evtx",
-        "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
-    )
-    
-    if ( $LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) {
-        Perform-LiveAnalysisChecks
-    
-        if ( $RemoteLiveAnalysis -eq $true ) {
-            $RemoteComputerInfo = Get-RemoteComputerInfo #Get credential and computername
-        }
-    }
+    if ($AnalyzeNTLM -eq $true) {
 
+        $evtxFiles = @(
+            "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
+        )
+
+    }
+    else {
+
+        $evtxFiles = @(
+            "C:\Windows\System32\winevt\Logs\Security.evtx",
+            "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
+        )
+    }
+    
+    if ( $RemoteLiveAnalysis -eq $true ) {
+        $RemoteComputerInfo = Get-RemoteComputerInfo #Get credential and computername
+    }
+        
 }
 elseif ( $LogDirectory -ne "" ) {
 
@@ -1824,7 +1848,7 @@ if ( $UTC -eq $true ) {
 
 foreach ( $LogFile in $evtxFiles ) {
 
-    if ( $EventIDStatistics -eq $true ) {   
+    if ( $EventID_Statistics -eq $true ) {   
 
         Create-EventIDStatistics
         
@@ -1834,6 +1858,19 @@ foreach ( $LogFile in $evtxFiles ) {
 
         Create-LogonTimeline $UTCOffset
     
+    }
+    if ( $AnalyzeNTLM_UsageBasic -eq $true) {
+
+        .  ($AnalyzersPath + "NTLM-Operational.ps1")
+        Analyze-NTLMOperationalBasic
+
+    }
+
+    if ( $AnalyzeNTLM_UsageDetailed -eq $true) {
+
+        .  ($AnalyzersPath + "NTLM-Operational.ps1")
+        Analyze-NTLMOperationalDetailed
+        
     }
 }
 
