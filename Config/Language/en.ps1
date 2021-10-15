@@ -418,6 +418,9 @@ function Show-Help {
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
     Write-Host " : Output in UTC time (default is the local timezone)"
 
+    Write-Host "   -English" -NoNewline -ForegroundColor Green
+    Write-Host " : Output in English"
+
     Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
     Write-Host " : Output in Japanese"
 

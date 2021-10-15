@@ -82,6 +82,7 @@
 
 param (
     [switch]$Japanese,
+    [switch]$English,
     [switch]$USDateFormat,
     [switch]$EuropeDateFormat,
     [string]$SaveOutput = "",
@@ -227,7 +228,10 @@ $TotalLogs = 0
 
 $HostLanguage = Get-WinSystemLocale | Select-Object Name # en-US, ja-JP, etc..
 
-if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
+if  ( $HostLanguage.Name -eq "ja-JP" -and $English -eq $true ){
+    Import-Module './Config/Language/en.ps1' -Force;
+}
+elseif ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
     Import-Module './Config/Language/ja.ps1' -Force;
 }
 else {

@@ -416,6 +416,9 @@ function Show-Help {
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
     Write-Host " : 時間をUTC形式で出力する。（デフォルトはローカルタイムゾーン）"
 
+    Write-Host "   -English" -NoNewline -ForegroundColor Green
+    Write-Host " : 英語で出力する"
+
     Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
     Write-Host " : 日本語で出力する"
 
