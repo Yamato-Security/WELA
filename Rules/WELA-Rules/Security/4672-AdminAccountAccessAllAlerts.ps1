@@ -32,16 +32,16 @@ function Add-Rule {
                     $RecentLogonTimeRecord[$username] = $record
                 }
                 foreach ($usernameKey in $adminlogons.Keys) {
+                    $securityid = $adminlogons.Get_Item($usernameKey)
                     if ($multipleadminlogons.$usernameKey) {
-
-                        $result = Create-Obj $RecentLogonTimeRecord[$usernameKey] $LofFile
+                        $result = Create-Obj $RecentLogonTimeRecord[$usernameKey] $LogFile
                         $result.Message = $detectedMessage
                         $result.Results = "Multiple admin logons for one account"
                         $result.Results += "Username: $username`n"
                         $result.Results += "User SID Access Count: " + $securityid.split().Count
                         Write-Output "Detected! RuleName:$ruleName";
                         Write-Output $detectedMessage;
-                        Write-Output $result | Format-Table * -Wrap;
+                        Write-Output $result;
                         Write-Output ""; 
                     }
                 }

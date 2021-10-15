@@ -13,9 +13,12 @@ function Add-Rule {
             
             $ruleName = "win_software_discovery";
             $detectedMessage = "Adversaries may attempt to enumerate software for a variety of reasons, such as figuring out what security measures are present or if the compromised system has a version of software that is vulnerable."
-            $results = @();
-            $results += $event | where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*get-itemProperty.*" -and $_.message -match "ScriptBlockText.*.*\\software\\.*" -and $_.message -match "ScriptBlockText.*.*select-object.*" -and $_.message -match "ScriptBlockText.*.*format-table.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\reg.exe" -and $_.message -match "CommandLine.*.*query.*" -and $_.message -match "CommandLine.*.*\\software\\.*" -and $_.message -match "CommandLine.*.*/v.*" -and $_.message -match "CommandLine.*.*svcversion.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*get-itemProperty.*" -and $_.message -match "ScriptBlockText.*.*\\software\\.*" -and $_.message -match "ScriptBlockText.*.*select-object.*" -and $_.message -match "ScriptBlockText.*.*format-table.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+
+            $tmp = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\reg.exe" -and $_.message -match "CommandLine.*.*query.*" -and $_.message -match "CommandLine.*.*\\software\\.*" -and $_.message -match "CommandLine.*.*/v.*" -and $_.message -match "CommandLine.*.*svcversion.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
@@ -29,9 +32,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

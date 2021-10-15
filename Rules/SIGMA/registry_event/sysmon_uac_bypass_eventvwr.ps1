@@ -13,9 +13,11 @@ function Add-Rule {
 
             $ruleName = "sysmon_uac_bypass_eventvwr";
             $detectedMessage = "Detects UAC bypass method using Windows event viewer";
-            $results = @();
-            $results += $event | where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKU\\.*" -and $_.message -match "TargetObject.*.*\\mscfile\\shell\\open\\command") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { (($_.ID -eq "1") -and $_.message -match "ParentImage.*.*\\eventvwr.exe" -and -not ($_.message -match "Image.*.*\\mmc.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*HKU\\.*" -and $_.message -match "TargetObject.*.*\\mscfile\\shell\\open\\command") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { (($_.ID -eq "1") -and $_.message -match "ParentImage.*.*\\eventvwr.exe" -and -not ($_.message -match "Image.*.*\\mmc.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

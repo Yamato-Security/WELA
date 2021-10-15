@@ -25,7 +25,7 @@ function Add-Rule {
                     Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
-                    Write-Output $result | Format-Table * -Wrap;
+                    Write-Output $result;
                     Write-Output ""; 
                 }
             }

@@ -13,9 +13,11 @@ function Add-Rule {
 
             $ruleName = "win_apt_slingshot";
             $detectedMessage = "Detects the deactivation and disabling of the Scheduled defragmentation task as seen by Slingshot APT group";
-            $results = @();
-            $results += $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\schtasks.exe" -and ($_.message -match "CommandLine.*.*/delete.*" -or $_.message -match "CommandLine.*.*/change.*") -and $_.message -match "CommandLine.*.*/TN.*" -and $_.message -match "CommandLine.*.*\\Microsoft\\Windows\\Defrag\\ScheduledDefrag.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "4701" -and $_.message -match "TaskName.*\\Microsoft\\Windows\\Defrag\\ScheduledDefrag") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\schtasks.exe" -and ($_.message -match "CommandLine.*.*/delete.*" -or $_.message -match "CommandLine.*.*/change.*") -and $_.message -match "CommandLine.*.*/TN.*" -and $_.message -match "CommandLine.*.*\\Microsoft\\Windows\\Defrag\\ScheduledDefrag.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "4701" -and $_.message -match "TaskName.*\\Microsoft\\Windows\\Defrag\\ScheduledDefrag") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

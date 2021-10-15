@@ -13,9 +13,11 @@ function Add-Rule {
             
             $ruleName = "win_moriya_rootkit";
             $detectedMessage = "Detects the use of Moriya rootkit as described in the securelist's Operation TunnelSnake report"
-            $results = @();
-            $results += $event | where { ($_.ID -eq "7045" -and $_.message -match "ServiceName.*ZzNetSvc") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "11" -and $_.message -match "TargetFilename.*C:\\Windows\\System32\\drivers\\MoriyaStreamWatchmen.sys") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ($_.ID -eq "7045" -and $_.message -match "ServiceName.*ZzNetSvc") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "11" -and $_.message -match "TargetFilename.*C:\\Windows\\System32\\drivers\\MoriyaStreamWatchmen.sys") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

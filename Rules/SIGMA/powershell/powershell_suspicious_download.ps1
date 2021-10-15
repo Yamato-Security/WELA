@@ -14,9 +14,12 @@ function Add-Rule {
 
             $ruleName = "powershell_suspicious_download";
             $detectedMessage = "Detects suspicious PowerShell download command";
-            $results = @();
-            $results += $event |  where { ($_.message -match ".*System.Net.WebClient.*" -and ($_.message -match ".*.DownloadFile(.*" -or $_.message -match ".*.DownloadString(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
-            $results += $event | where { ($_.ID -eq "400" -and $_.message -match "HostApplication.*.*System.Net.WebClient.*" -and ($_.message -match "HostApplication.*.*.DownloadFile(.*" -or $_.message -match "HostApplication.*.*.DownloadString(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event |  where { ($_.message -match ".*System.Net.WebClient.*" -and ($_.message -match ".*.DownloadFile\(.*" -or $_.message -match ".*.DownloadString\(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "400" -and $_.message -match "HostApplication.*.*System.Net.WebClient.*" -and ($_.message -match "HostApplication.*.*.DownloadFile\(.*" -or $_.message -match "HostApplication.*.*.DownloadString\(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            
             if ($result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
@@ -29,9 +32,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

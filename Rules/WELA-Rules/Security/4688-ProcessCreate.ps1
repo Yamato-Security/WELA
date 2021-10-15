@@ -16,15 +16,15 @@ function Add-Rule {
                 $eventXML = [xml]$record.ToXml();
                 $commandline = $eventXML.Event.EventData.Data[8]."#text"
                 $creator = $eventXML.Event.EventData.Data[13]."#text"
-                $obj = Create-Obj -event $record $LogFile
                         
                 if ($commandline) {
+                    $obj = Create-Obj -event $record $LogFile
                     $result = Check-Command -EventID 4688 $commandline $creator -obj $obj
                     if ($result) {
                         Write-Output ""; 
                         Write-Output "Detected! RuleName:$ruleName";
                         Write-Output $detectedMessage;
-                        Write-Output $result | Format-Table * -Wrap;
+                        Write-Output $result;
                         Write-Output ""; 
                     }
                 }

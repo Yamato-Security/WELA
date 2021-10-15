@@ -23,7 +23,7 @@ function Add-Rule {
                 $result.Command = $command
                 $result.Result = $record.message
                 
-                Write-Output $result | Format-Table * -Wrap;
+                Write-Output $result;
                 Write-Output ""; 
             }
         };

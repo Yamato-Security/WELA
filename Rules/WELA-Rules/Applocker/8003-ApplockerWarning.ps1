@@ -22,7 +22,7 @@ function Add-Rule {
                 $command = $event.message -Replace " was .*$", ""
                 $result.Command = $command
                 $result.Results = $record.message
-                Write-Output $result | Format-Table * -Wrap;
+                Write-Output $result;
                 Write-Output ""; 
             }
         };

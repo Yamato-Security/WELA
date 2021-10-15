@@ -13,9 +13,12 @@ function Add-Rule {
             
             $ruleName = "win_susp_eventlog_cleared";
             $detectedMessage = "One of the Windows Eventlogs has been cleared. e.g. caused by ""wevtutil cl"" command execution"
-            $results = @();
-            $results += $event | where { (($_.ID -eq "517" -or $_.ID -eq "1102")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "104" -and $_.message -match "Source.*Microsoft-Windows-Eventlog") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { (($_.ID -eq "517" -or $_.ID -eq "1102")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+
+            $tmp = $event | where { ($_.ID -eq "104" -and $_.message -match "Source.*Microsoft-Windows-Eventlog") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

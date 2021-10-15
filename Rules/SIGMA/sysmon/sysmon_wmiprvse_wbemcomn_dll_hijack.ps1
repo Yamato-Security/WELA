@@ -13,9 +13,11 @@ function Add-Rule {
 
             $ruleName = "sysmon_wmiprvse_wbemcomn_dll_hijack";
             $detectedMessage = "Detects a threat actor creating a file named `wbemcomn.dll` in the `C:\Windows\System32\wbem\` directory over the network and loading it for a WMI DLL Hijack scenario.";
-            $results = @();
-            $results += $event | where { ($_.ID -eq "11" -and $_.message -match "Image.*System" -and $_.message -match "TargetFilename.*.*\\wbem\\wbemcomn.dll") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "7" -and $_.message -match "Image.*.*\\wmiprvse.exe" -and $_.message -match "ImageLoaded.*.*\\wbem\\wbemcomn.dll") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ($_.ID -eq "11" -and $_.message -match "Image.*System" -and $_.message -match "TargetFilename.*.*\\wbem\\wbemcomn.dll") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "7" -and $_.message -match "Image.*.*\\wmiprvse.exe" -and $_.message -match "ImageLoaded.*.*\\wbem\\wbemcomn.dll") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

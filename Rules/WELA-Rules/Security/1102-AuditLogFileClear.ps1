@@ -23,8 +23,8 @@ function Add-Rule {
                     Write-Output ""; 
                     Write-Output "$eventTimestampString Detected! RuleName:$ruleName";
                     Write-Output $detectedMessage;
-                    Write-Output $result | Format-Table * -Wrap;
-                    Write-Output    
+                    Write-Output $result;
+                    Write-Output "";
                 }
             }
         };

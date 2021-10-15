@@ -13,9 +13,12 @@ function Add-Rule {
 
             $ruleName = "powershell_powercat";
             $detectedMessage = "Adversaries may use a non-application layer protocol for communication between host and C2 server or among infected hosts within a network";
-            $results = @()
-            $results += $event | where { ($_.ID -eq "400" -and ($_.message -match "HostApplication.*.*powercat .*" -or $_.message -match "HostApplication.*.*powercat.ps1.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
-            $results += $event | where { ($_.ID -eq "4103" -and ($_.message -match "ContextInfo.*.*powercat .*" -or $_.message -match "ContextInfo.*.*powercat.ps1.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            $results = [System.Collections.ArrayList] @()
+            $tmp = $event | where { ($_.ID -eq "400" -and ($_.message -match "HostApplication.*.*powercat .*" -or $_.message -match "HostApplication.*.*powercat.ps1.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "4103" -and ($_.message -match "ContextInfo.*.*powercat .*" -or $_.message -match "ContextInfo.*.*powercat.ps1.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            [void]$results.Add($tmp);
+            
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
                     Write-Output ""; 

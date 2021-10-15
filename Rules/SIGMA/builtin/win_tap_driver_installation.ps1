@@ -14,10 +14,15 @@ function Add-Rule {
 
             $ruleName = "win_tap_driver_installation";
             $detectedMessage = "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques";
-            $results = @();
-            $results += $event | where { ($_.ID -eq "7045" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "6" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "4697" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ($_.ID -eq "7045" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "6" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "6" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "4697" -and $_.message -match "ImagePath.*.*tap0901.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

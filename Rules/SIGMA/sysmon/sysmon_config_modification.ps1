@@ -13,9 +13,11 @@ function Add-Rule {
 
             $ruleName = "sysmon_config_modification";
             $detectedMessage = "Someone try to hide from Sysmon";
-            $results = @();
-            $results += $event | where { ((($_.ID -eq "4" -or $_.ID -eq "16")) -and ($_.message -match "State.*Stopped" -or ($_.message -match "Sysmon config state changed.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "255" -and ($_.message -match "Description.*.*Failed to open service configuration with error.*" -or $_.message -match "Description.*.*Failed to connect to the driver to update configuration.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ((($_.ID -eq "4" -or $_.ID -eq "16")) -and ($_.message -match "State.*Stopped" -or ($_.message -match "Sysmon config state changed.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "255" -and ($_.message -match "Description.*.*Failed to open service configuration with error.*" -or $_.message -match "Description.*.*Failed to connect to the driver to update configuration.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

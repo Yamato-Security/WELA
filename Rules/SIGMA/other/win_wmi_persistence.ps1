@@ -13,9 +13,11 @@ function Add-Rule {
             
             $ruleName = "win_wmi_persistence";
             $detectedMessage = "Detects suspicious WMI event filter and command line event consumer based on WMI and Security Logs.";
-            $results = @();
-            $results += $event | where { ((($_.ID -eq "5861" -and ($_.message -match ".*ActiveScriptEventConsumer.*" -or $_.message -match ".*CommandLineEventConsumer.*" -or $_.message -match ".*CommandLineTemplate.*")) -or $_.ID -eq "5859")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "4662" -and $_.message -match "ObjectType.*WMI Namespace" -and $_.message -match "ObjectName.*.*subscription.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ((($_.ID -eq "5861" -and ($_.message -match ".*ActiveScriptEventConsumer.*" -or $_.message -match ".*CommandLineEventConsumer.*" -or $_.message -match ".*CommandLineTemplate.*")) -or $_.ID -eq "5859")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "4662" -and $_.message -match "ObjectType.*WMI Namespace" -and $_.message -match "ObjectName.*.*subscription.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            [void]$results.Add($tmp);
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
@@ -29,9 +31,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

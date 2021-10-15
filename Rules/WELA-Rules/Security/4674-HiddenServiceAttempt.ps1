@@ -25,10 +25,10 @@ function Add-Rule {
                 if ($application.ToUpper() -eq "C:\WINDOWS\SYSTEM32\SERVICES.EXE" -and $accessreq.ToUpper() -eq "WRITE_DAC") {
                     $result = Create-Obj $record $LogFile
                     $result.message = $detectedMessage
-                    $result.Results = "User: $user`n"
-                    $result.Results += "Target service: $service`n"
-                    $result.Results += "Desired Access: $accessreq`n"
-                    Write-Output $result | Format-Table * -Wrap;
+                    $result.results = "User: $user`n"
+                    $result.results += "Target service: $service`n"
+                    $result.results += "Desired Access: $accessreq`n"
+                    Write-Output $result;
                     Write-Output ""; 
                 }
             }

@@ -27,11 +27,11 @@ function Add-Rule {
                         }
                         $result.Results += "Username: $username`n"
                         $result.Results += "User SID: $securityid`n"   
-                        Write-Output ""; 
+                        Write-Output "";
                         Write-Output "Detected! RuleName:$ruleName";
                         Write-Output $detectedMessage;
-                        Write-Output $result | Format-Table * -Wrap;
-                        Write-Output    
+                        Write-Output $result;
+                        Write-Output "";
                     }
                 }
                     

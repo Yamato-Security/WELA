@@ -25,7 +25,7 @@ function Add-Rule {
                 $result.Results += "Malware (and some third party software) trigger this warning"
                 # Check for suspicious service name
                 $result.Results += (Check-Regex $servicename 1)
-                Write-Output $result | Format-Table * -Wrap;
+                Write-Output $result;
                 Write-Output ""; 
             }
         };

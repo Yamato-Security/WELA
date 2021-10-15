@@ -20,7 +20,7 @@ function Add-Rule {
             foreach ($record in $target) {
                 $result = Create-Obj $record $LogFile
                 $result.Message = $record.message
-                Write-Output $result | Format-Table * -Wrap;
+                Write-Output $result;
                 Write-Output ""; 
             }
         };

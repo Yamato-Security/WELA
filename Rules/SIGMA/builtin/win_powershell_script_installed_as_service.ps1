@@ -15,10 +15,16 @@ function Add-Rule {
             
             $ruleName = "win_powershell_script_installed_as_service";
             $detectedMessage = "Detects powershell script installed as a Service"
-            $results = @();
-            $results += $event | where { ($_.ID -eq "7045" -and ($_.message -match "powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "6" -and ($_.message -match "powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "4697" -and ($_.message -match "powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ($_.ID -eq "7045" -and ($_.message -match "powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+
+            $tmp = $event | where { ($_.ID -eq "6" -and ($_.message -match "powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+
+            $tmp = $event | where { ($_.ID -eq "4697" -and ($_.message -match "powershell*" -or $_.message -match "Service File Name.*.*pwsh.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
+
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {

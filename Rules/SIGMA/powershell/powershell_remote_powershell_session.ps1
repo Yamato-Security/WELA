@@ -13,9 +13,11 @@ function Add-Rule {
 
             $ruleName = "powershell_remote_powershell_session";
             $detectedMessage = "Detects remote PowerShell sessions";
-            $results = @();
-            $results += $event |  where { ($_.ID -eq "4103" -and $_.message -match "HostName.*ServerRemoteHost" -and $_.message -match "HostApplication.*.*wsmprovhost.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
-            $results += $event | where { ($_.ID -eq "400" -and $_.message -match "HostName.*ServerRemoteHost" -and $_.message -match "HostApplication.*.*wsmprovhost.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event |  where { ($_.ID -eq "4103" -and $_.message -match "HostName.*ServerRemoteHost" -and $_.message -match "HostApplication.*.*wsmprovhost.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+            [void]$results.Add($tmp);
+            $tmp = $event | where { ($_.ID -eq "400" -and $_.message -match "HostName.*ServerRemoteHost" -and $_.message -match "HostApplication.*.*wsmprovhost.exe.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp);
             if ($results.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

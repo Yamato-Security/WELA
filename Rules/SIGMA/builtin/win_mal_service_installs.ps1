@@ -10,9 +10,11 @@ function Add-Rule {
             param (
                 $event
             )
-            $results = @();
-            $results += $event | where { ($_.ID -eq "7045" -and ($_.message -match "*\\PAExec*" -or $_.message -match "ServiceName.*mssecsvc2.0" -or $_.message -match "*net user*" -or $_.message -match "ServiceName.*Java(TM) Virtual Machine Support Service")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            $results += $event | where { ($_.ID -eq "4697" -and $_.message -match "ServiceName.*javamtsup") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $results = [System.Collections.ArrayList] @();
+            $tmp = $event | where { ($_.ID -eq "7045" -and ($_.message -match "*\\PAExec*" -or $_.message -match "ServiceName.*mssecsvc2.0" -or $_.message -match "*net user*" -or $_.message -match "ServiceName.*Java(TM) Virtual Machine Support Service")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp)
+            $tmp = $event | where { ($_.ID -eq "4697" -and $_.message -match "ServiceName.*javamtsup") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            [void]$results.Add($tmp)
             
             foreach ($result in $results) {
                 if ($result.Count -ne 0) {
