@@ -228,7 +228,7 @@ $TotalLogs = 0
 
 $HostLanguage = Get-WinSystemLocale | Select-Object Name # en-US, ja-JP, etc..
 
-if  ( $HostLanguage.Name -eq "ja-JP" -and $English -eq $true ){
+if ( $HostLanguage.Name -eq "ja-JP" -and $English -eq $true ) {
     Import-Module './Config/Language/en.ps1' -Force;
 }
 elseif ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
@@ -1786,9 +1786,9 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq 
 }
 
 #No analysis source was specified
-if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true){
+if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
 
-    if ( $LiveAnalysis -ne $true -and $LogFile -ne $true -and $LogDirectory -ne $true){
+    if ( $LiveAnalysis -ne $true -and $LogFile -ne $true -and $LogDirectory -ne $true) {
 
         Write-Host
         Write-Host $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified -ForegroundColor White -BackgroundColor Red
@@ -1861,14 +1861,14 @@ foreach ( $LogFile in $evtxFiles ) {
     
     }
 
-    if ( $AnalyzeNTLM_UsageBasic -eq $true){
+    if ( $AnalyzeNTLM_UsageBasic -eq $true) {
 
         .  ($AnalyzersPath + "NTLM-Operational.ps1")
         Analyze-NTLMOperationalBasic
 
     }
 
-    if ( $AnalyzeNTLM_UsageDetailed -eq $true){
+    if ( $AnalyzeNTLM_UsageDetailed -eq $true) {
 
         .  ($AnalyzersPath + "NTLM-Operational.ps1")
         Analyze-NTLMOperationalDetailed
