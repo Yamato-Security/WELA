@@ -1788,7 +1788,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq 
 #No analysis source was specified
 if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
 
-    if ( $LiveAnalysis -ne $true -and $LogFile -ne $true -and $LogDirectory -ne $true) {
+    if ( $LiveAnalysis -ne $true -and $LogFile -ne "" -and $LogDirectory -ne "") {
 
         Write-Host
         Write-Host $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified -ForegroundColor White -BackgroundColor Red
