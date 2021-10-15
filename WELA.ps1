@@ -68,7 +68,7 @@
 #
 # 
 # Inspired by Eric Conrad's DeepBlueCLI (https://github.com/sans-blue-team/DeepBlueCLI)
-# Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/en/article/references-pdf)
+# Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/media/attachments/2021/05/15/windows-event-log-analyst-reference.pdf)
 # and event log info from www.ultimatewindowssecurity.com.
 # Many thanks to SIGMA: https://github.com/SigmaHQ/sigma
 # as well as sbousseaden for providing sample attack event logs at https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES

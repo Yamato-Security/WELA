@@ -99,7 +99,9 @@ Logon Type Summary:
 - [APT-Hunter](https://github.com/ahmedkhlief/APT-Hunter) Attack detection tool written in Python.
 - [Chainsaw](https://github.com/countercept/chainsaw) SIGMA based attack detection tool written in Rust.
 - [DeepBlueCLI](https://github.com/sans-blue-team/DeepBlueCLI) Attack detection tool written in Powershell.
+- [EVTX ATTACK Samples](https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES) EVTX Attack sample event log files.
 - [RustyBlue](https://github.com/Yamato-Security/RustyBlue) Rust port of DeepBlueCLI.
+- [SIGMA](SIGMA: https://github.com/SigmaHQ/sigma) SIGMA generic SIEM rules.
 - [so-import-evtx](https://docs.securityonion.net/en/2.3/so-import-evtx.html) Import evtx files into Security Onion.
 - [Zircolite](https://github.com/wagga40/Zircolite) SIGMA based attack detection tool written in Python.
 
