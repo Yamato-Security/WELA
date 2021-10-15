@@ -1770,7 +1770,7 @@ if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
     exit
 }
 
-if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
+if ( $LiveAnalysis -eq $true -and ($LogFile -ne "" -or $LogDirectory -ne "")) {
     Write-Host
     Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
     Write-Host 
@@ -1816,9 +1816,6 @@ if ( $LiveAnalysis -eq $true ) {
         )
     }
     elseif ($LogonTimeline -eq $true) {
-        if ($LogFile -ne "" -or $LogDirectory -ne "") {
-            Write-Host $Warn_LiveAnalysys_LogOnTimeLine_With_LP  -ForegroundColor Black -BackgroundColor Yellow
-        }
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx"
         )
