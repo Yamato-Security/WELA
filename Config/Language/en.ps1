@@ -326,7 +326,7 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
 
 $Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
-$Error_InCompatible_LiveAnalysisAndLogFile = "Error: You cannot specify -LiveAnalysis and -LogFile at the same time."
+$Error_InCompatible_LiveAnalysisAndLogFile = "Error: You cannot specify -LiveAnalysis and -LogFile (or -LogDirectory) at the same time."
 $Error_InCompatible_LogDirAndFile = "Error：You cannot specify -LogDirectory and -LogFile at the same time." 
 $Error_NotSupport_LiveAnalysys = "Error: Live Analysis is only supported on Windows"
 $Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Administrator."

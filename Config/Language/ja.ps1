@@ -328,13 +328,13 @@ $Create_LogonTimeline_TypeOther = "その他のタイプのログオン:"
 $Create_LogonTimeline_localComputer = "ローカル"
 
 $Warn_DC_LiveAnalysis = "注意：ドメインコントローラーでライブ調査をしない方が良いです。ログをオフラインにコピーしてから解析して下さい。"
-$Error_InCompatible_LiveAnalysisAndLogFile = "エラー：「-LiveAnalysis」 と「-LogFile」を同時に指定できません。"
+$Error_InCompatible_LiveAnalysisAndLogFile = "エラー：「-LiveAnalysis」 と「-LogFile」「-LogDirectory」を同時に指定できません。"
 $Error_InCompatible_LogDirAndFile = "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。"
 $Error_NotSupport_LiveAnalysys = "エラー： ライブ調査はWindowsにしか対応していません。"
 $Error_NeedAdministratorPriv = "エラー： Powershellを管理者として実行する必要があります。"
 $Error_NoSaveOutputWithCSV = "エラー： 「-SaveOutput」を指定してください"
 $Error_NoNeedSaveOutputWithGUI = "エラー： 「-OutputGUI」と「-SaveOutput」を同時に指定できません。"
-$Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysisまたは-LogFileを指定する必用があります。"
+$Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysisまたは-LogFileを指定する必要があります。"
 
 #function Show-Contributors
 $Show_Contributors =

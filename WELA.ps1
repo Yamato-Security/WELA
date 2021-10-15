@@ -228,7 +228,7 @@ $TotalLogs = 0
 
 $HostLanguage = Get-WinSystemLocale | Select-Object Name # en-US, ja-JP, etc..
 
-if  ( $HostLanguage.Name -eq "ja-JP" -and $English -eq $true ){
+if ( $HostLanguage.Name -eq "ja-JP" -and $English -eq $true ) {
     Import-Module './Config/Language/en.ps1' -Force;
 }
 elseif ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
@@ -429,7 +429,7 @@ function Get-KerberosStatusStr {
 }
 
 function Create-LogonTimeline {
-    param([string] $UTCOffset)
+    param([string] $UTCOffset, [string] $filePath)
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
     #   The log service shutdown time is used for the shutdown time so might be wrong if the log service was turned off while the system was running. (anti-forensics, etc..)
@@ -470,9 +470,9 @@ function Create-LogonTimeline {
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    $WineventFilter.Add( "Path", $LogFile )
-    $filesize = Format-FileSize( (get-item $LogFile).length )
-    $filesizeMB = (Get-Item $LogFile).length / 1MB 
+    $WineventFilter.Add( "Path", $filePath )
+    $filesize = Format-FileSize( (get-item $filePath).length )
+    $filesizeMB = (Get-Item $filePath).length / 1MB
 
     $filesizeMB = $filesizeMB * 0.1
     $ApproxTimeInSeconds = $filesizeMB * 60
@@ -481,7 +481,7 @@ function Create-LogonTimeline {
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
-    Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
+    Write-Host ( $Create_LogonTimeline_Filename -f $filePath )           # "File Name: {0}"
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
@@ -1770,7 +1770,7 @@ if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
     exit
 }
 
-if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
+if ( $LiveAnalysis -eq $true -and ($LogFile -ne "" -or $LogDirectory -ne "")) {
     Write-Host
     Write-Host $Error_InCompatible_LiveAnalysisAndLogFile -ForegroundColor White -BackgroundColor Red
     Write-Host 
@@ -1786,9 +1786,9 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq 
 }
 
 #No analysis source was specified
-if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true){
+if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
 
-    if ( $LiveAnalysis -ne $true -and $LogFile -ne $true -and $LogDirectory -ne $true){
+    if ( $LiveAnalysis -ne $true -and ($LogFile -ne "" -or $LogDirectory -ne "")) {
 
         Write-Host
         Write-Host $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified -ForegroundColor White -BackgroundColor Red
@@ -1801,7 +1801,10 @@ if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM
 
 #Create-Timeline
 
-$evtxFiles = @($LogFile)
+$evtxFiles = [System.Collections.ArrayList] @()
+if ($LogFile -ne "") {
+    [void]$evtxFiles.Add($LogFile)
+}
 
 if ( $LiveAnalysis -eq $true ) {
 
@@ -1811,9 +1814,13 @@ if ( $LiveAnalysis -eq $true ) {
         $evtxFiles = @(
             "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
         )
-
-    } else {
-
+    }
+    elseif ($LogonTimeline -eq $true) {
+        $evtxFiles = @(
+            "C:\Windows\System32\winevt\Logs\Security.evtx"
+        )
+    } 
+    else {
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx",
             "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
@@ -1829,8 +1836,7 @@ elseif ( $LogDirectory -ne "" ) {
         exit
     }
     
-    $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
-
+    Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { [void]$evtxFiles.Add($_.FullName) }
 }
 
 $Timezone = Get-TimeZone
@@ -1852,18 +1858,18 @@ foreach ( $LogFile in $evtxFiles ) {
     
     if ( $LogonTimeline -eq $true ) {
     
-        Create-LogonTimeline $UTCOffset
+        Create-LogonTimeline $UTCOffset -filePath $LogFile
     
     }
 
-    if ( $AnalyzeNTLM_UsageBasic -eq $true){
+    if ( $AnalyzeNTLM_UsageBasic -eq $true) {
 
         .  ($AnalyzersPath + "NTLM-Operational.ps1")
         Analyze-NTLMOperationalBasic
 
     }
 
-    if ( $AnalyzeNTLM_UsageDetailed -eq $true){
+    if ( $AnalyzeNTLM_UsageDetailed -eq $true) {
 
         .  ($AnalyzersPath + "NTLM-Operational.ps1")
         Analyze-NTLMOperationalDetailed
