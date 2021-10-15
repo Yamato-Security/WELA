@@ -1812,8 +1812,13 @@ if ( $LiveAnalysis -eq $true ) {
             "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
         )
 
-    } else {
-
+    }
+    elseif ($LogonTimeline -eq $true) {
+        $evtxFiles = @(
+            "C:\Windows\System32\winevt\Logs\Security.evtx"
+        )
+    } 
+    else {
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx",
             "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
