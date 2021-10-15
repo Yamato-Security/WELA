@@ -152,8 +152,9 @@ function Check-Command() {
         $obj.Command = $commandline
         $obj.Results += $text
         $obj.EventID = $EventID
+        return $obj;
     }
-    return $obj
+    return $null;
 }
 
 
@@ -180,6 +181,8 @@ function Check-Obfu($string) {
     if (!$string) {
         return $null
     }
+    $minpercent = .65
+    $maxbinary = .50
     $lowercasestring = $string.ToLower()
     $length = $lowercasestring.length
     $noalphastring = $lowercasestring -replace "[a-z0-9/\;:|.]"
