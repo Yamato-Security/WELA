@@ -1801,7 +1801,10 @@ if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM
 
 #Create-Timeline
 
-$evtxFiles = [System.Collections.ArrayList] @($LogFile)
+$evtxFiles = [System.Collections.ArrayList] @()
+if ($LogFile -ne "") {
+    [void]$evtxFiles.Add($LogFile)
+}
 
 if ( $LiveAnalysis -eq $true ) {
 
@@ -1813,6 +1816,9 @@ if ( $LiveAnalysis -eq $true ) {
         )
     }
     elseif ($LogonTimeline -eq $true) {
+        if ($LogFile -ne "" -or $LogDirectory -ne "") {
+            Write-Host $Warn_LiveAnalysys_LogOnTimeLine_With_LP  -ForegroundColor Black -BackgroundColor Yellow
+        }
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx"
         )
@@ -1835,7 +1841,6 @@ elseif ( $LogDirectory -ne "" ) {
     
     Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { [void]$evtxFiles.Add($_.FullName) }
 }
-$evtxFiles.Remove("")
 
 $Timezone = Get-TimeZone
 $TimezoneName = $Timezone.DisplayName #例：(UTC+09:00 Osaka, Sapporo, Tokyo)
