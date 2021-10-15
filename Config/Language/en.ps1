@@ -336,6 +336,14 @@ $Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Admi
 $Error_NoSaveOutputWithCSV = "Error: you need to specify -SaveOutput"
 $Error_NoNeedSaveOutputWithGUI = "Error: you cannot output to GUI with the -SaveOutput parameter"
 
+#Remote live analysis
+$remoteAnalysis_getComputername = "Please enter a remote machine name (IP address or Hostname) "
+$remoteAnalysis_getCredential = "Please enter the remote computer credential."
+$Error_remoteAnalysis_InvalidExecutionPolicy = "Error: ExecutionPolicy must be ""RemoteSigned""."
+$Error_remoteAnalysis_UnregisteredComputername = "Error: you need to registered this remote computer in trustedhosts."
+$Error_remoteAnalysis_FailedTestWSMan = "Error: Failed to run Test-WSMan."
+$Warn_remoteAnalysis_Stopped_WinRMservice = "Warning: WinRM service on the remote computer may be stopped."
+$Warn_remoteAnalysis_wrongRemoteComputerInfo = "Warning: Either ComputerName or Credentials, or both, are wrong."
 
 #function Show-Contributors
 $Show_Contributors =
@@ -365,6 +373,9 @@ function Show-Help {
 
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
     Write-Host " : Creates a timelime from an offline .evtx file"
+
+    Write-Host "   -RemoteLiveAnalysis" -NoNewline -ForegroundColor Green
+    Write-Host " : Creates a timeline based on the remote host's log"
 
     Write-Host
     Write-Host "Analysis Type (Specify one):"

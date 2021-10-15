@@ -20,9 +20,19 @@ https://github.com/yamatosecurity
 
 #Functions:
 function Get-WinEventWithFilter {
-    param($WinEventFilter)
+    param(
+        $WinEventFilter,
+        $RemoteComputerInfo
+    )
     $logs = $null
-    $logs = Get-WinEvent -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
+
+    if ( $RemoteComputerInfo.RemoteLiveAnalysis -eq $true ){
+        $logs = Get-WinEvent -ComputerName $RemoteComputerInfo.Computername -Credential $RemoteComputerInfo.Credential -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
+    }
+    else {
+        $logs = Get-WinEvent -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
+    }
+
     if ($LASTEXITCODE -ne 0) {
         if ($logs) {
             Write-Host $Warn_GetEvent -ForegroundColor Black -BackgroundColor Yellow
@@ -230,4 +240,37 @@ function Remove-Spaces($string) {
     #      to this: Application: C:\Program Files (x86)\Internet Explorer\iexplore.exe
     $string = $string.trim() -Replace "\s+:", ":"
     return $string
+}
+
+function Get-RemoteComputerInfo {
+    $Computername = Read-Host $remoteAnalysis_getComputername
+    $trustedhosts = Get-Item WSMan:\localhost\client\trustedhosts
+
+    If ($Computername -contains $trustedhosts.Value -or $trustedhosts.Value -eq "*"){
+        $creds = Get-Credential -Message $remoteAnalysis_getCredential
+        $Test = Test-WSMan -ComputerName $Computername -Credential $creds -Authentication Negotiate
+
+        If ( $Test -eq $NULL ) {
+            Write-Host ""
+            write-host $Error_remoteAnalysis_FailedTestWSMan -ForegroundColor White -BackgroundColor Red
+            write-host $Warn_remoteAnalysis_Stopped_WinRMservice -ForegroundColor Black -BackgroundColor Yellow
+            write-host $Warn_remoteAnalysis_wrongRemoteComputerInfo -ForegroundColor Black -BackgroundColor Yellow
+            Write-Host ""
+            Exit
+        }
+        
+        $RemoteComputerInfo = @{
+            "RemoteLiveAnalysis" = $True;
+            "Computername" = $Computername;
+            "Credential" = $creds
+        }
+        return $RemoteComputerInfo
+    }
+
+    else {
+        Write-Host ""
+        Write-Host $Error_remoteAnalysis_UnregisteredComputername -ForegroundColor White -BackgroundColor Red
+        Write-Host ""
+        Exit
+    }
 }
