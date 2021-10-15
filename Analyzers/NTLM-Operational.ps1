@@ -184,41 +184,43 @@ function Analyze-NTLMOperationalBasic {
         }
     }        
 
+    $8001_TargetNameArray = $8001_TargetNameList.ToArray()
+    [System.Collections.ArrayList]$8001_ClientUserNameArray = $8001_ClientUserNameList.ToArray()
+    $8001_ClientUserNameArray.Remove("(NULL)")
+    $8002_ClientUserNameArray = $8002_ClientUserNameList.ToArray()
+    $8004_SChannelNameArray = $8004_SChannelNameList.ToArray()
+    $8004_UserNameArray = $8004_UserNameList.ToArray()
+    [System.Collections.ArrayList]$8004_WorkstationNameArray = $8004_WorkstationNameList.ToArray()
+    $8004_WorkstationNameArray.Remove("NULL")
+    $8004_SChannelTypeArray = $8004_SChannelTypeList.ToArray()
+
     if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
         Write-Host
         Write-Host "8001（外向けのNTLM認証）のログ解析:"
         Write-Host  "以下のサーバにNTLM認証を行っている："
-        $8001_TargetNameArray = $8001_TargetNameList.ToArray()
-        $8001_TargetNameArray -join "`n" #Print with newlines. Would nice to be able to do without the array conversion but don't know how.
+        $8001_TargetNameArray -join "`n" 
         Write-Host
         Write-Host "以下のユーザ名でNTLM認証を行っている："
-        [System.Collections.ArrayList]$8001_ClientUserNameArray = $8001_ClientUserNameList.ToArray()
-        $8001_ClientUserNameArray.Remove("(NULL)")
+
         $8001_ClientUserNameArray -join "`n" 
 
         Write-Host
         Write-Host "8002（内向けのNTLM認証）のログ解析:"
         Write-Host "以下のユーザ名でNTLM認証を行っている："
-        $8002_ClientUserNameArray = $8002_ClientUserNameList.ToArray()
         $8002_ClientUserNameArray -join "`n" 
         Write-Host
 
         Write-Host "8004 (DCに対するNTLM認証)のログ解析:"
         Write-Host "セキュアチャンネル名："
-        $8004_SChannelNameArray = $8004_SChannelNameList.ToArray()
         $8004_SChannelNameArray -join "`n" 
         Write-Host
         Write-Host "ユーザ名："
-        $8004_UserNameArray = $8004_UserNameList.ToArray()
         $8004_UserNameArray -join "`n"
         Write-Host
         Write-Host "端末名："
-        [System.Collections.ArrayList]$8004_WorkstationNameArray = $8004_WorkstationNameList.ToArray()
-        $8004_WorkstationNameArray.Remove("NULL")
         $8004_WorkstationNameArray -join "`n"
         Write-Host
         Write-Host "セキュアチャンネルタイプ："
-        $8004_SChannelTypeArray = $8004_SChannelTypeList.ToArray()
 
         foreach ( $i in $8004_SChannelTypeArray ) {
             
@@ -232,38 +234,29 @@ function Analyze-NTLMOperationalBasic {
         Write-Host
         Write-Host "8001 (Outbound NTLM Authentication) Log Analysis:"
         Write-Host  "Outgoing NTLM authentication to servers:"
-        $8001_TargetNameArray = $8001_TargetNameList.ToArray()
         $8001_TargetNameArray -join "`n" 
         Write-Host
         Write-Host "Outgoing NTLM authentication with usernames:"
-        [System.Collections.ArrayList]$8001_ClientUserNameArray = $8001_ClientUserNameList.ToArray()
-        $8001_ClientUserNameArray.Remove("(NULL)")
         $8001_ClientUserNameArray -join "`n" 
 
         Write-Host
         Write-Host "8002 (Inbound NTLM  Authentication) Log Analysis:"
         Write-Host "Inbound NTLM authentication with usernames："
-        $8002_ClientUserNameArray = $8002_ClientUserNameList.ToArray()
         $8002_ClientUserNameArray -join "`n" 
         Write-Host
 
         Write-Host
         Write-Host "8004 (NTLM  Authentication to DC) Log Analysis:"
         Write-Host "Secure Channel Names："
-        $8004_SChannelNameArray = $8004_SChannelNameList.ToArray()
         $8004_SChannelNameArray -join "`n" 
         Write-Host
         Write-Host "Usernames："
-        $8004_UserNameArray = $8004_UserNameList.ToArray()
         $8004_UserNameArray -join "`n"
         Write-Host
         Write-Host "Workstation Names："
-        [System.Collections.ArrayList]$8004_WorkstationNameArray = $8004_WorkstationNameList.ToArray()
-        $8004_WorkstationNameArray.Remove("NULL")
         $8004_WorkstationNameArray -join "`n"
         Write-Host
         Write-Host "Secure Channel Types："
-        $8004_SChannelTypeArray = $8004_SChannelTypeList.ToArray()
 
         foreach ( $i in $8004_SChannelTypeArray ) {
             
@@ -273,6 +266,7 @@ function Analyze-NTLMOperationalBasic {
         }
 
     }
+
     Write-Host
     Write-Host "------------"
     Write-Host "8001 Events: " $8001_NumberOfLogs
