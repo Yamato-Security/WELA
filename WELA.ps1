@@ -429,7 +429,7 @@ function Get-KerberosStatusStr {
 }
 
 function Create-LogonTimeline {
-    param([string] $UTCOffset)
+    param([string] $UTCOffset, [string] $filePath)
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
     #   The log service shutdown time is used for the shutdown time so might be wrong if the log service was turned off while the system was running. (anti-forensics, etc..)
@@ -470,9 +470,9 @@ function Create-LogonTimeline {
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    $WineventFilter.Add( "Path", $LogFile )
-    $filesize = Format-FileSize( (get-item $LogFile).length )
-    $filesizeMB = (Get-Item $LogFile).length / 1MB 
+    $WineventFilter.Add( "Path", $filePath )
+    $filesize = Format-FileSize( (get-item $filePath).length )
+    $filesizeMB = (Get-Item $filePath).length / 1MB
 
     $filesizeMB = $filesizeMB * 0.1
     $ApproxTimeInSeconds = $filesizeMB * 60
@@ -481,7 +481,7 @@ function Create-LogonTimeline {
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
-    Write-Host ( $Create_LogonTimeline_Filename -f $LogFile )           # "File Name: {0}"
+    Write-Host ( $Create_LogonTimeline_Filename -f $filePath )           # "File Name: {0}"
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
@@ -1858,7 +1858,7 @@ foreach ( $LogFile in $evtxFiles ) {
     
     if ( $LogonTimeline -eq $true ) {
     
-        Create-LogonTimeline $UTCOffset
+        Create-LogonTimeline $UTCOffset -filePath $LogFile
     
     }
 
