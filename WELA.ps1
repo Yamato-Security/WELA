@@ -1834,7 +1834,8 @@ elseif ( $LogDirectory -ne "" ) {
         exit
     }
     
-    $evtxFiles = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
+    $tmpFilePath = Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { $_.FullName }
+    [void]$evtxFiles.Add($tmpFilePath)
 
 }
 
