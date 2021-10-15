@@ -334,6 +334,7 @@ $Error_NotSupport_LiveAnalysys = "エラー： ライブ調査はWindowsにし�
 $Error_NeedAdministratorPriv = "エラー： Powershellを管理者として実行する必要があります。"
 $Error_NoSaveOutputWithCSV = "エラー： 「-SaveOutput」を指定してください"
 $Error_NoNeedSaveOutputWithGUI = "エラー： 「-OutputGUI」と「-SaveOutput」を同時に指定できません。"
+$Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysisまたは-LogFileを指定する必用があります。"
 
 #function Show-Contributors
 $Show_Contributors =
@@ -349,7 +350,7 @@ DustInDark - ローカライゼーション、和訳
 function Show-Help {
     
     Write-Host 
-    Write-Host "Windows Event Log Analyzer(WELA)" -ForegroundColor Green
+    Write-Host "Windows Event Log Analyzer(WELA) ゑ羅(ウェラ)" -ForegroundColor Green
     Write-Host "バージョン: $YEAVersion" -ForegroundColor Green
     Write-Host "作者: 田中ザック (@yamatosecurity)と大和セキュリティメンバー" -ForegroundColor Green
     Write-Host 
@@ -358,17 +359,38 @@ function Show-Help {
     Write-Host "   -LiveAnalysis" -NoNewline -ForegroundColor Green
     Write-Host " : ホストOSのログでタイムラインを作成する"
 
-    Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
+    Write-Host "   -LogFile <ログファイルのパス>" -NoNewline -ForegroundColor Green
     Write-Host " : オフラインの.evtxファイルでタイムラインを作成する"
 
     Write-Host
     Write-Host "解析タイプを一つ指定して下さい:"
+
+    Write-Host "   -AnalyzeNTLM_UsageBasic" -NoNewline -ForegroundColor Green
+    Write-Host " : NTLM Operationalログを解析し、NTLM認証の使用を簡潔に出力する"
+
+    Write-Host "   -AnalyzeNTLM_UsageDetailed" -NoNewline -ForegroundColor Green
+    Write-Host " : NTLM Operationalログを解析し、NTLM認証の使用を詳細に出力する"
 
     Write-Host "   -EventIDStatistics" -NoNewline -ForegroundColor Green
     Write-Host " : イベントIDの集計情報を出力する" 
 
     Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : ユーザログオンの簡単なタイムラインを出力する"
+
+    Write-Host 
+    Write-Host "解析オプション:"
+
+    Write-Host "   -StartTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
+    Write-Host " : タイムラインの始まりを指定する"
+
+    Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
+    Write-Host " : タイムラインの終わりを指定する"
+
+    Write-Host 
+    Write-Host "-LogonTimelineの解析オプション:"
+
+    Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
+    Write-Host " : ドメインコントローラーのログの場合は指定して下さい"
 
     Write-Host 
     Write-Host "出力方法（デフォルト：標準出力）:"
@@ -383,18 +405,6 @@ function Show-Help {
     Write-Host " : Out-GridView GUIに出力する"
 
     Write-Host 
-    Write-Host "解析オプション:"
-
-    Write-Host "   -StartTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : タイムラインの始まりを指定する"
-
-    Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : タイムラインの終わりを指定する"
-
-    Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
-    Write-Host " : ドメインコントローラーのログの場合は指定して下さい"
-
-    Write-Host 
     Write-Host "出力オプション:"
 
     Write-Host "   -USDateFormat" -NoNewline -ForegroundColor Green
@@ -406,15 +416,18 @@ function Show-Help {
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
     Write-Host " : 時間をUTC形式で出力する。（デフォルトはローカルタイムゾーン）"
 
+    Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
+    Write-Host " : 日本語で出力する"
+
+    Write-Host 
+    Write-Host "-LogonTimelineの出力オプション:"
+
     Write-Host "   -HideTimezone" -NoNewline -ForegroundColor Green
     Write-Host " :  タイムゾーンの表示をしない"
 
     Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
     Write-Host " : ログオンIDを出力する"
      
-    Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
-    Write-Host " : 日本語で出力する"
-
     Write-Host
     Write-Host "その他:"
 

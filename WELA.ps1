@@ -93,7 +93,7 @@ param (
     [string]$LogFile = "",
     [string]$LogDirectory = "",
     [switch]$ShowContributors,
-    [switch]$EventIDStatistics,
+    [switch]$EventID_Statistics,
     [switch]$LogonTimeline,
     [switch]$AccountInformation,
     [switch]$OutputGUI,
@@ -101,8 +101,8 @@ param (
     [switch]$UTC,
     [switch]$HideTimezone,
     [switch]$QuietLogo,
-    [switch]$AnalyzeNTLMBasic,
-    [switch]$AnalyzeNTLMDetailed
+    [switch]$AnalyzeNTLM_UsageBasic,
+    [switch]$AnalyzeNTLM_UsageDetailed
 )
 
 $DisplayTimezone = !($HideTimezone);
@@ -1774,10 +1774,24 @@ if ( $LiveAnalysis -eq $true -and $LogFile -ne "" ) {
 }
 
 # Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventIDStatistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false ) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and $AnalyzeNTLM_UsageBasic -eq $false -and $AnalyzeNTLM_UsageDetailed -eq $false) {
 
     Show-Help
     exit
+
+}
+
+#No analysis source was specified
+if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true){
+
+    if ( $LiveAnalysis -ne $true -and $LogFile -ne $true -and $LogDirectory -ne $true){
+
+        Write-Host
+        Write-Host $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified -ForegroundColor White -BackgroundColor Red
+        Write-Host 
+        exit
+
+    }
 
 }
 
@@ -1826,7 +1840,7 @@ if ( $UTC -eq $true ) {
 
 foreach ( $LogFile in $evtxFiles ) {
 
-    if ( $EventIDStatistics -eq $true ) {   
+    if ( $EventID_Statistics -eq $true ) {   
 
         Create-EventIDStatistics
         
@@ -1838,14 +1852,14 @@ foreach ( $LogFile in $evtxFiles ) {
     
     }
 
-    if ( $AnalyzeNTLMBasic -eq $true){
+    if ( $AnalyzeNTLM_UsageBasic -eq $true){
 
         .  ($AnalyzersPath + "NTLM-Operational.ps1")
         Analyze-NTLMOperationalBasic
 
     }
 
-    if ( $AnalyzeNTLMDetailed -eq $true){
+    if ( $AnalyzeNTLM_UsageDetailed -eq $true){
 
         .  ($AnalyzersPath + "NTLM-Operational.ps1")
         Analyze-NTLMOperationalDetailed

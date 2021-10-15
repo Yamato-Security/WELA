@@ -326,12 +326,13 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
 
 $Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
-$Error_InCompatible_LiveAnalysisAndLogFile = "Error: you cannot specify -LiveAnalysis and -LogFile at the same time."
-$Error_InCompatible_LogDirAndFile = "Error：you cannot specify -LogDirectory and -LogFile at the same time." 
+$Error_InCompatible_LiveAnalysisAndLogFile = "Error: You cannot specify -LiveAnalysis and -LogFile at the same time."
+$Error_InCompatible_LogDirAndFile = "Error：You cannot specify -LogDirectory and -LogFile at the same time." 
 $Error_NotSupport_LiveAnalysys = "Error: Live Analysis is only supported on Windows"
 $Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Administrator."
-$Error_NoSaveOutputWithCSV = "Error: you need to specify -SaveOutput"
-$Error_NoNeedSaveOutputWithGUI = "Error: you cannot output to GUI with the -SaveOutput parameter"
+$Error_NoSaveOutputWithCSV = "Error: You need to specify -SaveOutput"
+$Error_NoNeedSaveOutputWithGUI = "Error: You cannot output to GUI with the -SaveOutput parameter"
+$Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "Error: You need to specify -LiveAnalysis or -LogFile"
 
 
 #function Show-Contributors
@@ -366,11 +367,32 @@ function Show-Help {
     Write-Host
     Write-Host "Analysis Type (Specify one):"
 
-    Write-Host "   -EventIDStatistics" -NoNewline -ForegroundColor Green
+    Write-Host "   -AnalyzeNTLM_UsageBasic" -NoNewline -ForegroundColor Green
+    Write-Host " : Returns basic NTLM usage based on the NTLM Operational log"
+
+    Write-Host "   -AnalyzeNTLM_UsageDetailed" -NoNewline -ForegroundColor Green
+    Write-Host " : Returns detailed NTLM usage based on the NTLM Operational log"
+
+    Write-Host "   -EventID_Statistics" -NoNewline -ForegroundColor Green
     Write-Host " : Output event ID statistics" 
     
     Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
-    Write-Host " : Output a simple timeline of user logons"
+    Write-Host " : Output a condensed timeline of user logons based on the Security log"
+
+    Write-Host 
+    Write-Host "Analysis Options:"
+
+    Write-Host "   -StartTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
+    Write-Host " : Specify the start of the timeline"
+
+    Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
+    Write-Host " : Specify the end of the timeline"
+
+    Write-Host 
+    Write-Host "-LogonTimeline Analysis Options:"
+
+    Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
+    Write-Host " : Specify if the logs are from a DC"
 
     Write-Host 
     Write-Host "Output Types (Default: Standard Output):"
@@ -385,19 +407,7 @@ function Show-Help {
     Write-Host " : Outputs to the Out-GridView GUI"
 
     Write-Host 
-    Write-Host "Analysis Options:"
-
-    Write-Host "   -StartTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify the start of the timeline"
-
-    Write-Host "   -EndTimeline ""<YYYY-MM-DD HH:MM:SS>""" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify the end of the timeline"
-
-    Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify if the logs are from a DC"
-
-    Write-Host 
-    Write-Host "Output Options:"
+    Write-Host "General Output Options:"
 
     Write-Host "   -USDateFormat" -NoNewline -ForegroundColor Green
     Write-Host " : Output the dates in MM-DD-YYYY format (Default: YYYY-MM-DD)"
@@ -407,15 +417,18 @@ function Show-Help {
 
     Write-Host "   -UTC" -NoNewline -ForegroundColor Green
     Write-Host " : Output in UTC time (default is the local timezone)"
-    
+
+    Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
+    Write-Host " : Output in Japanese"
+
+    Write-Host 
+    Write-Host "-LogonTimeline Output Options:"
+
     Write-Host "   -HideTimezone" -NoNewline -ForegroundColor Green
     Write-Host " : Hides the timezone"
 
     Write-Host "   -ShowLogonID" -NoNewline -ForegroundColor Green
-    Write-Host " : Specify if you want to see Logon IDs"
-
-    Write-Host "   -Japanese" -NoNewline -ForegroundColor Green
-    Write-Host " : Output in Japanese"
+    Write-Host " : Show logon IDs"
 
     Write-Host
     Write-Host "Other:"
@@ -424,7 +437,7 @@ function Show-Help {
     Write-Host " : Show the contributors" 
 
     Write-Host "   -QuietLogo" -NoNewline -ForegroundColor Green
-    Write-Host " : Hide Execute WELA Logo" 
+    Write-Host " : Do not display the WELA logo" 
 
     Write-Host
     

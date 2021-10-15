@@ -40,45 +40,54 @@ Tested on Windows Powershell 5.1 but may work with previous versions. It will un
 At the moment, please use a Windows Powershell 5.1.
 You will need local Administrator access for live analysis.
 
-
     Analysis Source (Specify one):
         -LiveAnalysis : Creates a timeline based on the live host's log
         -LogFile <path-to-logfile> : Creates a timelime from an offline .evtx file
 
     Analysis Type (Specify one):
-        -EventIDStatistics : Output event ID statistics
-        -LogonTimeline : Output a simple timeline of user logons
+        -AnalyzeNTLM_UsageBasic : Returns basic NTLM usage based on the NTLM Operational log
+        -AnalyzeNTLM_UsageDetailed : Returns detailed NTLM usage based on the NTLM Operational log
+        -EventID_Statistics : Output event ID statistics
+        -LogonTimeline : Output a condensed timeline of user logons based on the Security log
+
+    Analysis Options:
+        -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : Specify the start of the timeline
+        -EndTimeline "<YYYY-MM-DD HH:MM:SS>" : Specify the end of the timeline
+
+    -LogonTimeline Analysis Options:
+        -IsDC : Specify if the logs are from a DC
 
     Output Types (Default: Standard Output):
         -SaveOutput <outputfile-path> : Output results to a text file
         -OutputCSV : Outputs to CSV
         -OutputGUI : Outputs to the Out-GridView GUI
 
-    Analysis Options:
-        -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : Specify the start of the timeline
-        -EndTimeline "<YYYY-MM-DD HH:MM:SS>" : Specify the end of the timeline
-        -IsDC $true : Specify if the logs are from a DC
-
-    Output Options:
+    General Output Options:
         -USDateFormat : Output the dates in MM-DD-YYYY format (Default: YYYY-MM-DD)
         -EuropeDateFormat : Output the dates in DD-MM-YYYY format (Default: YYYY-MM-DD)
-        -UTC : Output in UTC time
-        -HideTimezone : Hides the timezone being used
-        -ShowLogonID : Specify if you want to see Logon IDs
+        -UTC : Output in UTC time (default is the local timezone)
         -Japanese : Output in Japanese
+
+    -LogonTimeline Output Options:
+        -HideTimezone : Hides the timezone
+        -ShowLogonID : Show logon IDs
 
     Other:
         -ShowContributors : Show the contributors
+        -QuietLogo : Do not display the WELA logo
 
 ## Useful Options
 
 Show event ID statistics to get a grasp of what kind of events there are:
 
-    .\WELA.ps1 -EventIDStatistics
+    .\WELA.ps1 -EventID_Statistics
 
 Create a timeline via offline analysis outputted to a GUI in UTC time:
 
     .\WELA.ps1 -LogFile .\Security.evtx -LogonTimeline -OutputGUI -UTC
+
+Analyze NTLM Operational logs for NTLM usage before disabling it:
+    .\WELA.ps1 -AnalyzeNTLM_UsageBasic -LogFile .\DC1-NTLM-Operational.evtx
 
 ## Screenshots
 

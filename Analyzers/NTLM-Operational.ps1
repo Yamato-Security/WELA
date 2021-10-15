@@ -277,6 +277,7 @@ function Analyze-NTLMOperationalBasic {
 
 function Analyze-NTLMOperationalDetailed {
 
+    $output = @()
     $WineventFilter = @{}
     $EventIDsToAnalyze = 8001, 8002, 8004
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
@@ -418,10 +419,13 @@ function Analyze-NTLMOperationalDetailed {
                 }
             }
             
-            if ( $8004_SChannelNameList -notcontains $8004_msgSChannelName ) { $8004_SChannelNameList.Add($8004_msgSChannelName) }
-            if ( $8004_UserNameList -notcontains $8004_msgUserName ) { $8004_UserNameList.Add($8004_msgUserName) }
-            if ( $8004_WorkstationNameList -notcontains $8004_msgWorkstationName ) { $8004_WorkstationNameList.Add($8004_msgWorkstationName) }
-            if ( $8004_SChannelTypeList -notcontains $8004_msgSChannelType ) { $8004_SChannelTypeList.Add($8004_msgSChannelType) }
+            $tempoutput = [Ordered]@{ 
+                $SecureChannelName     = $8004_msgSChannelName ;
+                $UserName              = $8004_msgUserName ;
+
+            }
+            $output += [PSCustomObject]$tempoutput
+            $output
  
         }
     }        
@@ -514,4 +518,5 @@ function Analyze-NTLMOperationalDetailed {
     Write-Host "8002 Events: " $8002_NumberOfLogs
     Write-Host "8004 Events: " $8004_NumberOfLogs
     Write-Host
+    $output
 }

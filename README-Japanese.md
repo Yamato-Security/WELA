@@ -42,32 +42,39 @@ Windows Powershell 5.1で動作確認済みですが、以前のバージョン�
 
     解析ソースを一つ指定して下さい：
         -LiveAnalysis : ホストOSのログでタイムラインを作成する
-        -LogFile <path-to-logfile> : オフラインの.evtxファイルでタイムラインを作成する
+        -LogFile <ログファイルのパス> : オフラインの.evtxファイルでタイムラインを作成する
 
     解析タイプを一つ指定して下さい:
+        -AnalyzeNTLM_UsageBasic : NTLM Operationalログを解析し、NTLM認証の使用を簡潔に出力する
+        -AnalyzeNTLM_UsageDetailed : NTLM Operationalログを解析し、NTLM認証の使用を詳細に出力する
         -EventIDStatistics : イベントIDの集計情報を出力する
         -LogonTimeline : ユーザログオンの簡単なタイムラインを出力する
+
+    解析オプション:
+        -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : タイムラインの始まりを指定する
+        -EndTimeline "<YYYY-MM-DD HH:MM:SS>" : タイムラインの終わりを指定する
+
+    -LogonTimelineの解析オプション:
+        -IsDC : ドメインコントローラーのログの場合は指定して下さい
 
     出力方法（デフォルト：標準出力）:
         -SaveOutput <出力パス> : テキストファイルに出力する
         -OutputCSV : CSVファイルに出力する
         -OutputGUI : Out-GridView GUIに出力する
 
-    解析オプション:
-        -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : タイムラインの始まりを指定する
-        -EndTimeline "<YYYY-MM-DD HH:MM:SS>" : タイムラインの終わりを指定する
-        -IsDC : ドメインコントローラーのログの場合は指定して下さい
-
     出力オプション:
-        -USDateFormat : 日付をMM-DD-YYYY形式で出力する (デフォルト：YYYY-MM-DD)
-        -EuropeDateFormat : 日付をDD-MM-YYYY形式で出力する (デフォルト：YYYY-MM-DD)
-        -UTC : 時間をUTC形式で出力する
+        -USDateFormat : 日付をMM-DD-YYYY形式で出力する (デフォルト： YYYY-MM-DD)
+        -EuropeDateFormat : 日付をDD-MM-YYYY形式で出力する (デフォルト： YYYY-MM-DD)
+        -UTC : 時間をUTC形式で出力する。（デフォルトはローカルタイムゾーン）
+        -Japanese : 日本語で出力する
+
+    -LogonTimelineの出力オプション:
         -HideTimezone :  タイムゾーンの表示をしない
         -ShowLogonID : ログオンIDを出力する
-        -Japanese : 日本語で出力する
 
     その他:
         -ShowContributors : コントリビューターの一覧表示
+        -QuietLogo : ロゴを表示させずに実行する
 
 ## 便利な機能
 
