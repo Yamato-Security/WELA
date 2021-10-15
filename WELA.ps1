@@ -100,7 +100,8 @@ param (
     [switch]$OutputCSV,
     [switch]$UTC,
     [switch]$HideTimezone,
-    [switch]$QuietLogo
+    [switch]$QuietLogo,
+    [switch]$AnalyzeNTLMBasic
 )
 
 $DisplayTimezone = !($HideTimezone);
@@ -198,6 +199,7 @@ $EventIDsToAnalyze = "4624,4625,4672,4634,4647,4720,4732,1102,4648,4768,4769,477
 # 4769 - SERVICE TICKET ISSUED
 # 4776 - NTLM auth. non-standard tool used?
 
+$AnalyzersPath = $PSScriptRoot + "\Analyzers\"
 $TotalLogsNoFilters = 0
 $BadWorkstations = @("kali", "SLINGSHOT") #Highlight with the red alert background when the workstation comes from a pentesting distro.
 
@@ -1787,11 +1789,19 @@ $evtxFiles = @($LogFile)
 if ( $LiveAnalysis -eq $true ) {
 
     Perform-LiveAnalysisChecks
-    $evtxFiles = @(
-        "C:\Windows\System32\winevt\Logs\Security.evtx",
-        "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
-    )
-    
+    if ($AnalyzeNTLM -eq $true) {
+
+        $evtxFiles = @(
+            "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
+        )
+
+    } else {
+
+        $evtxFiles = @(
+            "C:\Windows\System32\winevt\Logs\Security.evtx",
+            "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
+        )
+    }
 }
 elseif ( $LogDirectory -ne "" ) {
 
@@ -1827,6 +1837,13 @@ foreach ( $LogFile in $evtxFiles ) {
     
         Create-LogonTimeline $UTCOffset
     
+    }
+
+    if ( $AnalyzeNTLMBasic -eq $true){
+
+        .  ($AnalyzersPath + "NTLM-Operational.ps1")
+        Analyze-NTLMOperationalBasic
+
     }
 
 }
