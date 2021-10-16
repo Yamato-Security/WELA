@@ -26,7 +26,7 @@ function Get-WinEventWithFilter {
     )
     $logs = $null
 
-    if ( $RemoteComputerInfo.RemoteLiveAnalysis -eq $true ){
+    if ( $RemoteComputerInfo.RemoteLiveAnalysis -eq $true ) {
         $logs = Get-WinEvent -ComputerName $RemoteComputerInfo.Computername -Credential $RemoteComputerInfo.Credential -FilterHashtable $WinEventFilter -Oldest -ErrorAction SilentlyContinue
     }
     else {
@@ -246,7 +246,7 @@ function Get-RemoteComputerInfo {
     $Computername = Read-Host $remoteAnalysis_getComputername
     $trustedhosts = Get-Item WSMan:\localhost\client\trustedhosts
 
-    If ($Computername -contains $trustedhosts.Value -or $trustedhosts.Value -eq "*"){
+    If ($Computername -contains $trustedhosts.Value -or $trustedhosts.Value -eq "*") {
         $creds = Get-Credential -Message $remoteAnalysis_getCredential
         $Test = Test-WSMan -ComputerName $Computername -Credential $creds -Authentication Negotiate
 
@@ -261,8 +261,8 @@ function Get-RemoteComputerInfo {
         
         $RemoteComputerInfo = @{
             "RemoteLiveAnalysis" = $True;
-            "Computername" = $Computername;
-            "Credential" = $creds
+            "Computername"       = $Computername;
+            "Credential"         = $creds
         }
         return $RemoteComputerInfo
     }
