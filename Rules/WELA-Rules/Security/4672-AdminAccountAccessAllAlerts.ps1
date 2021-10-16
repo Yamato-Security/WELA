@@ -9,7 +9,7 @@ function Add-Rule {
             )
             $ruleName = "4672-AdminAccountAccessAllAlerts";
             $detectedMessage = "Logon with SeDebugPrivilege (admin access)`nSpecial privileges assgned to new logons on DeepBlueCLI Rule";
-            $target = $event | where { $_.ID -eq 4672 -and $_.LogName -eq "Security" -and $_.message -Match "SeDebugPrivilege" }
+            $target = $event | where { $_.ID -eq 4672 -and $_.LogName -eq "Security" }
             $RecentLogonTimeRecord = @{}
             $multipleadminlogons = @{}
             $adminlogons = @{}
@@ -21,15 +21,20 @@ function Add-Rule {
                     $securityid = $eventXML.Event.EventData.Data[3]."#text"
                     $privileges = $eventXML.Event.EventData.Data[4]."#text"
                     if ($adminlogons.ContainsKey($username)) {
-                        if (!($adminlogons.$username -Match $securityid)) {
+                        $string = $adminlogons.$username
+                        if (!($string -Match $securityid)) {
                             $multipleadminlogons.Set_Item($username, 1)
-                            $adminlogons.Set_Item($username, $adminlogons.$username)
+                            $string += " $securityid"
+                            $adminlogons.Set_Item($username, $string)
                         }
                     }
                     else {
                         $adminlogons.add($username, $securityid)
                     }
-                    $RecentLogonTimeRecord[$username] = $record
+                    #  evtx file  read is Oldest in WELA. but Latest in DeepBlueCLI
+                    if (! $RecentLogonTimeRecord.containsKey($username)) {
+                        $RecentLogonTimeRecord[$username] = $record
+                    }
                 }
                 foreach ($usernameKey in $adminlogons.Keys) {
                     $securityid = $adminlogons.Get_Item($usernameKey)
@@ -37,7 +42,7 @@ function Add-Rule {
                         $result = Create-Obj $RecentLogonTimeRecord[$usernameKey] $LogFile
                         $result.Message = $detectedMessage
                         $result.Results = "Multiple admin logons for one account"
-                        $result.Results += "Username: $username`n"
+                        $result.Results += "Username: $usernameKey`n"
                         $result.Results += "User SID Access Count: " + $securityid.split().Count
                         Write-Output "Detected! RuleName:$ruleName";
                         Write-Output $detectedMessage;
