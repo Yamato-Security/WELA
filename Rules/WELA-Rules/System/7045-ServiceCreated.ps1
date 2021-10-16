@@ -35,14 +35,14 @@ function Add-Rule {
                     $servicecmd = 1 # CLIs via service creation get extra checks 
                     $ruleName = "7045-ServiceCreated";
                     $detectedMessage = "detected Service Create on DeepBlueCLI Rule";
-                    $obj = Create-Obj -event $record                            
-                    $result = Check-Command -EventID 7045 -servicecmd $servicecmd -obj $obj
+                    $obj = Create-Obj -event $record
+                    $result = Check-Command -EventID 7045 -commandline $commandline -servicecmd $servicecmd -obj $obj
                     if ($result) {
                         Write-Output ""; 
                         Write-Output "Detected! RuleName:$ruleName";
                         Write-Output $detectedMessage;
-                        Write-Output $result | Format-Table * -Wrap;
-                        Write-Output ""; 
+                        Write-Output $result;
+                        Write-Output "";
                     }
                 }
             }
