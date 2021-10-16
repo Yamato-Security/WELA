@@ -3,7 +3,7 @@ language config:English version
 #>
 
 # function Create-EventIDStatistics
-$Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics.`nPlease be patient."
+$Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics for:"
 $Create_EventIDStatistics_TotalEventLogs = "Total event logs:"
 $Create_EventIDStatistics_FileSize = "File size:"
 $Create_EventIDStatistics_FirstEvent = "First event:"
@@ -59,6 +59,9 @@ $4625 = @{
     EventTitle     = 'Failed logon';
     TimelineDetect = "Yes"; 
 }
+$4627 = @{
+    EventTitle     = 'Group membership information';
+}
 $4634 = @{
     EventTitle     = 'Logoff';
     TimelineDetect = "Yes"
@@ -75,24 +78,39 @@ $4672 = @{
     EventTitle     = 'Admin logon';
     TimelineDetect = "Yes";
 }
+
+$4673 = @{
+    EventTitle     = 'A privileged service was called';
+}
+
+$4674 = @{
+    EventTitle     = 'An operation was attempted on a privileged object';
+}
+
 $4688 = @{
     EventTitle = 'New process started';
 }
+
 $4696 = @{
     EventTitle = 'Primary token assigned to process';
 }
+
 $4692 = @{
     EventTitle = 'Backup of data protection master key was attempted';
 }
+
 $4697 = @{
     EventTitle = 'Service installed';
 }
+
 $4717 = @{
     EventTitle = 'System security access was granted to an account';
 }
+
 $4719 = @{
     EventTitle = 'System audit policy was changed';
 }
+
 $4720 = @{
     EventTitle     = 'User account created';
     TimelineDetect = "Yes"
@@ -224,7 +242,11 @@ $4954 = @{
 $4956 = @{
     EventTitle = 'Firewall active profile changed';
 }
-    
+
+$4985 = @{
+    EventTitle = 'The state of a transaction has changed';
+}    
+
 $5024 = @{
     EventTitle = 'Firewall started';
 }

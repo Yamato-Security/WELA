@@ -4,7 +4,7 @@ language config:Japanese version
 
 
 # function Create-EventIDStatistics
-$Create_EventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計します。`n少々お待ちください。"
+$Create_EventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計します: "
 $Create_EventIDStatistics_TotalEventLogs = "イベントの合計:"
 $Create_EventIDStatistics_FileSize = "ファイルサイズ:"
 $Create_EventIDStatistics_FirstEvent = "最初のイベント:"
@@ -20,35 +20,45 @@ $1100 = @{
     EventTitle = 'イベントログサービスがシャットダウンした';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';
 }
+
 $1101 = @{
     EventTitle = '監査イベントがトランスポートによって削除された';
 }
+
 $1102 = @{
     EventTitle     = 'イベントログがクリアされた';
     TimelineDetect = "Yes";
     Comment        = 'Should not happen normally so this is a good event to look out for.';
 }
+
 $1107 = @{
     EventTitle = 'イベント処理によるエラー';
 }
+
 $4608 = @{
     EventTitle = 'Windowsが起動された';
 }
+
 $4610 = @{
     EventTitle = '認証パッケージがローカル セキュリティ機関によって読み込まれた';
 }
+
 $4611 = @{
     EventTitle = '信頼されたログオン プロセスがローカルセキュリティ機関で登録された';
 }
+
 $4614 = @{
     EventTitle = 'セキュリティ アカウント マネージャによって通知パッケージが読み込まれた';
 }
+
 $4616 = @{
     EventTitle = 'システム時刻の変更';
 }
+
 $4622 = @{
     EventTitle = 'セキュリティ パッケージがローカル セキュリティ機関によって読み込まれた';
 }
+
 $4624 = @{
     EventTitle     = 'アカウントログオン';
     TimelineDetect = "Yes";
@@ -57,14 +67,20 @@ $4625 = @{
     EventTitle     = 'ログオンに失敗';
     TimelineDetect = "Yes"; 
 }
+$4627 = @{
+    EventTitle     = 'グループメンバーシップ情報';
+}
+
 $4634 = @{
     EventTitle     = 'ログオフ';
     TimelineDetect = "Yes"
 }
+
 $4647 = @{
     EventTitle     = 'ログオフ';
     TimelineDetect = "Yes" 
 }
+
 $4648 = @{
     EventTitle     = '明示的なログオン';
     TimelineDetect = "Yes"
@@ -72,6 +88,12 @@ $4648 = @{
 $4672 = @{
     EventTitle     = '管理者ログオン';
     TimelineDetect = "Yes";
+}
+$4673 = @{
+    EventTitle     = '特権のあるサービスが呼び出された';
+}
+$4674 = @{
+    EventTitle     = '特権のあるオブジェクトに対して操作が行われた';
 }
 $4688 = @{
     EventTitle = '新しいプロセスが起動された';
@@ -203,6 +225,7 @@ $4945 = @{
     EventTitle = 'Rule listed when the firewall started' ;
     Comment    = "ファイアウォールが起動する際に大量のログが発生するのでフィルタした方が良い";
 }
+
 $4946 = @{
     EventTitle = 'ファイアウォールの例外リストにルールが追加された';
 }
@@ -222,11 +245,15 @@ $4954 = @{
 $4956 = @{
     EventTitle = 'ファイアウォールのアクティブプロファイルが変更された';
 }
-    
+
+$4985 = @{
+    EventTitle = 'トランザクションの状態が変わった';
+}
+
 $5024 = @{
     EventTitle = 'ファイアウォールが起動された';
 }
-    
+
 $5033 = @{
     EventTitle = 'ファイアウォールドライバが起動された';
 }

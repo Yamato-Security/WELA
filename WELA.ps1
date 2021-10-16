@@ -27,7 +27,7 @@
     .\WELA.ps1
 
     Output Event ID Statistics (イベントIDの集計):
-    .\WELA.ps1 -EventIDStatistics
+    .\WELA.ps1 -EventID_Statistics
 
     Live Analysis Timeline Generation (ライブ調査のタイムライン作成):
     .\WELA.ps1 -LiveAnalysis -LogonTimeline
@@ -266,10 +266,13 @@ function EventInfo ($eventIDNumber) {
         "4622" { $return = $4622 }
         "4624" { $return = $4624 }
         "4625" { $return = $4625 }
+        "4627" { $return = $4627 }
         "4634" { $return = $4634 }
         "4647" { $return = $4647 }
         "4648" { $return = $4648 }
         "4672" { $return = $4672 }
+        "4673" { $return = $4673 }
+        "4674" { $return = $4674 }
         "4688" { $return = $4688 }
         "4696" { $return = $4696 }
         "4692" { $return = $4692 }
@@ -310,6 +313,7 @@ function EventInfo ($eventIDNumber) {
         "4948" { $return = $4948 }
         "4954" { $return = $4954 }
         "4956" { $return = $4956 }
+        "4985" { $return = $4985 }
         "5024" { $return = $5024 }
         "5033" { $return = $5033 }
         "5038" { $return = $5038 }
@@ -329,89 +333,6 @@ function EventInfo ($eventIDNumber) {
     }
 
     return $return
-
-}
-
-
-function Create-EventIDStatistics {
-
-    Write-Host
-    Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics. Please be patient." 
-    Write-Host
-    
-    $WineventFilter = @{}
-    
-    if ( $StartTimeline -ne "" ) { 
-        $StartTimeline = [DateTime]::ParseExact($StartTimeline, $DateFormat, $null) 
-        $WineventFilter.Add( "StartTime" , $StartTimeline )   
-    }
-
-    if ( $EndTimeline -ne "" ) { 
-        $EndTimeline = [DateTime]::ParseExact($EndTimeline, $DateFormat, $null) 
-        $WineventFilter.Add( "EndTime" , $EndTimeline )
-    }
-
-    $WineventFilter.Add( "Path", $LogFile ) 
-    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
-    $eventlist = @{}
-    $TotalNumberOfLogs = 0
-
-    foreach ( $event in $logs ) {
-
-        $id = $event.id.toString()
-
-        if ( $eventlist[$id] -eq $null ) {
-
-            $eventlist[$id] = 1
-
-        } 
-        
-        else {
-
-            $eventlist[$id] += 1
-
-        }
-
-        $TotalNumberOfLogs++
-
-    }
-
-    #Print results        
-    $filesize = Format-FileSize( (get-item $LogFile).length )
-    $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
-    $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
-
-    Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
-    Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
-    Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
-    Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
-
-    $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
-    [System.Collections.ArrayList]$ArrayWithHeader = @()
-    
-    for ( $i = 0 ; $i -le ( $sorted.count - 1 ) ; $i++) {
-                
-        $Name = $sorted[$i].Name
-        $Value = $sorted[$i].Value
-        $EventInfo = EventInfo($Name)
-        $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
-        $CountPlusPercent = "$value ($PercentOfLogs%)" 
-        $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
-        $ArrayWithHeader.Add($val) > $null
-
-    }
-
-    $ProgramEndTime = Get-Date
-    $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
-    $TempTimeSpan = New-TimeSpan -Seconds $TotalRuntime
-    $RuntimeHours = $TempTimeSpan.Hours.ToString()
-    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
-    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
-
-    Write-Host
-    Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
-
-    $ArrayWithHeader
 
 }
 
@@ -1788,7 +1709,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq 
 #No analysis source was specified
 if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
 
-    if ( $LiveAnalysis -ne $true -and ($LogFile -ne "" -or $LogDirectory -ne "")) {
+    if ( $LiveAnalysis -ne $true -and $LogFile -eq "" -and $LogDirectory -eq "") {
 
         Write-Host
         Write-Host $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified -ForegroundColor White -BackgroundColor Red
@@ -1852,6 +1773,7 @@ foreach ( $LogFile in $evtxFiles ) {
 
     if ( $EventID_Statistics -eq $true ) {   
 
+        .  ($AnalyzersPath + "General-EventID_Statistics.ps1")
         Create-EventIDStatistics
         
     }
@@ -1864,14 +1786,14 @@ foreach ( $LogFile in $evtxFiles ) {
 
     if ( $AnalyzeNTLM_UsageBasic -eq $true) {
 
-        .  ($AnalyzersPath + "NTLM-Operational.ps1")
+        .  ($AnalyzersPath + "NTLM-Operational-Usage.ps1")
         Analyze-NTLMOperationalBasic
 
     }
 
     if ( $AnalyzeNTLM_UsageDetailed -eq $true) {
 
-        .  ($AnalyzersPath + "NTLM-Operational.ps1")
+        .  ($AnalyzersPath + "NTLM-Operational-Usage.ps1")
         Analyze-NTLMOperationalDetailed
         
     }
