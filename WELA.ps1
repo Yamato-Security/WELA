@@ -334,11 +334,30 @@ function EventInfo ($eventIDNumber) {
 
 
 function Create-EventIDStatistics {
+    param(
+        $filePath
+    )
 
     Write-Host
     Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics. Please be patient." 
     Write-Host
     
+    $WineventFilter.Add( "Path", $filePath )
+    $filesize = Format-FileSize( (get-item $filePath).length )
+    $filesizeMB = (Get-Item $filePath).length / 1MB
+
+    $filesizeMB = $filesizeMB * 0.1
+    $ApproxTimeInSeconds = $filesizeMB * 60
+    $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+
+    Write-Host ( $Create_LogonTimeline_Filename -f $filePath )           # "File Name: {0}"
+    Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
+    Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
+
+
     $WineventFilter = @{}
     
     if ( $StartTimeline -ne "" ) { 
@@ -1850,9 +1869,9 @@ if ( $UTC -eq $true ) {
 
 foreach ( $LogFile in $evtxFiles ) {
 
-    if ( $EventID_Statistics -eq $true ) {   
+    if ( $EventID_Statistics -eq $true ) {
 
-        Create-EventIDStatistics
+        Create-EventIDStatistics -filePath $LogFile
         
     }
     
