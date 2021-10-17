@@ -21,8 +21,8 @@ db   d8b   db d88888b db       .d8b.
 88   I8I   88 88'     88      d8' `8b 
 88   I8I   88 88ooooo 88      88ooo88 
 Y8   I8I   88 88~~~~~ 88      88~~~88 
-`8b d8'8b d8' 88.     88booo. 88   88 
- `8b8' `8d8'  Y88888P Y88888P YP   YP 
+`8b  d8'8b d8' 88.     88booo. 88   88 
+ `8b8'' `8d8''  Y88888P Y88888P YP   YP 
 "@
 
 $logo4 = @"
