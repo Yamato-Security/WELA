@@ -118,7 +118,8 @@ $ProgramStartTime = Get-Date
 #Functions:
 function Show-Contributors {
     Write-Host 
-    Write-Host $Show_Contributors -ForegroundColor Cyan
+    Write-Host $Show_Contributors1 -ForegroundColor Red 
+    Write-Host $Show_Contributors2 -ForegroundColor Cyan
     Write-Host
 }
 

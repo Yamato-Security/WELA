@@ -364,7 +364,114 @@ $Error_NoNeedSaveOutputWithGUI = "エラー： 「-OutputGUI」と「-SaveOutput
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysisまたは-LogFileを指定する必要があります。"
 
 #function Show-Contributors
-$Show_Contributors =
+$Show_Contributors1 = @"
+
+
+                                                        ..Jv+
+                                                   ..gMHHMHMHn.
+                                               ..gMHHHHHHHHHHHH
+                                            .(HHHHHHHM##HHHH@@H`
+                                ..     ..JgHHHHHHM#"(M##HHHHMH^
+                              ,hgMHQHMHHHHH@H@M#"`.d##HHHHH@#!
+                              JHHHHHHHHH@H@MB=`  .M#HHHHH@#=
+                              J@HHHHHHHHHMY'   .d###HHHM#^
+                              WHHHHHHMHH]     .M##HH@#=
+                              ?H@H####HHMh,  J###HMY`
+                               ?WHHH####]?`(dH#HMY`
+                                ,@HHHN##F .M##M@`
+                                 `?HH#MD J##HM=
+                                       .HH#M9       .......
+                                      .H###>  ..JdMHHHHHH@HHMmJ,
+                                    .H##M8((kHMMHB""7?!??77TWMHHNa.
+                                  .j#N####M9=`                7MHHN,
+                                 .MNNN##"`                     .M#HH[
+                               .d#NNN@!                         (H##M.
+                              .M###Mt                           ,####[
+                            .dH####^                            ,#N##]
+                          .dHH##M#`                             g#NNM]
+                          ?@HH#M#`                             .####H%
+                          .WMHM#!                ..           .H#NN#M!
+                            ?""^          .gMMHHH#H#Mm.      .H####HF
+                                        .M#####HH####M:     (###N#HD
+                                      .d#N###"`   MN#M)   .M#####MF
+                                      d#NNN#`    JNN#@`.JMN####HM%
+                                     .H#NMMb   .MNNNNM##N####HM@`
+                                    .H##NMMHNNMNNMNNNNNN###HHB'
+                                    ,HH#MMMNNNNMNNNNNNN##HMB'
+                                    (MHNNMMMNNNM###N##HMM@!         `  `      `
+                                   .JMNNMNNNMHHHHHHMMB"!     ..JgHMHHHHHHMNm+HHN,
+                              ..+HHHH##MHBY""""=!`      ..gMH#H#####H##H#H#HH##N#Na,
+                     .,.` ..g##HHHM#"^              ..gM#####HHHHMHMMMMMMMHHH######HMe
+                  `..##N######MB"!               ..H#####HHMMHY"=!          d#N###H#HHb
+                  HMH######NN#N,              ..M#NN##HMMB"`              .j###N#HH#HH#`
+                .WMHH####HH#####m.          .d##NN##HMY!                .J#N###MHHM"!`
+                d@H###M@=`   _TMHMe      .+##NNNN#M@^                 .JHMMHMHY"7!
+                 WMMM"`        ,M##N,  .MNNNHNN#MY                  .d#"! _`
+                   `            .W#N#NMNNNMNMMM=                  .Y=
+                                  U#NNNNNNN#HY                  .=                               `
+                                   ?NMNNN###@                 .^
+                                   .MH###H###
+             `                       (UH##N#M_
+                                       (HMMMB`
+                                                           .....(JvZTTUUUUUUUHHC?
+                                                ....Jz7zzw+J+ggHHHHHHHHHHHHHHHHHNa..
+                                         ...J71Ag+g#NNMHHHHHHHHHHHHHHHHHHHH@H###HHMN,
+                                    ..JY4a+gMHHHHH##NNNN#HMHYYYYTUYYT"Y""""W##MHHHHHb
+                               ..JY6agMMM######MMH9"HNN#HH]              .d#MHHHHHHH#
+                         ``..JHNMMNNNN####MMB"^    .MMN#HHF           ..H#HH###HHHM"!
+                       ..+MMMNNNNNNNNMHMHY!       .dNMN#HH%        .(H##HH#HHHHMY'
+                  `..gH####NNNNNNNMMMY^    ,!    .dNNNN#H#     ..+M#H###MMMB""`
+               ..+M#NNNNN#####MMM@^    .(J^     .MNMMN##B`  .JMMM#"UWB"`
+            ..M##N##NNN###HM#M@^     .1J^      .#NNN#HM3.JWB"!
+           .HHdM#####MHHHHHT#NN.   .dd%      .HNNNNMMQd"^
+           (HHHNdMH#HHHMB!  WN#b .+HHF     .dHMMBTXY!`  ...........+gH;
+           (HHHHHN?"""!     ,#NMg###%    .dM8i(+H8+JOXUVUUWkXkXHHHHHH@Na,
+            WM####Me.        M#NNNMD...+HMXQMHMNHMHHMMHMMHHHHH@HHHHHHHH@N.
+            .MH##HHN,        dNNNNN######HHHHHH#HHHHMMMMMMMHMHHHBHMMMMMHMD
+             (MHHMHML   .(gHMN#NNNNNN###HHHMMB""7`                      !
+              ?7WMB@'   H###NNNNNNNNHMMB"^`
+                      .MH###N##HMNNN-                  jHb           .gm.
+                     .MHHHHMB"! .#N#M[                 WNMN,        .H##N,
+       ``             ?Y"=    .H##HM@`                JN#HHHR      .MN###Hb
+     `                      .d###=`                 .MNN##HH@    .H#NN#MHM^
+                          .dHM"                   .d#NN###MY   .HH#N#MM#=`.,
+                       ..MMY'                   .J#####MMD` .JMH##NNMNggmHHMo.
+                     .dH#=                     .M#####H@!..M####NNNNNNNN#HHHHMHm!
+                ` .JMMY!                     .dH#N####nJMNMNNNNNNNMNNNNN##HHHHMH%
+             (HNHMH#=           (MN.       .+HHNNNMMNNNMNMNNNNNNNNMMMHY""""YHHB%
+           .MHH#N#a,            d#H-      .MH#HNNMMMNMNNNNNMMMBWNMb
+          .HHH#NN###Nm,       .MH#Hb    .HHHHHM#NNMNMNMMMMY=`  JNNN@.
+           MHH##NNNN##Mg\   .MHHHHM% .dHHH#H@#T#NNMNNMY^       (NNN@  .
+           .TMMH#N#NNNMMNx(MHH@M"`   (@HHM@#= .NNNN#M`         (NNNNgMHh..
+                7TWM#NNMM#HHMY'      J@HM#=   (NNMNHF    ..JgMHNNNMNNNNHHM)
+                    -U##H#H"          ?T?     dNMM#M\(gMHHHH###NNMNMMN#HH#'
+                   .d#MY!       ..            dNNMNM(HHH####HHH#NNNMMBWMF
+                 .dM@^ ..JXUTTWHMHe           WNNNN#,MHHMH""! .#NNMF
+              ..MB=(JWBYu+kkWkWMHH@Ma..       M#MN## ?TY    .MM#NN#\` ...+HMa..
+       ... ..dMh+HHMmgMHMY"!  .#HHHMHHMR.     M#MN#F     .(M" (#NNMNMHHH##H@@M\
+      JHHHMMMM#######M"'      `  ?MHHHHHN`    M#NNM]   .J=..JgMNNMNNNN#MMM#B"`
+     ,HHHHH#NNNN##M#=             .TMMY"      M#NN#]..dQgM###NNNNNNNMHMB^
+     ,MHHHH###NN#M^                           M#NNNLd#####MH"7MNNNM=
+      ."YHMH#####N_           .+HHHHHJ.       MHNN#M#M#"=`  .JMMMH@;
+           ?MHHMY! .W&..    .H#"` ?MH##Mm,    HHNNM#`    .."` dHH@@]!
+              7`  ..7M@HH..HH=     .WMMMHN,  .H#M#MN   .?`    dHUMK`       ..........
+                .</  (HHHHHN.        ?YY7^   .##NMMb         ....J+ggmgQQMHHHHHHHMMMNNMHHmkmQkl`
+               JhK    ?HHHHMN.              .#NNMNNNgMmJggHHHHHH###HHHHHHHHHHHHHHMM#NN#HHMH@@MD
+       .,    .HH#`     TMH@H@b               WMMMNMNN###H#HHH#H####HMMMHYY"YYUUUUWM#NXHgk@MMHH!
+       d@p. (H##\       (HB"^                J@M##MNN###HMMMHB9UQg&yXY""7??7~```_7"BgdMYHR7C
+       HHHNM###M`                            ZjWMTMMMMMHBY""""?`
+       d@H###N##                                .`.=
+       .MHH###MM
+        ,MHHH#M@[
+         ,MMMH@@P
+          .4HMY'
+
+
+"@
+
+
+
+$Show_Contributors2 =
 "コントリビューター:
 
 oginoPmP - 開発
