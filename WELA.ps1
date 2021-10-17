@@ -341,8 +341,7 @@ function Create-EventIDStatistics {
     Write-Host
     Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics. Please be patient." 
     Write-Host
-    
-    $WineventFilter.Add( "Path", $filePath )
+
     $filesize = Format-FileSize( (get-item $filePath).length )
     $filesizeMB = (Get-Item $filePath).length / 1MB
 
@@ -357,7 +356,6 @@ function Create-EventIDStatistics {
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
 
-
     $WineventFilter = @{}
     
     if ( $StartTimeline -ne "" ) { 
@@ -370,7 +368,7 @@ function Create-EventIDStatistics {
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    $WineventFilter.Add( "Path", $LogFile ) 
+    $WineventFilter.Add( "Path", $filePath ) 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
     $eventlist = @{}
     $TotalNumberOfLogs = 0
