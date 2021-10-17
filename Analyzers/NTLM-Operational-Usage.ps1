@@ -49,6 +49,11 @@ function Analyze-NTLMOperationalBasic {
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
+    if ( $LiveAnalysis -eq $true) {
+
+        $LogFile = "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
+    }
+
     $WineventFilter.Add( "Path", $LogFile )
     $filesize = Format-FileSize( (get-item $LogFile).length )
     $filesizeMB = (Get-Item $LogFile).length / 1MB 
@@ -65,7 +70,16 @@ function Analyze-NTLMOperationalBasic {
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
     Write-Host
 
-    $newestEvent = Get-WinEvent -FilterHashtable $WineventFilter -MaxEvents 1
+    #Check to see if log is empty
+    try { $newestEvent = Get-WinEvent -FilterHashtable $WineventFilter -MaxEvents 1 -ErrorAction Stop }
+    catch [Exception]{
+        if ($_.Exception -match "No events were found that match the specified selection criteria") {
+            Write-Host $Error_NoEventsFound
+            Write-Host
+            exit
+        }
+    }
+
     $eventXML = [xml]$newestEvent.ToXml()
     if ( $UTC -eq $true ) {
         $FirstEventTime = $newestEvent.TimeCreated.ToUniversalTime().ToString($DateFormat)
@@ -292,6 +306,11 @@ function Analyze-NTLMOperationalDetailed {
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
+    if ( $LiveAnalysis -eq $true) {
+
+        $LogFile = "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
+    }
+
     $WineventFilter.Add( "Path", $LogFile )
     $filesize = Format-FileSize( (get-item $LogFile).length )
     $filesizeMB = (Get-Item $LogFile).length / 1MB 
@@ -307,6 +326,16 @@ function Analyze-NTLMOperationalDetailed {
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
     Write-Host
+
+    #Check to see if log is empty
+    try { $newestEvent = Get-WinEvent -FilterHashtable $WineventFilter -MaxEvents 1 -ErrorAction Stop }
+    catch [Exception]{
+        if ($_.Exception -match "No events were found that match the specified selection criteria") {
+            Write-Host $Error_NoEventsFound
+            Write-Host
+            exit
+        }
+    }
 
     $newestEvent = Get-WinEvent -FilterHashtable $WineventFilter -MaxEvents 1
     $eventXML = [xml]$newestEvent.ToXml()

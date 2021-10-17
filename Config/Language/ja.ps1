@@ -362,6 +362,7 @@ $Error_NeedAdministratorPriv = "エラー： Powershellを管理者として実�
 $Error_NoSaveOutputWithCSV = "エラー： 「-SaveOutput」を指定してください"
 $Error_NoNeedSaveOutputWithGUI = "エラー： 「-OutputGUI」と「-SaveOutput」を同時に指定できません。"
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysisまたは-LogFileを指定する必要があります。"
+$Error_NoEventsFound = "エラー: イベントがない！"
 
 #function Show-Contributors
 $Show_Contributors1 = @"

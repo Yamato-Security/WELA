@@ -355,7 +355,7 @@ $Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Admi
 $Error_NoSaveOutputWithCSV = "Error: You need to specify -SaveOutput"
 $Error_NoNeedSaveOutputWithGUI = "Error: You cannot output to GUI with the -SaveOutput parameter"
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "Error: You need to specify -LiveAnalysis or -LogFile"
-
+$Error_NoEventsFound = "Error: No events found!"
 
 #function Show-Contributors
 $Show_Contributors1 = @"
