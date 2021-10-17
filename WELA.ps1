@@ -1737,7 +1737,7 @@ if ( $LiveAnalysis -eq $true ) {
             "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
         )
     }
-    elseif ($LogonTimeline -eq $true) {
+    elseif ($LogonTimeline -eq $true -or $EventID_Statistics -eq $true) {
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx"
         )
@@ -1772,10 +1772,10 @@ if ( $UTC -eq $true ) {
 
 foreach ( $LogFile in $evtxFiles ) {
 
-    if ( $EventID_Statistics -eq $true ) {   
+    if ( $EventID_Statistics -eq $true ) {
 
         .  ($AnalyzersPath + "General-EventID_Statistics.ps1")
-        Create-EventIDStatistics
+        Create-EventIDStatistics -filePath $LogFile
         
     }
     
