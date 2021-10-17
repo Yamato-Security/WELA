@@ -138,12 +138,6 @@ switch ($UseDetectRules) {
     Default {}
 }
 #Functions:
-function Show-Contributors {
-    Write-Host 
-    Write-Host $Show_Contributors1 -ForegroundColor Red 
-    Write-Host $Show_Contributors2 -ForegroundColor Cyan
-    Write-Host
-}
 
 function Start-Detection {
     param(

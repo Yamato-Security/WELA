@@ -46,9 +46,11 @@ function Get-WinEventWithFilter {
 
 function Show-Contributors {
     Write-Host 
-    Write-Host $Show_Contributors -ForegroundColor Cyan
+    Write-Host $Show_Contributors1 -ForegroundColor Red 
+    Write-Host $Show_Contributors2 -ForegroundColor Cyan
     Write-Host
 }
+
 Function Format-FileSize {
     Param ([int]$size)
     If ($size -gt 1TB) { [string]::Format("{0:0.00} TB", $size / 1TB) }
