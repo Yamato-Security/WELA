@@ -1,10 +1,25 @@
 ﻿function Create-EventIDStatistics {
+    param(
+        [string]$filePath
+    )
 
     Write-Host
     Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage -NoNewline # "Creating Event ID Statistics for:" 
-    Write-Host $LogFile
-    Write-Host
     
+    $filesize = Format-FileSize( (get-item $filePath).length )
+    $filesizeMB = (Get-Item $filePath).length / 1MB
+
+    $filesizeMB = $filesizeMB * 0.1
+    $ApproxTimeInSeconds = $filesizeMB * 60
+    $TempTimeSpan = New-TimeSpan -Seconds $ApproxTimeInSeconds
+    $RuntimeHours = $TempTimeSpan.Hours.ToString()
+    $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
+    $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
+
+    Write-Host ( $Create_LogonTimeline_Filename -f $filePath )           # "File Name: {0}"
+    Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
+    Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
+
     $WineventFilter = @{}
     
     if ( $StartTimeline -ne "" ) { 
@@ -17,7 +32,7 @@
         $WineventFilter.Add( "EndTime" , $EndTimeline )
     }
 
-    $WineventFilter.Add( "Path", $LogFile ) 
+    $WineventFilter.Add( "Path", $filePath ) 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
     $eventlist = @{}
     $TotalNumberOfLogs = 0
@@ -41,8 +56,8 @@
 
     }
 
-    #Print results        
-    $filesize = Format-FileSize( (get-item $LogFile).length )
+    #Print results
+    $filesize = Format-FileSize( (get-item $filePath).length )
     $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
     $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
 
