@@ -2,9 +2,6 @@
     param(
         [string]$filePath
     )
-
-    Write-Host
-    Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage -NoNewline # "Creating Event ID Statistics for:" 
     
     $filesize = Format-FileSize( (get-item $filePath).length )
     $filesizeMB = (Get-Item $filePath).length / 1MB
@@ -16,6 +13,9 @@
     $RuntimeMinutes = $TempTimeSpan.Minutes.ToString()
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
+    Write-Host
+    Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics." 
+    Write-Host
     Write-Host ( $Create_LogonTimeline_Filename -f $filePath )           # "File Name: {0}"
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"

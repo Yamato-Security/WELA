@@ -3,7 +3,7 @@ language config:English version
 #>
 
 # function Create-EventIDStatistics
-$Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics for:"
+$Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics."
 $Create_EventIDStatistics_TotalEventLogs = "Total event logs:"
 $Create_EventIDStatistics_FileSize = "File size:"
 $Create_EventIDStatistics_FirstEvent = "First event:"

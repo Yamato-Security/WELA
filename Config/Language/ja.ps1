@@ -4,7 +4,7 @@ language config:Japanese version
 
 
 # function Create-EventIDStatistics
-$Create_EventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計します: "
+$Create_EventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計しています。"
 $Create_EventIDStatistics_TotalEventLogs = "イベントの合計:"
 $Create_EventIDStatistics_FileSize = "ファイルサイズ:"
 $Create_EventIDStatistics_FirstEvent = "最初のイベント:"
