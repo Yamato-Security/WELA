@@ -43,6 +43,7 @@ function Add-Rule {
                                 $usernames += " "
                             }
                             $result = Create-Obj $record $LogFile
+                            $result.EventID = 4648
                             $result.Message = "Distributed Account Explicit Credential Use (Password Spray Attack)"
                             $result.Results = "The use of multiple user account access attempts with explicit credentials is "
                             $result.Results += "an indicator of a password spray attack.`n"
@@ -68,17 +69,15 @@ function Add-Rule {
                 else {
                     $TimeBetweenEvents = ( $EventTimestampDateTime - $PasswordGuessDetection.FirstDetect ).TotalMinutes
                     if ($TimeBetweenEvents -gt $PasswordGuessTimeframeMinutes) {
-                        if ( $PasswordGuessDetection.Count -lt $PasswordGuessCount ) {
-                            $PasswordGuessDetection.FirstDetect = $null
-                            $PasswordGuessDetection.Count = 0
-                        }
+                        $PasswordGuessDetection.FirstDetect = $null
+                        $PasswordGuessDetection.Count = 0
                     }
                     else {
                         $PasswordGuessDetection.Count++;
                         if ( $PasswordGuessDetection.Count -ge $PasswordGuessCount -and $TimeBetweenEvents -gt 0 ) {
                             $result = Create-Obj $record $LogFile
                             $result.Message = $detectedMessage
-                            $result.Results = "Target User: $msgTargetUserName IP Address: $msgIpAddress (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
+                            $result.Results = "Target User: $targetusername IP Address: $sourceip (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
                             Write-Output ""
                             Write-Output "Detected!RuleName:$ruleName(WELA Rule)"
                             Write-Output $result
