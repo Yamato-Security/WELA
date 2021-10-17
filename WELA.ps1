@@ -1815,7 +1815,7 @@ if ( $LiveAnalysis -eq $true ) {
             "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
         )
     }
-    elseif ($LogonTimeline -eq $true) {
+    elseif ($LogonTimeline -eq $true -or $EventID_Statistics -eq $true) {
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx"
         )
