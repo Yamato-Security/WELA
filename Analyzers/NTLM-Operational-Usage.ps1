@@ -1,19 +1,28 @@
-﻿# Analyze the following logs
-# 8001 : Outgoing NTLM authentication traffic that would be blocked.
-# 8002 : Incoming NTLM Traffic that would be blocked
-# 8004 : NTLM authentication to Domain Controller that would be blocked.
+﻿<#
+Analyze the following logs from C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
+8001 : Outgoing NTLM authentication traffic that would be blocked.
+    Useful info: TargetName (Outbound server), ClientUserName (Username used into authentication)
 
-# In order to produce these logs you need to turn on the following settings via Group Policy
-# Under "Computer Configuration\Policies\Windows Settings\Security Settings\Local Policies\Security Options"
-# Network security: Restrict NTLM: Audit Incoming NTLM Traffic -> Enable auditing for all accounts
-# Network security: Restrict NTLM: Audit NTLM authentication in this domain	-> Enable all
-# Network security: Restrict NTLM: Outgoing NTLM traffic to remote servers -> Audit all
-# It is also recommended to increase the log size as the default is very small and logs will become overwritten quickly.
+8002 : Incoming NTLM Traffic that would be blocked
+    Useful info: Only ClientUserName seems to be useful for analysis.
 
-#TODO:
-#日本語のローカライズをもっときれいに・・
-#Out-File Save-Output
-#Count the number of duplicate entries
+8004 : NTLM authentication to Domain Controller that would be blocked.
+    Useful info: Secure Channel Name, Username, Workstation Name, Secure Channel Type
+
+In order to produce these logs you need to turn on the following settings via Group Policy: 
+    Under "Computer Configuration\Policies\Windows Settings\Security Settings\Local Policies\Security Options"
+    Network security: Restrict NTLM: Audit Incoming NTLM Traffic -> Enable auditing for all accounts
+    Network security: Restrict NTLM: Audit NTLM authentication in this domain	-> Enable all
+    Network security: Restrict NTLM: Outgoing NTLM traffic to remote servers -> Audit all
+    ※It is also recommended to increase the log size as the default is very small and logs will become overwritten quickly.
+
+TODO:
+    日本語のローカライズをもっときれいに・・
+    Out-File Save-Output   
+    Count the number of duplicate entries
+
+#>
+
 
 function SecureChannelTypeLookup ($secureChannelType) {
    
