@@ -15,6 +15,9 @@ function Add-Rule {
             $PasswordGuessDetection = @{ FirstDetect = $null ; Count = 0 }
             $PasswordGuessTimeframeMinutes = 1
             $PasswordGuessCount = 3
+            $DBCPassSprayTrack = @{};
+            $DBCpasssprayuniqusermax = 6
+            $DBCpasssprayloginmax = 6
 
             foreach ($record in $target) {
                 $eventXML = [xml]$record.ToXml()
@@ -24,6 +27,34 @@ function Add-Rule {
                 $sourceip = ""
                 if ($record.id -eq 4648) {
                     $sourceip = $eventXML.Event.EventData.Data[12]."#text"
+                    # DeepBlueCLI passspary logic
+                    $DBCPassSprayTrack[$targetusername] += 1;
+                    if ($DBCPassSprayTrack[$targetusername] -gt $DBCpasssprayloginmax) {
+                        $DBCpasssprayuniquser = 0
+                        foreach ($key in $DBCpassspraytrack.keys) {
+                            if ($DBCpassspraytrack[$key] -gt $DBCpasssprayloginmax) { 
+                                $passsprayuniquser += 1
+                            }
+                        }
+                        if ($DBCpasssprayuniquser -gt $DBCpasssprayuniqusermax) {
+                            $usernames = ""
+                            foreach ($key in $DBCpassspraytrack.keys) {
+                                $usernames += $key
+                                $usernames += " "
+                            }
+                            $result = Create-Obj $record $LogFile
+                            $result.Message = "Distributed Account Explicit Credential Use (Password Spray Attack)"
+                            $result.Results = "The use of multiple user account access attempts with explicit credentials is "
+                            $result.Results += "an indicator of a password spray attack.`n"
+                            $result.Results += "Target Usernames: $usernames`n"
+                            $obj.Results += "Accessing Username: $username`n"
+                            $obj.Results += "Accessing Host Name: $hostname`n"
+                            Write-Output ""
+                            Write-Output "Detected!RuleName:$ruleName(DeepBlueCLI Rule)"
+                            Write-Output $result
+                            $DBCpassspraytrack = @{} # Reset
+                        }
+                    }
                 }
                 else {
                     $sourceip = $eventXML.Event.EventData.Data[19]."#text"
@@ -36,18 +67,25 @@ function Add-Rule {
                 }
                 else {
                     $TimeBetweenEvents = ( $EventTimestampDateTime - $PasswordGuessDetection.FirstDetect ).TotalMinutes
-                    if ( $TimeBetweenEvents -gt $PasswordGuessTimeframeMinutes -and $PasswordGuessDetection.Count -lt $PasswordGuessCount ) {
-                        $PasswordGuessDetection.FirstDetect = $null 
-                        $PasswordGuessDetection.Count = 0
+                    if ($TimeBetweenEvents -gt $PasswordGuessTimeframeMinutes) {
+                        if ( $PasswordGuessDetection.Count -lt $PasswordGuessCount ) {
+                            $PasswordGuessDetection.FirstDetect = $null
+                            $PasswordGuessDetection.Count = 0
+                        }
                     }
-                    if ( $ElapsedTime -le $PasswordGuessTimeframeMinutes -and $PasswordGuessDetection.Count -ge $PasswordGuessCount -and $TimeBetweenEvents -gt 0 ) {
-                        $result = Create-Obj $record $LogFile
-                        $result.Message = $detectedMessage
-                        $result.Results = "Target User: $msgTargetUserName IP Address: $msgIpAddress (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
-                        Write-Output $result | Format-Table * -Wrap
-                        $PasswordGuessDetection.FirstDetect = $PasswordGuessDetection.FirstDetect.Addminutes($PasswordGuessTimeframeMinutes)
-                        $PasswordGuessDetection.Count = 0
-                    } 
+                    else {
+                        $PasswordGuessDetection.Count++;
+                        if ( $PasswordGuessDetection.Count -ge $PasswordGuessCount -and $TimeBetweenEvents -gt 0 ) {
+                            $result = Create-Obj $record $LogFile
+                            $result.Message = $detectedMessage
+                            $result.Results = "Target User: $msgTargetUserName IP Address: $msgIpAddress (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
+                            Write-Output ""
+                            Write-Output "Detected!RuleName:$ruleName(WELA Rule)"
+                            Write-Output $result
+                            $PasswordGuessDetection.FirstDetect = $PasswordGuessDetection.FirstDetect.Addminutes($PasswordGuessTimeframeMinutes)
+                            $PasswordGuessDetection.Count = 0
+                        }
+                    }
                 }
             }
         };
