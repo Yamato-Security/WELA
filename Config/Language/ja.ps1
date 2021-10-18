@@ -374,6 +374,8 @@ $Error_NoSaveOutputWithCSV = "エラー： 「-SaveOutput」を指定してく�
 $Error_NoNeedSaveOutputWithGUI = "エラー： 「-OutputGUI」と「-SaveOutput」を同時に指定できません。"
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysisまたは-LogFileを指定する必要があります。"
 $Error_NoEventsFound = "エラー: イベントがない！"
+$Error_ThisFunctionDoesNotSupportOutputGUI = "エラー： この機能は-OutputGUIに対応していない。"
+$Error_ThisFunctionDoesNotSupportOutputCSV = "エラー： この機能は-OutputCSVに対応していない。"
 
 #function Show-Contributors
 $Show_Contributors1 = @"

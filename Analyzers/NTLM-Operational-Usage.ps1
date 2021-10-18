@@ -22,6 +22,26 @@ TODO:
     Count the number of duplicate entries
 #>
 
+function CheckCommandLineOptions-AnalyzeNTLM () {
+
+    if ( $OutputGUI -eq $true ) { 
+        Write-Host 
+        Write-Host $Error_ThisFunctionDoesNotSupportOutputGUI -ForegroundColor White -BackgroundColor Red
+        Write-Host 
+        Exit
+
+    }
+
+    if ( $OutputCSV -eq $true ) { 
+        Write-Host 
+        Write-Host $Error_ThisFunctionDoesNotSupportOutputCSV -ForegroundColor White -BackgroundColor Red
+        Write-Host 
+        Exit
+
+    }
+
+}
+
 
 function SecureChannelTypeLookup ($secureChannelType) {
    
@@ -43,6 +63,8 @@ function SecureChannelTypeLookup ($secureChannelType) {
 
 
 function Analyze-NTLMOperationalBasic {
+    
+    CheckCommandLineOptions-AnalyzeNTLM
 
     $WineventFilter = @{}
     $EventIDsToAnalyze = 8001, 8002, 8003, 8004
@@ -302,6 +324,8 @@ function Analyze-NTLMOperationalBasic {
 
 function Analyze-NTLMOperationalDetailed {
 
+    CheckCommandLineOptions-AnalyzeNTLM
+
     [System.Collections.ArrayList]$output = @()
     $WineventFilter = @{}
     $EventIDsToAnalyze = 8001, 8002, 8004
@@ -502,9 +526,9 @@ function Analyze-NTLMOperationalDetailed {
     $8001_ClientUserNameArray -join "`n" 
 
     Write-Host
-    Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames -ForegroundColor Red
-    Write-Host $NTLM_output_Inbound_NTLM_Usernames -ForegroundColor Cyan
-    $8002_ClientUserNameArray -join "`n" 
+    Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames -ForegroundColor Red        # 8002 (Inbound NTLM  Authentication) Log Analysis:
+    Write-Host $NTLM_output_Inbound_NTLM_Usernames -ForegroundColor Cyan            # Inbound NTLM authentication with usernames：
+    $8002_ClientUserNameArray -join "`n"                                            # 8004 (NTLM  Authentication to DC) Log Analysis:
     Write-Host
 
     Write-Host
