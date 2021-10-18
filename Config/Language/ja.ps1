@@ -3,16 +3,16 @@ language config:Japanese version
 #>
 
 # NTLM-Operational-Usage
-$NTLM_output_8001_Log_Analysis = "8001 (Outbound NTLM Authentication) Log Analysis:"
-$NTLM_output_8001_Outgoing_NTLM_Servers = "Outgoing NTLM authentication to servers:"
-$NTLM_output_8001_Outgoing_NTLM_Usernames = "Outgoing NTLM authentication with usernames:"
-$NTLM_output_8002_Inbound_NTLM_Usernames = "8002 (Inbound NTLM  Authentication) Log Analysis:"
-$NTLM_output_Inbound_NTLM_Usernames = "Inbound NTLM authentication with usernames："
-$NTLM_output_8004_Log_Analysis = "8004 (NTLM  Authentication to DC) Log Analysis:"
-$Output_Summary = "Summary:"
-$8001_Events = "8001 Events: "
-$8002_Events = "8002 Events: "
-$8004_Events = "8004 Events: "
+$NTLM_output_8001_Log_Analysis = "8001（外向けのNTLM認証）のログ解析:"
+$NTLM_output_8001_Outgoing_NTLM_Servers = "以下のサーバにNTLM認証を行っている："
+$NTLM_output_8001_Outgoing_NTLM_Usernames = "以下のユーザ名でNTLM認証を行っている："
+$NTLM_output_8002_Inbound_NTLM_Usernames = "8002（内向けのNTLM認証）のログ解析:"
+$NTLM_output_Inbound_NTLM_Usernames = "以下のユーザ名でNTLM認証を行っている："
+$NTLM_output_8004_Log_Analysis = "8004 (DCに対するNTLM認証)のログ解析:"
+$Output_Summary = "サマリ:"
+$8001_Events = "8001のイベント:"
+$8002_Events = "8002のイベント:"
+$8004_Events = "8004のイベント:"
 
 # function Create-EventIDStatistics
 $Create_EventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計しています。"

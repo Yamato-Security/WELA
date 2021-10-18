@@ -7,6 +7,7 @@ Analyze the following logs from C:\Windows\System32\winevt\Logs\Microsoft-Window
     Useful info: Only ClientUserName seems to be useful for analysis.
 
 8004 : NTLM authentication to Domain Controller that would be blocked.
+    This event is only seen on a DC.
     Useful info: Secure Channel Name (Destination Server), Username, Workstation Name (Originating Client) and Secure Channel Type (Usually Type 2: Domain member to DC)
 
 In order to produce these logs you need to turn on the following settings via Group Policy: 
@@ -16,13 +17,9 @@ In order to produce these logs you need to turn on the following settings via Gr
     Network security: Restrict NTLM: Outgoing NTLM traffic to remote servers -> Audit all
     ※It is also recommended to increase the log size as the default is very small and logs will become overwritten quickly.
 
-On DCs, you will see 8001, 8002 and 8004.
-
 TODO:
-    日本語のローカライズをもっときれいに・・
     Out-File Save-Output   
     Count the number of duplicate entries
-
 #>
 
 
@@ -496,52 +493,29 @@ function Analyze-NTLMOperationalDetailed {
     $8004_WorkstationNameArray.Remove("NULL")
     $8004_SChannelTypeArray = $8004_SChannelTypeList.ToArray()
 
-    #Todo: fix lang config
-    if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-        Write-Host
-        Write-Host "8001（外向けのNTLM認証）のログ解析:"
-        Write-Host  "以下のサーバにNTLM認証を行っている："
-        $8001_TargetNameArray -join "`n" 
-        Write-Host
-        Write-Host "以下のユーザ名でNTLM認証を行っている："
+    Write-Host
+    Write-Host $NTLM_output_8001_Log_Analysis -ForegroundColor Red                  # 8001 (Outbound NTLM Authentication) Log Analysis:
+    Write-Host $NTLM_output_8001_Outgoing_NTLM_Servers -ForegroundColor Cyan        # Outgoing NTLM authentication to servers:
+    $8001_TargetNameArray -join "`n" 
+    Write-Host
+    Write-Host $NTLM_output_8001_Outgoing_NTLM_Usernames  -ForegroundColor Cyan     # Outgoing NTLM authentication with usernames:
+    $8001_ClientUserNameArray -join "`n" 
 
-        $8001_ClientUserNameArray -join "`n" 
+    Write-Host
+    Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames -ForegroundColor Red
+    Write-Host $NTLM_output_Inbound_NTLM_Usernames -ForegroundColor Cyan
+    $8002_ClientUserNameArray -join "`n" 
+    Write-Host
 
-        Write-Host
-        Write-Host "8002（内向けのNTLM認証）のログ解析:"
-        Write-Host "以下のユーザ名でNTLM認証を行っている："
-        $8002_ClientUserNameArray -join "`n" 
-        Write-Host
-
-        Write-Host "8004 (DCに対するNTLM認証)のログ解析:"
-        $output
-    }
-    else  {
-
-        Write-Host
-        Write-Host $NTLM_output_8001_Log_Analysis -ForegroundColor Red                  # 8001 (Outbound NTLM Authentication) Log Analysis:
-        Write-Host $NTLM_output_8001_Outgoing_NTLM_Servers -ForegroundColor Cyan        # Outgoing NTLM authentication to servers:
-        $8001_TargetNameArray -join "`n" 
-        Write-Host
-        Write-Host $NTLM_output_8001_Outgoing_NTLM_Usernames  -ForegroundColor Cyan     # Outgoing NTLM authentication with usernames:
-        $8001_ClientUserNameArray -join "`n" 
-
-        Write-Host
-        Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames -ForegroundColor Red
-        Write-Host $NTLM_output_Inbound_NTLM_Usernames -ForegroundColor Cyan
-        $8002_ClientUserNameArray -join "`n" 
-        Write-Host
-
-        Write-Host
-        Write-Host $NTLM_output_8004_Log_Analysis -ForegroundColor Red
-        $output | Format-Table -Autosize
-    }
-
-    Write-Host $Output_Summary #Summary
+    Write-Host
+    Write-Host $NTLM_output_8004_Log_Analysis -ForegroundColor Red
+    $output | Format-Table -Autosize
+    
+    Write-Host $Output_Summary #Summary: 
     Write-Host "------------"
     Write-Host "$8001_Events $8001_NumberOfLogs"
     Write-Host "$8002_Events $8002_NumberOfLogs"
     Write-Host "$8004_Events $8004_NumberOfLogs"
     Write-Host
-    
+    8004
 }

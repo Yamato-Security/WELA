@@ -10,9 +10,9 @@ $NTLM_output_8002_Inbound_NTLM_Usernames = "8002 (Inbound NTLM  Authentication) 
 $NTLM_output_Inbound_NTLM_Usernames = "Inbound NTLM authentication with usernames："
 $NTLM_output_8004_Log_Analysis = "8004 (NTLM  Authentication to DC) Log Analysis:"
 $Output_Summary = "Summary:"
-$8001_Events = "8001 Events: "
-$8002_Events = "8002 Events: "
-$8004_Events = "8004 Events: "
+$8001_Events = "8001 Events:"
+$8002_Events = "8002 Events:"
+$8004_Events = "8004 Events:"
 
 # function Create-EventIDStatistics
 $Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics."
