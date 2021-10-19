@@ -48,8 +48,8 @@ function Add-Rule {
                             $result.Results = "The use of multiple user account access attempts with explicit credentials is "
                             $result.Results += "an indicator of a password spray attack.`n"
                             $result.Results += "Target Usernames: $usernames`n"
-                            $obj.Results += "Accessing Username: $username`n"
-                            $obj.Results += "Accessing Host Name: $hostname`n"
+                            $result.Results += "Accessing Username: $username`n"
+                            $result.Results += "Accessing Host Name: $hostname`n"
                             Write-Output ""
                             Write-Output "Detected!RuleName:$ruleName(DeepBlueCLI Rule)"
                             Write-Output $result
