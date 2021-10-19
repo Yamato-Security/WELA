@@ -60,7 +60,7 @@ $4625 = @{
     TimelineDetect = "Yes"; 
 }
 $4627 = @{
-    EventTitle     = 'Group membership information';
+    EventTitle = 'Group membership information';
 }
 $4634 = @{
     EventTitle     = 'Logoff';
@@ -80,11 +80,11 @@ $4672 = @{
 }
 
 $4673 = @{
-    EventTitle     = 'A privileged service was called';
+    EventTitle = 'A privileged service was called';
 }
 
 $4674 = @{
-    EventTitle     = 'An operation was attempted on a privileged object';
+    EventTitle = 'An operation was attempted on a privileged object';
 }
 
 $4688 = @{
@@ -348,6 +348,8 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
 $Detect_ProcessingDetectionMessage = "Processing rule-base detection...`n"
 
+$Confirm_DefConfirm_DefenderRealTimeScan_enderRealTimeScan_Disabled = "Confirm:You need cancelling RealTimeScan of AntiVirusSoftware to use SIGMA Detection Rule. Proceed it?"
+$Info_Noload_SIGMAMODULE = "Info:Load of SIGMA Detection Rule is canceled by User Input."
 $Info_GetEventNoMatch = "Info:No events were found that match in Get-WinEvent."
 $Warn_GetEvent = "Warning:Get-WinEvent error record skip."
 $Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
