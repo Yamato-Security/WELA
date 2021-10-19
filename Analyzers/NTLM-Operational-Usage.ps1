@@ -120,7 +120,7 @@ function Analyze-NTLMOperationalBasic {
     else {
         $FirstEventTime = $newestEvent.TimeCreated.ToString($DateFormat) 
     }
-    Write-Host "First Log: " $FirstEventTime
+    Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTime"
 
     $oldestEvent = Get-WinEvent -FilterHashtable $WineventFilter -MaxEvents 1 -Oldest 
     $eventXML = [xml]$oldestEvent.ToXml()
@@ -130,7 +130,7 @@ function Analyze-NTLMOperationalBasic {
     else {
         $LastEventTime = $oldestEvent.TimeCreated.ToString($DateFormat) 
     }
-    Write-Host "Last Log:  " $LastEventTime
+    Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTime"
 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
     $eventlist = @{}
@@ -241,47 +241,99 @@ function Analyze-NTLMOperationalBasic {
     $8004_WorkstationNameArray.Remove("NULL")
     $8004_SChannelTypeArray = $8004_SChannelTypeList.ToArray()
 
-    Write-Host
-    Write-Host $NTLM_output_8001_Log_Analysis
-    Write-Host  $NTLM_output_8001_Outgoing_NTLM_Servers
-    $8001_TargetNameArray -join "`n" 
-    Write-Host
-    Write-Host $NTLM_output_8001_Outgoing_NTLM_Usernames
-    $8001_ClientUserNameArray -join "`n" 
+    if ($SaveOutput -eq "") {
+        Write-Host
+        Write-Host $NTLM_output_8001_Log_Analysis -ForegroundColor Red                  # 8001 (Outbound NTLM Authentication) Log Analysis:
+        Write-Host  $NTLM_output_8001_Outgoing_NTLM_Servers -ForegroundColor Cyan        # Outgoing NTLM authentication to servers:
+        $8001_TargetNameArray -join "`r`n" 
+        Write-Host
+        Write-Host $NTLM_output_8001_Outgoing_NTLM_Usernames  -ForegroundColor Cyan     # Outgoing NTLM authentication with usernames:
+        $8001_ClientUserNameArray -join "`r`n" 
 
-    Write-Host
-    Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames
-    Write-Host $NTLM_output_Inbound_NTLM_Usernames
-    $8002_ClientUserNameArray -join "`n" 
-    Write-Host
+        Write-Host
+        Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames -ForegroundColor Red        # 8002 (Inbound NTLM  Authentication) Log Analysis:
+        Write-Host $NTLM_output_Inbound_NTLM_Usernames -ForegroundColor Cyan            # Inbound NTLM authentication with usernames：
+        $8002_ClientUserNameArray -join "`r`n" 
+        Write-Host
 
-    Write-Host
-    Write-Host $NTLM_output_8004_Log_Analysis
-    Write-Host $NTLM_output_Secure_Channel_Names
-    $8004_SChannelNameArray -join "`n" 
-    Write-Host
-    Write-Host $NTLM_output_Usernames
-    $8004_UserNameArray -join "`n"
-    Write-Host
-    Write-Host $NTLM_output_Workstation_Names
-    $8004_WorkstationNameArray -join "`n"
-    Write-Host
-    Write-Host $NTLM_output_Secure_Channel_Types
+        Write-Host
+        Write-Host $NTLM_output_8004_Log_Analysis -ForegroundColor Red
+        Write-Host $NTLM_output_Secure_Channel_Names -ForegroundColor Cyan
+        $8004_SChannelNameArray -join "`r`n" 
+        Write-Host
+        Write-Host $NTLM_output_Usernames -ForegroundColor Cyan
+        $8004_UserNameArray -join "`r`n"
+        Write-Host
+        Write-Host $NTLM_output_Workstation_Names -ForegroundColor Cyan
+        $8004_WorkstationNameArray -join "`r`n"
+        Write-Host
+        Write-Host $NTLM_output_Secure_Channel_Types -ForegroundColor Cyan
 
-    foreach ( $i in $8004_SChannelTypeArray ) {
+        foreach ( $i in $8004_SChannelTypeArray ) {
+            
+            $SecureChannelName = SecureChannelTypeLookup( $i )
+            Write-Host ”$i : $SecureChannelName”
         
-        $SecureChannelName = SecureChannelTypeLookup( $i )
-        Write-Host ”$i : $SecureChannelName”
-    
-    }
+        }
 
-    Write-Host
-    Write-Host $Output_Summary #Summary: 
-    Write-Host "------------"
-    Write-Host "$8001_Events $8001_NumberOfLogs"
-    Write-Host "$8002_Events $8002_NumberOfLogs"
-    Write-Host "$8004_Events $8004_NumberOfLogs"
-    Write-Host
+        Write-Host
+        Write-Host $Output_Summary -ForegroundColor Red #Summary: 
+        Write-Host "------------"
+        Write-Host "$8001_Events $8001_NumberOfLogs"
+        Write-Host "$8002_Events $8002_NumberOfLogs"
+        Write-Host "$8004_Events $8004_NumberOfLogs"
+        Write-Host
+
+    }
+    Else {
+
+        Write-Host ""
+        Write-Host $NTLM_output_Saving_File_To -NoNewline # Saving results to file: 
+        Write-Host $SaveOutput
+        Write-Host ""
+
+        Write-Output $NTLM_output_8001_Log_Analysis | Out-File $SaveOutput -Append
+        
+        Write-Output $NTLM_output_8001_Outgoing_NTLM_Servers | Out-File $SaveOutput -Append
+        $8001_TargetNameArray -join "`r`n" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_8001_Outgoing_NTLM_Usernames | Out-File $SaveOutput -Append
+        $8001_ClientUserNameArray -join "`r`n" | Out-File $SaveOutput -Append
+
+        Write-Output ""  | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_8002_Inbound_NTLM_Usernames | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_Inbound_NTLM_Usernames | Out-File $SaveOutput -Append
+        $8002_ClientUserNameArray -join "`r`n" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_8004_Log_Analysis | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_Secure_Channel_Names | Out-File $SaveOutput -Append
+        $8004_SChannelNameArray -join "`r`n" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_Usernames | Out-File $SaveOutput -Append
+        $8004_UserNameArray -join "`r`n" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_Workstation_Names | Out-File $SaveOutput -Append
+        $8004_WorkstationNameArray -join "`r`n" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_Secure_Channel_Types | Out-File $SaveOutput -Append
+
+        foreach ( $i in $8004_SChannelTypeArray ) {
+            
+            $SecureChannelName = SecureChannelTypeLookup( $i )
+            Write-Output ”$i : $SecureChannelName” | Out-File $SaveOutput -Append
+        
+        }
+
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $Output_Summary | Out-File $SaveOutput -Append #Summary: 
+        Write-Output "------------" | Out-File $SaveOutput -Append
+        Write-Output "$8001_Events $8001_NumberOfLogs" | Out-File $SaveOutput -Append
+        Write-Output "$8002_Events $8002_NumberOfLogs" | Out-File $SaveOutput -Append
+        Write-Output  "$8004_Events $8004_NumberOfLogs" | Out-File $SaveOutput -Append
+
+    }
 
 }
 
@@ -344,7 +396,7 @@ function Analyze-NTLMOperationalDetailed {
     else {
         $FirstEventTime = $newestEvent.TimeCreated.ToString($DateFormat) 
     }
-    Write-Host "First Log: " $FirstEventTime
+    Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTime"
 
     $oldestEvent = Get-WinEvent -FilterHashtable $WineventFilter -MaxEvents 1 -Oldest 
     $eventXML = [xml]$oldestEvent.ToXml()
@@ -354,7 +406,7 @@ function Analyze-NTLMOperationalDetailed {
     else {
         $LastEventTime = $oldestEvent.TimeCreated.ToString($DateFormat) 
     }
-    Write-Host "Last Log:  " $LastEventTime
+    Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTime"
 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
     $eventlist = @{}
@@ -480,29 +532,64 @@ function Analyze-NTLMOperationalDetailed {
     $8004_WorkstationNameArray.Remove("NULL")
     $8004_SChannelTypeArray = $8004_SChannelTypeList.ToArray()
 
-    Write-Host
-    Write-Host $NTLM_output_8001_Log_Analysis -ForegroundColor Red                  # 8001 (Outbound NTLM Authentication) Log Analysis:
-    Write-Host $NTLM_output_8001_Outgoing_NTLM_Servers -ForegroundColor Cyan        # Outgoing NTLM authentication to servers:
-    $8001_TargetNameArray -join "`n" 
-    Write-Host
-    Write-Host $NTLM_output_8001_Outgoing_NTLM_Usernames  -ForegroundColor Cyan     # Outgoing NTLM authentication with usernames:
-    $8001_ClientUserNameArray -join "`n" 
+    if ( $SaveOutput -eq "" ) {
 
-    Write-Host
-    Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames -ForegroundColor Red        # 8002 (Inbound NTLM  Authentication) Log Analysis:
-    Write-Host $NTLM_output_Inbound_NTLM_Usernames -ForegroundColor Cyan            # Inbound NTLM authentication with usernames：
-    $8002_ClientUserNameArray -join "`n"                                            # 8004 (NTLM  Authentication to DC) Log Analysis:
-    Write-Host
+        Write-Host
+        Write-Host $NTLM_output_8001_Log_Analysis -ForegroundColor Red                  # 8001 (Outbound NTLM Authentication) Log Analysis:
+        Write-Host $NTLM_output_8001_Outgoing_NTLM_Servers -ForegroundColor Cyan        # Outgoing NTLM authentication to servers:
+        $8001_TargetNameArray -join "`n" 
+        Write-Host
+        Write-Host $NTLM_output_8001_Outgoing_NTLM_Usernames  -ForegroundColor Cyan     # Outgoing NTLM authentication with usernames:
+        $8001_ClientUserNameArray -join "`n" 
 
-    Write-Host
-    Write-Host $NTLM_output_8004_Log_Analysis -ForegroundColor Red
-    $output | Format-Table -Autosize
-    
-    Write-Host $Output_Summary #Summary: 
-    Write-Host "------------"
-    Write-Host "$8001_Events $8001_NumberOfLogs"
-    Write-Host "$8002_Events $8002_NumberOfLogs"
-    Write-Host "$8004_Events $8004_NumberOfLogs"
-    Write-Host
+        Write-Host
+        Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames -ForegroundColor Red        # 8002 (Inbound NTLM  Authentication) Log Analysis:
+        Write-Host $NTLM_output_Inbound_NTLM_Usernames -ForegroundColor Cyan            # Inbound NTLM authentication with usernames：
+        $8002_ClientUserNameArray -join "`n"                                            # 8004 (NTLM  Authentication to DC) Log Analysis:
+        Write-Host
+
+        Write-Host
+        Write-Host $NTLM_output_8004_Log_Analysis -ForegroundColor Red
+        $output | Format-Table -Autosize
+        
+        Write-Host $Output_Summary -ForegroundColor Red #Summary: 
+        Write-Host "------------"
+        Write-Host "$8001_Events $8001_NumberOfLogs"
+        Write-Host "$8002_Events $8002_NumberOfLogs"
+        Write-Host "$8004_Events $8004_NumberOfLogs"
+        Write-Host
+
+    }
+    Else {
+
+        Write-Host ""
+        Write-Host $NTLM_output_Saving_File_To -NoNewline # Saving results to file: 
+        Write-Host $SaveOutput
+        Write-Host ""
+
+        Write-Output $NTLM_output_8001_Log_Analysis | Out-File $SaveOutput -Append                 # 8001 (Outbound NTLM Authentication) Log Analysis:
+        Write-Output $NTLM_output_8001_Outgoing_NTLM_Servers | Out-File $SaveOutput -Append        # Outgoing NTLM authentication to servers:
+        $8001_TargetNameArray -join "`r`n" | Out-File $SaveOutput -Append
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_8001_Outgoing_NTLM_Usernames | Out-File $SaveOutput -Append     # Outgoing NTLM authentication with usernames:
+        $8001_ClientUserNameArray -join "`r`n" | Out-File $SaveOutput -Append 
+
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_8002_Inbound_NTLM_Usernames | Out-File $SaveOutput -Append        # 8002 (Inbound NTLM  Authentication) Log Analysis:
+        Write-Output $NTLM_output_Inbound_NTLM_Usernames | Out-File $SaveOutput -Append            # Inbound NTLM authentication with usernames：
+        $8002_ClientUserNameArray -join "`r`n" | Out-File $SaveOutput -Append                                            # 8004 (NTLM  Authentication to DC) Log Analysis:
+        Write-Output "" | Out-File $SaveOutput -Append
+
+        Write-Output "" | Out-File $SaveOutput -Append
+        Write-Output $NTLM_output_8004_Log_Analysis | Out-File $SaveOutput -Append
+        $output | Format-Table -Autosize | Out-File $SaveOutput -Append
+        
+        Write-Output $Output_Summary | Out-File $SaveOutput -Append #Summary: 
+        Write-Output "------------" | Out-File $SaveOutput -Append
+        Write-Output "$8001_Events $8001_NumberOfLogs" | Out-File $SaveOutput -Append
+        Write-Output "$8002_Events $8002_NumberOfLogs" | Out-File $SaveOutput -Append
+        Write-Output "$8004_Events $8004_NumberOfLogs" | Out-File $SaveOutput -Append
+
+    }
 
 }
