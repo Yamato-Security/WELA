@@ -18,6 +18,7 @@ function Add-Rule {
             $DBCPassSprayTrack = @{};
             $DBCpasssprayuniqusermax = 6
             $DBCpasssprayloginmax = 6
+            $DBCpasssprayuniquser = 0
 
             foreach ($record in $target) {
                 $eventXML = [xml]$record.ToXml()
@@ -30,10 +31,9 @@ function Add-Rule {
                     # DeepBlueCLI passspary logic
                     $DBCPassSprayTrack[$targetusername] += 1;
                     if ($DBCPassSprayTrack[$targetusername] -gt $DBCpasssprayloginmax) {
-                        $DBCpasssprayuniquser = 0
                         foreach ($key in $DBCpassspraytrack.keys) {
                             if ($DBCpassspraytrack[$key] -gt $DBCpasssprayloginmax) { 
-                                $passsprayuniquser += 1
+                                $DBCpasssprayuniquser += 1
                             }
                         }
                         if ($DBCpasssprayuniquser -gt $DBCpasssprayuniqusermax) {
@@ -77,7 +77,7 @@ function Add-Rule {
                         if ( $PasswordGuessDetection.Count -ge $PasswordGuessCount -and $TimeBetweenEvents -gt 0 ) {
                             $result = Create-Obj $record $LogFile
                             $result.Message = $detectedMessage
-                            $result.Results = "Target User: $targetusername IP Address: $sourceip (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
+                            $result.Results = "Target User: $targetusername`nIP Address: $sourceip (Threshold: $PasswordGuessCount times in $PasswordGuessTimeframeMinutes minutes.)"
                             Write-Output ""
                             Write-Output "Detected!RuleName:$ruleName(WELA Rule)"
                             Write-Output $result
