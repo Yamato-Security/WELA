@@ -18,10 +18,12 @@ function Add-Rule {
                     if ($commandline) {
                         $obj = Create-Obj -event $record 
                         $result = Check-Command -EventID 4104 -commandline $commandline -obj $obj
-                        Write-Output ""; 
-                        Write-Output "Detected! RuleName:$ruleName";
-                        Write-Output $detectedMessage;
-                        Write-output $result
+                        if ($result) {
+                            Write-Output ""; 
+                            Write-Output "Detected! RuleName:$ruleName"
+                            Write-Output $detectedMessage
+                            Write-Output $result    
+                        }
                     }
                 }
             }
