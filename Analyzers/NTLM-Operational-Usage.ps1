@@ -241,85 +241,48 @@ function Analyze-NTLMOperationalBasic {
     $8004_WorkstationNameArray.Remove("NULL")
     $8004_SChannelTypeArray = $8004_SChannelTypeList.ToArray()
 
-    if ( $HostLanguage.Name -eq "ja-JP" -or $Japanese -eq $true ) {
-        Write-Host
-        Write-Host "8001（外向けのNTLM認証）のログ解析:"
-        Write-Host  "以下のサーバにNTLM認証を行っている："
-        $8001_TargetNameArray -join "`n" 
-        Write-Host
-        Write-Host "以下のユーザ名でNTLM認証を行っている："
+    Write-Host
+    Write-Host $NTLM_output_8001_Log_Analysis
+    Write-Host  $NTLM_output_8001_Outgoing_NTLM_Servers
+    $8001_TargetNameArray -join "`n" 
+    Write-Host
+    Write-Host $NTLM_output_8001_Outgoing_NTLM_Usernames
+    $8001_ClientUserNameArray -join "`n" 
 
-        $8001_ClientUserNameArray -join "`n" 
+    Write-Host
+    Write-Host $NTLM_output_8002_Inbound_NTLM_Usernames
+    Write-Host $NTLM_output_Inbound_NTLM_Usernames
+    $8002_ClientUserNameArray -join "`n" 
+    Write-Host
 
-        Write-Host
-        Write-Host "8002（内向けのNTLM認証）のログ解析:"
-        Write-Host "以下のユーザ名でNTLM認証を行っている："
-        $8002_ClientUserNameArray -join "`n" 
-        Write-Host
+    Write-Host
+    Write-Host $NTLM_output_8004_Log_Analysis
+    Write-Host $NTLM_output_Secure_Channel_Names
+    $8004_SChannelNameArray -join "`n" 
+    Write-Host
+    Write-Host $NTLM_output_Usernames
+    $8004_UserNameArray -join "`n"
+    Write-Host
+    Write-Host $NTLM_output_Workstation_Names
+    $8004_WorkstationNameArray -join "`n"
+    Write-Host
+    Write-Host $NTLM_output_Secure_Channel_Types
 
-        Write-Host "8004 (DCに対するNTLM認証)のログ解析:"
-        Write-Host "セキュアチャンネル名："
-        $8004_SChannelNameArray -join "`n" 
-        Write-Host
-        Write-Host "ユーザ名："
-        $8004_UserNameArray -join "`n"
-        Write-Host
-        Write-Host "端末名："
-        $8004_WorkstationNameArray -join "`n"
-        Write-Host
-        Write-Host "セキュアチャンネルタイプ："
-
-        foreach ( $i in $8004_SChannelTypeArray ) {
-            
-            $SecureChannelName = SecureChannelTypeLookup( $i )
-            Write-Host ”$i : $SecureChannelName”
+    foreach ( $i in $8004_SChannelTypeArray ) {
         
-        }
-    }
-    else  {
-
-        Write-Host
-        Write-Host "8001 (Outbound NTLM Authentication) Log Analysis:"
-        Write-Host  "Outgoing NTLM authentication to servers:"
-        $8001_TargetNameArray -join "`n" 
-        Write-Host
-        Write-Host "Outgoing NTLM authentication with usernames:"
-        $8001_ClientUserNameArray -join "`n" 
-
-        Write-Host
-        Write-Host "8002 (Inbound NTLM  Authentication) Log Analysis:"
-        Write-Host "Inbound NTLM authentication with usernames："
-        $8002_ClientUserNameArray -join "`n" 
-        Write-Host
-
-        Write-Host
-        Write-Host "8004 (NTLM  Authentication to DC) Log Analysis:"
-        Write-Host "Secure Channel Names："
-        $8004_SChannelNameArray -join "`n" 
-        Write-Host
-        Write-Host "Usernames："
-        $8004_UserNameArray -join "`n"
-        Write-Host
-        Write-Host "Workstation Names："
-        $8004_WorkstationNameArray -join "`n"
-        Write-Host
-        Write-Host "Secure Channel Types："
-
-        foreach ( $i in $8004_SChannelTypeArray ) {
-            
-            $SecureChannelName = SecureChannelTypeLookup( $i )
-            Write-Host ”$i : $SecureChannelName”
-        
-        }
-
+        $SecureChannelName = SecureChannelTypeLookup( $i )
+        Write-Host ”$i : $SecureChannelName”
+    
     }
 
     Write-Host
+    Write-Host $Output_Summary #Summary: 
     Write-Host "------------"
-    Write-Host "8001 Events: " $8001_NumberOfLogs
-    Write-Host "8002 Events: " $8002_NumberOfLogs
-    Write-Host "8004 Events: " $8004_NumberOfLogs
+    Write-Host "$8001_Events $8001_NumberOfLogs"
+    Write-Host "$8002_Events $8002_NumberOfLogs"
+    Write-Host "$8004_Events $8004_NumberOfLogs"
     Write-Host
+
 }
 
 function Analyze-NTLMOperationalDetailed {
@@ -541,5 +504,5 @@ function Analyze-NTLMOperationalDetailed {
     Write-Host "$8002_Events $8002_NumberOfLogs"
     Write-Host "$8004_Events $8004_NumberOfLogs"
     Write-Host
-    8004
+
 }
