@@ -109,7 +109,7 @@ function Check-Command() {
         $EventID,
         $commandline,
         $creator,
-        $servicecmd,
+        $servicecmd = 0,
         $obj
     )
 
