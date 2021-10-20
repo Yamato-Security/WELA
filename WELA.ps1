@@ -1774,7 +1774,7 @@ foreach ( $LogFile in $evtxFiles ) {
 
     if ( $SecurityEventID_Statistics -eq $true ) {
 
-        .  ($AnalyzersPath + "SecurityEventID_Statistics.ps1")
+        .  ($AnalyzersPath + "Security-EventID_Statistics.ps1")
         Create-SecurityEventIDStatistics -filePath $LogFile
         
     }
