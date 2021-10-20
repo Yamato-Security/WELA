@@ -63,7 +63,7 @@ Yb        dP 8888 8       db
 "@
 
 $logo8 = @"
-,ggg,      gg      ,gg   ,ggggggg,        ,gggg,             ,ggg,  
+ ,ggg,      gg      ,gg   ,ggggggg,        ,gggg,             ,ggg,  
 dP""Y8a     88     ,8P  ,dP""""""Y8b      d8" "8I            dP""8I  
 Yb, `88     88     d8'  d8'    a  Y8      88  ,dP           dP   88  
  `"  88     88     88   88     "Y8P'   8888888P"           dP    88  

@@ -528,8 +528,8 @@ function Show-Help {
     Write-Host "   -SecurityEventID_Statistics" -NoNewline -ForegroundColor Green
     Write-Host " : セキュリティログのイベントIDの集計情報を出力する" 
 
-    Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
-    Write-Host " : ユーザログオンの簡単なタイムラインを出力する"
+    Write-Host "   -SecurityLogonTimeline" -NoNewline -ForegroundColor Green
+    Write-Host " : セキュリティログからユーザログオンの簡単なタイムラインを出力する"
 
     Write-Host 
     Write-Host "解析オプション:"

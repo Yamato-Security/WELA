@@ -523,7 +523,7 @@ function Show-Help {
     Write-Host "   -SecurityEventID_Statistics" -NoNewline -ForegroundColor Green
     Write-Host " : Output Security log event ID statistics" 
     
-    Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
+    Write-Host "   -SecurityLogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Output a condensed timeline of user logons based on the Security log"
 
     Write-Host 
