@@ -249,7 +249,6 @@ function Create-SecurityLogonTimeline {
 
     $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
     $eventlist = @{}
-    $TotalNumberOfLogs = 0
 
     [System.Collections.ArrayList]$LogoffEventArray = @()
     [System.Collections.ArrayList]$AdminLogonArray = @()
@@ -380,7 +379,7 @@ function Create-SecurityLogonTimeline {
                     "SubjectUserSid" { $msgSubjectUserSid = $data.'#text' } 
                     "AuthenticationPackageName" { $msgAuthPackageName = $data.'#text' }
                     "LmPackageName" { $msgLmPackageName = $data.'#text' }
-                    "ProcessName" { $msgProcessName = $data.'#text' }
+                   # "ProcessName" { $msgProcessName = $data.'#text' } #Not useful
 
                 }
 
@@ -501,7 +500,7 @@ function Create-SecurityLogonTimeline {
             $msgAuthPackageName = "NTLM"
             $msgIpAddress = "-"
             $msgIpPort = "-"
-            $msgProcessName = "-"
+            #$msgProcessName = "-"
 
             if ( $UTC -eq $true ) {
                 $LogonTimestampString = $event.TimeCreated.ToUniversalTime().ToString($DateFormat) 
@@ -536,7 +535,7 @@ function Create-SecurityLogonTimeline {
                 $msgWorkstationName = "-"
                 $msgAuthPackageName = "-"
                 $msgIpPort = "-"
-                $msgProcessName = "-"
+                #$msgProcessName = "-"
 
                 if ( $msgIpAddress -ne $Create_LogonTimeline_localComputer ) {
                     switch ( $event.Id ) {
@@ -581,7 +580,7 @@ function Create-SecurityLogonTimeline {
                 $Create_LogonTimeline_SourceWorkstation = $msgWorkstationName ;
                 $Create_LogonTimeline_SourceIpAddress   = $msgIpAddress ;
                 $Create_LogonTimeline_SourceIpPort      = $msgIpPort ;
-                "Process Name"                          = $msgProcessName ;
+                #"Process Name"                          = $msgProcessName ;
                 $Create_LogonTimeline_LogonID           = $msgTargetLogonID
             }
 
@@ -1150,7 +1149,7 @@ function Create-EasyToReadSecurityLogonTimeline {
                     "IpAddress" { $msgIpAddress = $data.'#text' }
                     "IpPort" { $msgIpPort = $data.'#text' }
                     #"FailureReason" { $msgFailureReason = $data.'#text' }
-                    "LogonProcessName" { $msgLogonProcessName = $data.'#text' }
+                    #"LogonProcessName" { $msgLogonProcessName = $data.'#text' }
                     "AuthenticationPackageName" { $msgAuthenticationPackageName = $data.'#text' }
                     "Status" { $msgStatus = $data.'#text' }
                     "SubStatus" { $msgSubStatus = $data.'#text' }
@@ -1204,7 +1203,7 @@ function Create-EasyToReadSecurityLogonTimeline {
 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
 
-            $printMSG = " 4625 - FAILED LOGON Type: $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Logon Process: $msgLogonProcessName Auth: $msgAuthenticationPackageName Reason: $msgFailureReasonReadable"
+            $printMSG = " 4625 - FAILED LOGON Type: $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Auth: $msgAuthenticationPackageName Reason: $msgFailureReasonReadable"
 
             if ($previousMsg -ne $printMSG -and $printMSG -ne "" -and
                 $msgTargetUserName -ne "-" ) {
@@ -1230,8 +1229,8 @@ function Create-EasyToReadSecurityLogonTimeline {
                     Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
                     Write-Host " Port: " -NoNewline
                     Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
-                    Write-Host " Logon Process: " -NoNewline 
-                    Write-Host $msgLogonProcessName -NoNewline -ForegroundColor $ParameterColor
+                    #Write-Host " Logon Process: " -NoNewline 
+                    #Write-Host $msgLogonProcessName -NoNewline -ForegroundColor $ParameterColor
                     Write-Host " Auth: " -NoNewline
                     Write-Host $msgAuthenticationPackageName -NoNewline -ForegroundColor $ParameterColor
                     Write-Host " Reason: " -NoNewline
@@ -1398,7 +1397,7 @@ function Create-EasyToReadSecurityLogonTimeline {
                     "TargetServerName" { $msgTargetServerName = $data.'#text' }
                     "IpAddress" { $msgIpAddress = $data.'#text' }
                     "IpPort" { $msgIpPort = $data.'#text' }
-                    "ProcessName" { $msgProcessName = $data.'#text' }
+                    #"ProcessName" { $msgProcessName = $data.'#text' }
                     
                     default { $LogNoise += 1 }
                 }
@@ -1414,10 +1413,10 @@ function Create-EasyToReadSecurityLogonTimeline {
                 $AlertedEvents += 1
        
                 if ( $ShowLogonID -eq $true ) {
-                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName Logon ID: $msgSubjectLogonId" 
+                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Logon ID: $msgSubjectLogonId" 
                 }
                 else {
-                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName"
+                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort"
                 }     
             }
        
@@ -1439,8 +1438,8 @@ function Create-EasyToReadSecurityLogonTimeline {
                     Write-Host $msgIpAddress -NoNewline -ForegroundColor $ParameterColor
                     Write-Host " Port: " -NoNewline
                     Write-Host $msgIpPort -NoNewline -ForegroundColor $ParameterColor
-                    Write-Host " Process: " -NoNewline
-                    Write-Host $msgProcessName -NoNewline  -ForegroundColor $ParameterColor
+                    #Write-Host " Process: " -NoNewline
+                    #Write-Host $msgProcessName -NoNewline  -ForegroundColor $ParameterColor
                     if ( $ShowLogonID -eq $true ) {
                         Write-Host " Logon ID: " -NoNewline
                         Write-Host $msgSubjectLogonId
