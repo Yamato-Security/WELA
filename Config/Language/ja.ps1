@@ -496,8 +496,9 @@ $Show_Contributors2 =
 oginoPmP - 開発
 DustInDark - ローカライゼーション、和訳
 つぼっく - 和訳
+秀真（ほつま） - アート
 
-コントリビューターを募集しています！
+コントリビュータを募集しています！
 "
 
 function Show-Help {

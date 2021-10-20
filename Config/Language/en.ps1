@@ -488,6 +488,7 @@ $Show_Contributors2 =
 oginoPmP - Developer
 DustInDark - Localization, Japanese Translations
 Tsubokku - Japanese Translations
+秀真（Hotsuma） - Calligraphy
 
 Please contribute to this project for fame and glory!
 "
