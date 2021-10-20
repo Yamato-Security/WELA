@@ -20,17 +20,17 @@ $8002_Events = "8002 Events:"
 $8004_Events = "8004 Events:"
 
 # function Create-EventIDStatistics
-$Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics."
-$Create_EventIDStatistics_TotalEventLogs = "Total event logs:"
-$Create_EventIDStatistics_FileSize = "File size:"
-$Create_EventIDStatistics_FirstEvent = "First event:"
-$Create_EventIDStatistics_LastEvent = "Last event:"
-$Create_EventIDStatistics_ProcessingTime = "Processing time: {0} hours {1} minutes {2} seconds."
-$Create_EventIDStatistics_Count = "Count"
-$Create_EventIDStatistics_ID = "ID"
-$Create_EventIDStatistics_Event = "Event"
-$Create_EventIDStatistics_TimelineOutput = "Timeline Output"
-$Create_EventIDStatistics_Comment = "Comment"
+$Create_SecurityEventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics."
+$Create_SecurityEventIDStatistics_TotalEventLogs = "Total event logs:"
+$Create_SecurityEventIDStatistics_FileSize = "File size:"
+$Create_SecurityEventIDStatistics_FirstEvent = "First event:"
+$Create_SecurityEventIDStatistics_LastEvent = "Last event:"
+$Create_SecurityEventIDStatistics_ProcessingTime = "Processing time: {0} hours {1} minutes {2} seconds."
+$Create_SecurityEventIDStatistics_Count = "Count"
+$Create_SecurityEventIDStatistics_ID = "ID"
+$Create_SecurityEventIDStatistics_Event = "Event"
+$Create_SecurityEventIDStatistics_TimelineOutput = "Timeline Output"
+$Create_SecurityEventIDStatistics_Comment = "Comment"
 
 
 $1100 = @{
@@ -520,8 +520,8 @@ function Show-Help {
     Write-Host "   -AnalyzeNTLM_UsageDetailed" -NoNewline -ForegroundColor Green
     Write-Host " : Returns detailed NTLM usage based on the NTLM Operational log"
 
-    Write-Host "   -EventID_Statistics" -NoNewline -ForegroundColor Green
-    Write-Host " : Output event ID statistics" 
+    Write-Host "   -SecurityEventID_Statistics" -NoNewline -ForegroundColor Green
+    Write-Host " : Output Security log event ID statistics" 
     
     Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Output a condensed timeline of user logons based on the Security log"

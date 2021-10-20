@@ -1,4 +1,4 @@
-﻿function Create-EventIDStatistics {
+﻿function Create-SecurityEventIDStatistics {
     param(
         [string]$filePath
     )
@@ -14,7 +14,7 @@
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
     Write-Host
-    Write-Host $Create_EventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics." 
+    Write-Host $Create_SecurityEventIDStatistics_CreatingStatisticsMessage # "Creating Event ID Statistics." 
     Write-Host
     Write-Host ( $Create_LogonTimeline_Filename -f $filePath )           # "File Name: {0}"
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
@@ -61,10 +61,10 @@
     $FirstEventTimestamp = $logs[0].TimeCreated.ToString($DateFormat) 
     $LastEventTimestamp = $logs[-1].TimeCreated.ToString($DateFormat)  
 
-    Write-Host "$Create_EventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
-    Write-Host "$Create_EventIDStatistics_FileSize $filesize" # "File size: "
-    Write-Host "$Create_EventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
-    Write-Host "$Create_EventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
+    Write-Host "$Create_SecurityEventIDStatistics_TotalEventLogs $TotalNumberOfLogs" # "Total event logs: "
+    Write-Host "$Create_SecurityEventIDStatistics_FileSize $filesize" # "File size: "
+    Write-Host "$Create_SecurityEventIDStatistics_FirstEvent $FirstEventTimestamp" #  "First event: "
+    Write-Host "$Create_SecurityEventIDStatistics_LastEvent $LastEventTimestamp" # "Last event:  "
 
     $sorted = $eventlist.GetEnumerator() | sort Value -Descending    #sorted gets turn into an array    
     [System.Collections.ArrayList]$ArrayWithHeader = @()
@@ -76,7 +76,7 @@
         $EventInfo = EventInfo($Name)
         $PercentOfLogs = [math]::Round( ( $Value / $TotalNumberOfLogs * 100 ), 1 )
         $CountPlusPercent = "$value ($PercentOfLogs%)" 
-        $val = [pscustomobject]@{$Create_EventIDStatistics_Count = $CountPlusPercent ; $Create_EventIDStatistics_ID = $Name ; $Create_EventIDStatistics_Event = $EventInfo.EventTitle ; $Create_EventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_EventIDStatistics_Comment = $EventInfo.Comment
+        $val = [pscustomobject]@{$Create_SecurityEventIDStatistics_Count = $CountPlusPercent ; $Create_SecurityEventIDStatistics_ID = $Name ; $Create_SecurityEventIDStatistics_Event = $EventInfo.EventTitle ; $Create_SecurityEventIDStatistics_TimelineOutput = $EventInfo.TimelineDetect } #; $Create_SecurityEventIDStatistics_Comment = $EventInfo.Comment
         $ArrayWithHeader.Add($val) > $null
 
     }
@@ -89,7 +89,7 @@
     $RuntimeSeconds = $TempTimeSpan.Seconds.ToString()
 
     Write-Host
-    Write-Host ( $Create_EventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
+    Write-Host ( $Create_SecurityEventIDStatistics_ProcessingTime -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )
     Write-Host
 
     $ArrayWithHeader

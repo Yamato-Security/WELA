@@ -94,7 +94,7 @@ param (
     [string]$LogFile = "",
     [string]$LogDirectory = "",
     [switch]$ShowContributors,
-    [switch]$EventID_Statistics,
+    [switch]$SecurityEventID_Statistics,
     [switch]$LogonTimeline,
     [switch]$AccountInformation,
     [switch]$OutputGUI,
@@ -1700,7 +1700,7 @@ if ( $LiveAnalysis -eq $true -and ($LogFile -ne "" -or $LogDirectory -ne "")) {
 }
 
 # Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and $AnalyzeNTLM_UsageBasic -eq $false -and $AnalyzeNTLM_UsageDetailed -eq $false) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $SecurityEventID_Statistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and $AnalyzeNTLM_UsageBasic -eq $false -and $AnalyzeNTLM_UsageDetailed -eq $false) {
 
     Show-Help
     exit
@@ -1708,7 +1708,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq 
 }
 
 #No analysis source was specified
-if ( $EventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
+if ( $SecurityEventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
 
     if ( $LiveAnalysis -ne $true -and $LogFile -eq "" -and $LogDirectory -eq "") {
 
@@ -1737,7 +1737,7 @@ if ( $LiveAnalysis -eq $true ) {
             "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
         )
     }
-    elseif ($LogonTimeline -eq $true -or $EventID_Statistics -eq $true) {
+    elseif ($LogonTimeline -eq $true -or $SecurityEventID_Statistics -eq $true) {
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx"
         )
@@ -1772,10 +1772,10 @@ if ( $UTC -eq $true ) {
 
 foreach ( $LogFile in $evtxFiles ) {
 
-    if ( $EventID_Statistics -eq $true ) {
+    if ( $SecurityEventID_Statistics -eq $true ) {
 
-        .  ($AnalyzersPath + "General-EventID_Statistics.ps1")
-        Create-EventIDStatistics -filePath $LogFile
+        .  ($AnalyzersPath + "SecurityEventID_Statistics.ps1")
+        Create-SecurityEventIDStatistics -filePath $LogFile
         
     }
     

@@ -20,17 +20,17 @@ $8002_Events = "8002のイベント:"
 $8004_Events = "8004のイベント:"
 
 # function Create-EventIDStatistics
-$Create_EventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計しています。"
-$Create_EventIDStatistics_TotalEventLogs = "イベントの合計:"
-$Create_EventIDStatistics_FileSize = "ファイルサイズ:"
-$Create_EventIDStatistics_FirstEvent = "最初のイベント:"
-$Create_EventIDStatistics_LastEvent = "最後のイベント:"
-$Create_EventIDStatistics_ProcessingTime = "処理時間：{0}時{1}分{2}秒"
-$Create_EventIDStatistics_Count = "カウント"
-$Create_EventIDStatistics_ID = "ID"
-$Create_EventIDStatistics_Event = "イベント"
-$Create_EventIDStatistics_TimelineOutput = "タイムライン出力"
-$Create_EventIDStatistics_Comment = "コメント"
+$Create_SecurityEventIDStatistics_CreatingStatisticsMessage = "イベントIDを集計しています。"
+$Create_SecurityEventIDStatistics_TotalEventLogs = "イベントの合計:"
+$Create_SecurityEventIDStatistics_FileSize = "ファイルサイズ:"
+$Create_SecurityEventIDStatistics_FirstEvent = "最初のイベント:"
+$Create_SecurityEventIDStatistics_LastEvent = "最後のイベント:"
+$Create_SecurityEventIDStatistics_ProcessingTime = "処理時間：{0}時{1}分{2}秒"
+$Create_SecurityEventIDStatistics_Count = "カウント"
+$Create_SecurityEventIDStatistics_ID = "ID"
+$Create_SecurityEventIDStatistics_Event = "イベント"
+$Create_SecurityEventIDStatistics_TimelineOutput = "タイムライン出力"
+$Create_SecurityEventIDStatistics_Comment = "コメント"
 
 $1100 = @{
     EventTitle = 'イベントログサービスがシャットダウンした';
@@ -525,8 +525,8 @@ function Show-Help {
     Write-Host "   -AnalyzeNTLM_UsageDetailed" -NoNewline -ForegroundColor Green
     Write-Host " : NTLM Operationalログを解析し、NTLM認証の使用を詳細に出力する"
 
-    Write-Host "   -EventIDStatistics" -NoNewline -ForegroundColor Green
-    Write-Host " : イベントIDの集計情報を出力する" 
+    Write-Host "   -SecurityEventID_Statistics" -NoNewline -ForegroundColor Green
+    Write-Host " : セキュリティログのイベントIDの集計情報を出力する" 
 
     Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : ユーザログオンの簡単なタイムラインを出力する"
