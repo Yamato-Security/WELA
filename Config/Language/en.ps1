@@ -499,9 +499,9 @@ $Show_Contributors1 = @"
 $Show_Contributors2 =
 "Contributors:
 
-oginoPmP - Developer
-DustInDark - Localization, Japanese Translations
-Tsubokku - Japanese Translations
+ogino(GitHub:@oginoPmP) - Developer
+DustInDark(GitHub:@hitenkoku) - Localization, Japanese Translations
+Tsubokku(twitter: @ytsuboi0322) - Japanese Translations
 秀真（Hotsuma） - Calligraphy
 
 Please contribute to this project for fame and glory!

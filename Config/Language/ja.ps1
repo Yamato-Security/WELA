@@ -508,9 +508,9 @@ $Show_Contributors1 = @"
 $Show_Contributors2 =
 "コントリビューター:
 
-oginoPmP - 開発
-DustInDark - ローカライゼーション、和訳
-つぼっく - 和訳
+ogino(GitHub:@oginoPmP) - 開発
+DustInDark(GitHub:@hitenkoku) - ローカライゼーション、和訳
+つぼっく(twitter: @ytsuboi0322) - 和訳
 秀真（ほつま） - アート
 
 コントリビュータを募集しています！
