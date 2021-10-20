@@ -21,8 +21,8 @@ db   d8b   db d88888b db       .d8b.
 88   I8I   88 88'     88      d8' `8b 
 88   I8I   88 88ooooo 88      88ooo88 
 Y8   I8I   88 88~~~~~ 88      88~~~88 
-`8b d8'8b d8' 88.     88booo. 88   88 
- `8b8' `8d8'  Y88888P Y88888P YP   YP 
+`8b  d8'8b d8' 88.     88booo. 88   88 
+ `8b8'' `8d8''  Y88888P Y88888P YP   YP 
 "@
 
 $logo4 = @"
@@ -37,7 +37,7 @@ $logo4 = @"
 "@
 
 $logo5 = @"
-_             _  _  _  _  _  _  _                    _          
+ _             _  _  _  _  _  _  _                    _          
 (_)           (_)(_)(_)(_)(_)(_)(_)                 _(_)_        
 (_)           (_)(_)            (_)               _(_) (_)_      
 (_)     _     (_)(_) _  _       (_)             _(_)     (_)_    
@@ -63,7 +63,7 @@ Yb        dP 8888 8       db
 "@
 
 $logo8 = @"
-,ggg,      gg      ,gg   ,ggggggg,        ,gggg,             ,ggg,  
+ ,ggg,      gg      ,gg   ,ggggggg,        ,gggg,             ,ggg,  
 dP""Y8a     88     ,8P  ,dP""""""Y8b      d8" "8I            dP""8I  
 Yb, `88     88     d8'  d8'    a  Y8      88  ,dP           dP   88  
  `"  88     88     88   88     "Y8P'   8888888P"           dP    88  
@@ -100,7 +100,7 @@ function output-splash() {
     foreach ($line in $logo -split "`n") {
         foreach ($char in $line.tochararray()) {
             if ($([int]$char) -le 9580 -and $([int]$char) -ge 9552) {
-                Write-host -ForegroundColor Red $char -NoNewline
+                Write-host -ForegroundColor Cyan $char -NoNewline
             }
             else {
                 write-host -ForegroundColor Red $char -NoNewline

@@ -2,18 +2,35 @@
 language config:English version
 #>
 
+# NTLM-Operational-Usage
+$NTLM_output_8001_Log_Analysis = "8001 (Outbound NTLM Authentication) Log Analysis:"
+$NTLM_output_8001_Outgoing_NTLM_Servers = "Outgoing NTLM authentication to servers:"
+$NTLM_output_8001_Outgoing_NTLM_Usernames = "Outgoing NTLM authentication with usernames:"
+$NTLM_output_8002_Inbound_NTLM_Usernames = "8002 (Inbound NTLM  Authentication) Log Analysis:"
+$NTLM_output_Inbound_NTLM_Usernames = "Inbound NTLM authentication with usernames："
+$NTLM_output_8004_Log_Analysis = "8004 (NTLM  Authentication to DC) Log Analysis:"
+$NTLM_output_Secure_Channel_Names = "Secure Channnel Names:"
+$NTLM_output_Usernames = "Usernames:"
+$NTLM_output_Workstation_Names = "Workstation Names:"
+$NTLM_output_Secure_Channel_Types = "Secure Channel Types:"
+$NTLM_output_Saving_File_To = "Saving results to file: "
+$Output_Summary = "Summary:"
+$8001_Events = "8001 Events:"
+$8002_Events = "8002 Events:"
+$8004_Events = "8004 Events:"
+
 # function Create-EventIDStatistics
-$Create_EventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics for:"
-$Create_EventIDStatistics_TotalEventLogs = "Total event logs:"
-$Create_EventIDStatistics_FileSize = "File size:"
-$Create_EventIDStatistics_FirstEvent = "First event:"
-$Create_EventIDStatistics_LastEvent = "Last event:"
-$Create_EventIDStatistics_ProcessingTime = "Processing time: {0} hours {1} minutes {2} seconds."
-$Create_EventIDStatistics_Count = "Count"
-$Create_EventIDStatistics_ID = "ID"
-$Create_EventIDStatistics_Event = "Event"
-$Create_EventIDStatistics_TimelineOutput = "Timeline Output"
-$Create_EventIDStatistics_Comment = "Comment"
+$Create_SecurityEventIDStatistics_CreatingStatisticsMessage = "Creating Event ID Statistics."
+$Create_SecurityEventIDStatistics_TotalEventLogs = "Total event logs:"
+$Create_SecurityEventIDStatistics_FileSize = "File size:"
+$Create_SecurityEventIDStatistics_FirstEvent = "First event:"
+$Create_SecurityEventIDStatistics_LastEvent = "Last event:"
+$Create_SecurityEventIDStatistics_ProcessingTime = "Processing time: {0} hours {1} minutes {2} seconds."
+$Create_SecurityEventIDStatistics_Count = "Count"
+$Create_SecurityEventIDStatistics_ID = "ID"
+$Create_SecurityEventIDStatistics_Event = "Event"
+$Create_SecurityEventIDStatistics_TimelineOutput = "Timeline Output"
+$Create_SecurityEventIDStatistics_Comment = "Comment"
 
 
 $1100 = @{
@@ -353,10 +370,10 @@ $Info_Noload_SIGMAMODULE = "Info:Load of SIGMA Detection Rule is canceled by Use
 $Info_GetEventNoMatch = "Info:No events were found that match in Get-WinEvent."
 $Warn_GetEvent = "Warning:Get-WinEvent error record skip."
 $Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
-$Error_InCompatible_LiveAnalysisAndLogFile = "Error: You cannot specify -LiveAnalysis and -LogFile (or -LogDirectory) at the same time."
-$Error_InCompatible_LogDirAndFile = "Error：You cannot specify -LogDirectory and -LogFile at the same time." 
+$Error_InCompatible_LiveAnalysisAndLogFile = "Error: You cannot specify -LiveAnalysis and -LogFile (or -LogDirectory) at the same time"
+$Error_InCompatible_LogDirAndFile = "Error：You cannot specify -LogDirectory and -LogFile at the same time" 
 $Error_NotSupport_LiveAnalysys = "Error: Live Analysis is only supported on Windows"
-$Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Administrator."
+$Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Administrator"
 $Error_NoSaveOutputWithCSV = "Error: You need to specify -SaveOutput"
 $Error_NoNeedSaveOutputWithGUI = "Error: You cannot output to GUI with the -SaveOutput parameter"
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "Error: You need to specify -LiveAnalysis or -LogFile"
@@ -369,6 +386,9 @@ $Error_remoteAnalysis_UnregisteredComputername = "Error: you need to registered 
 $Error_remoteAnalysis_FailedTestWSMan = "Error: Failed to run Test-WSMan."
 $Warn_remoteAnalysis_Stopped_WinRMservice = "Warning: WinRM service on the remote computer may be stopped."
 $Warn_remoteAnalysis_wrongRemoteComputerInfo = "Warning: Either ComputerName or Credentials, or both, are wrong."
+$Error_NoEventsFound = "Error: No events found!"
+$Error_ThisFunctionDoesNotSupportOutputGUI = "Error: This function does not support -OutputGUI"
+$Error_ThisFunctionDoesNotSupportOutputCSV = "Error: This function does not support -OutputCSV"
 
 #function Show-Contributors
 $Show_Contributors1 = @"
@@ -479,9 +499,10 @@ $Show_Contributors1 = @"
 $Show_Contributors2 =
 "Contributors:
 
-ogino(GitHub:@oginoPmP) - Developer
-DustInDark(GitHub:@hitenkoku) - Developer, Localization, Japanese Translations
-Tsubokku(twitter: @ytsuboi0322) - Japanese Translations
+oginoPmP - Developer
+DustInDark - Localization, Japanese Translations
+Tsubokku - Japanese Translations
+秀真（Hotsuma） - Calligraphy
 
 Please contribute to this project for fame and glory!
 "
@@ -499,10 +520,13 @@ function Show-Help {
     Write-Host "Analysis Source (Specify one):"
 
     Write-Host "   -LiveAnalysis" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timeline based on the live host's log"
+    Write-Host " : Analyze logs from the live host"
 
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timelime from an offline .evtx file"
+    Write-Host " : Analyze an offline .evtx file"
+
+    Write-Host "   -LogDirectory <path-to-logfiles> (Warning: not fully implemented.)" -NoNewline -ForegroundColor Green
+    Write-Host " : Analyze offline .evtx files"
 
     Write-Host "   -RemoteLiveAnalysis" -NoNewline -ForegroundColor Green
     Write-Host " : Creates a timeline based on the remote host's log"
@@ -516,10 +540,13 @@ function Show-Help {
     Write-Host "   -AnalyzeNTLM_UsageDetailed" -NoNewline -ForegroundColor Green
     Write-Host " : Returns detailed NTLM usage based on the NTLM Operational log"
 
-    Write-Host "   -EventID_Statistics" -NoNewline -ForegroundColor Green
-    Write-Host " : Output event ID statistics" 
-    
-    Write-Host "   -LogonTimeline" -NoNewline -ForegroundColor Green
+    Write-Host "   -SecurityEventID_Statistics" -NoNewline -ForegroundColor Green
+    Write-Host " : Output Security log event ID statistics" 
+
+    Write-Host "   -EasyToReadSecurityLogonTimeline" -NoNewline -ForegroundColor Green
+    Write-Host " : Output a very easy-to-read timeline of user logons based on the Security log"
+
+    Write-Host "   -SecurityLogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Output a condensed timeline of user logons based on the Security log"
 
     Write-Host 
@@ -532,7 +559,7 @@ function Show-Help {
     Write-Host " : Specify the end of the timeline"
 
     Write-Host 
-    Write-Host "-LogonTimeline Analysis Options:"
+    Write-Host "-SecurityLogonTimeline Analysis Options:"
 
     Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if the logs are from a DC"
