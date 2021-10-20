@@ -26,14 +26,14 @@
     Get the help menu(ヘルプメニューの表示):
     .\WELA.ps1
 
-    Output Event ID Statistics (イベントIDの集計):
-    .\WELA.ps1 -EventID_Statistics
+    Output Security Log Event ID Statistics (イベントIDの集計):
+    .\WELA.ps1 -SecurityEventID_Statistics
 
     Live Analysis Timeline Generation (ライブ調査のタイムライン作成):
-    .\WELA.ps1 -LiveAnalysis -LogonTimeline
+    .\WELA.ps1 -SecurityLogonTimeline -LiveAnalysis 
 
     Offline Analysis Timeline Generation (オフライン調査のタイムライン作成):
-    .\WELA.ps1 -LogFile .\Cobalt-Strike-Security.evtx -LogonTimeline
+    .\WELA.ps1 -SecurityLogonTimeline -LogFile .\Cobalt-Strike-Security.evtx 
     
     Analyze with a GUI(GUIでの解析):
     -OutputGUI
@@ -47,7 +47,7 @@
     Display in UTC time (by default, it displays in local time) (UTC時間での表示。デフォルトはローカル時間)：
     -UTC
 
-    Show Logon IDs(Default: false)(ログオンIDの表示):
+    Security Logon Timeline Option: Show Logon IDs(Default: false)(ログオンIDの表示):
     -ShowLogonID
 
     .LINK
@@ -68,7 +68,7 @@
 #
 # 
 # Inspired by Eric Conrad's DeepBlueCLI (https://github.com/sans-blue-team/DeepBlueCLI)
-# Much help from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/media/attachments/2021/05/15/windows-event-log-analyst-reference.pdf)
+# Much help and inspiration from the Windows Event Log Analysis Cheatsheets by Steve Anson (https://www.forwarddefense.com/media/attachments/2021/05/15/windows-event-log-analyst-reference.pdf)
 # and event log info from www.ultimatewindowssecurity.com.
 # Many thanks to SIGMA: https://github.com/SigmaHQ/sigma
 # as well as sbousseaden for providing sample attack event logs at https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES
@@ -95,7 +95,7 @@ param (
     [string]$LogDirectory = "",
     [switch]$ShowContributors,
     [switch]$SecurityEventID_Statistics,
-    [switch]$LogonTimeline,
+    [switch]$SecurityLogonTimeline,
     [switch]$AccountInformation,
     [switch]$OutputGUI,
     [switch]$OutputCSV,
@@ -1700,7 +1700,7 @@ if ( $LiveAnalysis -eq $true -and ($LogFile -ne "" -or $LogDirectory -ne "")) {
 }
 
 # Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
-if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $SecurityEventID_Statistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and $AnalyzeNTLM_UsageBasic -eq $false -and $AnalyzeNTLM_UsageDetailed -eq $false) {
+if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $SecurityEventID_Statistics -eq $false -and $SecurityLogonTimeline -eq $false -and $AccountInformation -eq $false -and $AnalyzeNTLM_UsageBasic -eq $false -and $AnalyzeNTLM_UsageDetailed -eq $false) {
 
     Show-Help
     exit
@@ -1708,7 +1708,7 @@ if ( $LiveAnalysis -eq $false -and $LogFile -eq "" -and $SecurityEventID_Statist
 }
 
 #No analysis source was specified
-if ( $SecurityEventID_Statistics -eq $true -or $LogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
+if ( $SecurityEventID_Statistics -eq $true -or $SecurityLogonTimeline -eq $true -or $AnalyzeNTLM_UsageBasic -eq $true -or $AnalyzeNTLM_UsageDetailed -eq $true) {
 
     if ( $LiveAnalysis -ne $true -and $LogFile -eq "" -and $LogDirectory -eq "") {
 
@@ -1737,7 +1737,7 @@ if ( $LiveAnalysis -eq $true ) {
             "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-NTLM%4Operational.evtx"
         )
     }
-    elseif ($LogonTimeline -eq $true -or $SecurityEventID_Statistics -eq $true) {
+    elseif ($SecurityLogonTimeline -eq $true -or $SecurityEventID_Statistics -eq $true) {
         $evtxFiles = @(
             "C:\Windows\System32\winevt\Logs\Security.evtx"
         )
@@ -1779,8 +1779,8 @@ foreach ( $LogFile in $evtxFiles ) {
         
     }
     
-    if ( $LogonTimeline -eq $true ) {
-    
+    if ( $SecurityLogonTimeline -eq $true ) {
+        
         Create-LogonTimeline $UTCOffset -filePath $LogFile
     
     }

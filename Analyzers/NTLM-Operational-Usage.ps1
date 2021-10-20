@@ -18,7 +18,7 @@ In order to produce these logs you need to turn on the following settings via Gr
     ※It is also recommended to increase the log size as the default is very small and logs will become overwritten quickly.
 
 TODO:
-    Out-File Save-Output   
+    Error handling: no access to save file. (Low priority)
     Count the number of duplicate entries
 #>
 
