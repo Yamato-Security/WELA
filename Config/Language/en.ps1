@@ -506,10 +506,13 @@ function Show-Help {
     Write-Host "Analysis Source (Specify one):"
 
     Write-Host "   -LiveAnalysis" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timeline based on the live host's log"
+    Write-Host " : Analyze logs from the live host"
 
     Write-Host "   -LogFile <path-to-logfile>" -NoNewline -ForegroundColor Green
-    Write-Host " : Creates a timelime from an offline .evtx file"
+    Write-Host " : Analyze an offline .evtx file"
+
+    Write-Host "   -LogDirectory <path-to-logfiles> (Warning: not fully implemented.)" -NoNewline -ForegroundColor Green
+    Write-Host " : Analyze offline .evtx files"
 
     Write-Host
     Write-Host "Analysis Type (Specify one):"
@@ -522,7 +525,10 @@ function Show-Help {
 
     Write-Host "   -SecurityEventID_Statistics" -NoNewline -ForegroundColor Green
     Write-Host " : Output Security log event ID statistics" 
-    
+
+    Write-Host "   -EasyToReadSecurityLogonTimeline" -NoNewline -ForegroundColor Green
+    Write-Host " : Output a very easy-to-read timeline of user logons based on the Security log"
+
     Write-Host "   -SecurityLogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Output a condensed timeline of user logons based on the Security log"
 
@@ -536,7 +542,7 @@ function Show-Help {
     Write-Host " : Specify the end of the timeline"
 
     Write-Host 
-    Write-Host "-LogonTimeline Analysis Options:"
+    Write-Host "-SecurityLogonTimeline Analysis Options:"
 
     Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if the logs are from a DC"

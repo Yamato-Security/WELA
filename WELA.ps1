@@ -96,6 +96,7 @@ param (
     [switch]$ShowContributors,
     [switch]$SecurityEventID_Statistics,
     [switch]$SecurityLogonTimeline,
+    [switch]$EasyToReadSecurityLogonTimeline,
     [switch]$AccountInformation,
     [switch]$OutputGUI,
     [switch]$OutputCSV,
@@ -284,7 +285,7 @@ elseif ( $LogDirectory -ne "" ) {
     Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { [void]$evtxFiles.Add($_.FullName) }
 }
 
-# Run analysis on -Logfile or -LogDirectory
+# Run analysis
 foreach ( $LogFile in $evtxFiles ) {
 
     if ( $SecurityEventID_Statistics -eq $true ) {
@@ -296,7 +297,13 @@ foreach ( $LogFile in $evtxFiles ) {
     
     if ( $SecurityLogonTimeline -eq $true ) {
         .  ($AnalyzersPath + "Security-LogonTimeline.ps1")
-        Create-LogonTimeline $UTCOffset -filePath $LogFile
+        Create-SecurityLogonTimeline $UTCOffset -filePath $LogFile
+    
+    }
+
+    if ( $EasyToReadSecurityLogonTimeline -eq $true ) {
+        .  ($AnalyzersPath + "Security-LogonTimeline.ps1")
+        Create-EasyToReadSecurityLogonTimeline $UTCOffset -filePath $LogFile
     
     }
 

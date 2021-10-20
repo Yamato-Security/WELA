@@ -511,10 +511,13 @@ function Show-Help {
 
     Write-Host "解析ソースを一つ指定して下さい：" 
     Write-Host "   -LiveAnalysis" -NoNewline -ForegroundColor Green
-    Write-Host " : ホストOSのログでタイムラインを作成する"
+    Write-Host " : ホストOSのログを解析する"
 
     Write-Host "   -LogFile <ログファイルのパス>" -NoNewline -ForegroundColor Green
-    Write-Host " : オフラインの.evtxファイルでタイムラインを作成する"
+    Write-Host " : オフラインの.evtxファイルを解析する"
+
+    Write-Host "   -LogDirectory <ログファイルのディレクトリのパス> (未完成)" -NoNewline -ForegroundColor Green
+    Write-Host " : 複数のオフラインの.evtxファイルを解析する"
 
     Write-Host
     Write-Host "解析タイプを一つ指定して下さい:"
@@ -527,6 +530,9 @@ function Show-Help {
 
     Write-Host "   -SecurityEventID_Statistics" -NoNewline -ForegroundColor Green
     Write-Host " : セキュリティログのイベントIDの集計情報を出力する" 
+
+    Write-Host "   -EasyToReadSecurityLogonTimeline" -NoNewline -ForegroundColor Green
+    Write-Host " : セキュリティログからユーザログオンの読みやすいタイムラインを出力する"
 
     Write-Host "   -SecurityLogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : セキュリティログからユーザログオンの簡単なタイムラインを出力する"
@@ -541,7 +547,7 @@ function Show-Help {
     Write-Host " : タイムラインの終わりを指定する"
 
     Write-Host 
-    Write-Host "-LogonTimelineの解析オプション:"
+    Write-Host "-SecurityLogonTimelineの解析オプション:"
 
     Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : ドメインコントローラーのログの場合は指定して下さい"

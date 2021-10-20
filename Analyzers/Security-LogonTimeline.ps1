@@ -190,7 +190,7 @@ function Get-KerberosStatusStr {
     return $msgStatusReadable
 }
 
-function Create-LogonTimeline {
+function Create-SecurityLogonTimeline {
     param([string] $UTCOffset, [string] $filePath)
     # Notes: 
     #   Logoff events without corresponding logon events first won't be printed
@@ -739,7 +739,7 @@ function Create-LogonTimeline {
         
 }
 
-function Create-Timeline {
+function Create-EasyToReadSecurityLogonTimeline {
 
     $filter = "@{ Path=""$LogFile""; ID=$EventIDsToAnalyze }"
     $filter2 = "@{Path = ""$LogFile"" }"
