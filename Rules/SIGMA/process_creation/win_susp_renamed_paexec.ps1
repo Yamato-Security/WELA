@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_renamed_paexec";
             $detectedMessage = "Detects suspicious renamed PAExec execution as often used by attackers";
             $result = $event |  where { (($_.ID -eq "1") -and (($_.ID -eq "1") -and ($_.message -match "Description.*PAExec Application" -or $_.message -match "OriginalFileName.*PAExec.exe")) -and -not (($_.message -match "Image.*.*\\PAexec.exe" -or $_.message -match "Image.*.*\\paexec.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

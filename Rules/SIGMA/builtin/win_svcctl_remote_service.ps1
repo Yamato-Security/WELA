@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_svcctl_remote_service";
             $detectedMessage = "Detects remote service activity via remote access to the svcctl named pipe";
             $result = $event |  where { ($_.ID -eq "5145" -and $_.message -match "ShareName.*\\.*\\IPC$" -and $_.message -match "RelativeTargetName.*svcctl" -and $_.message -match "Accesses.*.*WriteData.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

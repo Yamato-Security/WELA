@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_dns_exfiltration_tools_execution";
             $detectedMessage = "Well-known DNS Exfiltration tools execution";
             $result = $event |  where { (($_.ID -eq "1") -and ($_.message -match "Image.*.*\\iodine.exe" -or $_.message -match "Image.*.*\\dnscat2.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

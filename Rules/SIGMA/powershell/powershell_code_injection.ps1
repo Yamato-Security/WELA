@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "powershell_code_injection";
             $detectedMessage = "Detecting Code injection with PowerShell in another process";
             $result = $event |  where { ($_.ID -eq "8" -and $_.message -match "SourceImage.*.*\\powershell.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

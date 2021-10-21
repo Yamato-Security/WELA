@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_cmstp_execution_by_access";
             $detectedMessage = "Detects various indicators of Microsoft Connection Manager Profile Installer execution";
             $result = $event |  where { ($_.ID -eq "10" -and $_.message -match "CallTrace.*.*cmlua.dll.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

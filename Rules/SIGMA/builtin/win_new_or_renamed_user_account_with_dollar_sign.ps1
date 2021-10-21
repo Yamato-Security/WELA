@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_new_or_renamed_user_account_with_dollar_sign";
             $detectedMessage = "Detects possible bypass EDR and SIEM via abnormal user account name.";
             $result = $event |  where { (($_.ID -eq "4720" -or $_.ID -eq "4781") -and $_.message -match "SamAccountName.*.*$.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

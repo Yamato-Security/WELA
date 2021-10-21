@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "powershell_decompress_commands";
             $detectedMessage = "A General detection for specific decompress commands in PowerShell logs. This could be an adversary decompressing files.";
             $result = $event |  where { ((($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*Expand-Archive.*") -or ($_.ID -eq "4103" -and $_.message -match "Payload.*.*Expand-Archive.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_susp_system_drawing_load";
             $detectedMessage = "A General detection for processes loading System.Drawing.ni.dll. This could be an indicator of potential Screen Capture.";
             $result = $event |  where { (($_.ID -eq "7") -and $_.message -match "ImageLoaded.*.*\\System.Drawing.ni.dll" -and -not ($_.message -match "Image.*.*\\WmiPrvSE.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

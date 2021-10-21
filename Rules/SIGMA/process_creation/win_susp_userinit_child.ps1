@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_userinit_child";
             $detectedMessage = "Detects a suspicious child process of userinit";
             $result = $event |  where { (($_.ID -eq "1") -and ($_.message -match "ParentImage.*.*\\userinit.exe" -and -not ($_.message -match "CommandLine.*.*\\netlogon\\.*")) -and -not ($_.message -match "Image.*.*\\explorer.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

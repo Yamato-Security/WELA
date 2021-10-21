@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_logon_explicit_credentials";
             $detectedMessage = "Detects suspicious processes logging on with explicit credentials";
             $result = $event |  where { (($_.ID -eq "4648" -and ($_.message -match "Image.*.*\\cmd.exe" -or $_.message -match "Image.*.*\\powershell.exe" -or $_.message -match "Image.*.*\\pwsh.exe" -or $_.message -match "Image.*.*\\winrs.exe" -or $_.message -match "Image.*.*\\wmic.exe" -or $_.message -match "Image.*.*\\net.exe" -or $_.message -match "Image.*.*\\net1.exe" -or $_.message -match "Image.*.*\\reg.exe")) -and -not ($_.message -match "TargetServerName.*localhost")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_mmc20_lateral_movement";
             $detectedMessage = "Detects MMC20.Application Lateral Movement; specifically looks for the spawning of the parent MMC.exe with a command line of ""-Embedding"" as a child of svchost.exe";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\\svchost.exe" -and $_.message -match "Image.*.*\\mmc.exe" -and $_.message -match "CommandLine.*.*-Embedding.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

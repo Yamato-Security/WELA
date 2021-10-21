@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "powershell_CL_Mutexverifiers_LOLScript";
             $detectedMessage = "Detects Execution via runAfterCancelProcess in CL_Mutexverifiers.ps1 module";
             $result = $event |  where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*CL_Mutexverifiers.ps1.*" -and $_.message -match "ScriptBlockText.*.*runAfterCancelProcess.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

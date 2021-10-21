@@ -20,7 +20,7 @@ function Add-Rule {
             $tmp = $event | where { ($_.ID -eq "400" -and $_.message -match "HostApplication.*.*System.Net.WebClient.*" -and ($_.message -match "HostApplication.*.*.DownloadFile\(.*" -or $_.message -match "HostApplication.*.*.DownloadString\(.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             [void]$results.Add($tmp);
             
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

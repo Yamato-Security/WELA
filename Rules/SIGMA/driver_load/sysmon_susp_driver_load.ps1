@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_susp_driver_load";
             $detectedMessage = "Detects a driver load from a temporary directory";
             $result = $event |  where { ($_.ID -eq "6" -and $_.message -match "ImageLoaded.*.*\\Temp\\.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

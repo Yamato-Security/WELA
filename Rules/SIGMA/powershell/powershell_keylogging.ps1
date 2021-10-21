@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "powershell_keylogging";
             $detectedMessage = "Adversaries may log user keystrokes to intercept credentials as the user types them.";
             $result = $event |  where { ($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Get-Keystrokes.*" -or ($_.message -match "ScriptBlockText.*.*Get-ProcAddress user32.dll GetAsyncKeyState.*" -and $_.message -match "ScriptBlockText.*.*Get-ProcAddress user32.dll GetForegroundWindow.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

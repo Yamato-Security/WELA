@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects using Diskshadow.exe to execute arbitrary code in text file";
             $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\diskshadow.exe" -and ($_.message -match "CommandLine.*.*/s.*" -or $_.message -match "CommandLine.*.*-s.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_add_domain_trust";
             $detectedMessage = "Addition of domains is seldom and should be verified for legitimacy.";
             $result = $event |  where { ($_.ID -eq "4706") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

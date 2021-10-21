@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_defender_psexec_wmi_asr";
             $detectedMessage = "Detects blocking of process creations originating from PSExec and WMI commands";
             $result = $event |  where { ($_.ID -eq "1121" -and ($_.message -match "ProcessName.*.*\\wmiprvse.exe" -or $_.message -match "ProcessName.*.*\\psexesvc.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

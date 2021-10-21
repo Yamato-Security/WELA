@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_spoolsv_dll_load";
             $detectedMessage = "Detect DLL Load from Spooler Service backup folder";
             $result = $event |  where { ($_.ID -eq "7" -and ($_.message -match "Image.*.*spoolsv.exe") -and ($_.message -match "ImageLoaded.*.*\\Windows\\System32\\spool\\drivers\\x64\\3\\.*") -and ($_.message -match "ImageLoaded.*.*.dll")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

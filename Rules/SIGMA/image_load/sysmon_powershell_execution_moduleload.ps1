@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_powershell_execution_moduleload";
             $detectedMessage = "Detects execution of PowerShell";
             $result = $event |  where { ($_.ID -eq "7" -and $_.message -match "Description.*System.Management.Automation" -and $_.message -match "ImageLoaded.*.*System.Management.Automation.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

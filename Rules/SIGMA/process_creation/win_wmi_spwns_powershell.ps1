@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_wmi_spwns_powershell";
             $detectedMessage = "Detects WMI spawning PowerShell";
             $result = $event |  where { (($_.ID -eq "1") -and ((($_.message -match "ParentImage.*.*\\wmiprvse.exe") -and ($_.message -match "Image.*.*\\powershell.exe")) -and -not ($_.message -match "CommandLine.*null")) -and -not (-not $_.message -match "CommandLine.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

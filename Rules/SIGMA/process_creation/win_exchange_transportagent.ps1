@@ -20,7 +20,7 @@ function Add-Rule {
             [void]$results.Add($tmp);
             
             foreach ($result in $results) {
-                if ($result.Count -ne 0) {
+                if ($result -and $result.Count -ne 0) {
                     Write-Output ""; 
                     Write-Output "Detected! RuleName:$ruleName";
                     Write-Output $detectedMesssage;    

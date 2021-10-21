@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects the creation of scheduled tasks in user session";
             $result = $event | where { (($_.ID -eq "1") -and ($_.message -match "Image.*.*\\schtasks.exe" -and $_.message -match "CommandLine.*.* /create .*") -and -not ($_.message -match "User.*NT AUTHORITY\\SYSTEM")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

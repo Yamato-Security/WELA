@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_dhcp_config";
             $detectedMessage = "This rule detects a DHCP server in which a specified Callout DLL (in registry) was loaded";
             $result = $event |  where { ($_.ID -eq "1033" -and $_.message -match "Source.*Microsoft-Windows-DHCP-Server") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

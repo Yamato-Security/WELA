@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "process_creation_clip";
             $detectedMessage = "Adversaries may collect data stored in the clipboard from users copying information within or between applications. ";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "OriginalFileName.*clip.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

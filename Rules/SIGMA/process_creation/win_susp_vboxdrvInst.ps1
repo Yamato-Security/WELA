@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_vboxdrvInst";
             $detectedMessage = "Detect VBoxDrvInst.exe run whith parameters allowing processing INF file. This allows to create values in the registry and install drivers.";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\VBoxDrvInst.exe" -and $_.message -match "CommandLine.*.*driver.*" -and $_.message -match "CommandLine.*.*executeinf.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

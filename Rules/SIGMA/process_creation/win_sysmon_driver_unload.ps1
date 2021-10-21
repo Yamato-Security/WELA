@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_sysmon_driver_unload";
             $detectedMessage = "Detect possible Sysmon driver unload";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\fltmc.exe" -and $_.message -match "CommandLine.*.*unload.*" -and $_.message -match "CommandLine.*.*sys.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

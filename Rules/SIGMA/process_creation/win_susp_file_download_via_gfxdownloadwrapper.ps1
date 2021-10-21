@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_file_download_via_gfxdownloadwrapper";
             $detectedMessage = "Detects when GfxDownloadWrapper.exe downloads file from non standard URL";
             $result = $event |  where { (($_.ID -eq "1") -and ($_.message -match "Image.*.*\\GfxDownloadWrapper.exe" -and -not ($_.message -match "CommandLine.*.*gameplayapi.intel.com.*")) -and -not ($_.message -match "ParentImage.*.*\\GfxDownloadWrapper.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

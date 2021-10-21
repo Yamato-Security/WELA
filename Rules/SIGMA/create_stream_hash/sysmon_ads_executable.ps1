@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_ads_executable";
             $detectedMessage = "Detects the creation of an ADS data stream that contains an executable (non-empty imphash)";
             $result = $event |  where { (($_.ID -eq "15") -and -not (($_.message -match "Imphash.*00000000000000000000000000000000") -or (-not $_.message -eq "Imphash.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

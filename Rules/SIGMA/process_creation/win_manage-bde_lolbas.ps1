@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_manage-bde_lolbas";
             $detectedMessage = "Detects a usage of the manage-bde.wsf script that may indicate an attempt of proxy execution from script";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*cscript.*" -and $_.message -match "CommandLine.*.*manage-bde.wsf.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

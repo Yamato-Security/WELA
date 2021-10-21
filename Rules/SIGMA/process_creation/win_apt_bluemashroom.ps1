@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_apt_bluemashroom";
             $detectedMessage = "Detects a suspicious DLL loading from AppData Local path as described in BlueMashroom report";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\\AppData\\Local\\.*" -and ($_.message -match "CommandLine.*.*\\regsvr32.*" -or $_.message -match "CommandLine.*.*,DllEntry.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

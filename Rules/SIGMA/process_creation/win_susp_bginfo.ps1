@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Execute VBscript code that is referenced within the *.bgi file.";
             $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\bginfo.exe" -and $_.message -match "CommandLine.*.*/popup.*" -and $_.message -match "CommandLine.*.*/nolicprompt.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_unsigned_image_loaded_into_lsass";
             $detectedMessage = "Loading unsigned image (DLL, EXE) into LSASS process";
             $result = $event |  where { ($_.ID -eq "7" -and $_.message -match "Image.*.*\\lsass.exe" -and $_.message -match "Signed.*false") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

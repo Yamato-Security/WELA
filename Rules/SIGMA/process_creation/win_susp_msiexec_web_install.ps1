@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious msiexec process starts with web addresses as parameter";
             $result = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.* msiexec.*" -and $_.message -match "CommandLine.*.*://.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

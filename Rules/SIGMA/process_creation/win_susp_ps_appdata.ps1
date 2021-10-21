@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects a suspicious command line execution that invokes PowerShell with reference to an AppData folder";
             $result = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*/c.*" -and $_.message -match "CommandLine.*.*powershell.*" -and $_.message -match "CommandLine.*.*\\AppData\\.*" -and ($_.message -match "CommandLine.*.*Local\\.*" -or $_.message -match "CommandLine.*.*Roaming\\.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_apt_empiremonkey";
             $detectedMessage = "Detects EmpireMonkey APT reported Activity";
             $result = $event | where { ($_.ID -eq "1" -and ($_.message -match "CommandLine.*.*/i:%APPDATA%\\logs.txt scrobj.dll") -and (($_.message -match "Image.*.*\\cutil.exe") -or ($_.message -match "Microsoft(C) Registerserver"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "process_creation_infdefaultinstall";
             $detectedMessage = "Executes SCT script using scrobj.dll from a command in entered into a specially prepared INF file.";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*InfDefaultInstall.exe .*" -and $_.message -match "CommandLine.*.*.inf.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

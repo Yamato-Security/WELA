@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_indirect_cmd";
             $detectedMessage = "Detect indirect command execution via Program Compatibility Assistant (pcalua.exe or forfiles.exe).";
             $result = $event |  where { ($_.ID -eq "1" -and ($_.message -match "ParentImage.*.*\\pcalua.exe" -or $_.message -match "ParentImage.*.*\\forfiles.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

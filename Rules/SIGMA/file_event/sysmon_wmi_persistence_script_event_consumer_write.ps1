@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_wmi_persistence_script_event_consumer_write";
             $detectedMessage = "Detects file writes of WMI script event consumer";
             $result = $event |  where { ($_.ID -eq "11" -and $_.message -match "Image.*C:\\WINDOWS\\system32\\wbem\\scrcons.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

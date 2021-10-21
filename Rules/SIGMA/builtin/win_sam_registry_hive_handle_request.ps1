@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_sam_registry_hive_handle_request";
             $detectedMessage = "Detects handles requested to SAM registry hive";
             $result = $event |  where { ($_.ID -eq "4656" -and $_.message -match "ObjectType.*Key" -and $_.message -match "ObjectName.*.*\\SAM") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

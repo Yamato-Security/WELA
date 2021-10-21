@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "This rule detects DLL injection and execution via LOLBAS - Tracker.exe";
             $result = $event | where { ($_.ID -eq "1" -and ($_.ID -eq "1") -and (($_.message -match "Image.*.*\\tracker.exe") -or ($_.message -match "Tracker")) -and ($_.message -match "CommandLine.*.* /d .*") -and ($_.message -match "CommandLine.*.* /c .*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

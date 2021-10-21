@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects suspicious IIS native-code module installations via command line";
             $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\appcmd.exe" -and $_.message -match "CommandLine.*.*install.*" -and $_.message -match "CommandLine.*.*module.*" -and $_.message -match "CommandLine.*.*/name:.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

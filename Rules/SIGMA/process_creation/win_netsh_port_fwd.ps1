@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_netsh_port_fwd";
             $detectedMessage = "Detects netsh commands that configure a port forwarding (PortProxy)";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\netsh.exe" -and (($_.message -match "CommandLine.*.*interface.*" -and $_.message -match "CommandLine.*.*portproxy.*" -and $_.message -match "CommandLine.*.*add.*" -and $_.message -match "CommandLine.*.*v4tov4.*") -or ($_.message -match "CommandLine.*.*connectp.*" -and $_.message -match "CommandLine.*.*listena.*" -and $_.message -match "CommandLine.*.*c=.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects the exploitation of Microsoft Exchange vulnerability as described in CVE-2020-0688 ";
             $result = $event | where { ($_.ID -eq "4" -and $_.message -match "Source.*MSExchange Control Panel" -and $_.message -match "Level.*Error" -and ($_.message -match ".*&__VIEWSTATE=.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Messagel;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

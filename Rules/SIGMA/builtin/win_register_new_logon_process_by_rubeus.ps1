@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_register_new_logon_process_by_rubeus";
             $detectedMessage = "Detects potential use of Rubeus via registered new trusted logon process";
             $result = $event |  where { ($_.ID -eq "4611" -and $_.message -match "LogonProcessName.*User32LogonProcesss") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

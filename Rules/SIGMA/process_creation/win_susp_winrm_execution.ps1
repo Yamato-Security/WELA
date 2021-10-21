@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Detects an attempt to execude code or create service on remote host via winrm.vbs.";
             $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\cscript.exe" -and $_.message -match "CommandLine.*.*winrm.*" -and $_.message -match "CommandLine.*.*invoke Create wmicimv2/Win32_.*" -and $_.message -match "CommandLine.*.*-r:http.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

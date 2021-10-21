@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_outlook";
             $detectedMessage = "Detects EnableUnsafeClientMailRules used for Script Execution from Outlook";
             $result = $event |  where { (($_.ID -eq "1") -and ($_.message -match "CommandLine.*.*EnableUnsafeClientMailRules.*" -or ($_.message -match "ParentImage.*.*\\outlook.exe" -and $_.message -match "CommandLine.*.*\\\\.*" -and $_.message -match "CommandLine.*.*\\.*" -and $_.message -match "CommandLine.*.*.exe.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

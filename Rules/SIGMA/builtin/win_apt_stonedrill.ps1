@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_apt_stonedrill";
             $detectedMessage = "This method detects a service install of the malicious Microsoft Network Realtime Inspection Service service described in StoneDrill report by Kaspersky";
             $result = $event |  where { ($_.ID -eq "7045" -and $_.message -match "ServiceName.*NtsSrv" -and $_.message -Like "* LocalService") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

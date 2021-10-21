@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_regsvr32_flags_anomaly";
             $result = $event | where { (($_.ID -eq "1") -and ($_.message -match "Image.*.*\\regsvr32.exe" -and $_.message -match "CommandLine.*.* /i:.*") -and -not ($_.message -match "CommandLine.*.* /n .*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

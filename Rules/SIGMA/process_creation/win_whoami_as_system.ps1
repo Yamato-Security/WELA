@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_whoami_as_system";
             $detectedMessage = "Detects a whoami.exe executed by LOCAL SYSTEM. This may be a sign of a successful local privilege escalation.";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "User.*NT AUTHORITY\\SYSTEM" -and $_.message -match "Image.*.*\\whoami.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

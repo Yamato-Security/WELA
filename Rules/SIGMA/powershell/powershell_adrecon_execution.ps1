@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "powershell_adrecon_execution";
             $detectedMessage = " Detects execution of ADRecon.ps1 for AD reconnaissance which has been reported to be actively used by FIN7 ";
             $result = $event | where { ($_.ID -eq "4104" -and ($_.message -match "ScriptBlockText.*.*Function Get-ADRExcelComOb.*" -or $_.message -match "ScriptBlockText.*.*ADRecon-Report.xlsx.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

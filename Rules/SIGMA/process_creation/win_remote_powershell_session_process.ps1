@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_remote_powershell_session_process";
             $detectedMessage = "Detects remote PowerShell sections by monitoring for wsmprovhost (WinRM host process) as a parent or child process (sign of an active PowerShell remote session).";
             $result = $event |  where { (($_.ID -eq "1") -and ($_.message -match "Image.*.*\\wsmprovhost.exe" -or $_.message -match "ParentImage.*.*\\wsmprovhost.exe")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_susp_reg_persist_explorer_run";
             $detectedMessage = "Detects a possible persistence mechanism using RUN key for Windows Explorer and pointing to a suspicious folder";
             $result = $event |  where { ((($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14")) -and $_.message -match "TargetObject.*.*\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run" -and (($_.message -match "Details.*C:\\Windows\\Temp\\.*" -or $_.message -match "Details.*C:\\ProgramData\\.*" -or $_.message -match "Details.*C:\\\$Recycle.bin\\.*" -or $_.message -match "Details.*C:\\Temp\\.*" -or $_.message -match "Details.*C:\\Users\\Public\\.*" -or $_.message -match "Details.*C:\\Users\\Default\\.*") -or ($_.message -match "Details.*.*\\AppData\\.*"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_susp_findstr_lnk";
             $detectedMessage = "Detects usage of findstr to identify and execute a lnk file as seen within the HHS redirect attack";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\findstr.exe" -and $_.message -match "CommandLine.*.*.lnk") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

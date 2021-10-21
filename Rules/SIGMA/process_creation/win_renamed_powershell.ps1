@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_renamed_powershell";
             $detectedMessage = "Detects the execution of a renamed PowerShell often used by attackers or malware";
             $result = $event |  where { (($_.ID -eq "1") -and (($_.message -match "Description.*Windows PowerShell.*" -or $_.message -match "Description.*pwsh.*") -and $_.message -match "Company.*Microsoft Corporation") -and -not (($_.message -match "Image.*.*\\powershell.exe" -or $_.message -match "Image.*.*\\powershell_ise.exe" -or $_.message -match "Image.*.*\\pwsh.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
@@ -23,9 +23,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

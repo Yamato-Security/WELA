@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_protected_storage_service_access";
             $detectedMessage = "Detects access to a protected_storage service over the network. Potential abuse of DPAPI to extract domain backup keys from Domain Controllers";
             $result = $event |  where { ($_.ID -eq "5145" -and $_.message -match "ShareName.*.*IPC.*" -and $_.message -match "RelativeTargetName.*protected_storage") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

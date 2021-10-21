@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_cve_2021_26857_msexchange";
             $detectedMessage = "Detects possible successful exploitation for vulnerability described in CVE-2021-26857 by looking for |";
             $result = $event |  where { (($_.ID -eq "1") -and $_.message -match "ParentImage.*.*UMWorkerProcess.exe" -and -not (($_.message -match "Image.*.*wermgr.exe" -or $_.message -match "Image.*.*WerFault.exe"))) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
@@ -23,9 +23,10 @@ function Add-Rule {
         };
         . Search-DetectableEvents $args;
     };
-    if(! $ruleStack[$ruleName]) {
+    if (! $ruleStack[$ruleName]) {
         $ruleStack.Add($ruleName, $detectRule);
-    } else {
-       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+    else {
+        Write-Host "Rule Import Error"  -Foreground Yellow;
     }
 }

@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "sysmon_quarkspw_filedump";
             $detectedMessage = "Detects a dump file written by QuarksPwDump password dumper";
             $result = $event |  where { ($_.ID -eq "11" -and $_.message -match "TargetFilename.*.*\\AppData\\Local\\Temp\\SAM-.*" -and $_.message -match "TargetFilename.*.*.dmp.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

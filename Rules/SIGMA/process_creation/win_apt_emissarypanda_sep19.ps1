@@ -13,7 +13,7 @@ function Add-Rule {
             $ruleName = "win_apt_emissarypanda_sep19";
             $detectedMessage = "Detects the execution of DLL side-loading malware used by threat group Emissary Panda aka APT27";
             $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "ParentImage.*.*\\sllauncher.exe" -and $_.message -match "Image.*.*\\svchost.exe") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;

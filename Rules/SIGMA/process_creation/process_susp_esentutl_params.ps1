@@ -14,7 +14,7 @@ function Add-Rule {
             $detectedMessage = "Conti recommendation to its affiliates to use esentult to access NTDS dumped file. Trickbot also uses this utilities to get MSEdge info via its module pwgrab.";
             $result = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*esentutl.*" -and $_.message -match "CommandLine.*.* /p.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
-            if ($result.Count -ne 0) {
+            if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
                 Write-Output $detectedMessage;
