@@ -1,11 +1,11 @@
 ﻿<#
     .SYNOPSIS
-    WELA (Windows Event Log Analyzer) is a fast forensics timeline generator for Windows event logs.
-    WELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査用のタイムライン作成ツールです。
+    WELA (Windows Event Log Analyzer) is the Swiss Army knife for Windows event logs fast forensics.
+    WELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査のための多目的な解析ツールです。
 
     .DESCRIPTION
-    Yamato Security's WELA(Windows Event Log Analyzer) is a fast forensics timeline generator for Windows event logs.
-    WELA's main goal is to create easy-to-analyze and as noise-free as possible event timelines to order to aid in quicker and higher quality forensic analysis.
+    Yamato Security's WELA(Windows Event Log Analyzer) is the Swiss Army knife for Windows event logs fast forensics.
+    WELA's main goal is to create easy-to-analyze and as noise-free as possible event timelines and statistics to order to aid in quicker and higher quality forensic analysis.
 
     Currently it only supports analyzing the security event log but will soon support other logs as well as detect attacks with custom rules as well as SIGMA rules.
     By combining multiple log entries into single events of interest and ignoring data not relevant to forensic analysis, WELA usually performs data reducution 
@@ -13,7 +13,7 @@
 
     Tested on Windows Powershell 5.1 with future plans to support Powershell Core on Windows, Linux and MacOS.
 
-    大和セキュリティのWELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査用のタイムライン作成ツールです。
+    大和セキュリティのWELA (Windows Event Log Analyzer)はWindowsイベントログのファストフォレンジック調査のための多目的な解析ツールです。
     WELAの主なゴールはフォレンジック調査をより迅速、より高い精度でできるようになるべくノイズが少ない解析しやすいフォレンジックタイムラインを作ることです。
 
     現在は主に「セキュリティ」ログを解析していますが、その他のログ、独自ルールによる攻撃検知、SIGMAルールによる攻撃検知等々に対応する予定です。

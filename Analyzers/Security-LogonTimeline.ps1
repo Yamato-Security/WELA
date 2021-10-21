@@ -14,7 +14,7 @@
 # Additional logs to filter for if a DC
 # 4768 - TGT ISSUED
 # 4769 - SERVICE TICKET ISSUED
-# 4776 - NTLM auth. non-standard tool used?
+# 4776 - NTLM Authentication to a local account. Suspicious on DCs.
 
 $TotalLogsNoFilters = 0
 $BadWorkstations = @("kali", "SLINGSHOT") #Highlight with the red alert background when the workstation comes from a pentesting distro.
@@ -246,13 +246,19 @@ function Create-SecurityLogonTimeline {
     Write-Host ( $Create_LogonTimeline_Filename -f $filePath )           # "File Name: {0}"
     Write-Host ( $Create_LogonTimeline_Filesize -f $filesize )          # "File Size: {0}"
     Write-Host ( $Create_LogonTimeline_Estimated_Processing_Time -f $RuntimeHours, $RuntimeMinutes, $RuntimeSeconds )   # "Estimated processing time: {0} hours {1} minutes {2} seconds"
+    Write-Host ""
+    Write-Host $Create_LogonTimeline_LoadingEVTX
+    Write-Host $Create_LogonTimeline_PleaseWait
+    Write-Host ""
 
-    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest
+    $logs = Get-WinEvent -FilterHashtable $WineventFilter -Oldest #Load event logs into memory.
     $eventlist = @{}
-    $TotalNumberOfLogs = 0
 
     [System.Collections.ArrayList]$LogoffEventArray = @()
     [System.Collections.ArrayList]$AdminLogonArray = @()
+
+    Write-Host $Create_LogonTimeline_AnalyzingLogs
+    Write-Host ""
 
     #Create an array of timestamps and logon IDs for logoff events
     foreach ( $event in $logs ) {
@@ -380,7 +386,7 @@ function Create-SecurityLogonTimeline {
                     "SubjectUserSid" { $msgSubjectUserSid = $data.'#text' } 
                     "AuthenticationPackageName" { $msgAuthPackageName = $data.'#text' }
                     "LmPackageName" { $msgLmPackageName = $data.'#text' }
-                    "ProcessName" { $msgProcessName = $data.'#text' }
+                    "ProcessName" { $msgProcessName = $data.'#text' } 
 
                 }
 
@@ -1204,7 +1210,7 @@ function Create-EasyToReadSecurityLogonTimeline {
 
             $timestamp = $event.TimeCreated.ToString($DateFormat) 
 
-            $printMSG = " 4625 - FAILED LOGON Type: $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Logon Process: $msgLogonProcessName Auth: $msgAuthenticationPackageName Reason: $msgFailureReasonReadable"
+            $printMSG = " 4625 - FAILED LOGON Type: $msgLogonType ($msgLogonTypeReadable) from User: $msgTargetUserName Workstation: $msgWorkstationName IP Address: $msgIpAddress Port: $msgIpPort Auth: $msgAuthenticationPackageName Reason: $msgFailureReasonReadable"
 
             if ($previousMsg -ne $printMSG -and $printMSG -ne "" -and
                 $msgTargetUserName -ne "-" ) {
@@ -1414,10 +1420,10 @@ function Create-EasyToReadSecurityLogonTimeline {
                 $AlertedEvents += 1
        
                 if ( $ShowLogonID -eq $true ) {
-                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName Logon ID: $msgSubjectLogonId" 
+                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Logon ID: $msgSubjectLogonId" 
                 }
                 else {
-                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort Process: $msgProcessName"
+                    $printMSG = " 4648 - EXPLICIT LOGON Subject User: $msgSubjectUserName Target User: $msgTargetUserName Target Server: $msgTargetServerName Target Domain: $msgTargetDomainName IP Address: $msgIpAddress Port: $msgIpPort"
                 }     
             }
        
