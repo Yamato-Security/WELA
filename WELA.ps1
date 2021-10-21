@@ -126,6 +126,8 @@ $ProgramStartTime = Get-Date
 
 Import-Module './Config/util.ps1' -Force ;
 
+$exectionpolicy = Get-ExecutionPolicy
+
 # Read Rules
 switch ($UseDetectRules.toupper()) {
     "0" { break; }
@@ -134,18 +136,10 @@ switch ($UseDetectRules.toupper()) {
         break;
     }
     "2" {
-        Write-Host $Confirm_DefConfirm_DefenderRealTimeScan_enderRealTimeScan_Disabled -ForegroundColor Black -BackgroundColor Yellow
-        $a = read-host "Y:YES  N:No(Don't process SIGMA Detection Rule)"
-        if ($a.ToUpper() -ne "Y") {
-            Write-Host $Info_Noload_SIGMAMODULE;
-            break;
+        Write-Host $Confirm_DefConfirm_ExecutionPolicy_Bypassed -ForegroundColor Black -BackgroundColor Yellow
+        if ($exectionpolicy.ToString().ToUpper() -ne "BYPASS") {
+            Write-Host $Error_ExecutionPolicy_Bypassed -ForegroundColor White -BackgroundColor Red
         }
-        $isAdmin = Check-Administrator
-        if ( $isAdmin -eq $false ) {
-            Write-Host $Error_NeedAdministratorPriv -ForegroundColor White -BackgroundColor Red
-            exit;
-        }
-        Set-MpPreference -DisableRealTimeMonitoring $true;
         Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
         break;
     }
@@ -384,3 +378,4 @@ $isAdmin = Check-Administrator
 if ( $isAdmin -eq $true -and ($UseDetectRules -eq "2" -or $UseDetectRules.toupper() -eq "all")) {
     Set-MpPreference -DisableRealTimeMonitoring $false;
 }
+Set-ExecutionPolicy $exectionpolicy -scope Process

@@ -365,7 +365,6 @@ $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
 $Detect_ProcessingDetectionMessage = "Processing rule-base detection...`n"
 
-$Confirm_DefConfirm_DefenderRealTimeScan_enderRealTimeScan_Disabled = "Confirm:You need cancelling RealTimeScan of AntiVirusSoftware to use SIGMA Detection Rule. Proceed it?"
 $Info_Noload_SIGMAMODULE = "Info:Load of SIGMA Detection Rule is canceled by User Input."
 $Info_GetEventNoMatch = "Info:No events were found that match in Get-WinEvent."
 $Warn_GetEvent = "Warning:Get-WinEvent error record skip."
@@ -377,6 +376,7 @@ $Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Admi
 $Error_NoSaveOutputWithCSV = "Error: You need to specify -SaveOutput"
 $Error_NoNeedSaveOutputWithGUI = "Error: You cannot output to GUI with the -SaveOutput parameter"
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "Error: You need to specify -LiveAnalysis or -LogFile"
+$Error_ExecutionPolicy_Bypassed = "ERROR:To use SIGMA Detection Rule, You need change exection policy to bypass. Please execution ""Set-ExectionPolicy bypass -scope Process"""
 
 #Remote live analysis
 $remoteAnalysis_getComputername = "Please enter a remote machine name (IP address or Hostname) "
