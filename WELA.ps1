@@ -354,7 +354,7 @@ foreach ( $LogFile in $evtxFiles ) {
 }
 
 $progcnt = 0;
-$maxprogcnt = $evtxFiles.Count - 1
+$maxprogcnt = $evtxFiles.Count * $ruleStack.Count
 $interval = $maxprogcnt * 0.1
 if ($ruleStack.Count -ne 0) {
     foreach ($LogFile in $evtxFiles) {
@@ -363,13 +363,13 @@ if ($ruleStack.Count -ne 0) {
         write-host "execute rule to $LogFile"
         $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
         foreach ($rule in $ruleStack.keys) {
-            # write-host "execute rule:$rule"
+            write-host "execute rule:$rule"
             Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
         }
+        $progcnt += 1;
         if ($progcnt % $interval -eq 0) {
             Write-Host "Check Detect Rule... Checked File($progcnt of $maxprogcnt)" -ForegroundColor Black -BackgroundColor Green
         }
-        $progcnt += 1;
     }
 }
 
