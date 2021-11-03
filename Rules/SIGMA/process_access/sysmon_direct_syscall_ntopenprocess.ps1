@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "10" -and $_.message -match "CallTrace.*UNKNOWN.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "10" -and $_.message -match "CallTrace.*UNKNOWN") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "sysmon_direct_syscall_ntopenprocess";
             $detectedMessage = "Detects the usage of the direct syscall of NtOpenProcess which might be done from a CobaltStrike BOF.";
-            $result = $event |  where { ($_.ID -eq "10" -and $_.message -match "CallTrace.*UNKNOWN.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { ($_.ID -eq "10" -and $_.message -match "CallTrace.*UNKNOWN") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

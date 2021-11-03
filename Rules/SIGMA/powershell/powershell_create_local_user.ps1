@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*New-LocalUser.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-PowerShell/Operational | where {($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*New-LocalUser") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "powershell_create_local_user";
             $detectedMessage = "Detects creation of a local user via PowerShell";
-            $result = $event |  where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*New-LocalUser.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { ($_.ID -eq "4104" -and $_.message -match "ScriptBlockText.*.*New-LocalUser") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

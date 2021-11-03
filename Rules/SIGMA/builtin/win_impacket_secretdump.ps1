@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Security | where {($_.ID -eq "5145" -and $_.message -match "ShareName.*\.*\ADMIN$" -and $_.message -match "RelativeTargetName.*.*SYSTEM32\.*" -and $_.message -match "RelativeTargetName.*.*.tmp.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Security | where {($_.ID -eq "5145" -and $_.message -match "ShareName.*\.*\ADMIN$" -and $_.message -match "RelativeTargetName.*.*SYSTEM32\" -and $_.message -match "RelativeTargetName.*.*.tmp") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "win_impacket_secretdump";
             $detectedMessage = "Detect AD credential dumping using impacket secretdump HKTL";
-            $result = $event |  where { ($_.ID -eq "5145" -and $_.message -match "ShareName.*\\.*\\ADMIN$" -and $_.message -match "RelativeTargetName.*.*SYSTEM32\\.*" -and $_.message -match "RelativeTargetName.*.*.tmp.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { ($_.ID -eq "5145" -and $_.message -match "ShareName.*\\.*\\ADMIN$" -and $_.message -match "RelativeTargetName.*.*SYSTEM32\\" -and $_.message -match "RelativeTargetName.*.*.tmp") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

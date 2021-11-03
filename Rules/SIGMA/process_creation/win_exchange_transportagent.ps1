@@ -1,5 +1,5 @@
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
-# Get-WinEvent -LogName MSExchange Management | where { ($_.message -match ".*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*Install-TransportAgent") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
+# Get-WinEvent -LogName MSExchange Management | where { ($_.message -match "Install-TransportAgent") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message
 
 function Add-Rule {
 
@@ -14,9 +14,9 @@ function Add-Rule {
             $ruleName = "win_exchange_transportagent";
             $detectedMessage = "Detects the Installation of a Exchange Transport Agent";
             $results = [System.Collections.ArrayList] @();
-            $tmp = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $tmp = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*Install-TransportAgent") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             [void]$results.Add($tmp);
-            $tmp = $event | where { ($_.message -match ".*Install-TransportAgent.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $tmp = $event | where { ($_.message -match "Install-TransportAgent") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             [void]$results.Add($tmp);
             
             foreach ($result in $results) {

@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\diskshadow.exe" -and ($_.message -match "CommandLine.*.*/s.*" -or $_.message -match "CommandLine.*.*-s.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\diskshadow.exe" -and ($_.message -match "CommandLine.*.*/s" -or $_.message -match "CommandLine.*.*-s")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "win_susp_diskshadow";
             $detectedMessage = "Detects using Diskshadow.exe to execute arbitrary code in text file";
-            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\diskshadow.exe" -and ($_.message -match "CommandLine.*.*/s.*" -or $_.message -match "CommandLine.*.*-s.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\diskshadow.exe" -and ($_.message -match "CommandLine.*.*/s" -or $_.message -match "CommandLine.*.*-s")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 

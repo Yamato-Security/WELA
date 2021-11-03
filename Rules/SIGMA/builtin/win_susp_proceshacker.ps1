@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName System | where {($_.ID -eq "7045" -and $_.message -match "ServiceName.*ProcessHacker.*" -and $_.message -match "AccountName.*LocalSystem") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName System | where {($_.ID -eq "7045" -and $_.message -match "ServiceName.*ProcessHacker" -and $_.message -match "AccountName.*LocalSystem") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "win_susp_proceshacker";
             $detectedMessage = "Detects a ProcessHacker tool that elevated privileges to a very high level";
-            $result = $event |  where { ($_.ID -eq "7045" -and $_.message -match "ServiceName.*ProcessHacker.*" -and $_.message -match "AccountName.*LocalSystem") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { ($_.ID -eq "7045" -and $_.message -match "ServiceName.*ProcessHacker" -and $_.message -match "AccountName.*LocalSystem") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

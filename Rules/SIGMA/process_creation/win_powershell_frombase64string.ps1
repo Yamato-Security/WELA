@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*::FromBase64String(.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*::FromBase64String(") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "win_powershell_frombase64string";
             $detectedMessage = "Detects suspicious FromBase64String expressions in command line arguments";
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*::FromBase64String\(.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*::FromBase64String\(") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\rar.exe" -and $_.message -match "CommandLine.*.* a .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\rar.exe" -and $_.message -match "CommandLine.*.* a ") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
                 $ruleName = "win_data_compressed_with_rar";
                     $detectedMessage = "An adversary may compress data (e.g., sensitive documents) that is collected prior to exfiltration in order to make it portable and minimize the amount of data sent over the network.";
-                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\rar.exe" -and $_.message -match "CommandLine.*.* a .*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+                $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\rar.exe" -and $_.message -match "CommandLine.*.* a ") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

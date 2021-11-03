@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\services\\TermService\\Parameters\\ServiceDll.*" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fSingleSessionPerUser.*" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fDenyTSConnections.*")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\services\\TermService\\Parameters\\ServiceDll" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fSingleSessionPerUser" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fDenyTSConnections")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "sysmon_rdp_settings_hijack";
             $detectedMessage = "Detects changes to RDP terminal service sensitive settings";
-            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\services\\TermService\\Parameters\\ServiceDll.*" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fSingleSessionPerUser.*" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fDenyTSConnections.*")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and ($_.message -match "TargetObject.*.*\\services\\TermService\\Parameters\\ServiceDll" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fSingleSessionPerUser" -or $_.message -match "TargetObject.*.*\\Control\\Terminal Server\\fDenyTSConnections")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";

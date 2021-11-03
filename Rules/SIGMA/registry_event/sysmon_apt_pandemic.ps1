@@ -1,5 +1,5 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\SYSTEM\\CurrentControlSet\\services\\null\\Instance.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
-# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*loaddll -a .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\SYSTEM\\CurrentControlSet\\services\\null\\Instance") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*loaddll -a ") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 
 function Add-Rule {
@@ -15,9 +15,9 @@ function Add-Rule {
             $ruleName = "sysmon_apt_pandemic";
             $detectedMessage = "Detects Pandemic Windows Implant";
             $results = [System.Collections.ArrayList] @();
-            $tmp = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\SYSTEM\\CurrentControlSet\\services\\null\\Instance.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $tmp = $event |  where { (($_.ID -eq "12" -or $_.ID -eq "13" -or $_.ID -eq "14") -and $_.message -match "TargetObject.*.*\\SYSTEM\\CurrentControlSet\\services\\null\\Instance") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             [void]$results.Add($tmp);
-            $tmp = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*loaddll -a .*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $tmp = $event | where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*loaddll -a ") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             [void]$results.Add($tmp);
             
             foreach ($result in $results) {

@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\bginfo.exe" -and $_.message -match "CommandLine.*.*/popup.*" -and $_.message -match "CommandLine.*.*/nolicprompt.*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "Image.*.*\\bginfo.exe" -and $_.message -match "CommandLine.*.*/popup" -and $_.message -match "CommandLine.*.*/nolicprompt") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "win_susp_bginfo";
             $detectedMessage = "Execute VBscript code that is referenced within the *.bgi file.";
-            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\bginfo.exe" -and $_.message -match "CommandLine.*.*/popup.*" -and $_.message -match "CommandLine.*.*/nolicprompt.*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event | where { ($_.ID -eq "1" -and $_.message -match "Image.*.*\\bginfo.exe" -and $_.message -match "CommandLine.*.*/popup" -and $_.message -match "CommandLine.*.*/nolicprompt") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
 
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 

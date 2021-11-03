@@ -1,4 +1,4 @@
-﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\SyncAppvPublishingServer.vbs.*" -and $_.message -match "CommandLine.*.*"n;.*" -and $_.message -match "CommandLine.*.*Start-Process .*") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+﻿# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\SyncAppvPublishingServer.vbs" -and $_.message -match "CommandLine.*"n;" -and $_.message -match "CommandLine.*.*Start-Process ") } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
 
 function Add-Rule {
 
@@ -12,7 +12,7 @@ function Add-Rule {
             
             $ruleName = "process_creation_syncappvpublishingserver_vbs_execute_powershell";
             $detectedMessage = "Adversaries may use scripts signed with trusted certificates to proxy execution of malicious files.";
-            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\\SyncAppvPublishingServer.vbs.*" -and $_.message -match "CommandLine.*.*n;.*" -and $_.message -match "CommandLine.*.*Start-Process .*") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            $result = $event |  where { ($_.ID -eq "1" -and $_.message -match "CommandLine.*.*\\SyncAppvPublishingServer.vbs" -and $_.message -match "CommandLine.*.*n;" -and $_.message -match "CommandLine.*.*Start-Process ") } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
             if ($result -and $result.Count -ne 0) {
                 Write-Output ""; 
                 Write-Output "Detected! RuleName:$ruleName";
