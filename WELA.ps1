@@ -360,10 +360,10 @@ if ($ruleStack.Count -ne 0) {
     foreach ($LogFile in $evtxFiles) {
         $WineventFilter = @{}
         $WineventFilter.Add( "Path", $LogFile ) 
-        write-host "execute rule to $LogFile"
+        # write-host "execute rule to $LogFile"
         $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
         foreach ($rule in $ruleStack.keys) {
-            write-host "execute rule:$rule"
+            #write-host "execute rule:$rule"
             Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
         }
         $progcnt += 1;
