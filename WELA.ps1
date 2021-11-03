@@ -91,6 +91,7 @@ param (
     [switch]$IsDC,
     [switch]$ShowLogonID,
     [switch]$LiveAnalysis,
+    [switch]$RemoteLiveAnalysis,
     [string]$LogFile = "",
     [string]$LogDirectory = "",
     [switch]$ShowContributors,
@@ -103,10 +104,12 @@ param (
     [switch]$UTC,
     [switch]$HideTimezone,
     [switch]$QuietLogo,
+    [string]$UseDetectRules = "0",
     [switch]$AnalyzeNTLM_UsageBasic,
     [switch]$AnalyzeNTLM_UsageDetailed
 )
 
+$ruleStack = @{};
 #Global variables
 $YEAVersion = "1.0"
 $AnalyzersPath = $PSScriptRoot + "\Analyzers\"
@@ -118,6 +121,35 @@ $DisplayTimezone = !($HideTimezone);
 if (!$QuietLogo) {
     Invoke-Expression './Config/splashlogos.ps1'
 }
+
+$ProgramStartTime = Get-Date
+
+Import-Module './Config/util.ps1' -Force ;
+
+$exectionpolicy = Get-ExecutionPolicy
+
+# Read Rules
+switch ($UseDetectRules.toupper()) {
+    "0" { break; }
+    "1" { 
+        Get-ChildItem -Path './Rules/WELA-Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
+        break;
+    }
+    "2" {
+        Write-Host $Confirm_DefConfirm_ExecutionPolicy_Bypassed -ForegroundColor Black -BackgroundColor Yellow
+        if ($exectionpolicy.ToString().ToUpper() -ne "BYPASS") {
+            Write-Host $Error_ExecutionPolicy_Bypassed -ForegroundColor White -BackgroundColor Red
+        }
+        Get-ChildItem -Path './Rules/SIGMA' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
+        break;
+    }
+    "ALL" {
+        Get-ChildItem -Path './Rules' -Recurse -Filter *.ps1 | Foreach-Object { Import-Module $_.FullName -Force; . Add-Rule }
+        break;
+    }
+    Default {}
+}
+#Functions:
 
 #Set the language: English or Japanese
 if ( $HostLanguage.Name -eq "ja-JP" -and $English -eq $true ) {
@@ -198,8 +230,8 @@ if ( $ShowContributors -eq $true ) {
     exit
 }
 
-#Stop people from doing live analysis on DCs
-if ( $LiveAnalysis -eq $true -and $IsDC -eq $true ) {
+
+if ( ($LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) -and $IsDC -eq $true ) {
     Write-Host
     Write-Host $Warn_DC_LiveAnalysis -ForegroundColor Black -BackgroundColor Yellow #Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis.
     Write-Host 
@@ -214,14 +246,8 @@ if ( $LiveAnalysis -eq $true -and ($LogFile -ne "" -or $LogDirectory -ne "")) {
     exit
 }
 
-# Show-Help if nothing specified
-if (    $LiveAnalysis -eq $false -and 
-        $LogFile -eq "" -and 
-        $SecurityEventID_Statistics -eq $false -and 
-        $SecurityLogonTimeline -eq $false -and 
-        $AccountInformation -eq $false -and 
-        $AnalyzeNTLM_UsageBasic -eq $false -and 
-        $AnalyzeNTLM_UsageDetailed -eq $false) {
+# Show-Helpは各言語のModuleに移動したためShow-Help関数は既に指定済みの言語の内容となっているため言語設定等の参照は行わない
+if ( $LiveAnalysis -eq $false -and $RemoteLiveAnalysis -eq $false -and $LogFile -eq "" -and $EventID_Statistics -eq $false -and $LogonTimeline -eq $false -and $AccountInformation -eq $false -and $AnalyzeNTLM_UsageBasic -eq $false -and $AnalyzeNTLM_UsageDetailed -eq $false) {
 
     Show-Help
     exit
@@ -230,9 +256,9 @@ if (    $LiveAnalysis -eq $false -and
 
 #No analysis source was specified
 if (    $SecurityEventID_Statistics -eq $true -or 
-        $SecurityLogonTimeline -eq $true -or 
-        $AnalyzeNTLM_UsageBasic -eq $true -or 
-        $AnalyzeNTLM_UsageDetailed -eq $true ) {
+    $SecurityLogonTimeline -eq $true -or 
+    $AnalyzeNTLM_UsageBasic -eq $true -or 
+    $AnalyzeNTLM_UsageDetailed -eq $true ) {
 
     if ( $LiveAnalysis -ne $true -and $LogFile -eq "" -and $LogDirectory -eq "") {
 
@@ -251,7 +277,7 @@ if ($LogFile -ne "") {
     [void]$evtxFiles.Add($LogFile)
 }
 
-if ( $LiveAnalysis -eq $true ) {
+if ( $LiveAnalysis -eq $true -or $RemoteLiveAnalysis -eq $true ) {
 
     Perform-LiveAnalysisChecks
     if ($AnalyzeNTLM -eq $true) {
@@ -271,6 +297,11 @@ if ( $LiveAnalysis -eq $true ) {
             "C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx"
         )
     }
+    
+    if ( $RemoteLiveAnalysis -eq $true ) {
+        $RemoteComputerInfo = Get-RemoteComputerInfo #Get credential and computername
+    }
+        
 }
 # -LogDirectory
 elseif ( $LogDirectory -ne "" ) {
@@ -320,5 +351,31 @@ foreach ( $LogFile in $evtxFiles ) {
         Analyze-NTLMOperationalDetailed
         
     }
-
 }
+
+$progcnt = 0;
+$maxprogcnt = $evtxFiles.Count * $ruleStack.Count
+$interval = $maxprogcnt * 0.1
+if ($ruleStack.Count -ne 0) {
+    foreach ($LogFile in $evtxFiles) {
+        $WineventFilter = @{}
+        $WineventFilter.Add( "Path", $LogFile ) 
+        # write-host "execute rule to $LogFile"
+        $logs = Get-WinEventWithFilter -WinEventFilter $WineventFilter -RemoteComputerInfo $RemoteComputerInfo
+        foreach ($rule in $ruleStack.keys) {
+            #write-host "execute rule:$rule"
+            Invoke-Command -scriptblock $ruleStack[$rule] -ArgumentList @($logs)
+        }
+        $progcnt += 1;
+        if ($progcnt % $interval -eq 0) {
+            Write-Host "Check Detect Rule... Checked File($progcnt of $maxprogcnt)" -ForegroundColor Black -BackgroundColor Green
+        }
+    }
+}
+
+Remove-Variable ruleStack
+$isAdmin = Check-Administrator
+if ( $isAdmin -eq $true -and ($UseDetectRules -eq "2" -or $UseDetectRules.toupper() -eq "all")) {
+    Set-MpPreference -DisableRealTimeMonitoring $false;
+}
+Set-ExecutionPolicy $exectionpolicy -scope Process

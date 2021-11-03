@@ -1,0 +1,31 @@
+# Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational | where {(($_.ID -eq "8") -and ($_.message -match "SourceImage.*.*\bash.exe" -or $_.message -match "SourceImage.*.*\cvtres.exe" -or $_.message -match "SourceImage.*.*\defrag.exe" -or $_.message -match "SourceImage.*.*\dnx.exe" -or $_.message -match "SourceImage.*.*\esentutl.exe" -or $_.message -match "SourceImage.*.*\excel.exe" -or $_.message -match "SourceImage.*.*\expand.exe" -or $_.message -match "SourceImage.*.*\explorer.exe" -or $_.message -match "SourceImage.*.*\find.exe" -or $_.message -match "SourceImage.*.*\findstr.exe" -or $_.message -match "SourceImage.*.*\forfiles.exe" -or $_.message -match "SourceImage.*.*\git.exe" -or $_.message -match "SourceImage.*.*\gpupdate.exe" -or $_.message -match "SourceImage.*.*\hh.exe" -or $_.message -match "SourceImage.*.*\iexplore.exe" -or $_.message -match "SourceImage.*.*\installutil.exe" -or $_.message -match "SourceImage.*.*\lync.exe" -or $_.message -match "SourceImage.*.*\makecab.exe" -or $_.message -match "SourceImage.*.*\mDNSResponder.exe" -or $_.message -match "SourceImage.*.*\monitoringhost.exe" -or $_.message -match "SourceImage.*.*\msbuild.exe" -or $_.message -match "SourceImage.*.*\mshta.exe" -or $_.message -match "SourceImage.*.*\msiexec.exe" -or $_.message -match "SourceImage.*.*\mspaint.exe" -or $_.message -match "SourceImage.*.*\outlook.exe" -or $_.message -match "SourceImage.*.*\ping.exe" -or $_.message -match "SourceImage.*.*\powerpnt.exe" -or $_.message -match "SourceImage.*.*\powershell.exe" -or $_.message -match "SourceImage.*.*\provtool.exe" -or $_.message -match "SourceImage.*.*\python.exe" -or $_.message -match "SourceImage.*.*\regsvr32.exe" -or $_.message -match "SourceImage.*.*\robocopy.exe" -or $_.message -match "SourceImage.*.*\runonce.exe" -or $_.message -match "SourceImage.*.*\sapcimc.exe" -or $_.message -match "SourceImage.*.*\schtasks.exe" -or $_.message -match "SourceImage.*.*\smartscreen.exe" -or $_.message -match "SourceImage.*.*\spoolsv.exe" -or $_.message -match "SourceImage.*.*\tstheme.exe" -or $_.message -match "SourceImage.*.*\userinit.exe" -or $_.message -match "SourceImage.*.*\vssadmin.exe" -or $_.message -match "SourceImage.*.*\vssvc.exe" -or $_.message -match "SourceImage.*.*\w3wp.exe" -or $_.message -match "SourceImage.*.*\winlogon.exe" -or $_.message -match "SourceImage.*.*\winscp.exe" -or $_.message -match "SourceImage.*.*\wmic.exe" -or $_.message -match "SourceImage.*.*\word.exe" -or $_.message -match "SourceImage.*.*\wscript.exe") -and  -not ($_.message -match "SourceImage.*.*Visual Studio")) } | select TimeCreated,Id,RecordId,ProcessId,MachineName,Message
+
+function Add-Rule {
+
+    $ruleName = "sysmon_suspicious_remote_thread";
+    $detectRule = {
+        
+        function Search-DetectableEvents {
+            param (
+                $event
+            )
+            
+            $ruleName = "sysmon_suspicious_remote_thread";
+            $detectedMessage = "Offensive tradecraft is switching away from using APIs like ""CreateRemoteThread"", however, this is still largely observed in the wild. This rule aims";
+            $result = $event |  where { (($_.ID -eq "8") -and ($_.message -match "SourceImage.*.*\\bash.exe" -or $_.message -match "SourceImage.*.*\\cvtres.exe" -or $_.message -match "SourceImage.*.*\\defrag.exe" -or $_.message -match "SourceImage.*.*\\dnx.exe" -or $_.message -match "SourceImage.*.*\\esentutl.exe" -or $_.message -match "SourceImage.*.*\\excel.exe" -or $_.message -match "SourceImage.*.*\\expand.exe" -or $_.message -match "SourceImage.*.*\\explorer.exe" -or $_.message -match "SourceImage.*.*\\find.exe" -or $_.message -match "SourceImage.*.*\\findstr.exe" -or $_.message -match "SourceImage.*.*\\forfiles.exe" -or $_.message -match "SourceImage.*.*\\git.exe" -or $_.message -match "SourceImage.*.*\\gpupdate.exe" -or $_.message -match "SourceImage.*.*\\hh.exe" -or $_.message -match "SourceImage.*.*\\iexplore.exe" -or $_.message -match "SourceImage.*.*\\installutil.exe" -or $_.message -match "SourceImage.*.*\\lync.exe" -or $_.message -match "SourceImage.*.*\\makecab.exe" -or $_.message -match "SourceImage.*.*\\mDNSResponder.exe" -or $_.message -match "SourceImage.*.*\\monitoringhost.exe" -or $_.message -match "SourceImage.*.*\\msbuild.exe" -or $_.message -match "SourceImage.*.*\\mshta.exe" -or $_.message -match "SourceImage.*.*\\msiexec.exe" -or $_.message -match "SourceImage.*.*\\mspaint.exe" -or $_.message -match "SourceImage.*.*\\outlook.exe" -or $_.message -match "SourceImage.*.*\\ping.exe" -or $_.message -match "SourceImage.*.*\\powerpnt.exe" -or $_.message -match "SourceImage.*.*\\powershell.exe" -or $_.message -match "SourceImage.*.*\\provtool.exe" -or $_.message -match "SourceImage.*.*\\python.exe" -or $_.message -match "SourceImage.*.*\\regsvr32.exe" -or $_.message -match "SourceImage.*.*\\robocopy.exe" -or $_.message -match "SourceImage.*.*\\runonce.exe" -or $_.message -match "SourceImage.*.*\\sapcimc.exe" -or $_.message -match "SourceImage.*.*\\schtasks.exe" -or $_.message -match "SourceImage.*.*\\smartscreen.exe" -or $_.message -match "SourceImage.*.*\\spoolsv.exe" -or $_.message -match "SourceImage.*.*\\tstheme.exe" -or $_.message -match "SourceImage.*.*\\userinit.exe" -or $_.message -match "SourceImage.*.*\\vssadmin.exe" -or $_.message -match "SourceImage.*.*\\vssvc.exe" -or $_.message -match "SourceImage.*.*\\w3wp.exe" -or $_.message -match "SourceImage.*.*\\winlogon.exe" -or $_.message -match "SourceImage.*.*\\winscp.exe" -or $_.message -match "SourceImage.*.*\\wmic.exe" -or $_.message -match "SourceImage.*.*\\word.exe" -or $_.message -match "SourceImage.*.*\\wscript.exe") -and -not ($_.message -match "SourceImage.*.*Visual Studio")) } | select TimeCreated, Id, RecordId, ProcessId, MachineName, Message;
+            if ($result -and $result.Count -ne 0) {
+                Write-Output ""; 
+                Write-Output "Detected! RuleName:$ruleName";
+                Write-Output $detectedMessage;
+                Write-Output $result;
+                Write-Output ""; 
+            }
+        };
+        . Search-DetectableEvents $args;
+    };
+    if(! $ruleStack[$ruleName]) {
+        $ruleStack.Add($ruleName, $detectRule);
+    } else {
+       Write-Host "Rule Import Error"  -Foreground Yellow;
+    }
+}

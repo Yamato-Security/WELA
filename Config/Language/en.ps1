@@ -77,7 +77,7 @@ $4625 = @{
     TimelineDetect = "Yes"; 
 }
 $4627 = @{
-    EventTitle     = 'Group membership information';
+    EventTitle = 'Group membership information';
 }
 $4634 = @{
     EventTitle     = 'Logoff';
@@ -97,11 +97,11 @@ $4672 = @{
 }
 
 $4673 = @{
-    EventTitle     = 'A privileged service was called';
+    EventTitle = 'A privileged service was called';
 }
 
 $4674 = @{
-    EventTitle     = 'An operation was attempted on a privileged object';
+    EventTitle = 'An operation was attempted on a privileged object';
 }
 
 $4688 = @{
@@ -349,24 +349,28 @@ $Create_LogonTimeline_NoLogoffEvent = "No logoff event"
 $Create_LogonTimeline_Total_Logon_Event_Records = "Total logon event records: "
 $Create_LogonTimeline_Data_Reduction = "Log event data reduction: "
 $Create_LogonTimeline_Total_Filtered_Logons = "Total filtered logons: "
-$Create_LogonTimeline_Type0 =  "Type  0 System Logons (System runtime):"
-$Create_LogonTimeline_Type2 =  "Type  2 Interactive Logons (Ex: Console logon, VNC) (Dangerous: Credentials in memory):"
-$Create_LogonTimeline_Type3 =  "Type  3 Network Logons (Ex: SMB Share, net command, rpcclient, psexec, winrm):"
-$Create_LogonTimeline_Type4 =  "Type  4 Batch Logons (Ex: Scheduled Tasks):"
-$Create_LogonTimeline_Type5 =  "Type  5 Service Logons:"
-$Create_LogonTimeline_Type7 =  "Type  7 Screen Unlock (and RDP reconnect) Logons:"
-$Create_LogonTimeline_Type8 =  "Type  8 NetworkCleartext Logons (Ex: IIS Basic Auth)(Dangerous: plaintext password used for authentication):"
-$Create_LogonTimeline_Type9 =  "Type  9 NewCredentials Logons (Ex: runas /netonly command)(Dangerous: Credentials in memory):"
+$Create_LogonTimeline_Type0 = "Type  0 System Logons (System runtime):"
+$Create_LogonTimeline_Type2 = "Type  2 Interactive Logons (Ex: Console logon, VNC) (Dangerous: Credentials in memory):"
+$Create_LogonTimeline_Type3 = "Type  3 Network Logons (Ex: SMB Share, net command, rpcclient, psexec, winrm):"
+$Create_LogonTimeline_Type4 = "Type  4 Batch Logons (Ex: Scheduled Tasks):"
+$Create_LogonTimeline_Type5 = "Type  5 Service Logons:"
+$Create_LogonTimeline_Type7 = "Type  7 Screen Unlock (and RDP reconnect) Logons:"
+$Create_LogonTimeline_Type8 = "Type  8 NetworkCleartext Logons (Ex: IIS Basic Auth)(Dangerous: plaintext password used for authentication):"
+$Create_LogonTimeline_Type9 = "Type  9 NewCredentials Logons (Ex: runas /netonly command)(Dangerous: Credentials in memory):"
 $Create_LogonTimeline_Type10 = "Type 10 RemoteInteractive Logons (Ex: RDP) (Dangerous: Credentials in memory):"
 $Create_LogonTimeline_Type11 = "Type 11 CachedInteractive/Cached Credentials Logons (Ex: Cannot connect to DC for authentication):"
 $Create_LogonTimeline_Type12 = "Type 12 CachedRemoteInteractive (Ex: RDP with cached credentials, Microsoft Live Accounts):"
 $Create_LogonTimeline_Type13 = "Type 13 CachedUnlocked Logons (Ex: Unlock or RDP reconnect without authenticated to DC):"
 $Create_LogonTimeline_TypeOther = "Other Type Logons:"
 $Create_LogonTimeline_localComputer = "LOCAL"
+$Detect_ProcessingDetectionMessage = "Processing rule-base detection...`n"
 $Create_LogonTimeline_LoadingEVTX = "Loading event logs."
 $Create_LogonTimeline_PleaseWait = "Please be patient."
 $Create_LogonTimeline_AnalyzingLogs = "Analyzing logs..."
 
+$Info_Noload_SIGMAMODULE = "Info:Load of SIGMA Detection Rule is canceled by User Input."
+$Info_GetEventNoMatch = "Info:No events were found that match in Get-WinEvent."
+$Warn_GetEvent = "Warning:Get-WinEvent error record skip."
 $Warn_DC_LiveAnalysis = "Warning: You probably should not be doing live analysis on a Domain Controller. Please copy log files offline for analysis."
 $Error_InCompatible_LiveAnalysisAndLogFile = "Error: You cannot specify -LiveAnalysis and -LogFile (or -LogDirectory) at the same time"
 $Error_InCompatible_LogDirAndFile = "Error：You cannot specify -LogDirectory and -LogFile at the same time" 
@@ -375,6 +379,16 @@ $Error_NeedAdministratorPriv = "Error: You need to be running Powershell as Admi
 $Error_NoSaveOutputWithCSV = "Error: You need to specify -SaveOutput"
 $Error_NoNeedSaveOutputWithGUI = "Error: You cannot output to GUI with the -SaveOutput parameter"
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "Error: You need to specify -LiveAnalysis or -LogFile"
+$Error_ExecutionPolicy_Bypassed = "ERROR:To use SIGMA Detection Rule, You need change exection policy to bypass. Please execution ""Set-ExectionPolicy bypass -scope Process"""
+
+#Remote live analysis
+$remoteAnalysis_getComputername = "Please enter a remote machine name (IP address or Hostname) "
+$remoteAnalysis_getCredential = "Please enter the remote computer credential."
+$Error_remoteAnalysis_InvalidExecutionPolicy = "Error: ExecutionPolicy must be ""RemoteSigned""."
+$Error_remoteAnalysis_UnregisteredComputername = "Error: you need to registered this remote computer in trustedhosts."
+$Error_remoteAnalysis_FailedTestWSMan = "Error: Failed to run Test-WSMan."
+$Warn_remoteAnalysis_Stopped_WinRMservice = "Warning: WinRM service on the remote computer may be stopped."
+$Warn_remoteAnalysis_wrongRemoteComputerInfo = "Warning: Either ComputerName or Credentials, or both, are wrong."
 $Error_NoEventsFound = "Error: No events found!"
 $Error_ThisFunctionDoesNotSupportOutputGUI = "Error: This function does not support -OutputGUI"
 $Error_ThisFunctionDoesNotSupportOutputCSV = "Error: This function does not support -OutputCSV"
@@ -488,9 +502,9 @@ $Show_Contributors1 = @"
 $Show_Contributors2 =
 "Contributors:
 
-oginoPmP - Developer
-DustInDark - Localization, Japanese Translations
-Tsubokku - Japanese Translations
+ogino(GitHub:@oginoPmP) - Developer
+DustInDark(GitHub:@hitenkoku) - Localization, Japanese Translations
+Tsubokku(twitter: @ytsuboi0322) - Japanese Translations
 秀真（Hotsuma） - Calligraphy
 
 Please contribute to this project for fame and glory!
@@ -516,6 +530,9 @@ function Show-Help {
 
     Write-Host "   -LogDirectory <path-to-logfiles> (Warning: not fully implemented.)" -NoNewline -ForegroundColor Green
     Write-Host " : Analyze offline .evtx files"
+
+    Write-Host "   -RemoteLiveAnalysis" -NoNewline -ForegroundColor Green
+    Write-Host " : Creates a timeline based on the remote host's log"
 
     Write-Host
     Write-Host "Analysis Type (Specify one):"
@@ -549,6 +566,10 @@ function Show-Help {
 
     Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : Specify if the logs are from a DC"
+
+    Write-Host "   -UseDetectRule <preset-rule | path-to-ruledirectory>(Default: preset-rule='0')" -NoNewline -ForegroundColor Green
+    Write-Host "：Specify detected event output on Rule Base"
+    Write-Host "   preset-rule| 0:None 1: DeepBlueCLI 2:SIGMA all:all-preset"
 
     Write-Host 
     Write-Host "Output Types (Default: Standard Output):"

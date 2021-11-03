@@ -32,6 +32,8 @@ $Create_SecurityEventIDStatistics_Event = "イベント"
 $Create_SecurityEventIDStatistics_TimelineOutput = "タイムライン出力"
 $Create_SecurityEventIDStatistics_Comment = "コメント"
 
+$Detect_ProcessingDetectionMessage = "ルールベースでの検知中です。`n"
+
 $1100 = @{
     EventTitle = 'イベントログサービスがシャットダウンした';
     Comment    = 'Good for finding signs of anti-forensics but most likely false positives when the system shuts down.';
@@ -84,7 +86,7 @@ $4625 = @{
     TimelineDetect = "Yes"; 
 }
 $4627 = @{
-    EventTitle     = 'グループメンバーシップ情報';
+    EventTitle = 'グループメンバーシップ情報';
 }
 
 $4634 = @{
@@ -106,10 +108,10 @@ $4672 = @{
     TimelineDetect = "Yes";
 }
 $4673 = @{
-    EventTitle     = '特権のあるサービスが呼び出された';
+    EventTitle = '特権のあるサービスが呼び出された';
 }
 $4674 = @{
-    EventTitle     = '特権のあるオブジェクトに対して操作が行われた';
+    EventTitle = '特権のあるオブジェクトに対して操作が行われた';
 }
 $4688 = @{
     EventTitle = '新しいプロセスが起動された';
@@ -373,6 +375,11 @@ $Create_LogonTimeline_LoadingEVTX = "イベントログをロードしていま�
 $Create_LogonTimeline_PleaseWait = "少々お待ち下さい。"
 $Create_LogonTimeline_AnalyzingLogs = "ログを解析しています。"
 
+$Confirm_DefConfirm_ExecutionPolicy_Bypassed = "確認:SIGMAの検知ルールを利用するために、PowerShellのExectionPolicyをBypassに設定する必要があります。実行しますか？"
+$Confirm_DefConfirm_DefenderRealTimeScan_enderRealTimeScan_Disabled = ""
+$Info_Noload_SIGMAMODULE = "情報:SIGMAの検知ルールの読み込みがユーザによってキャンセルされました。"
+$Info_GetEventNoMatch = "情報:Get-WinEventで調査対象に合致するイベントレコードはありませんでした。"
+$Warn_GetEvent = "注意:Get-WinEventでエラーが発生しました。エラーが発生したイベントレコードは読み込まれません。"
 $Warn_DC_LiveAnalysis = "注意：ドメインコントローラーでライブ調査をしない方が良いです。ログをオフラインにコピーしてから解析して下さい。"
 $Error_InCompatible_LiveAnalysisAndLogFile = "エラー：「-LiveAnalysis」 と「-LogFile」「-LogDirectory」を同時に指定できません。"
 $Error_InCompatible_LogDirAndFile = "エラー：「-LogDirectory」 と「-LogFile」を同時に指定できません。"
@@ -384,6 +391,15 @@ $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysis
 $Error_NoEventsFound = "エラー: イベントがない！"
 $Error_ThisFunctionDoesNotSupportOutputGUI = "エラー： この機能は-OutputGUIに対応していない。"
 $Error_ThisFunctionDoesNotSupportOutputCSV = "エラー： この機能は-OutputCSVに対応していない。"
+
+#Remote live analysis
+$remoteAnalysis_getComputername = "リモートコンピュータのマシン名（IPアドレス or ホスト名）を入力してください "
+$remoteAnalysis_getCredential = "リモートコンピュータの認証情報を入力してください。"
+$Error_remoteAnalysis_InvalidExecutionPolicy = "エラー： ExecutionPolicyは「RemoteSigned」である必要があります。"
+$Error_remoteAnalysis_UnregisteredComputername = "エラー： リモートコンピュータのマシン名をtrustedhostsに登録する必要があります。"
+$Error_remoteAnalysis_FailedTestWSMan = "エラー： Test-WSManの実行が失敗しました。リモートコンピュータへの接続ができません。"
+$Warn_remoteAnalysis_Stopped_WinRMservice = "注意： リモートコンピュータ上のWinRMサービスが停止している可能性があります。"
+$Warn_remoteAnalysis_wrongRemoteComputerInfo = "注意： 間違ったマシン名または認証情報が入力された可能性があります。"
 
 #function Show-Contributors
 $Show_Contributors1 = @"
@@ -496,9 +512,9 @@ $Show_Contributors1 = @"
 $Show_Contributors2 =
 "コントリビューター:
 
-oginoPmP - 開発
-DustInDark - ローカライゼーション、和訳
-つぼっく - 和訳
+ogino(GitHub:@oginoPmP) - 開発
+DustInDark(GitHub:@hitenkoku) - ローカライゼーション、和訳
+つぼっく(twitter: @ytsuboi0322) - 和訳
 秀真（ほつま） - アート
 
 コントリビュータを募集しています！
@@ -521,6 +537,9 @@ function Show-Help {
 
     Write-Host "   -LogDirectory <ログファイルのディレクトリのパス> (未完成)" -NoNewline -ForegroundColor Green
     Write-Host " : 複数のオフラインの.evtxファイルを解析する"
+
+    Write-Host "   -RemoteLiveAnalysis" -NoNewline -ForegroundColor Green
+    Write-Host " : リモートマシンのログでタイムラインを作成する"
 
     Write-Host
     Write-Host "解析タイプを一つ指定して下さい:"
@@ -554,6 +573,11 @@ function Show-Help {
 
     Write-Host "   -IsDC" -NoNewline -ForegroundColor Green
     Write-Host " : ドメインコントローラーのログの場合は指定して下さい"
+
+    Write-Host "   -UseDetectRule <preset rule | path-to-ruledirectory>(Default:preset rule='0')" -NoNewline -ForegroundColor Green
+    Write-Host "：検知ルールに該当するイベントの出力を行う"
+    Write-Host "   preset rule| 0:None 1: DeepBlueCLI 2:SIGMA all:all-preset"
+
 
     Write-Host 
     Write-Host "出力方法（デフォルト：標準出力）:"
