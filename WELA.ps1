@@ -374,8 +374,4 @@ if ($ruleStack.Count -ne 0) {
 }
 
 Remove-Variable ruleStack
-$isAdmin = Check-Administrator
-if ( $isAdmin -eq $true -and ($UseDetectRules -eq "2" -or $UseDetectRules.toupper() -eq "all")) {
-    Set-MpPreference -DisableRealTimeMonitoring $false;
-}
 Set-ExecutionPolicy $exectionpolicy -scope Process
