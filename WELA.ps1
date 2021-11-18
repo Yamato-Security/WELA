@@ -183,6 +183,27 @@ if ( $UTC -eq $true ) {
     $UTCOffset = "UTC"
 }
 
+#Check $StartTimeline and $EndTimeline
+if ( $StartTimeline -ne "" ) {
+    $StartTimeline = Check-DateString -DateString $StartTimeline -DateFormat $DateFormat
+    if ( $StartTimeline -eq "" ) {
+        Write-Host
+        Write-Host $Error_Incorrect_StartTimeline -ForegroundColor White -BackgroundColor Red # Error: Failed to parse Starttimeline. Please check the format of the input value.
+        Write-Host 
+        exit
+    }
+}
+
+if ( $EndTimeline -ne "" ) {
+    $EndTimeline = Check-DateString -DateString $EndTimeline -DateFormat $DateFormat
+    if ( $EndTimeline -eq "" ) {
+        Write-Host
+        Write-Host $Error_Incorrect_EndTimeline -ForegroundColor White -BackgroundColor Red # Error: Failed to parse Endtimeline. Please check the format of the input value.
+        Write-Host 
+        exit
+    }
+}
+
 #Functions:
 function Show-Contributors {
     Write-Host 

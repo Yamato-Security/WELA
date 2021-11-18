@@ -66,6 +66,24 @@ function Check-Administrator {
     (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)  
 }
 
+function Check-DateString() {
+    param([string]$DateString, [string]$DateFormat)
+    $length = $DateString.Length
+    switch ($length) {
+        10 { $testFormat = $DateFormat.split(" ")[0] }   #yyyy-MN-dd
+        19 { $testFormat = $DateFormat.split(".00")[0] } #yyyy-MM-dd HH:mm:ss
+        22 { $testFormat = $DateFormat }                 #yyyy-MM-dd HH:mm:ss.ff
+        default { return "" }
+    }
+    try {
+        $Date = [DateTime]::ParseExact($DateString, $testFormat,$null)
+        return $Date.ToString($DateFormat)
+    }
+    catch {
+        return ""
+    }
+}
+
 
 # following check function in DeepBlueCLI.
 
