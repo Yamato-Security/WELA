@@ -380,6 +380,8 @@ $Error_NoSaveOutputWithCSV = "Error: You need to specify -SaveOutput"
 $Error_NoNeedSaveOutputWithGUI = "Error: You cannot output to GUI with the -SaveOutput parameter"
 $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "Error: You need to specify -LiveAnalysis or -LogFile"
 $Error_ExecutionPolicy_Bypassed = "ERROR:To use SIGMA Detection Rule, You need change exection policy to bypass. Please execution ""Set-ExectionPolicy bypass -scope Process"""
+$Error_Incorrect_StartTimeline = "Error: Failed to parse Starttimeline. Please check the format of the input value."
+$Error_Incorrect_EndTimeline = "Error: Failed to parse Endtimeline. Please check the format of the input value."
 
 #Remote live analysis
 $remoteAnalysis_getComputername = "Please enter a remote machine name (IP address or Hostname) "

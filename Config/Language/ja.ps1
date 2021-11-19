@@ -391,6 +391,8 @@ $Error_InCompatible_NoLiveAnalysisOrLogFileSpecified = "エラー: -LiveAnalysis
 $Error_NoEventsFound = "エラー: イベントがない！"
 $Error_ThisFunctionDoesNotSupportOutputGUI = "エラー： この機能は-OutputGUIに対応していない。"
 $Error_ThisFunctionDoesNotSupportOutputCSV = "エラー： この機能は-OutputCSVに対応していない。"
+$Error_Incorrect_StartTimeline = "エラー： 「StartTimeline」の読み込みに失敗しました。入力値のフォーマットを確認してください。"
+$Error_Incorrect_EndTimeline = "Error: 「EndTimeline」の読み込みに失敗しました。入力値のフォーマットを確認してください。"
 
 #Remote live analysis
 $remoteAnalysis_getComputername = "リモートコンピュータのマシン名（IPアドレス or ホスト名）を入力してください "
