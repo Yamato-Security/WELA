@@ -71,8 +71,7 @@ function Create-SecurityAuthenticationSummary {
     Write-Host
     Write-Host $Create_SecurityAuthenticationSummary_Welcome_Message
     Write-Host
-
-    #イベントを読み込む
+    
     $WineventFilter = @{}
     $EventIDsToAnalyze = @(4624, 4625)
     $WineventFilter.Add("ID", $EventIDsToAnalyze)
