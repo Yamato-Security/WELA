@@ -50,6 +50,7 @@ You will need local Administrator access for live analysis.
         -AnalyzeNTLM_UsageDetailed : Returns detailed NTLM usage based on the NTLM Operational log
         -EventID_Statistics : Output event ID statistics
         -LogonTimeline : Output a condensed timeline of user logons based on the Security log
+        -SecurityAuthenticationSummary : Output a summary of authentication events for each logon type based on the Security log
 
     Analysis Options:
         -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : Specify the start of the timeline

@@ -34,6 +34,9 @@
 
     Offline Analysis Timeline Generation (オフライン調査のタイムライン作成):
     .\WELA.ps1 -SecurityLogonTimeline -LogFile .\Cobalt-Strike-Security.evtx 
+
+    Output Authentication events summary (ログオンイベントの集計):
+    .\WELA.ps1 -SecurityAuthenticationSummary
     
     Analyze with a GUI(GUIでの解析):
     -OutputGUI
@@ -98,6 +101,7 @@ param (
     [switch]$SecurityEventID_Statistics,
     [switch]$SecurityLogonTimeline,
     [switch]$EasyToReadSecurityLogonTimeline,
+    [switch]$SecurityAuthenticationSummary,
     [switch]$AccountInformation,
     [switch]$OutputGUI,
     [switch]$OutputCSV,
@@ -370,6 +374,13 @@ foreach ( $LogFile in $evtxFiles ) {
 
         .  ($AnalyzersPath + "NTLM-Operational-Usage.ps1")
         Analyze-NTLMOperationalDetailed
+        
+    }
+
+    if ( $SecurityAuthenticationSummary -eq $true ) {
+
+        .  ($AnalyzersPath + "Security-AuthenticationSummary.ps1")
+        Create-SecurityAuthenticationSummary -filePath $LogFile
         
     }
 }

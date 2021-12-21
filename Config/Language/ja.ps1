@@ -394,6 +394,12 @@ $Error_ThisFunctionDoesNotSupportOutputCSV = "エラー： この機能は-Outpu
 $Error_Incorrect_StartTimeline = "エラー： 「StartTimeline」の読み込みに失敗しました。入力値のフォーマットを確認してください。"
 $Error_Incorrect_EndTimeline = "Error: 「EndTimeline」の読み込みに失敗しました。入力値のフォーマットを確認してください。"
 
+# function Create-AuthenticationSummary
+$Create_SecurityAuthenticationSummary_Welcome_Message = "ログオン試行イベントをログオンタイプおよびユーザごとに集計します。"
+$Create_SecurityAuthenticationSummary_NoMatch_Message = "このイベントタイプのイベントはありませんでした。"
+$Create_SecurityAuthenticationSummary_OutputCSV_Message = "集計結果を {0} に出力しました。"
+$Create_AuthenticationSummary_LogonType_Format = "Type{0}_({1})"
+
 #Remote live analysis
 $remoteAnalysis_getComputername = "リモートコンピュータのマシン名（IPアドレス or ホスト名）を入力してください "
 $remoteAnalysis_getCredential = "リモートコンピュータの認証情報を入力してください。"
@@ -560,6 +566,9 @@ function Show-Help {
 
     Write-Host "   -SecurityLogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : セキュリティログからユーザログオンの簡単なタイムラインを出力する"
+
+    Write-Host "   -SecurityAuthenticationSummary" -NoNewline -ForegroundColor Green
+    Write-Host " : セキュリティログからログオンタイプごとの集計情報を出力する"
 
     Write-Host 
     Write-Host "解析オプション:"

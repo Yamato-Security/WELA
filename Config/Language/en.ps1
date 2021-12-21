@@ -383,6 +383,12 @@ $Error_ExecutionPolicy_Bypassed = "ERROR:To use SIGMA Detection Rule, You need c
 $Error_Incorrect_StartTimeline = "Error: Failed to parse Starttimeline. Please check the format of the input value."
 $Error_Incorrect_EndTimeline = "Error: Failed to parse Endtimeline. Please check the format of the input value."
 
+# function Create-AuthenticationSummary
+$Create_SecurityAuthenticationSummary_Welcome_Message = "Aggregate logon attempt events by logon type and user."
+$Create_SecurityAuthenticationSummary_NoMatch_Message = "No events of this event type."
+$Create_SecurityAuthenticationSummary_OutputCSV_Message = "The aggregate result was output to {0}."
+$Create_AuthenticationSummary_LogonType_Format = "Type{0}_({1})"
+
 #Remote live analysis
 $remoteAnalysis_getComputername = "Please enter a remote machine name (IP address or Hostname) "
 $remoteAnalysis_getCredential = "Please enter the remote computer credential."
@@ -553,6 +559,9 @@ function Show-Help {
 
     Write-Host "   -SecurityLogonTimeline" -NoNewline -ForegroundColor Green
     Write-Host " : Output a condensed timeline of user logons based on the Security log"
+
+    Write-Host "   -SecurityAuthenticationSummary" -NoNewline -ForegroundColor Green
+    Write-Host " : Output a summary of authentication events for each logon type based on the Security log"
 
     Write-Host 
     Write-Host "Analysis Options:"

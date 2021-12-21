@@ -50,6 +50,7 @@ Windows Powershell 5.1で動作確認済みですが、以前のバージョン�
         -AnalyzeNTLM_UsageDetailed : NTLM Operationalログを解析し、NTLM認証の使用を詳細に出力する
         -EventIDStatistics : イベントIDの集計情報を出力する
         -LogonTimeline : ユーザログオンの簡単なタイムラインを出力する
+        -SecurityAuthenticationSummary : ログオンタイプごとの集計情報を出力する
 
     解析オプション:
         -StartTimeline "<YYYY-MM-DD HH:MM:SS>" : タイムラインの始まりを指定する
