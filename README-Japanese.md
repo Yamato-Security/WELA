@@ -134,7 +134,7 @@ NTLM認証を無効にする前に使用を確認する:
 - [DeepBlueCLI](https://github.com/sans-blue-team/DeepBlueCLI) - Powershellで書かれた攻撃検知ツール。
 - [EVTX ATTACK Samples](https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES) - 攻撃の痕跡が入っているEVTXサンプルファイルのリポジトリ。作者： [SBousseaden](https://twitter.com/SBousseaden)
 - [RustyBlue](https://github.com/Yamato-Security/RustyBlue) - DeepBlueCLIをRustに書き換えたツール。
-- [SIGMA](SIGMA: https://github.com/SigmaHQ/sigma) - SIEM等のジェネリックな攻撃検知ルール。
+- [SIGMA](https://github.com/SigmaHQ/sigma) - SIEM等のジェネリックな攻撃検知ルール。
 - [so-import-evtx](https://docs.securityonion.net/en/2.3/so-import-evtx.html) - evtxファイルをSecurity Onionにインポートするコマンド。
 - [Zircolite](https://github.com/wagga40/Zircolite) - Pythonで書かれたSIGMAベースの攻撃検知ツール。
 
