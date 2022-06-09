@@ -512,7 +512,10 @@ function Create-SecurityLogonTimeline {
            
     }
     
-    $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
+    $LogEventDataReduction = 0;
+    if ($TotalLogonEvents -ne 0) {
+        $LogEventDataReduction = [math]::Round( ( ($TotalLogonEvents - $TotalFilteredLogons) / $TotalLogonEvents * 100 ), 1 )
+    }
 
     $ProgramEndTime = Get-Date
     $TotalRuntime = [math]::Round(($ProgramEndTime - $ProgramStartTime).TotalSeconds)
