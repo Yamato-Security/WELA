@@ -338,7 +338,7 @@ elseif ( $LogDirectory -ne "" ) {
         exit
     }
     
-    Get-ChildItem -Filter *.evtx -Path $LogDirectory | ForEach-Object { [void]$evtxFiles.Add($_.FullName) }
+    Get-ChildItem -Filter *.evtx -Recurse -Path $LogDirectory | ForEach-Object { [void]$evtxFiles.Add($_.FullName) }
 }
 
 # Run analysis
