@@ -627,7 +627,7 @@ function Create-SecurityLogonTimeline {
 
         if ( $OutputCSV -eq $true ) {
 
-            $output | Export-Csv $SaveOutput
+            $output | Export-Csv $SaveOutput -Encoding UTF8
 
         }
         Else {
