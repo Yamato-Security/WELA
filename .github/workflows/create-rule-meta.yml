@@ -21,4 +21,4 @@ jobs:
         run: ls -la
 
       - name: Run
-        run: cd wela-extractor && cargo run --release -- ../../hayabusa-rules ../config/eid_subcategory_mapping.csv ../config/hayabusa-rule-meta.json
+        run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../config/eid_subcategory_mapping.csv ../config/hayabusa-rule-meta.json
