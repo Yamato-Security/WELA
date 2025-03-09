@@ -11,18 +11,30 @@ jobs:
 
       - name: Generate csv from auditpol /list /subcategory:* /r
         run: |
-            $output = auditpol /list /subcategory:* /r
-            $data = $output | Select-Object -Skip 1 | Where-Object { $_ -match '.+\s{2,}.+' }
-            $csvData = $data | ForEach-Object {
-            $columns = $_ -split "\s{2,}"
-            [PSCustomObject]@{
-                               "Subcategory"       = $columns[0].Trim()
-                               "Subcategory GUID"  = $columns[1].Trim()
-            }
-            }
-            $csvFilePath = "$PWD\auditpol_output.csv"
-            $csvData | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
-            Write-Output "CSVファイルが作成されました: $csvFilePath"
+              $data = auditpol /list /subcategory:* /r
+              $category = ""
+              foreach ($line in $data) {
+                  if ($line -match "^Category/Subcategory") { continue }
+                  if ($line -match "^\s+(.+),\{(.+)\}$") {
+                      $subcategory = $matches[1].Trim()
+                      $guid = $matches[2].Trim()
+                      $output += [PSCustomObject]@{
+                          Category    = $category
+                          Subcategory = $subcategory
+                          GUID        = $guid
+                      }
+                  } elseif ($line -match "^(.+),\{(.+)\}$") {
+                      $category = $matches[1].Trim()
+                      $guid = $matches[2].Trim()
+                      $output += [PSCustomObject]@{
+                          Category    = $category
+                          Subcategory = ""
+                          GUID        = $guid
+                      }
+                  }
+              }
+              $output | Export-Csv -Path "output.csv" -NoTypeInformation -Encoding UTF8
+              $output | Format-Table -AutoSize
 
       - name: Configure Git
         run: |
