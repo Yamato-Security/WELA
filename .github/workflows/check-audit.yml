@@ -23,3 +23,16 @@ jobs:
 
       - name: Get-WinEvent -ListProvider *
         run: (Get-WinEvent -ListProvider Microsoft-Windows-Security-Auditing).Events | ForEach-Object { [PSCustomObject]@{EventID=$_.Id; Description=($_.Description -replace "`r`n", " ") -replace "\..*", ""} }
+
+      - name: Checkout self repository
+        uses: actions/checkout@v4
+
+      - name: Load audit settings(json)
+        run: |
+          $audit_settings = Get-Content -Path ./config/hayabusa_rules_meta.json -Raw | ConvertFrom-Json
+          $audit_settings
+
+      - name: Load audit settings(csv)
+        run: |
+            $audit_settings = Import-Csv .config/eid_subcategory_mapping.csv
+            $audit_settings
