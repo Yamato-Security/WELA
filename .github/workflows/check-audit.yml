@@ -23,4 +23,3 @@ jobs:
 
       - name: Get-WinEvent -ListProvider *
         run: (Get-WinEvent -ListProvider Microsoft-Windows-Security-Auditing).Events | ForEach-Object { [PSCustomObject]@{EventID=$_.Id; Description=($_.Description -replace "`r`n", " ") -replace "\..*", ""} }
-

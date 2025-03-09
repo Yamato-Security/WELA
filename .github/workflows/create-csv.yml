@@ -1,0 +1,44 @@
+name: Check audit setting
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate csv from auditpol /list /subcategory:* /r
+        run: |
+            $output = auditpol /list /subcategory:* /r
+            $data = $output | Select-Object -Skip 1 | Where-Object { $_ -match '.+\t{1,}.+' }
+            
+            $csvData = $data | ForEach-Object {
+            $columns = $_ -split "\t{1,}"  # タブ区切りで分割
+            [PSCustomObject]@{
+                               "Subcategory"       = $columns[0].Trim()
+                               "Subcategory GUID"  = $columns[1].Trim()
+            }
+            }
+            $csvFilePath = "$PWD\auditpol_output.csv"
+            $csvData | Export-Csv -Path $csvFilePath -NoTypeInformation -Encoding UTF8
+            Write-Output "CSVファイルが作成されました: $csvFilePath"
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Commit changes
+        run: |
+          git add *.csv
+          git commit -m "Automated update"
+
+      - name: Push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(git log -1 --pretty=%B)" = "Automated update" ]; then
+            git push origin main
+          fi
