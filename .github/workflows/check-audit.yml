@@ -29,10 +29,17 @@ jobs:
 
       - name: Load audit settings(json)
         run: |
-          $audit_settings = Get-Content -Path ./config/hayabusa_rules_meta.json -Raw | ConvertFrom-Json
-          $audit_settings
+            $startTime = Get-Date
+            $audit_settings = Get-Content -Path ./config/hayabusa_rules_meta.json -Raw | ConvertFrom-Json
+            $endTime = Get-Date
+            $duration = $endTime - $startTime
+            Write-Output "Duration: $duration"
 
       - name: Load audit settings(csv)
         run: |
-            $audit_settings = Import-Csv .config/eid_subcategory_mapping.csv
+            $startTime = Get-Date
+            $audit_settings = Import-Csv ./config/eid_subcategory_mapping.csv
             $audit_settings
+            $endTime = Get-Date
+            $duration = $endTime - $startTime
+            Write-Output "Duration: $duration"
