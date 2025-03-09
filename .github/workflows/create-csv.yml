@@ -12,6 +12,7 @@ jobs:
       - name: Generate csv from auditpol /list /subcategory:* /r
         run: |
               $data = auditpol /list /subcategory:* /r
+              $output = @()
               $category = ""
               foreach ($line in $data) {
                   if ($line -match "^Category/Subcategory") { continue }
