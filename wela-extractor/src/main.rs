@@ -113,12 +113,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         std::process::exit(1);
     }
 
-    let file_path = &args[1];
-    let eid_subcategory_pair = load_event_id_guid_pairs(file_path)?;
-
-    let dir = &args[2];
+    let dir = &args[1];
     let yml_files = list_yml_files(dir);
     let mut results = Vec::new();
+
+    let file_path = &args[2];
+    let eid_subcategory_pair = load_event_id_guid_pairs(file_path)?;
 
     let out = &args[3];
 
