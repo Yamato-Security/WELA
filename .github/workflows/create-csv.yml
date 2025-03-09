@@ -1,6 +1,8 @@
 name: Create auditpol_output.csv
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
