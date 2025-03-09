@@ -1,8 +1,9 @@
 use csv::ReaderBuilder;
+use serde_json::{Value, json};
+use std::collections::HashSet;
 use std::error::Error;
-use std::{env, fs};
 use std::fs::write;
-use serde_json::{json, Value};
+use std::{env, fs};
 use walkdir::WalkDir;
 use yaml_rust2::{Yaml, YamlLoader};
 
@@ -20,7 +21,7 @@ fn list_yml_files(dir: &str) -> Vec<String> {
     yml_files
 }
 
-fn extract_event_ids(yaml: &Yaml, event_ids: &mut Vec<String>) {
+fn extract_event_ids(yaml: &Yaml, event_ids: &mut HashSet<String>) {
     match yaml {
         Yaml::Hash(hash) => {
             for (key, value) in hash {
@@ -29,17 +30,17 @@ fn extract_event_ids(yaml: &Yaml, event_ids: &mut Vec<String>) {
                         Yaml::Array(ids) => {
                             for id in ids {
                                 if let Some(id) = id.as_i64() {
-                                    event_ids.push(id.to_string());
+                                    event_ids.insert(id.to_string());
                                 } else if let Some(id) = id.as_str() {
-                                    event_ids.push(id.to_string());
+                                    event_ids.insert(id.to_string());
                                 }
                             }
                         }
                         Yaml::String(id) => {
-                            event_ids.push(id.clone());
+                            event_ids.insert(id.clone());
                         }
                         Yaml::Integer(id) => {
-                            event_ids.push(id.to_string());
+                            event_ids.insert(id.to_string());
                         }
                         _ => {}
                     }
@@ -65,16 +66,18 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
                 let title = doc["title"].as_str().unwrap_or("");
                 let desc = doc["description"].as_str().unwrap_or("");
                 let level = doc["level"].as_str().unwrap_or("");
-                let mut event_ids = Vec::new();
+                let mut event_ids = HashSet::new();
                 extract_event_ids(&doc, &mut event_ids);
-                let mut subcategories = Vec::new();
+                let mut subcategories = HashSet::new();
                 for event_id in &event_ids {
                     for (eid, subcategory) in eid_subcategory_pair {
                         if eid == event_id {
-                            subcategories.push(subcategory.clone());
+                            subcategories.insert(subcategory.clone());
                         }
                     }
                 }
+                let event_ids: Vec<String> = event_ids.into_iter().collect();
+                let subcategories: Vec<String> = subcategories.into_iter().collect();
                 return Some(json!({
                     "id": uuid,
                     "title": title,
