@@ -12,10 +12,9 @@ jobs:
       - name: Generate csv from auditpol /list /subcategory:* /r
         run: |
             $output = auditpol /list /subcategory:* /r
-            $data = $output | Select-Object -Skip 1 | Where-Object { $_ -match '.+\t{1,}.+' }
-            
+            $data = $output | Select-Object -Skip 1 | Where-Object { $_ -match '.+\s{2,}.+' }
             $csvData = $data | ForEach-Object {
-            $columns = $_ -split "\t{1,}"  # タブ区切りで分割
+            $columns = $_ -split "\s{2,}"
             [PSCustomObject]@{
                                "Subcategory"       = $columns[0].Trim()
                                "Subcategory GUID"  = $columns[1].Trim()
