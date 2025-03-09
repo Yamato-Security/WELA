@@ -1,0 +1,32 @@
+name: Check audit setting
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-2019, windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: auditpol /list /subcategory:* /r
+        run: auditpol /list /subcategory:* /r
+
+      - name: auditpol /get /category:*
+        run: auditpol /get /category:*
+
+      - name: Get-WinEvent -ListLog * | Select-Object LogName, MaximumSizeInBytes
+        run: Get-WinEvent -ListLog * | Select-Object LogName, MaximumSizeInBytes
+
+      - name: Get-WinEvent -ListProvider *
+        run: (Get-WinEvent -ListProvider Microsoft-Windows-Security-Auditing).Events | ForEach-Object { [PSCustomObject]@{EventID=$_.Id; Description=($_.Description -replace "`r`n", " ") -replace "\..*", ""} }
+
