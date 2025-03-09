@@ -18,7 +18,7 @@ jobs:
           path: hayabusa-rules
 
       - name: debug
-        run: ls -la
+        run: cd wela-extractor && ls -la ../hayabusa-rules && ls -la ../config
 
       - name: Run
         run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../config/eid_subcategory_mapping.csv ../config/hayabusa-rule-meta.json
