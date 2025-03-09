@@ -426,7 +426,7 @@
 "4936",DS Access","Detailed Directory Service Replication","0CCE923E-69AE-11D9-BED3-505054503030"
 "4937",DS Access","Detailed Directory Service Replication","0CCE923E-69AE-11D9-BED3-505054503030"
 "",Account Logon",,"69979850-797A-11D9-BED3-505054503030"
-"",Account Logon","Credential Validation","0CCE923F-69AE-11D9-BED3-505054503030"
+"4776",Account Logon","Credential Validation","0CCE923F-69AE-11D9-BED3-505054503030"
 "4769",Account Logon","Kerberos Service Ticket Operations","0CCE9240-69AE-11D9-BED3-505054503030"
 "4770",Account Logon","Kerberos Service Ticket Operations","0CCE9240-69AE-11D9-BED3-505054503030"
 "4773",Account Logon","Kerberos Service Ticket Operations","0CCE9240-69AE-11D9-BED3-505054503030"
