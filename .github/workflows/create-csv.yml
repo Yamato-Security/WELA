@@ -1,0 +1,55 @@
+name: Create auditpol_output.csv
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate csv from auditpol /list /subcategory:* /r
+        run: |
+              $data = auditpol /list /subcategory:* /r
+              $output = @()
+              $category = ""
+              foreach ($line in $data) {
+                  if ($line -match "^Category/Subcategory") { continue }
+                  if ($line -match "^\s+(.+),\{(.+)\}$") {
+                      $subcategory = $matches[1].Trim()
+                      $guid = $matches[2].Trim()
+                      $output += [PSCustomObject]@{
+                          Category    = $category
+                          Subcategory = $subcategory
+                          GUID        = $guid
+                      }
+                  } elseif ($line -match "^(.+),\{(.+)\}$") {
+                      $category = $matches[1].Trim()
+                      $guid = $matches[2].Trim()
+                      $output += [PSCustomObject]@{
+                          Category    = $category
+                          Subcategory = ""
+                          GUID        = $guid
+                      }
+                  }
+              }
+              $output | Export-Csv -Path "config/eid_subcategory_mapping.csv" -NoTypeInformation -Encoding UTF8
+              $output | Format-Table -AutoSize
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Commit changes
+        run: |
+          git add *.csv
+          if (git diff-index --quiet HEAD) {
+            echo "No changes to commit"
+          } else {
+            git commit -m "Automated update"
+            git push origin main
+          }
