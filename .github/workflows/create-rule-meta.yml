@@ -18,7 +18,7 @@ jobs:
           path: hayabusa-rules
 
       - name: Run
-        run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../config/eid_subcategory_mapping.csv ../config/hayabusa-rule-meta.json
+        run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../config/eid_subcategory_mapping.csv ../config/hayabusa_rules_meta.json
 
       - name: Push changes
         env:
