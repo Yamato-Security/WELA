@@ -1,0 +1,21 @@
+name: create-rule-meta.json
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout self repository
+        uses: actions/checkout@v4
+
+      - name: Checkout hayabusa-rules
+        uses: actions/checkout@v4
+        with:
+          repository: Yamato-Security/hayabusa-rules
+          path: hayabusa-rules
+
+      - name: Run
+        run: cd wela-extractor && cargo run --release -- ../../hayabusa-rules ../config/eid_subcategory_mapping-org.csv ../config/hayabusa-rule-meta.json

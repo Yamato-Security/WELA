@@ -108,17 +108,19 @@ fn load_event_id_guid_pairs(file_path: &str) -> Result<Vec<(String, String)>, Bo
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
+    if args.len() != 4 {
         eprintln!("Usage: {} <file_path> <dir>", args[0]);
         std::process::exit(1);
     }
 
     let file_path = &args[1];
-    let eid_subcategory_pair = load_event_id_guid_pairs(file_path).unwrap();
+    let eid_subcategory_pair = load_event_id_guid_pairs(file_path)?;
 
     let dir = &args[2];
     let yml_files = list_yml_files(dir);
     let mut results = Vec::new();
+
+    let out = &args[3];
 
     for file in yml_files {
         let contents = fs::read_to_string(&file).expect("Unable to read file");
@@ -131,6 +133,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let json_output = serde_json::to_string_pretty(&results)?;
-    write("../config/hayabusa_rules_meta.json", json_output)?;
+    println!("{}", json_output);
+    write(out, json_output)?;
     Ok(())
 }
