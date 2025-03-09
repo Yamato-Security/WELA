@@ -1,4 +1,4 @@
-name: Check audit setting
+name: Create auditpol_output.csv
 
 on:
   workflow_dispatch:
