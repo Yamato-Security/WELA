@@ -30,7 +30,7 @@
     "title": "Net Conn Blocked"
   },
   {
-    "description": "No description",
+    "description": "",
     "event_ids": [
       "5145"
     ],
@@ -42,7 +42,7 @@
     "title": "NetShare File Access"
   },
   {
-    "description": "No description",
+    "description": "",
     "event_ids": [
       "5140"
     ],
@@ -675,7 +675,7 @@
     "title": "Log Cleared"
   },
   {
-    "description": "No description",
+    "description": "",
     "event_ids": [
       "4688"
     ],
@@ -711,7 +711,7 @@
     "title": "Proc Exec"
   },
   {
-    "description": "No description",
+    "description": "",
     "event_ids": [
       "4688"
     ],
