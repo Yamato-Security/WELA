@@ -36,7 +36,7 @@ jobs:
                       }
                   }
               }
-              $output | Export-Csv -Path "config/eid_subcategory_mapping.csv" -NoTypeInformation -Encoding UTF8
+              $output | Export-Csv -Path "config/eid_subcategory_mapping-org.csv" -NoTypeInformation -Encoding UTF8
               $output | Format-Table -AutoSize
 
       - name: Configure Git
