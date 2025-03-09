@@ -61,10 +61,10 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
     if let Some(logsource) = doc["logsource"].as_hash() {
         if let Some(service) = logsource.get(&Yaml::from_str("service")) {
             if service.as_str() == Some("security") {
-                let uuid = doc["id"].as_str().unwrap_or("No UUID");
-                let title = doc["title"].as_str().unwrap_or("No title");
-                let desc = doc["description"].as_str().unwrap_or("No description");
-                let level = doc["level"].as_str().unwrap_or("No level");
+                let uuid = doc["id"].as_str().unwrap_or("");
+                let title = doc["title"].as_str().unwrap_or("");
+                let desc = doc["description"].as_str().unwrap_or("");
+                let level = doc["level"].as_str().unwrap_or("");
                 let mut event_ids = Vec::new();
                 extract_event_ids(&doc, &mut event_ids);
                 let mut subcategories = Vec::new();
