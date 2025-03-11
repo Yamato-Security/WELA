@@ -1,15 +1,15 @@
 # Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
 $outputFilePath = "auditpol_output.txt"
 Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r > $outputFilePath" -NoNewWindow -Wait
-$auditpolOutput = Get-Content -Path $outputFilePath -Raw
+$auditpolOutput = Get-Content -Path $outputFilePath
 $filteredOutput = $auditpolOutput | Select-String -NotMatch "No Auditing"
-Write-Host $filteredOutput
 $extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
 $filteredOutput | ForEach-Object {
     if ($_ -match '{(.*?)}') {
         $extractedStrings.Add($matches[1])
     }
 }
+Write-Host "Extracted GUIDs: $($extractedStrings.Count)"
 
 # Step 2: Read the rules from security_rules.json
 $jsonFilePath = "./config/security_rules.json"
