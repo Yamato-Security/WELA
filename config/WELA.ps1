@@ -9,7 +9,6 @@ $filteredOutput | ForEach-Object {
         $extractedStrings.Add($matches[1])
     }
 }
-Write-Host $extractedStrings
 
 # Step 2: Read the rules from security_rules.json
 $jsonFilePath = "./config/security_rules.json"
@@ -18,7 +17,7 @@ $jsonContent = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
 foreach ($rule in $jsonContent) {
     $rule | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
     foreach ($guid in $rule.subcategory_guids) {
-        if ($filteredOutput -contains $guid) {
+        if ($extractedStrings.Contains($guid)) {
             $rule.applicable = $true
             break
         }
