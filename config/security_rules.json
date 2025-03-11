@@ -65,8 +65,8 @@
     "id": "60d768ca-33e8-4f34-b967-14fd7aa18a22",
     "level": "informational",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Task Created"
   },
@@ -401,8 +401,8 @@
     "id": "4574194d-e7ca-4356-a95c-21b753a1787e",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "User Guessing"
   },
@@ -414,8 +414,8 @@
     "id": "b2c74582-0d44-49fe-8faa-014dcdafee62",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Failed Logon - Non-Existent User"
   },
@@ -524,8 +524,8 @@
     "id": "5b0b75dc-9190-4047-b9a8-14164cee8a31",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Failed Logon - Incorrect Password"
   },
@@ -549,8 +549,8 @@
     "id": "8afa97ce-a217-4f7c-aced-3e320a57756d",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Logon Failure (User Does Not Exist)"
   },
@@ -883,8 +883,8 @@
     "id": "e4c7a334-7ecb-ef93-85dd-49185891fb7a",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Defrag Deactivation - Security"
   },
@@ -896,8 +896,8 @@
     "id": "798c8f65-068a-0a31-009f-12739f547a2d",
     "level": "critical",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "OilRig APT Schedule Task Persistence - Security"
   },
@@ -909,9 +909,9 @@
     "id": "82b185f4-cdcb-ba23-9fdb-dbc1a732e1a7",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "ScreenConnect User Database Modification - Security"
@@ -924,23 +924,23 @@
     "id": "74d067bc-3f42-3855-c13d-771d589cf11c",
     "level": "critical",
     "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "CVE-2024-1708 - ScreenConnect Path Traversal Exploitation - Security"
   },
   {
     "description": "Detects any creation or modification to a windows domain group with the name \"ESX Admins\".\nThis could indicates a potential exploitation attempt of CVE-2024-37085, which allows an attacker to elevate their privileges to full administrative access on an domain-joined ESXi hypervisor.\nVMware ESXi hypervisors joined to an Active Directory domain consider any member of a domain group named \"ESX Admins\" to have full administrative access by default.\n",
     "event_ids": [
-      "4731",
       "4727",
       "4755",
-      "4737",
-      "4756",
       "4728",
-      "4754"
+      "4754",
+      "4731",
+      "4756",
+      "4737"
     ],
     "id": "2a451b93-9890-5cfe-38aa-1dc4f8f0fe0a",
     "level": "high",
@@ -957,8 +957,8 @@
     "id": "fa0084fc-2105-cdc9-c7c1-1752bbb2e4d2",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Kapeka Backdoor Scheduled Task Creation"
   },
@@ -977,16 +977,16 @@
   {
     "description": "Detects outlook initiating connection to a WebDAV or SMB share, which could be a sign of CVE-2023-23397 exploitation.",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "1aeb71a3-31b4-1a5e-85d8-1631c3a73d43",
     "level": "critical",
     "subcategory_guids": [
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "CVE-2023-23397 Exploitation Attempt"
   },
@@ -1010,23 +1010,23 @@
     "id": "05731ce3-cfda-dbba-3792-c17794a22cf7",
     "level": "critical",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Diamond Sleet APT Scheduled Task Creation"
   },
   {
     "description": "Hunts for known SVR-specific scheduled task names",
     "event_ids": [
-      "4699",
+      "4698",
       "4702",
-      "4698"
+      "4699"
     ],
     "id": "ae16af08-e56e-414a-ceba-cb62e9f3a2ef",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "Scheduled Tasks Names Used By SVR For GraphicalProton Backdoor"
   },
@@ -1057,17 +1057,17 @@
   {
     "description": "Detect access to files and shares with names and extensions used by BlueSky ransomware which could indicate a current or previous encryption attempt.",
     "event_ids": [
-      "5145",
       "4656",
+      "5145",
       "4663"
     ],
     "id": "21ead34c-d2d4-2799-6318-2ff9e4aa9222",
     "level": "high",
     "subcategory_guids": [
       "0CCE9244-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "BlueSky Ransomware Artefacts"
@@ -1125,8 +1125,8 @@
   {
     "description": "Detects logon with \"Special groups\" and \"Special Privileges\" can be thought of as Administrator groups or privileges.",
     "event_ids": [
-      "4964",
-      "4672"
+      "4672",
+      "4964"
     ],
     "id": "b3d10465-f171-0ef7-d28e-8ef2f9409cf1",
     "level": "low",
@@ -1138,10 +1138,10 @@
   {
     "description": "Detects interactive console logons to Server Systems",
     "event_ids": [
-      "528",
-      "4624",
       "529",
-      "4625"
+      "4625",
+      "528",
+      "4624"
     ],
     "id": "7298c707-7564-3229-7c76-ec514847d8c2",
     "level": "medium",
@@ -1184,10 +1184,10 @@
     "id": "7619b716-8052-6323-d9c7-87923ef591e6",
     "level": "low",
     "subcategory_guids": [
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Access To Browser Credential Files By Uncommon Applications - Security"
   },
@@ -1247,9 +1247,9 @@
     "id": "4faa08cb-e57e-bb07-cfc2-2153a97a99bf",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "ISO Image Mounted"
@@ -1287,17 +1287,17 @@
     "id": "1085e6d3-6691-5713-42ba-ba8933a6b2d0",
     "level": "low",
     "subcategory_guids": [
-      "69979849-797A-11D9-BED3-505054503030",
-      "0CCE9210-69AE-11D9-BED3-505054503030"
+      "0CCE9210-69AE-11D9-BED3-505054503030",
+      "69979849-797A-11D9-BED3-505054503030"
     ],
     "title": "Unauthorized System Time Modification"
   },
   {
     "description": "An attacker can use the SID history attribute to gain additional privileges.",
     "event_ids": [
-      "4765",
       "4766",
-      "4738"
+      "4738",
+      "4765"
     ],
     "id": "5335aea0-f1b4-e120-08b6-c80fe4bf99ad",
     "level": "medium",
@@ -1356,10 +1356,10 @@
   {
     "description": "Detects failed Kerberos TGT issue operation. This can be a sign of manipulations of TGT messages by an attacker.",
     "event_ids": [
-      "4768",
       "675",
+      "4769",
       "4771",
-      "4769"
+      "4768"
     ],
     "id": "978525c2-97aa-f0e4-8c11-3cf81ea3379b",
     "level": "high",
@@ -1488,24 +1488,24 @@
     "id": "c800ccd5-5818-b0f5-1a12-f9c8bc24a433",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE923C-69AE-11D9-BED3-505054503030",
-      "0CCE9236-69AE-11D9-BED3-505054503030"
+      "0CCE9236-69AE-11D9-BED3-505054503030",
+      "0CCE923C-69AE-11D9-BED3-505054503030"
     ],
     "title": "Possible DC Shadow Attack"
   },
   {
     "description": "Detects process handle on LSASS process with certain access mask",
     "event_ids": [
-      "4656",
-      "4663"
+      "4663",
+      "4656"
     ],
     "id": "c7f94c63-6fb7-9686-e2c2-2298c9f56ca9",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potentially Suspicious AccessMask Requested From LSASS"
   },
@@ -1530,10 +1530,10 @@
     "id": "321196fe-fb10-6b13-c611-3dfe40baa1af",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Azure AD Health Monitoring Agent Registry Keys Access"
   },
@@ -1690,9 +1690,9 @@
     "id": "655eb351-553b-501f-186e-aa9af13ecf43",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030",
       "0CCE923F-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Account Tampering - Suspicious Failed Logon Reasons"
   },
@@ -1705,43 +1705,43 @@
     "id": "249d836c-8857-1b98-5d7b-050c2d34e275",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Sysmon Channel Reference Deletion"
   },
   {
     "description": "Potential adversaries accessing the microphone and webcam in an endpoint.",
     "event_ids": [
-      "4656",
       "4657",
+      "4656",
       "4663"
     ],
     "id": "32337bc9-8e75-bdaf-eaf4-d3b19ee08a67",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Processes Accessing the Microphone and Webcam"
   },
   {
     "description": "Detects handle requests and access operations to specific registry keys to calculate the SysKey",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "63308dbe-54a4-9c70-cc90-6d15e10f3505",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "SysKey Registry Keys Access"
   },
@@ -1777,8 +1777,8 @@
     "id": "6bcac9cb-eeee-9f45-c5c1-0daaf023ac12",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Failed Logon From Public IP"
   },
@@ -1790,8 +1790,8 @@
     "id": "232ecd79-c09d-1323-8e7e-14322b766855",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Scanner PoC for CVE-2019-0708 RDP RCE Vuln"
   },
@@ -1810,8 +1810,8 @@
   {
     "description": "Detects activity when a member is removed from a security-enabled global group",
     "event_ids": [
-      "4729",
-      "633"
+      "633",
+      "4729"
     ],
     "id": "6e0f860b-3678-7396-a4a3-7cf55f7bb01c",
     "level": "low",
@@ -1957,16 +1957,16 @@
   {
     "description": "Detects wceaux.dll access while WCE pass-the-hash remote command execution on source host",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "de10da38-ee60-f6a4-7d70-4d308558158b",
     "level": "critical",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "WCE wceaux.dll Access"
   },
@@ -1990,10 +1990,10 @@
     "id": "04a055ea-ffa9-540b-e1d2-d5c1bfd5bc7b",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Teams Application Related ObjectAcess Event"
   },
@@ -2037,8 +2037,8 @@
   {
     "description": "Detects a user log-off activity. Could be used for example to correlate information during forensic investigations",
     "event_ids": [
-      "4647",
-      "4634"
+      "4634",
+      "4647"
     ],
     "id": "73f64ce7-a76d-0208-ea75-dd26a09d719b",
     "level": "informational",
@@ -2180,18 +2180,18 @@
   {
     "description": "Detects files that have extensions commonly seen while SDelete is used to wipe files.",
     "event_ids": [
-      "4656",
       "4663",
+      "4656",
       "4658"
     ],
     "id": "70c3269a-a7f2-49bd-1e28-a0921f353db7",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9223-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential Secure Deletion with SDelete"
   },
@@ -2227,10 +2227,10 @@
     "id": "d7742b08-730d-3624-df95-cc3c6eaa3a39",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "SAM Registry Hive Handle Request"
   },
@@ -2243,8 +2243,8 @@
     "id": "bc613d09-5a80-cad3-6f65-c5020f960511",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE923C-69AE-11D9-BED3-505054503030",
-      "0CCE9244-69AE-11D9-BED3-505054503030"
+      "0CCE9244-69AE-11D9-BED3-505054503030",
+      "0CCE923C-69AE-11D9-BED3-505054503030"
     ],
     "title": "Startup/Logon Script Added to Group Policy Object"
   },
@@ -2301,8 +2301,8 @@
   {
     "description": "Detects execution of EDRSilencer, a tool that abuses the Windows Filtering Platform (WFP) to block the outbound traffic of running EDR agents based on specific hardcoded filter names.\n",
     "event_ids": [
-      "5441",
-      "5447"
+      "5447",
+      "5441"
     ],
     "id": "4d56e133-40b5-5b28-07b5-bab0913fc338",
     "level": "high",
@@ -2484,9 +2484,9 @@
   {
     "description": "Alerts on Metasploit host's authentications on the domain.",
     "event_ids": [
-      "4625",
       "4776",
-      "4624"
+      "4624",
+      "4625"
     ],
     "id": "827aa6c1-1507-3f0a-385a-ade5251bfd71",
     "level": "high",
@@ -2572,16 +2572,16 @@
   {
     "description": "Detects potential mimikatz-like tools accessing LSASS from non system account",
     "event_ids": [
-      "4656",
-      "4663"
+      "4663",
+      "4656"
     ],
     "id": "06b8bcc0-326b-518a-3868-fe0721488fb8",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "LSASS Access From Non System Account"
   },
@@ -2615,10 +2615,10 @@
     "id": "474caaa9-3115-c838-1509-59ffb6caecfc",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "SCM Database Handle Failure"
   },
@@ -2678,10 +2678,10 @@
     "id": "d1909400-93d7-de3c-ba13-153c64499c7c",
     "level": "low",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Service Registry Key Read Access Request"
   },
@@ -2694,9 +2694,9 @@
     "id": "777523b0-14f8-1ca2-12c9-d668153661ff",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Windows Defender Exclusion Registry Key - Write Access Requested"
@@ -2704,8 +2704,8 @@
   {
     "description": "Detects certificate creation with template allowing risk permission subject and risky EKU",
     "event_ids": [
-      "4898",
-      "4899"
+      "4899",
+      "4898"
     ],
     "id": "aa2d5bf7-bc73-068e-a4df-a887cc3aba2b",
     "level": "high",
@@ -2717,8 +2717,8 @@
   {
     "description": "One of the Windows Eventlogs has been cleared. e.g. caused by \"wevtutil cl\" command execution",
     "event_ids": [
-      "517",
-      "1102"
+      "1102",
+      "517"
     ],
     "id": "9b14c9d8-6b61-e49f-f8a8-0836d0ad98c9",
     "level": "high",
@@ -2728,8 +2728,8 @@
   {
     "description": "Detects execution of NoFilter, a tool for abusing the Windows Filtering Platform for privilege escalation via hardcoded policy name indicators\n",
     "event_ids": [
-      "5447",
-      "5449"
+      "5449",
+      "5447"
     ],
     "id": "22d4af9f-97d9-4827-7209-c451ff7f43c6",
     "level": "high",
@@ -2767,16 +2767,16 @@
   {
     "description": "This events that are generated when using the hacktool Ruler by Sensepost",
     "event_ids": [
-      "4776",
       "4624",
-      "4625"
+      "4625",
+      "4776"
     ],
     "id": "8b40829b-4556-9bec-a8ad-905688497639",
     "level": "high",
     "subcategory_guids": [
       "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE923F-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE923F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Hacktool Ruler"
   },
@@ -2807,8 +2807,8 @@
   {
     "description": "Detects the creation of a user with the \"$\" character. This can be used by attackers to hide a user or trick detection systems that lack the parsing mechanisms.\n",
     "event_ids": [
-      "4781",
-      "4720"
+      "4720",
+      "4781"
     ],
     "id": "ec77919c-1169-6640-23e7-91c6f27ddc91",
     "level": "medium",
@@ -2825,24 +2825,24 @@
     "id": "d81faa44-ff28-8f61-097b-92727b8af44b",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Password Dumper Activity on LSASS"
   },
   {
     "description": "Detects when adversaries stop services or processes by deleting or disabling their respective scheduled tasks in order to conduct data destructive activities",
     "event_ids": [
-      "4699",
-      "4701"
+      "4701",
+      "4699"
     ],
     "id": "9ce591d7-6b6d-444a-8c27-8ca626dddad3",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "Important Scheduled Task Deleted/Disabled"
   },
@@ -2867,24 +2867,24 @@
     "id": "c9123898-04d5-2d3b-5e2b-7c0c92111480",
     "level": "high",
     "subcategory_guids": [
-      "0CCE923C-69AE-11D9-BED3-505054503030",
-      "0CCE9235-69AE-11D9-BED3-505054503030"
+      "0CCE9235-69AE-11D9-BED3-505054503030",
+      "0CCE923C-69AE-11D9-BED3-505054503030"
     ],
     "title": "Active Directory User Backdoors"
   },
   {
     "description": "This detection uses Windows security events to detect suspicious access attempts to the registry key values and sub-keys of Azure AD Health service agents (e.g AD FS).\nInformation from AD Health service agents can be used to potentially abuse some of the features provided by those services in the cloud (e.g. Federation).\nThis detection requires an access control entry (ACE) on the system access control list (SACL) of the following securable object: HKLM:\\SOFTWARE\\Microsoft\\ADHealthAgent.\nMake sure you set the SACL to propagate to its sub-keys.\n",
     "event_ids": [
-      "4656",
-      "4663"
+      "4663",
+      "4656"
     ],
     "id": "763d50d7-9452-0146-18a1-9ca65e3a2f73",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Azure AD Health Service Agents Registry Keys Access"
   },
@@ -2959,8 +2959,8 @@
   {
     "description": "Detects the creation or removal of a computer. Can be used to detect attacks such as DCShadow via the creation of a new SPN.",
     "event_ids": [
-      "4741",
-      "4743"
+      "4743",
+      "4741"
     ],
     "id": "b607775d-e3fe-3fb8-c40e-4e52b3fbe44d",
     "level": "low",
@@ -2991,8 +2991,8 @@
     "level": "medium",
     "subcategory_guids": [
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Windows Defender Exclusion Deleted"
   },
@@ -3033,12 +3033,12 @@
   {
     "description": "Configure systems to issue a log entry and alert when an account is added to or removed from any group assigned administrative privileges.\nSigma detects\nEvent ID 4728 indicates a \"Member is added to a Security Group\".\nEvent ID 4729 indicates a \"Member is removed from a Security enabled-group\".\nEvent ID 4730 indicates a \"Security Group is deleted\".\nThe case is not applicable for Unix OS.\nSupported OS - Windows 2008 R2 and 7, Windows 2012 R2 and 8.1, Windows 2016 and 10 Windows Server 2019, Windows Server 2000, Windows 2003 and XP.\n",
     "event_ids": [
-      "632",
-      "4730",
-      "4729",
       "633",
       "634",
-      "4728"
+      "632",
+      "4728",
+      "4730",
+      "4729"
     ],
     "id": "506379d9-8545-c010-e9a3-693119ab9261",
     "level": "low",
@@ -3081,9 +3081,9 @@
     "id": "bc42c437-1ea8-fd0f-d964-e37a58d861fc",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
       "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "Remote Schtasks Creation"
   },
@@ -3108,8 +3108,8 @@
     "id": "89ed0fbe-11b8-ce3c-e025-59925225ee99",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "Rare Schtasks Creations"
   },
@@ -3157,10 +3157,10 @@
     "id": "888d3e17-a1ed-6b11-895c-e1f9b96b35be",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Stored Credentials in Fake Files"
   },
@@ -3172,8 +3172,8 @@
     "id": "30e70d43-6368-123c-a3c8-d23309a3ff97",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Multiple Users Remotely Failing To Authenticate From Single Source"
   },
@@ -3211,10 +3211,10 @@
     "id": "a4504cb2-23f6-6d94-5ae6-d6013cf1d995",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Multiple File Rename Or Delete Occurred"
   },
