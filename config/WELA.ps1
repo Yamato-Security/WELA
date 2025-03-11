@@ -11,7 +11,7 @@ $filteredOutput | ForEach-Object {
 }
 
 # Step 2: Read the rules from security_rules.json
-$jsonFilePath = "./security_rules.json"
+$jsonFilePath = "./config/security_rules.json"
 $jsonContent = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
 
 foreach ($rule in $jsonContent) {
