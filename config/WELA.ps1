@@ -2,9 +2,7 @@
 $outputFilePath = "auditpol_output.txt"
 Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r > $outputFilePath" -NoNewWindow -Wait
 $auditpolOutput = Get-Content -Path $outputFilePath -Raw
-Write-Output $auditpolOutput
-$filteredOutput = $auditpolOutput | Select-String -Pattern '^(?!.*No Auditing).*{.*}$' -AllMatches | ForEach-Object { $_.Matches.Value }
-Write-Output $filteredOutput
+$filteredOutput = $auditpolOutput | Select-String -NotMatch "No Auditing"
 $extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
 $filteredOutput | ForEach-Object {
     if ($_ -match '{(.*?)}') {
