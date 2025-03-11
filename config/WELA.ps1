@@ -2,7 +2,9 @@
 $outputFilePath = "auditpol_output.txt"
 Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r > $outputFilePath" -NoNewWindow -Wait
 $auditpolOutput = Get-Content -Path $outputFilePath -Raw
+Write-Output $auditpolOutput
 $filteredOutput = $auditpolOutput | Select-String -Pattern '^(?!.*No Auditing).*{.*}$' -AllMatches | ForEach-Object { $_.Matches.Value }
+Write-Output $filteredOutput
 $extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
 $filteredOutput | ForEach-Object {
     if ($_ -match '{(.*?)}') {
@@ -88,7 +90,7 @@ Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 Write-Output ""
 $totalUsable = ($usablePercentages | Measure-Object -Property UsableCount -Sum).Sum
-$totalRulesCount = ($totalRules | Measure-Object -Property Count -Sum).Sum
+$totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = ($totalUsable / $totalRulesCount) * 100
 Write-Output "You can only utilize $utilizationPercentage% of your Security detection rules."
 
