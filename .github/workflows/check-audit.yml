@@ -1,6 +1,8 @@
 name: Check audit setting
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
