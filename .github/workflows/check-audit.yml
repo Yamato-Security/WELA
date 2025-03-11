@@ -44,3 +44,7 @@ jobs:
             $endTime = Get-Date
             $duration = $endTime - $startTime
             Write-Output "Duration: $duration"
+
+      - name: Run
+        run: |
+          ./config/WELA.ps1
