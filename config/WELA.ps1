@@ -9,7 +9,6 @@ $filteredOutput | ForEach-Object {
         $extractedStrings.Add($matches[1])
     }
 }
-Write-Host "Extracted GUIDs: $($extractedStrings.Count)"
 
 # Step 2: Read the rules from security_rules.json
 $jsonFilePath = "./config/security_rules.json"
