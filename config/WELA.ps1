@@ -1,5 +1,5 @@
 # Step 1: Run the auditpol command using cmd.exe and capture its output
-$auditpolOutput = Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -RedirectStandardOutput -PassThru | ForEach-Object { $_.StandardOutput.ReadToEnd() }
+$auditpolOutput = Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -RedirectStandardOutput $true -PassThru | ForEach-Object { $_.StandardOutput.ReadToEnd() }
 $filteredOutput = $auditpolOutput | Select-String -Pattern '^(?!.*No Auditing).*{.*}$' -AllMatches | ForEach-Object { $_.Matches.Value }
 $extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
 $filteredOutput | ForEach-Object {
