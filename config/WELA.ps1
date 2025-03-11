@@ -1,5 +1,7 @@
-# Step 1: Run the auditpol command using cmd.exe and capture its output
-$auditpolOutput = Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -RedirectStandardOutput $true -PassThru | ForEach-Object { $_.StandardOutput.ReadToEnd() }
+# Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
+$outputFilePath = "auditpol_output.txt"
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r > $outputFilePath" -NoNewWindow -Wait
+$auditpolOutput = Get-Content -Path $outputFilePath -Raw
 $filteredOutput = $auditpolOutput | Select-String -Pattern '^(?!.*No Auditing).*{.*}$' -AllMatches | ForEach-Object { $_.Matches.Value }
 $extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
 $filteredOutput | ForEach-Object {
