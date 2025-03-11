@@ -6,7 +6,7 @@ $filteredOutput = $auditpolOutput | Select-String -NotMatch "No Auditing"
 $extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
 $filteredOutput | ForEach-Object {
     if ($_ -match '{(.*?)}') {
-        $extractedStrings.Add($matches[1])
+        [void]$extractedStrings.Add($matches[1])
     }
 }
 
