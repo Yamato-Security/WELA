@@ -30,7 +30,7 @@ jobs:
       - name: Load audit settings(json)
         run: |
             $startTime = Get-Date
-            $audit_settings = Get-Content -Path ./config/hayabusa_rules_meta.json -Raw | ConvertFrom-Json
+            $audit_settings = Get-Content -Path ./config/security_rules.json -Raw | ConvertFrom-Json
             $audit_settings
             $endTime = Get-Date
             $duration = $endTime - $startTime
