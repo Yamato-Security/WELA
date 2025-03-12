@@ -61,14 +61,14 @@ fn extract_event_ids(yaml: &Yaml, event_ids: &mut HashSet<String>) {
 fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
     if let Some(logsource) = doc["logsource"].as_hash() {
         if let Some(service) = logsource.get(&Yaml::from_str("service")) {
+            let uuid = doc["id"].as_str().unwrap_or("");
+            let title = doc["title"].as_str().unwrap_or("");
+            let desc = doc["description"].as_str().unwrap_or("");
+            let level = doc["level"].as_str().unwrap_or("");
+            let mut event_ids = HashSet::new();
+            let mut subcategories = HashSet::new();
             if service.as_str() == Some("security") {
-                let uuid = doc["id"].as_str().unwrap_or("");
-                let title = doc["title"].as_str().unwrap_or("");
-                let desc = doc["description"].as_str().unwrap_or("");
-                let level = doc["level"].as_str().unwrap_or("");
-                let mut event_ids = HashSet::new();
                 extract_event_ids(&doc, &mut event_ids);
-                let mut subcategories = HashSet::new();
                 for event_id in &event_ids {
                     for (eid, subcategory) in eid_subcategory_pair {
                         if eid == event_id {
@@ -86,6 +86,20 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
                     "event_ids": event_ids,
                     "subcategory_guids": subcategories
                 }));
+            } else if let Some(tags) = doc["tags"].as_vec() {
+                if !tags.contains(&Yaml::from_str("sysmon")) {
+                    subcategories.insert("00000000-0000-0000-0000-000000000000".to_string());
+                    let event_ids: Vec<String> = event_ids.into_iter().collect();
+                    let subcategories: Vec<String> = subcategories.into_iter().collect();
+                    return Some(json!({
+                        "id": uuid,
+                        "title": title,
+                        "description": desc,
+                        "level": level,
+                        "event_ids": event_ids,
+                        "subcategory_guids": subcategories
+                    }));
+                }
             }
         }
     }
