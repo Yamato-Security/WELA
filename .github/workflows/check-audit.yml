@@ -47,6 +47,14 @@ jobs:
             $duration = $endTime - $startTime
             Write-Output "Duration: $duration"
 
-      - name: Run
+      - name: Run WELA.ps1
         run: |
           ./config/WELA.ps1
+
+      - name: Output UsableRules.csv
+        run: |
+          Get-Content ./config/UsableRules.csv
+
+      - name: Output UnUsableRules.csv
+        run: |
+          Get-Content ./config/UnusableRules.csv
