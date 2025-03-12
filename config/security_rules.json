@@ -10,6 +10,206 @@
     "title": "Office App PopUp"
   },
   {
+    "description": "Windows defender malware detection",
+    "event_ids": [],
+    "id": "810bfd3a-9fb3-44e0-9016-8cdf785fddbf",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Defender Alert (Severe)"
+  },
+  {
+    "description": "Windows defender malware detection",
+    "event_ids": [],
+    "id": "1e11c0f0-aecd-45d8-9229-da679c0265ea",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Defender Alert (High)"
+  },
+  {
+    "description": "Windows defender malware detection",
+    "event_ids": [],
+    "id": "3f5005fc-e354-4b0b-b1a1-3eec1d336023",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Defender Alert (Moderate)"
+  },
+  {
+    "description": "Windows defender malware detection",
+    "event_ids": [],
+    "id": "61056ed8-7be5-46e4-9015-c5f6bc8b93a1",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Defender Alert (Low)"
+  },
+  {
+    "description": "Somebody cleared an imporant event log.",
+    "event_ids": [],
+    "id": "f481a1f3-969e-4187-b3a5-b47c272bfebd",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Important Log File Cleared"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "76355548-fa5a-4310-9610-0de4b11f4688",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Possible Metasploit Svc Installed"
+  },
+  {
+    "description": "Malware will often create services for persistence and use BASE64 encoded strings to execute malicious code or abuse legitimate binaries like cmd.exe, powershell, etc... inside the path to execute. Normally, services will not run built-in binaries, run from user or temp folders or contain encoded data.",
+    "event_ids": [],
+    "id": "dbbfd9f3-9508-478b-887e-03ddb9236909",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Service Path"
+  },
+  {
+    "description": "PSExec is a MS SysInternals tool often abused for lateral movement.",
+    "event_ids": [],
+    "id": "0694c340-3a46-40ac-acfc-c3444ae6572c",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PSExec Lateral Movement"
+  },
+  {
+    "description": "Tries to look for random-looking service names that are often used by malware for persistence.",
+    "event_ids": [],
+    "id": "cc429813-21db-4019-b520-2f19648e1ef1",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Service Name"
+  },
+  {
+    "description": "The shutdown operation is initiated automatically by a program that uses the InitiateSystemShutdownEx function with the force flag.",
+    "event_ids": [],
+    "id": "517c0b15-d2bf-48a3-926c-f7b4a96dcec3",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Unexpected Shutdown"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "ab3507cf-5231-4af6-ab1d-5d3b3ad467b5",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Event Log Service Startup Type Changed To Disabled"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "d869bf31-92b3-4e21-a447-708f10156e7c",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Service Crashed"
+  },
+  {
+    "description": "A new service was installed. (Possibly malware.)",
+    "event_ids": [],
+    "id": "64c5d39d-10a7-44f4-b5d6-fd0d93d0a69f",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Svc Installed"
+  },
+  {
+    "description": "Somebody cleared an imporant event log.",
+    "event_ids": [],
+    "id": "ed90ed4f-0d93-4f1a-99a2-4b9003b750a7",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Log File Cleared"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "f5dc6a6d-fdf1-441a-a10c-aa10e2908aa4",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Service Crashed"
+  },
+  {
+    "description": "On Powershell v5+, Windows will automatically log suspicious powershell execution and mark the Level as Warning.",
+    "event_ids": [],
+    "id": "73be1519-4648-4ed7-b305-605504afc242",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potentially Malicious PwSh"
+  },
+  {
+    "description": "Powershell Module Loggong. Displays powershell execution",
+    "event_ids": [],
+    "id": "d3fb8f7b-88b0-4ff4-bf9b-ca286ce19031",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PwSh Pipeline Exec"
+  },
+  {
+    "description": "Powershell Scriptblock Logging. Windows 10+ will flag suspicious PwSh as level 3 (warning) so \nI am filtering out these events as they are being created with the \"Potentially Malicious PwSh\" rule.\n",
+    "event_ids": [],
+    "id": "0f3b1343-65a5-4879-b512-9d61b0e4e3ba",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PwSh Scriptblock"
+  },
+  {
+    "description": "An attacker may have started Powershell 2.0 to evade detection.",
+    "event_ids": [],
+    "id": "bc082394-73e6-4d00-a9af-e7b524ef5085",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PwSh 2.0 Downgrade Attack"
+  },
+  {
+    "description": "Engine state is changed from None to Available.",
+    "event_ids": [],
+    "id": "ac2ae63b-83e6-4d06-aeaf-07409bda92c9",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PwSh Engine Started"
+  },
+  {
     "description": "The Windows Filtering Platform has allowed a connection.",
     "event_ids": [
       "5156"
@@ -65,8 +265,8 @@
     "id": "60d768ca-33e8-4f34-b967-14fd7aa18a22",
     "level": "informational",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Task Created"
   },
@@ -549,8 +749,8 @@
     "id": "8afa97ce-a217-4f7c-aced-3e320a57756d",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Logon Failure (User Does Not Exist)"
   },
@@ -858,8 +1058,8 @@
     "id": "5b6e58ee-c231-4a54-9eee-af2577802e08",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9228-69AE-11D9-BED3-505054503030",
-      "0CCE9229-69AE-11D9-BED3-505054503030"
+      "0CCE9229-69AE-11D9-BED3-505054503030",
+      "0CCE9228-69AE-11D9-BED3-505054503030"
     ],
     "title": "Process Ran With High Privilege"
   },
@@ -876,6 +1076,96 @@
     "title": "Possible Hidden Service Created"
   },
   {
+    "description": "",
+    "event_ids": [],
+    "id": "d96164c4-9e15-4d48-964f-153ac0dab6e9",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Temporary WMI Event Consumer"
+  },
+  {
+    "description": "The time wmiprvse was executed and path to the provider DLL. Attackers may sometimes install malicious WMI provider DLLs.",
+    "event_ids": [],
+    "id": "547aec97-2635-474a-a36c-7a3a46b07fde",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "WMI Provider Started"
+  },
+  {
+    "description": "Detects when powershell or cmd is used in WMI. (For persistence, lateral movement, etc...)",
+    "event_ids": [],
+    "id": "ab4852ca-3e27-4dbb-af6b-5f8458d5717a",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "WMI Filter To Consumer Binding_Command Execution"
+  },
+  {
+    "description": "Created when a EventFilterToConsumerBinding event happens.",
+    "event_ids": [],
+    "id": "ac9f0a2a-e9c5-4d19-b69e-e3d518ca6797",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Permanent WMI Event Consumer"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "33599dfb-f3e4-4298-8d3f-59407f65f4e7",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Task Created"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "ff6ada24-c7f0-4ae5-a7a6-f20ddb7b591f",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Task Deleted"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "d1923809-955b-47c4-b3e5-37c0e461919c",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Task Executed"
+  },
+  {
+    "description": "",
+    "event_ids": [],
+    "id": "aba04101-e439-4e2f-b051-4be561993c31",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Task Updated"
+  },
+  {
+    "description": "Adversaries may abuse BITS jobs to persistently execute or clean up after malicious payloads.",
+    "event_ids": [],
+    "id": "18e6fa4a-353d-42b6-975c-bb05dbf4a004",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Bits Job Created"
+  },
+  {
     "description": "Detects the deactivation and disabling of the Scheduled defragmentation task as seen by Slingshot APT group",
     "event_ids": [
       "4701"
@@ -883,10 +1173,20 @@
     "id": "e4c7a334-7ecb-ef93-85dd-49185891fb7a",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Defrag Deactivation - Security"
+  },
+  {
+    "description": "Detects OilRig schedule task persistence as reported by Nyotron in their March 2018 report",
+    "event_ids": [],
+    "id": "afa88090-3c0b-17fc-7061-2259abc82d2b",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "OilRig APT Schedule Task Persistence - System"
   },
   {
     "description": "Detects OilRig schedule task persistence as reported by Nyotron in their March 2018 report",
@@ -902,6 +1202,16 @@
     "title": "OilRig APT Schedule Task Persistence - Security"
   },
   {
+    "description": "Detects exploitation attempt of CVE-2024-49113 known as LDAP Nightmare, based on \"Application Error\" log where the faulting application is \"lsass.exe\" and the faulting module is \"WLDAP32.dll\".\n",
+    "event_ids": [],
+    "id": "1117f6c7-1c68-9c6e-c3e8-191e9d687387",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CVE-2024-49113 Exploitation Attempt - LDAP Nightmare"
+  },
+  {
     "description": "This detects file modifications to the temporary xml user database file indicating local user modification in the ScreenConnect server.\nThis will occur during exploitation of the ScreenConnect Authentication Bypass vulnerability (CVE-2024-1709) in versions <23.9.8, but may also be observed when making legitimate modifications to local users or permissions.\nThis requires an Advanced Auditing policy to log a successful Windows Event ID 4663 events and with a SACL set on the directory.\n",
     "event_ids": [
       "4663"
@@ -909,10 +1219,10 @@
     "id": "82b185f4-cdcb-ba23-9fdb-dbc1a732e1a7",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "ScreenConnect User Database Modification - Security"
   },
@@ -926,21 +1236,21 @@
     "subcategory_guids": [
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "CVE-2024-1708 - ScreenConnect Path Traversal Exploitation - Security"
   },
   {
     "description": "Detects any creation or modification to a windows domain group with the name \"ESX Admins\".\nThis could indicates a potential exploitation attempt of CVE-2024-37085, which allows an attacker to elevate their privileges to full administrative access on an domain-joined ESXi hypervisor.\nVMware ESXi hypervisors joined to an Active Directory domain consider any member of a domain group named \"ESX Admins\" to have full administrative access by default.\n",
     "event_ids": [
+      "4728",
+      "4731",
+      "4755",
+      "4756",
       "4737",
       "4727",
-      "4754",
-      "4755",
-      "4731",
-      "4756",
-      "4728"
+      "4754"
     ],
     "id": "2a451b93-9890-5cfe-38aa-1dc4f8f0fe0a",
     "level": "high",
@@ -957,10 +1267,30 @@
     "id": "fa0084fc-2105-cdc9-c7c1-1752bbb2e4d2",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "Kapeka Backdoor Scheduled Task Creation"
+  },
+  {
+    "description": "This method detects a service install of malicious services mentioned in Carbon Paper - Turla report by ESET",
+    "event_ids": [],
+    "id": "665e3be1-3ec1-2e79-bd0f-dca344762794",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Turla Service Install"
+  },
+  {
+    "description": "This method detects malicious services mentioned in Turla PNG dropper report by NCC Group in November 2018",
+    "event_ids": [],
+    "id": "75a0da35-0e7f-e313-f974-d812b44295a4",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Turla PNG Dropper Service"
   },
   {
     "description": "Detects the installation of a service named \"javamtsup\" on the system.\nThe CosmicDuke info stealer uses Windows services typically named \"javamtsup\" for persistence.\n",
@@ -975,20 +1305,70 @@
     "title": "CosmicDuke Service Installation"
   },
   {
+    "description": "This method detects a service install of the malicious Microsoft Network Realtime Inspection Service service described in StoneDrill report by Kaspersky",
+    "event_ids": [],
+    "id": "c1362f8e-594e-72a7-d9a9-6fe6c74334ef",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "StoneDrill Service Install"
+  },
+  {
+    "description": "Detects the exploitation of Microsoft Exchange vulnerability as described in CVE-2020-0688",
+    "event_ids": [],
+    "id": "b1a2ae27-889c-aa26-1bd3-21f277008048",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CVE-2020-0688 Exploitation via Eventlog"
+  },
+  {
+    "description": "Detects artefacts associated with activity group GALLIUM - Microsoft Threat Intelligence Center indicators released in December 2019.",
+    "event_ids": [],
+    "id": "c8e0edae-2335-591c-7057-1ac58f03e06c",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "GALLIUM Artefacts - Builtin"
+  },
+  {
     "description": "Detects outlook initiating connection to a WebDAV or SMB share, which could be a sign of CVE-2023-23397 exploitation.",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "1aeb71a3-31b4-1a5e-85d8-1631c3a73d43",
     "level": "critical",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "CVE-2023-23397 Exploitation Attempt"
+  },
+  {
+    "description": "Detects (failed) outbound connection attempts to internet facing SMB servers. This could be a sign of potential exploitation attempts of CVE-2023-23397.",
+    "event_ids": [],
+    "id": "de290ecb-3279-dd5b-2f6c-7d3f22a752d8",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential CVE-2023-23397 Exploitation Attempt - SMB"
+  },
+  {
+    "description": "Detects a crash of \"WinRAR.exe\" where the version is lower than 6.23. This could indicate potential exploitation of CVE-2023-40477",
+    "event_ids": [],
+    "id": "f33feae7-db95-01a2-c35f-a6361e690ebb",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CVE-2023-40477 Potential Exploitation - WinRAR Application Crash"
   },
   {
     "description": "Detects access to a file share with a naming schema seen being used during exploitation of CVE-2023-36884",
@@ -1001,6 +1381,16 @@
       "0CCE9224-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential CVE-2023-36884 Exploitation - Share Access"
+  },
+  {
+    "description": "Detects corrupted packets sent to the MSMQ service. Could potentially be a sign of CVE-2023-21554 exploitation",
+    "event_ids": [],
+    "id": "0bcc2c11-231f-f491-7985-3571fee7f2c5",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSMQ Corrupted Packet Encountered"
   },
   {
     "description": "Detects registry event related to the creation of a scheduled task used by Diamond Sleet APT during exploitation of Team City CVE-2023-42793 vulnerability\n",
@@ -1017,10 +1407,20 @@
   },
   {
     "description": "Hunts for known SVR-specific scheduled task names",
+    "event_ids": [],
+    "id": "51850e92-9de2-230e-98f6-5775d63df091",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Scheduled Tasks Names Used By SVR For GraphicalProton Backdoor - Task Scheduler"
+  },
+  {
+    "description": "Hunts for known SVR-specific scheduled task names",
     "event_ids": [
-      "4699",
+      "4702",
       "4698",
-      "4702"
+      "4699"
     ],
     "id": "ae16af08-e56e-414a-ceba-cb62e9f3a2ef",
     "level": "high",
@@ -1029,6 +1429,36 @@
       "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Scheduled Tasks Names Used By SVR For GraphicalProton Backdoor"
+  },
+  {
+    "description": "Detects the creation of new services potentially related to COLDSTEEL RAT",
+    "event_ids": [],
+    "id": "d8f1ace1-c01b-3f95-34ed-993d29f876f5",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "COLDSTEEL Persistence Service Creation"
+  },
+  {
+    "description": "Detects the creation of a service named \"WerFaultSvc\" which seems to be used by the SNAKE malware as a persistence mechanism as described by CISA in their report",
+    "event_ids": [],
+    "id": "abdb2e55-7d24-7f3d-6091-2b42abca2e67",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "SNAKE Malware Service Persistence"
+  },
+  {
+    "description": "The attacker creates a computer object using those permissions with a password known to her.\nAfter that she clears the attribute ServicePrincipalName on the computer object.\nBecause she created the object (CREATOR OWNER), she gets granted additional permissions and can do many changes to the object.\n",
+    "event_ids": [],
+    "id": "8a194220-2afd-d5a9-0644-0a2d76019999",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential CVE-2021-42278 Exploitation Attempt"
   },
   {
     "description": "Detects remote printer driver load from Detailed File Share in Security logs that are a sign of successful exploitation attempts against print spooler vulnerability CVE-2021-1675 and CVE-2021-34527",
@@ -1043,6 +1473,56 @@
     "title": "CVE-2021-1675 Print Spooler Exploitation IPC Access"
   },
   {
+    "description": "Detects the suspicious file that is created from PoC code against Windows Print Spooler Remote Code Execution Vulnerability CVE-2021-34527 (PrinterNightmare), CVE-2021-1675 .",
+    "event_ids": [],
+    "id": "aef0711e-c055-e870-92bc-ea130059eed1",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Antivirus PrinterNightmare CVE-2021-34527 Exploit Detection"
+  },
+  {
+    "description": "Detects driver load events print service operational log that are a sign of successful exploitation attempts against print spooler vulnerability CVE-2021-1675",
+    "event_ids": [],
+    "id": "ae207e8e-3dfd-bd05-1161-e0472778f2be",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CVE-2021-1675 Print Spooler Exploitation"
+  },
+  {
+    "description": "Detects events of driver load errors in print service logs that could be a sign of successful exploitation attempts of print spooler vulnerability CVE-2021-1675",
+    "event_ids": [],
+    "id": "5c10c39e-b9f6-d321-3598-62095b34b663",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Possible CVE-2021-1675 Print Spooler Exploitation"
+  },
+  {
+    "description": "Detects log entries that appear in exploitation attempts against MS Exchange RCE CVE-2021-42321",
+    "event_ids": [],
+    "id": "429ee035-2f74-8a92-ad19-a448e450bb5e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Possible Exploitation of Exchange RCE CVE-2021-42321"
+  },
+  {
+    "description": "Detects PoC tool used to exploit LPE vulnerability CVE-2021-41379",
+    "event_ids": [],
+    "id": "8e38887f-8e20-477d-26c1-0862951ae91b",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "LPE InstallerFileTakeOver PoC CVE-2021-41379"
+  },
+  {
     "description": "Detects the renaming of an existing computer account to a account name that doesn't contain a $ symbol as seen in attacks against CVE-2021-42287",
     "event_ids": [
       "4781"
@@ -1055,6 +1535,16 @@
     "title": "Suspicious Computer Account Name Change CVE-2021-42287"
   },
   {
+    "description": "Detects service creation persistence used by the Goofy Guineapig backdoor",
+    "event_ids": [],
+    "id": "0375abd6-f86e-a665-27a0-501b2a1621a8",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Goofy Guineapig Backdoor Service Creation"
+  },
+  {
     "description": "Detect access to files and shares with names and extensions used by BlueSky ransomware which could indicate a current or previous encryption attempt.",
     "event_ids": [
       "4656",
@@ -1065,12 +1555,22 @@
     "level": "high",
     "subcategory_guids": [
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9244-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "BlueSky Ransomware Artefacts"
+  },
+  {
+    "description": "This rule detects the execution of the extended storage procedure backdoor named Maggie in the context of Microsoft SQL server",
+    "event_ids": [],
+    "id": "e177969a-73cc-a32c-b948-cb580287057a",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL Extended Stored Procedure Backdoor Maggie"
   },
   {
     "description": "Detects activity mentioned in Operation Wocao report",
@@ -1083,6 +1583,656 @@
       "0CCE9237-69AE-11D9-BED3-505054503030"
     ],
     "title": "Operation Wocao Activity - Security"
+  },
+  {
+    "description": "Detects denied requests by Active Directory Certificate Services.\nExample of these requests denial include issues with permissions on the certificate template or invalid signatures.\n",
+    "event_ids": [],
+    "id": "817138f1-cfd3-c653-7392-a3c61051a8d3",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Active Directory Certificate Services Denied Certificate Enrollment Request"
+  },
+  {
+    "description": "Detects the invocation of TabTip via CLSID as seen when JuicyPotatoNG is used on a system in brute force mode",
+    "event_ids": [],
+    "id": "cd12f5c0-9798-3928-58bf-34b2816ea898",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Local Privilege Escalation Indicator TabTip"
+  },
+  {
+    "description": "The attacker creates a computer object using those permissions with a password known to her.\nAfter that she clears the attribute ServicePrincipalName on the computer object.\nBecause she created the object (CREATOR OWNER), she gets granted additional permissions and can do many changes to the object.\n",
+    "event_ids": [],
+    "id": "7ef3c84f-fc5f-e0e6-b94d-07dbb0c946eb",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential CVE-2021-42287 Exploitation Attempt"
+  },
+  {
+    "description": "Detects that a vulnerable Netlogon secure channel connection was allowed, which could be an indicator of CVE-2020-1472.",
+    "event_ids": [],
+    "id": "a82f6b3b-324f-7234-9092-289117234d31",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Vulnerable Netlogon Secure Channel Connection Allowed"
+  },
+  {
+    "description": "This rule is designed to detect attempts to exploit Zerologon (CVE-2020-1472) vulnerability using mimikatz zerologon module or other exploits from machine with \"kali\" hostname.",
+    "event_ids": [],
+    "id": "4d943318-24e9-7318-6951-fdf8cb235652",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Zerologon Exploitation Using Well-known Tools"
+  },
+  {
+    "description": "Detects a user certificate that was valid but could not be mapped to a user in a strong way (such as via explicit mapping, key trust mapping, or a SID)\nThis could be a sign of exploitation of the elevation of privilege vulnerabilities (CVE-2022-34691, CVE-2022-26931, CVE-2022-26923) that can occur when the KDC allows certificate spoofing by not requiring a strong mapping.\nEvents where the AccountName and CN of the Subject do not match, or where the CN ends in a dollar sign indicating a machine, may indicate certificate spoofing.\n",
+    "event_ids": [],
+    "id": "470e08fc-0b52-8769-10d3-5b5c1920327e",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Certificate Use With No Strong Mapping"
+  },
+  {
+    "description": "Detects the exploitation of a security bypass and elevation of privilege vulnerability with Authentication Negotiation by using weak RC4-HMAC negotiation",
+    "event_ids": [],
+    "id": "87515290-bf9f-09a4-af0e-bac22cb017f6",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "KDC RC4-HMAC Downgrade CVE-2022-37966"
+  },
+  {
+    "description": "Detects errors when a target server doesn't have suitable keys for generating kerberos tickets.\nThis issue can occur for example when a service uses a user account or a computer account that is configured for only DES encryption on a computer that is running Windows 7 which has DES encryption for Kerberos authentication disabled.\n",
+    "event_ids": [],
+    "id": "e10c99fe-7559-5ae3-9c5c-9fd0a70bd4a6",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "No Suitable Encryption Key Found For Generating Kerberos Ticket"
+  },
+  {
+    "description": "Detects suspicious service installation commands",
+    "event_ids": [],
+    "id": "ebfad3e2-5025-b233-20ef-71fc2ada8fe7",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Service Installation"
+  },
+  {
+    "description": "Detects Obfuscated Powershell via VAR++ LAUNCHER",
+    "event_ids": [],
+    "id": "f5581097-47d5-fd2b-1a94-37dd36318706",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation VAR++ LAUNCHER OBFUSCATION - System"
+  },
+  {
+    "description": "Detects the use of smbexec.py tool by detecting a specific service installation",
+    "event_ids": [],
+    "id": "384155f0-8906-ff64-5188-211c9a98274e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "smbexec.py Service Installation"
+  },
+  {
+    "description": "Well-known TAP software installation. Possible preparation for data exfiltration using tunnelling techniques",
+    "event_ids": [],
+    "id": "6cda0359-f921-911b-a724-cc2f00d661f8",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Tap Driver Installation"
+  },
+  {
+    "description": "Detects service installation with suspicious folder patterns",
+    "event_ids": [],
+    "id": "1702910b-83b9-ce95-4ae8-2405c2e9faf7",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Service Installation with Suspicious Folder Pattern"
+  },
+  {
+    "description": "Detects Obfuscated use of Clip.exe to execute PowerShell",
+    "event_ids": [],
+    "id": "414e0fbd-67a8-17e4-371e-4f9f6a8799d0",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation CLIP+ Launcher - System"
+  },
+  {
+    "description": "Detects well-known credential dumping tools execution via service execution events",
+    "event_ids": [],
+    "id": "81562732-3278-cd48-1db2-581bc7158b6e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Credential Dumping Tools Service Execution - System"
+  },
+  {
+    "description": "Detects CSExec service installation and execution events",
+    "event_ids": [],
+    "id": "efef064b-d350-a96b-fe1e-ef4cfe657066",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CSExec Service Installation"
+  },
+  {
+    "description": "Detects when the \"Windows Defender Threat Protection\" service is disabled.",
+    "event_ids": [],
+    "id": "07c5c883-1da4-d066-f69b-6caadbd1d6f9",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Threat Detection Service Disabled"
+  },
+  {
+    "description": "Detects Obfuscated Powershell via COMPRESS OBFUSCATION",
+    "event_ids": [],
+    "id": "6623b0c3-f904-2d2e-9c24-4cbb81bf55aa",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation COMPRESS OBFUSCATION - System"
+  },
+  {
+    "description": "Detects all variations of obfuscated powershell IEX invocation code generated by Invoke-Obfuscation framework from the code block linked in the references",
+    "event_ids": [],
+    "id": "af2b45c1-ed61-0866-791a-13ae39ff80c3",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation Obfuscated IEX Invocation - System"
+  },
+  {
+    "description": "Detects service installation of different remote access tools software. These software are often abused by threat actors to perform",
+    "event_ids": [],
+    "id": "cd1c0081-d0c8-369f-2ed1-dcc058b08b9c",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Remote Access Tool Services Have Been Installed - System"
+  },
+  {
+    "description": "Detects known malicious service installation that appear in cases in which a Sliver implants execute the PsExec commands",
+    "event_ids": [],
+    "id": "e38955da-ce8e-7137-94e5-7890c0bab131",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Sliver C2 Default Service Installation"
+  },
+  {
+    "description": "Detects service creation from KrbRelayUp tool used for privilege escalation in Windows domain environments where LDAP signing is not enforced (the default settings)",
+    "event_ids": [],
+    "id": "8623dcbf-e828-afb3-eb29-42cade82b39a",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "KrbRelayUp Service Installation"
+  },
+  {
+    "description": "Detects a PDQDeploy service installation which indicates that PDQDeploy was installed on the machines.\nPDQDeploy can be abused by attackers to remotely install packages or execute commands on target machines\n",
+    "event_ids": [],
+    "id": "8682ea60-89d6-e616-7cdd-410a05ed1611",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "New PDQDeploy Service - Server Side"
+  },
+  {
+    "description": "Detects powershell script installed as a Service",
+    "event_ids": [],
+    "id": "be1b026a-db82-4f10-0739-68c60f1261c9",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PowerShell Scripts Installed as Services"
+  },
+  {
+    "description": "Detects a TacticalRMM service installation. Tactical RMM is a remote monitoring & management tool.",
+    "event_ids": [],
+    "id": "a36af175-0d96-acc8-c2f7-f5bb57c974fe",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "TacticalRMM Service Installation"
+  },
+  {
+    "description": "Detects important or interesting Windows services that got terminated for whatever reason",
+    "event_ids": [],
+    "id": "bf2272c8-bc92-d925-4fb6-aeb1fe9283aa",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Important Windows Service Terminated With Error"
+  },
+  {
+    "description": "Detects PDQDeploy service installation on the target system.\nWhen a package is deployed via PDQDeploy it installs a remote service on the target machine with the name \"PDQDeployRunner-X\" where \"X\" is an integer starting from 1\n",
+    "event_ids": [],
+    "id": "c5b232f5-bd0a-c0ea-585f-c54fbe370580",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "New PDQDeploy Service - Client Side"
+  },
+  {
+    "description": "Detects Obfuscated use of stdin to execute PowerShell",
+    "event_ids": [],
+    "id": "9d5e9ea9-180b-0d92-6e5a-645275e94267",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation STDIN+ Launcher - System"
+  },
+  {
+    "description": "Detects NetSupport Manager service installation on the target system.",
+    "event_ids": [],
+    "id": "ee415dc3-b7c0-9568-e6dd-878777ff237a",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "NetSupport Manager Service Install"
+  },
+  {
+    "description": "Detects known malicious service installs that appear in cases in which a Cobalt Strike beacon elevates privileges or lateral movement",
+    "event_ids": [],
+    "id": "51ba8477-86a4-6ff0-35fa-7b7f1b1e3f83",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CobaltStrike Service Installations - System"
+  },
+  {
+    "description": "Detects important or interesting Windows services that got terminated unexpectedly.",
+    "event_ids": [],
+    "id": "d3c329c7-54bd-4896-cc7d-e04077eba081",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Important Windows Service Terminated Unexpectedly"
+  },
+  {
+    "description": "Detects a Mesh Agent service installation. Mesh Agent is used to remotely manage computers",
+    "event_ids": [],
+    "id": "cd204548-409b-e025-4fde-4a8fb1fe5332",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Mesh Agent Service Installation"
+  },
+  {
+    "description": "Detects Windows services that got terminated for whatever reason",
+    "event_ids": [],
+    "id": "c002ec31-f147-d591-b2f2-253774fd4248",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Service Terminated With Error"
+  },
+  {
+    "description": "Detects RemCom service installation and execution events",
+    "event_ids": [],
+    "id": "1ae1cb63-2c82-d95d-a200-533f229715b2",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "RemCom Service Installation"
+  },
+  {
+    "description": "Detects Obfuscated Powershell via RUNDLL LAUNCHER",
+    "event_ids": [],
+    "id": "686d9481-474f-2b85-7c51-e69967c1afcc",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation RUNDLL LAUNCHER - System"
+  },
+  {
+    "description": "Detects Remote Utilities Host service installation on the target system.",
+    "event_ids": [],
+    "id": "97bd461f-b35e-a243-c697-06cc0539d7e3",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Remote Utilities Host Service Install"
+  },
+  {
+    "description": "Detects PAExec service installation",
+    "event_ids": [],
+    "id": "19b4e2a1-4499-8c65-e93a-5f675df202d8",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PAExec Service Installation"
+  },
+  {
+    "description": "Detects a service installed by a client which has PID 0 or whose parent has PID 0",
+    "event_ids": [],
+    "id": "97b97d4d-e03c-ace5-3215-fa2f51ec5fd5",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Service Installed By Unusual Client - System"
+  },
+  {
+    "description": "Detects suspicious service installation scripts",
+    "event_ids": [],
+    "id": "778c7f2b-32f5-e591-5c4a-01e47388475c",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Service Installation Script"
+  },
+  {
+    "description": "Detects the installation of the anydesk software service. Which could be an indication of anydesk abuse if you the software isn't already used.",
+    "event_ids": [],
+    "id": "87d5cdc0-24c5-8411-1230-d717dd6a47e8",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Anydesk Remote Access Software Service Installation"
+  },
+  {
+    "description": "Detects installation or execution of services",
+    "event_ids": [],
+    "id": "fde28f27-a4fa-d3a4-a714-0ef2dfacb36c",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "HackTool Service Registration or Execution"
+  },
+  {
+    "description": "Detects the use of getsystem Meterpreter/Cobalt Strike command by detecting a specific service installation",
+    "event_ids": [],
+    "id": "4639745f-a91a-d296-8935-4c694a97f938",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Meterpreter or Cobalt Strike Getsystem Service Installation - System"
+  },
+  {
+    "description": "Detects Obfuscated Powershell via Stdin in Scripts",
+    "event_ids": [],
+    "id": "8aef41c8-fc2b-f490-5a9b-a683fe107829",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation Via Stdin - System"
+  },
+  {
+    "description": "Detects PsExec service installation and execution events",
+    "event_ids": [],
+    "id": "cb7a40d5-f1de-9dd4-465d-eada7e316d8f",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PsExec Service Installation"
+  },
+  {
+    "description": "Detects the use of Moriya rootkit as described in the securelist's Operation TunnelSnake report",
+    "event_ids": [],
+    "id": "7ca6e518-decb-de46-861e-5673c026b257",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Moriya Rootkit - System"
+  },
+  {
+    "description": "Detects Obfuscated Powershell via use Clip.exe in Scripts",
+    "event_ids": [],
+    "id": "e92121bb-a1c1-5d5a-6abb-3a25fe37fb41",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation Via Use Clip - System"
+  },
+  {
+    "description": "Detects uncommon service installation commands by looking at suspicious or uncommon image path values containing references to encoded powershell commands, temporary paths, etc.\n",
+    "event_ids": [],
+    "id": "4de4ea24-8c0c-75ed-78c3-bf620ec06fd5",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Uncommon Service Installation Image Path"
+  },
+  {
+    "description": "Detects Obfuscated Powershell via use Rundll32 in Scripts",
+    "event_ids": [],
+    "id": "f1988b01-7f12-1851-58b5-8a4d63743183",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation Via Use Rundll32 - System"
+  },
+  {
+    "description": "Detects Obfuscated use of Environment Variables to execute PowerShell",
+    "event_ids": [],
+    "id": "19adbb05-25d8-44fe-3721-1590be735426",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation VAR+ Launcher - System"
+  },
+  {
+    "description": "Detects service installation in suspicious folder appdata",
+    "event_ids": [],
+    "id": "60ddd708-71a3-e524-27b1-4cdeda02ce46",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Service Installation in Suspicious Folder"
+  },
+  {
+    "description": "Detects the installation of RTCore service. Which could be an indication of Micro-Star MSI Afterburner vulnerable driver abuse",
+    "event_ids": [],
+    "id": "6218888e-3b1f-f6be-b9f8-9fd758caa380",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "RTCore Suspicious Service Installation"
+  },
+  {
+    "description": "Detects Obfuscated Powershell via use MSHTA in Scripts",
+    "event_ids": [],
+    "id": "e0aa759a-fa97-fb3b-1b02-82aa44f8c068",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Invoke-Obfuscation Via Use MSHTA - System"
+  },
+  {
+    "description": "Detects a ProcessHacker tool that elevated privileges to a very high level",
+    "event_ids": [],
+    "id": "9e870183-fbbc-e736-c380-d20bd74d7dbe",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "ProcessHacker Privilege Elevation"
+  },
+  {
+    "description": "Detects events from the Kernel-General ETW indicating that the access bits of a hive with a system like hive name located in the temp directory have been reset.\nThis occurs when an application tries to access a hive and the hive has not be recognized since the last 7 days (by default).\nRegistry hive dumping utilities such as QuarksPwDump were seen emitting this behavior.\n",
+    "event_ids": [],
+    "id": "625954f8-9cc1-bc90-d5bd-4d1d82849d37",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Critical Hive In Suspicious Location Access Bits Cleared"
+  },
+  {
+    "description": "Detect suspicious error on protocol RDP, potential CVE-2019-0708",
+    "event_ids": [],
+    "id": "19979e7a-7d1e-a8e3-2a9e-9b3ac0059fa7",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential RDP Exploit CVE-2019-0708"
+  },
+  {
+    "description": "During exploitation of this vulnerability, two logs (Provider_Name:Microsoft-Windows-User Profiles Service) with EventID 1511 and 1515 (maybe lot of false positives with this event) are created. Moreover, it appears the directory \\Users\\TEMP is created may be created during the exploitation. Viewed on 2008 Server",
+    "event_ids": [],
+    "id": "17e91768-3a0f-6d5f-bc0d-7f2d22391909",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Usage of CVE_2021_34484 or CVE 2022_21919"
+  },
+  {
+    "description": "Detects the reporting of NTLMv1 being used between a client and server. NTLMv1 is insecure as the underlying encryption algorithms can be brute-forced by modern hardware.",
+    "event_ids": [],
+    "id": "cb063566-b04b-c7e4-316b-c69075ed08f5",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "NTLMv1 Logon Between Client and Server"
+  },
+  {
+    "description": "This rule detects a DHCP server error in which a specified Callout DLL (in registry) could not be loaded",
+    "event_ids": [],
+    "id": "a6878a7f-9fcd-9b29-ba67-ca05b11dc4aa",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "DHCP Server Error Failed Loading the CallOut DLL"
+  },
+  {
+    "description": "This rule detects a DHCP server in which a specified Callout DLL (in registry) was loaded",
+    "event_ids": [],
+    "id": "87ade82b-7e03-f378-c163-59adb06640ae",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "DHCP Server Loaded the CallOut DLL"
+  },
+  {
+    "description": "This the exploitation of a NTFS vulnerability as reported without many details via Twitter",
+    "event_ids": [],
+    "id": "73b6342c-c17a-d447-2fd3-119ed3cf61ca",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "NTFS Vulnerability Exploitation"
+  },
+  {
+    "description": "Detects volume shadow copy mount via Windows event log",
+    "event_ids": [],
+    "id": "15b42b84-becb-a48c-8971-28895065fbd3",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Volume Shadow Copy Mount"
+  },
+  {
+    "description": "Detects Windows update errors including installation failures and connection issues. Defenders should observe this in case critical update KBs aren't installed.\n",
+    "event_ids": [],
+    "id": "8f9f7490-f99e-ff64-4b60-ac3f06a2262b",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Update Error"
+  },
+  {
+    "description": "Detects the clearing of one of the Windows Core Eventlogs. e.g. caused by \"wevtutil cl\" command execution",
+    "event_ids": [],
+    "id": "30966a3a-2224-0e1a-d28d-c0f7e84cfed3",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Important Windows Eventlog Cleared"
+  },
+  {
+    "description": "One of the Windows Eventlogs has been cleared. e.g. caused by \"wevtutil cl\" command execution",
+    "event_ids": [],
+    "id": "8617b59c-812e-c88e-0bd4-5267e0e825f0",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Eventlog Cleared"
+  },
+  {
+    "description": "Detects application popup reporting a failure of the Sysmon service",
+    "event_ids": [],
+    "id": "e064a7a6-e709-1464-34e4-626106c91d98",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Sysmon Application Crashed"
   },
   {
     "description": "Remote registry management using REG utility from non-admin workstation",
@@ -1099,14 +2249,14 @@
   {
     "description": "Detects the attack technique pass the hash which is used to move laterally inside the network",
     "event_ids": [
-      "4625",
-      "4624"
+      "4624",
+      "4625"
     ],
     "id": "35890fd4-9ed3-b244-0eff-91fe61e52f8b",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential Pass the Hash Activity"
   },
@@ -1138,10 +2288,10 @@
   {
     "description": "Detects interactive console logons to Server Systems",
     "event_ids": [
-      "529",
-      "4624",
+      "528",
       "4625",
-      "528"
+      "529",
+      "4624"
     ],
     "id": "7298c707-7564-3229-7c76-ec514847d8c2",
     "level": "medium",
@@ -1150,6 +2300,156 @@
       "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Interactive Logon to Server Systems"
+  },
+  {
+    "description": "Detects execution of AppX packages with known suspicious or malicious signature",
+    "event_ids": [],
+    "id": "e6dd8206-87ca-b6e9-3c8f-9e097bfc4e31",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Digital Signature Of AppX Package"
+  },
+  {
+    "description": "Detects an Antivirus alert in a highly relevant file path or with a relevant file name.\nThis event must not be ignored just because the AV has blocked the malware but investigate, how it came there in the first place.\n",
+    "event_ids": [],
+    "id": "a1be9170-2ada-e8bb-285c-3e1ff336189e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Antivirus Relevant File Paths Alerts"
+  },
+  {
+    "description": "Detects a highly relevant Antivirus alert that reports a hack tool or other attack tool.\nThis event must not be ignored just because the AV has blocked the malware but investigate, how it came there in the first place.\n",
+    "event_ids": [],
+    "id": "f3d20838-65fe-0575-52a9-fd41ce2a5fdd",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Antivirus Hacktool Detection"
+  },
+  {
+    "description": "Detects a highly relevant Antivirus alert that reports an exploitation framework.\nThis event must not be ignored just because the AV has blocked the malware but investigate, how it came there in the first place.\n",
+    "event_ids": [],
+    "id": "1868a1c5-30e8-dffd-a373-90c72ea4921a",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Antivirus Exploitation Framework Detection"
+  },
+  {
+    "description": "Detects a highly relevant Antivirus alert that reports a password dumper.\nThis event must not be ignored just because the AV has blocked the malware but investigate, how it came there in the first place.\n",
+    "event_ids": [],
+    "id": "46fc2e9f-df4e-8628-05d5-39bc97b56bab",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Antivirus Password Dumper Detection"
+  },
+  {
+    "description": "Detects a highly relevant Antivirus alert that reports ransomware.\nThis event must not be ignored just because the AV has blocked the malware but investigate, how it came there in the first place.\n",
+    "event_ids": [],
+    "id": "22f82564-4b51-e901-bf00-ea94ff39b468",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Antivirus Ransomware Detection"
+  },
+  {
+    "description": "Detects a highly relevant Antivirus alert that reports a web shell.\nIt's highly recommended to tune this rule to the specific strings used by your anti virus solution by downloading a big WebShell repository from e.g. github and checking the matches.\nThis event must not be ignored just because the AV has blocked the malware but investigate, how it came there in the first place.\n",
+    "event_ids": [],
+    "id": "207b56b3-b44d-dcee-c171-c8f3f4eb3cf6",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Antivirus Web Shell Detection"
+  },
+  {
+    "description": "Detects DNS queries for subdomains related to \"Put.io\" sharing website.",
+    "event_ids": [],
+    "id": "9b3ffe56-a479-9b35-d590-9b94c2f7fa35",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "DNS Query To Put.io - DNS Client"
+  },
+  {
+    "description": "Detects a program that invoked suspicious DNS queries known from Cobalt Strike beacons",
+    "event_ids": [],
+    "id": "f0b3a5e9-e4ee-ed23-3b27-4dd30c5974c8",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Cobalt Strike DNS Beaconing - DNS Client"
+  },
+  {
+    "description": "Detects DNS resolution of an .onion address related to Tor routing networks",
+    "event_ids": [],
+    "id": "e1b0fd63-1017-1597-ec08-3f9e1021e564",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Query Tor Onion Address - DNS Client"
+  },
+  {
+    "description": "Detects DNS queries for subdomains related to MEGA sharing website",
+    "event_ids": [],
+    "id": "14b17417-8ae7-ff8e-fe36-28aaa337ccd5",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "DNS Query To MEGA Hosting Website - DNS Client"
+  },
+  {
+    "description": "Detects DNS queries for anonfiles.com, which is an anonymous file upload platform often used for malicious purposes",
+    "event_ids": [],
+    "id": "2abf05fa-98f2-d00b-6a6a-12d07e55233e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "DNS Query for Anonfiles.com Domain - DNS Client"
+  },
+  {
+    "description": "Detects DNS queries to \"ufile.io\", which was seen abused by malware and threat actors as a method for data exfiltration",
+    "event_ids": [],
+    "id": "ec3b018a-d4dd-2d51-4a63-50d078f737dd",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "DNS Query To Ufile.io - DNS Client"
+  },
+  {
+    "description": "Detects scenarios where an attacker enables the OpenSSH server and server starts to listening on SSH socket.",
+    "event_ids": [],
+    "id": "12800c31-cb60-9d63-bcc2-9ad342585c3a",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "OpenSSH Server Listening On Socket"
+  },
+  {
+    "description": "Detects suspicious WMI event filter and command line event consumer based on WMI and Security Logs.",
+    "event_ids": [],
+    "id": "efac5da1-1be2-d8d6-863e-d61125c1cbbd",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "WMI Persistence"
   },
   {
     "description": "Detect potential adversaries leveraging WMI ActiveScriptEventConsumers remotely to move laterally in a network.\nThis event is best correlated and used as an enrichment to determine the potential lateral movement activity.\n",
@@ -1184,12 +2484,72 @@
     "id": "7619b716-8052-6323-d9c7-87923ef591e6",
     "level": "low",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Access To Browser Credential Files By Uncommon Applications - Security"
+  },
+  {
+    "description": "Detects when a rule has been modified in the Windows firewall exception list",
+    "event_ids": [],
+    "id": "5d551ac6-b825-b536-7ec6-75339fc57a25",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Firewall Rule Modified In The Windows Firewall Exception List"
+  },
+  {
+    "description": "Detects loading of diagcab packages from a remote path, as seen in DogWalk vulnerability",
+    "event_ids": [],
+    "id": "b0e8486c-73f6-e1ba-9684-acba841c2719",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Loading Diagcab Package From Remote Path"
+  },
+  {
+    "description": "Detects suspicious application installed by looking at the added shortcut to the app resolver cache",
+    "event_ids": [],
+    "id": "487f5b43-6155-d21c-7189-1a6108974f1b",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Application Installed"
+  },
+  {
+    "description": "Detects suspicious use of the WSMAN provider without PowerShell.exe as the host application.",
+    "event_ids": [],
+    "id": "aedc0f64-b9e7-36d1-fd92-838fdf33eac3",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Non PowerShell WSMAN COM Provider"
+  },
+  {
+    "description": "Detects PowerShell scripts that make use of the \"Compress-Archive\" Cmdlet in order to compress folders and files where the output is stored in a potentially suspicious location that is used often by malware for exfiltration.\nAn adversary might compress data (e.g., sensitive documents) that is collected prior to exfiltration in order to make it portable and minimize the amount of data sent over the network.\n",
+    "event_ids": [],
+    "id": "ee9681d0-6ba5-5eaf-9c8b-fe39afe542b9",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Zip A Folder With PowerShell For Staging In Temp - PowerShell"
+  },
+  {
+    "description": "Detects PowerShell module creation where the module Contents are set to \"function Get-VMRemoteFXPhysicalVideoAdapter\". This could be a sign of potential abuse of  the \"RemoteFXvGPUDisablement.exe\" binary which is known to be vulnerable to module load-order hijacking.",
+    "event_ids": [],
+    "id": "29a3935d-0428-4f39-d39e-ec43c598b272",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential RemoteFXvGPUDisablement.EXE Abuse"
   },
   {
     "description": "Detects Obfuscated Powershell via use Clip.exe in Scripts",
@@ -1248,9 +2608,9 @@
     "level": "medium",
     "subcategory_guids": [
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "ISO Image Mounted"
   },
@@ -1262,8 +2622,8 @@
     "id": "cd7d9f05-3bf6-21f6-6686-e602ab6d72ba",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Scheduled Task Creation"
   },
@@ -1295,9 +2655,9 @@
   {
     "description": "An attacker can use the SID history attribute to gain additional privileges.",
     "event_ids": [
+      "4765",
       "4766",
-      "4738",
-      "4765"
+      "4738"
     ],
     "id": "5335aea0-f1b4-e120-08b6-c80fe4bf99ad",
     "level": "medium",
@@ -1326,8 +2686,8 @@
     "id": "a25c0c49-11f8-ace9-6bbd-80cfa6e2b2d7",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9229-69AE-11D9-BED3-505054503030",
-      "0CCE9228-69AE-11D9-BED3-505054503030"
+      "0CCE9228-69AE-11D9-BED3-505054503030",
+      "0CCE9229-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential Privileged System Service Operation - SeLoadDriverPrivilege"
   },
@@ -1356,9 +2716,9 @@
   {
     "description": "Detects failed Kerberos TGT issue operation. This can be a sign of manipulations of TGT messages by an attacker.",
     "event_ids": [
-      "4768",
       "4771",
       "675",
+      "4768",
       "4769"
     ],
     "id": "978525c2-97aa-f0e4-8c11-3cf81ea3379b",
@@ -1384,8 +2744,8 @@
   {
     "description": "Detects code integrity failures such as missing page hashes or corrupted drivers due unauthorized modification. This could be a sign of tampered binaries.\n",
     "event_ids": [
-      "5038",
-      "6281"
+      "6281",
+      "5038"
     ],
     "id": "4f738466-2a14-5842-1eb3-481614770a49",
     "level": "informational",
@@ -1438,8 +2798,8 @@
     "id": "93c95eee-748a-e1db-18a5-f40035167086",
     "level": "high",
     "subcategory_guids": [
-      "0CCE923B-69AE-11D9-BED3-505054503030",
-      "0CCE9220-69AE-11D9-BED3-505054503030"
+      "0CCE9220-69AE-11D9-BED3-505054503030",
+      "0CCE923B-69AE-11D9-BED3-505054503030"
     ],
     "title": "AD Privileged Users or Groups Reconnaissance"
   },
@@ -1496,16 +2856,16 @@
   {
     "description": "Detects process handle on LSASS process with certain access mask",
     "event_ids": [
-      "4656",
-      "4663"
+      "4663",
+      "4656"
     ],
     "id": "c7f94c63-6fb7-9686-e2c2-2298c9f56ca9",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potentially Suspicious AccessMask Requested From LSASS"
   },
@@ -1530,10 +2890,10 @@
     "id": "321196fe-fb10-6b13-c611-3dfe40baa1af",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Azure AD Health Monitoring Agent Registry Keys Access"
   },
@@ -1684,15 +3044,15 @@
   {
     "description": "This method uses uncommon error codes on failed logons to determine suspicious activity and tampering with accounts that have been disabled or somehow restricted.",
     "event_ids": [
-      "4776",
-      "4625"
+      "4625",
+      "4776"
     ],
     "id": "655eb351-553b-501f-186e-aa9af13ecf43",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE9217-69AE-11D9-BED3-505054503030",
       "0CCE923F-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Account Tampering - Suspicious Failed Logon Reasons"
   },
@@ -1706,9 +3066,9 @@
     "level": "high",
     "subcategory_guids": [
       "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Sysmon Channel Reference Deletion"
   },
@@ -1723,8 +3083,8 @@
     "level": "medium",
     "subcategory_guids": [
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Processes Accessing the Microphone and Webcam"
@@ -1732,16 +3092,16 @@
   {
     "description": "Detects handle requests and access operations to specific registry keys to calculate the SysKey",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "63308dbe-54a4-9c70-cc90-6d15e10f3505",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "SysKey Registry Keys Access"
   },
@@ -1919,8 +3279,8 @@
   {
     "description": "Detects activity when a security-enabled global group is deleted",
     "event_ids": [
-      "634",
-      "4730"
+      "4730",
+      "634"
     ],
     "id": "ae7d8d1c-f75b-d952-e84e-a7981b861590",
     "level": "low",
@@ -1932,8 +3292,8 @@
   {
     "description": "Detects activity when a member is added to a security-enabled global group",
     "event_ids": [
-      "632",
-      "4728"
+      "4728",
+      "632"
     ],
     "id": "26767093-828c-2f39-bdd8-d0439e87307c",
     "level": "low",
@@ -1957,15 +3317,15 @@
   {
     "description": "Detects wceaux.dll access while WCE pass-the-hash remote command execution on source host",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "de10da38-ee60-f6a4-7d70-4d308558158b",
     "level": "critical",
     "subcategory_guids": [
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "WCE wceaux.dll Access"
@@ -1990,9 +3350,9 @@
     "id": "04a055ea-ffa9-540b-e1d2-d5c1bfd5bc7b",
     "level": "high",
     "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Teams Application Related ObjectAcess Event"
@@ -2037,8 +3397,8 @@
   {
     "description": "Detects a user log-off activity. Could be used for example to correlate information during forensic investigations",
     "event_ids": [
-      "4647",
-      "4634"
+      "4634",
+      "4647"
     ],
     "id": "73f64ce7-a76d-0208-ea75-dd26a09d719b",
     "level": "informational",
@@ -2180,18 +3540,18 @@
   {
     "description": "Detects files that have extensions commonly seen while SDelete is used to wipe files.",
     "event_ids": [
-      "4656",
       "4663",
-      "4658"
+      "4658",
+      "4656"
     ],
     "id": "70c3269a-a7f2-49bd-1e28-a0921f353db7",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9223-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE9223-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential Secure Deletion with SDelete"
   },
@@ -2228,23 +3588,23 @@
     "level": "high",
     "subcategory_guids": [
       "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "SAM Registry Hive Handle Request"
   },
   {
     "description": "Detects the modification of Group Policy Objects (GPO) to add a startup/logon script to users or computer objects.\n",
     "event_ids": [
-      "5145",
-      "5136"
+      "5136",
+      "5145"
     ],
     "id": "bc613d09-5a80-cad3-6f65-c5020f960511",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9244-69AE-11D9-BED3-505054503030",
-      "0CCE923C-69AE-11D9-BED3-505054503030"
+      "0CCE923C-69AE-11D9-BED3-505054503030",
+      "0CCE9244-69AE-11D9-BED3-505054503030"
     ],
     "title": "Startup/Logon Script Added to Group Policy Object"
   },
@@ -2269,8 +3629,8 @@
     "id": "5ac4b7f8-9412-f919-220c-aa8a1867b1ef",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9220-69AE-11D9-BED3-505054503030",
-      "0CCE923B-69AE-11D9-BED3-505054503030"
+      "0CCE923B-69AE-11D9-BED3-505054503030",
+      "0CCE9220-69AE-11D9-BED3-505054503030"
     ],
     "title": "Reconnaissance Activity"
   },
@@ -2301,8 +3661,8 @@
   {
     "description": "Detects execution of EDRSilencer, a tool that abuses the Windows Filtering Platform (WFP) to block the outbound traffic of running EDR agents based on specific hardcoded filter names.\n",
     "event_ids": [
-      "5447",
-      "5441"
+      "5441",
+      "5447"
     ],
     "id": "4d56e133-40b5-5b28-07b5-bab0913fc338",
     "level": "high",
@@ -2484,16 +3844,16 @@
   {
     "description": "Alerts on Metasploit host's authentications on the domain.",
     "event_ids": [
-      "4625",
       "4624",
+      "4625",
       "4776"
     ],
     "id": "827aa6c1-1507-3f0a-385a-ade5251bfd71",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030",
       "0CCE923F-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Metasploit SMB Authentication"
   },
@@ -2572,14 +3932,14 @@
   {
     "description": "Detects potential mimikatz-like tools accessing LSASS from non system account",
     "event_ids": [
-      "4656",
-      "4663"
+      "4663",
+      "4656"
     ],
     "id": "06b8bcc0-326b-518a-3868-fe0721488fb8",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
@@ -2615,8 +3975,8 @@
     "id": "474caaa9-3115-c838-1509-59ffb6caecfc",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
@@ -2678,26 +4038,26 @@
     "id": "d1909400-93d7-de3c-ba13-153c64499c7c",
     "level": "low",
     "subcategory_guids": [
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Service Registry Key Read Access Request"
   },
   {
     "description": "Detects write access requests to the Windows Defender exclusions registry keys. This could be an indication of an attacker trying to request a handle or access the object to write new exclusions in order to bypass security.\n",
     "event_ids": [
-      "4656",
-      "4663"
+      "4663",
+      "4656"
     ],
     "id": "777523b0-14f8-1ca2-12c9-d668153661ff",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Windows Defender Exclusion Registry Key - Write Access Requested"
   },
@@ -2717,8 +4077,8 @@
   {
     "description": "One of the Windows Eventlogs has been cleared. e.g. caused by \"wevtutil cl\" command execution",
     "event_ids": [
-      "1102",
-      "517"
+      "517",
+      "1102"
     ],
     "id": "9b14c9d8-6b61-e49f-f8a8-0836d0ad98c9",
     "level": "high",
@@ -2728,14 +4088,14 @@
   {
     "description": "Detects execution of NoFilter, a tool for abusing the Windows Filtering Platform for privilege escalation via hardcoded policy name indicators\n",
     "event_ids": [
-      "5447",
-      "5449"
+      "5449",
+      "5447"
     ],
     "id": "22d4af9f-97d9-4827-7209-c451ff7f43c6",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9233-69AE-11D9-BED3-505054503030",
-      "0CCE9234-69AE-11D9-BED3-505054503030"
+      "0CCE9234-69AE-11D9-BED3-505054503030",
+      "0CCE9233-69AE-11D9-BED3-505054503030"
     ],
     "title": "HackTool - NoFilter Execution"
   },
@@ -2767,16 +4127,16 @@
   {
     "description": "This events that are generated when using the hacktool Ruler by Sensepost",
     "event_ids": [
-      "4624",
       "4625",
+      "4624",
       "4776"
     ],
     "id": "8b40829b-4556-9bec-a8ad-905688497639",
     "level": "high",
     "subcategory_guids": [
-      "0CCE923F-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030",
       "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE923F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Hacktool Ruler"
   },
@@ -2807,8 +4167,8 @@
   {
     "description": "Detects the creation of a user with the \"$\" character. This can be used by attackers to hide a user or trick detection systems that lack the parsing mechanisms.\n",
     "event_ids": [
-      "4781",
-      "4720"
+      "4720",
+      "4781"
     ],
     "id": "ec77919c-1169-6640-23e7-91c6f27ddc91",
     "level": "medium",
@@ -2826,23 +4186,23 @@
     "level": "high",
     "subcategory_guids": [
       "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Password Dumper Activity on LSASS"
   },
   {
     "description": "Detects when adversaries stop services or processes by deleting or disabling their respective scheduled tasks in order to conduct data destructive activities",
     "event_ids": [
-      "4699",
-      "4701"
+      "4701",
+      "4699"
     ],
     "id": "9ce591d7-6b6d-444a-8c27-8ca626dddad3",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Important Scheduled Task Deleted/Disabled"
   },
@@ -2861,8 +4221,8 @@
   {
     "description": "Detects scenarios where one can control another users or computers account without having to use their credentials.",
     "event_ids": [
-      "4738",
-      "5136"
+      "5136",
+      "4738"
     ],
     "id": "c9123898-04d5-2d3b-5e2b-7c0c92111480",
     "level": "high",
@@ -2882,9 +4242,9 @@
     "level": "medium",
     "subcategory_guids": [
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Azure AD Health Service Agents Registry Keys Access"
   },
@@ -2959,8 +4319,8 @@
   {
     "description": "Detects the creation or removal of a computer. Can be used to detect attacks such as DCShadow via the creation of a new SPN.",
     "event_ids": [
-      "4743",
-      "4741"
+      "4741",
+      "4743"
     ],
     "id": "b607775d-e3fe-3fb8-c40e-4e52b3fbe44d",
     "level": "low",
@@ -2983,6 +4343,106 @@
     "title": "VSSAudit Security Event Source Registration"
   },
   {
+    "description": "Detect Attempt PrintNightmare (CVE-2021-1675) Remote code execution in Windows Spooler Service",
+    "event_ids": [],
+    "id": "610c6a10-ca67-69c5-0f6d-761487fb3b37",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Rejected SMB Guest Logon From IP"
+  },
+  {
+    "description": "Detects the addition of a new rule to the Windows Firewall exception list for an application located in a potentially suspicious location.",
+    "event_ids": [],
+    "id": "bf17c34a-7b9d-65a8-a143-afa9c13e1fe4",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "New Firewall Rule Added In Windows Firewall Exception List For Potential Suspicious Application"
+  },
+  {
+    "description": "Detects when a rule has been added to the Windows Firewall exception list",
+    "event_ids": [],
+    "id": "a1dbd390-a4c5-755a-1b1f-a76aabbecbbc",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Uncommon New Firewall Rule Added In Windows Firewall Exception List"
+  },
+  {
+    "description": "Detects when a all the rules have been deleted from the Windows Defender Firewall configuration",
+    "event_ids": [],
+    "id": "3623c339-f1c5-67f2-a5a2-ddb078d75f69",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "All Rules Have Been Deleted From The Windows Firewall Configuration"
+  },
+  {
+    "description": "Detects activity when Windows Defender Firewall has been reset to its default configuration",
+    "event_ids": [],
+    "id": "e2592615-38d5-5099-c59f-83ab34a11d9a",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Firewall Has Been Reset To Its Default Configuration"
+  },
+  {
+    "description": "Detects activity when the settings of the Windows firewall have been changed",
+    "event_ids": [],
+    "id": "a0062bfc-2eba-05df-e231-f4a44b1317ab",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Firewall Settings Have Been Changed"
+  },
+  {
+    "description": "Detects when a single rules or all of the rules have been deleted from the Windows Defender Firewall",
+    "event_ids": [],
+    "id": "55827aab-4062-032f-35e7-2406dc57c35e",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "A Rule Has Been Deleted From The Windows Firewall Exception List"
+  },
+  {
+    "description": "Detects activity when The Windows Defender Firewall service failed to load Group Policy",
+    "event_ids": [],
+    "id": "33a69619-460b-90f5-19b1-2f34036caf0a",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "The Windows Defender Firewall Service Failed To Load Group Policy"
+  },
+  {
+    "description": "Detects the addition of a new \"Allow\" firewall rule by the WMI process (WmiPrvSE.EXE).\nThis can occur if an attacker leverages PowerShell cmdlets such as \"New-NetFirewallRule\", or directly uses WMI CIM classes such as \"MSFT_NetFirewallRule\".\n",
+    "event_ids": [],
+    "id": "ac6e5dab-06d1-5064-a91c-0eb6246d22bd",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "New Firewall Rule Added In Windows Firewall Exception List Via WmiPrvSE.EXE"
+  },
+  {
+    "description": "Detects a service installation that uses a suspicious double ampersand used in the image path value",
+    "event_ids": [],
+    "id": "22b90bac-a283-6153-761c-7b6059f8f250",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "New Service Uses Double Ampersand in Path"
+  },
+  {
     "description": "Detects when a Windows Defender exclusion has been deleted. This could indicate an attacker trying to delete their tracks by removing the added exclusions\n",
     "event_ids": [
       "4660"
@@ -2990,11 +4450,21 @@
     "id": "7bd85790-c82a-56af-7127-f257e5ef6c6f",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Windows Defender Exclusion Deleted"
+  },
+  {
+    "description": "Detects suspicious PowerShell download command",
+    "event_ids": [],
+    "id": "12f93a4e-cd0e-18d7-6969-b345ecc8d40a",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious PowerShell Download"
   },
   {
     "description": "The attacker might use LOLBAS nltest.exe for discovery of domain controllers, domain trusts, parent domain and the current user permissions.",
@@ -3031,12 +4501,32 @@
     "title": "Security Event Log Cleared"
   },
   {
+    "description": "Detects suspicious PowerShell invocation command parameters",
+    "event_ids": [],
+    "id": "391b98f2-3f42-0d06-a295-18a2aa29d39a",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious PowerShell Invocations - Generic"
+  },
+  {
+    "description": "Detects SyncAppvPublishingServer process execution which usually utilized by adversaries to bypass PowerShell execution restrictions.",
+    "event_ids": [],
+    "id": "349e3bb4-b72b-193d-810e-7d9c145b863e",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "SyncAppvPublishingServer Execution to Bypass Powershell Restriction"
+  },
+  {
     "description": "Configure systems to issue a log entry and alert when an account is added to or removed from any group assigned administrative privileges.\nSigma detects\nEvent ID 4728 indicates a \"Member is added to a Security Group\".\nEvent ID 4729 indicates a \"Member is removed from a Security enabled-group\".\nEvent ID 4730 indicates a \"Security Group is deleted\".\nThe case is not applicable for Unix OS.\nSupported OS - Windows 2008 R2 and 7, Windows 2012 R2 and 8.1, Windows 2016 and 10 Windows Server 2019, Windows Server 2000, Windows 2003 and XP.\n",
     "event_ids": [
-      "632",
-      "4728",
       "4729",
       "633",
+      "632",
+      "4728",
       "4730",
       "634"
     ],
@@ -3046,6 +4536,76 @@
       "0CCE9237-69AE-11D9-BED3-505054503030"
     ],
     "title": "Group Modification Logging"
+  },
+  {
+    "description": "Detects suspicious PowerShell invocation command parameters",
+    "event_ids": [],
+    "id": "3db961f4-6217-4957-b717-e5955c82d6e5",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious PowerShell Invocations - Specific"
+  },
+  {
+    "description": "Detects suspicious SAM dump activity as cause by QuarksPwDump and other password dumpers",
+    "event_ids": [],
+    "id": "f224a2b6-2db1-a1a2-42d4-25df0c460915",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "SAM Dump to AppData"
+  },
+  {
+    "description": "Detects disabling Windows Defender threat protection",
+    "event_ids": [],
+    "id": "7424bd72-6b38-f5a1-7f25-4665452ec72b",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Threat Detection Disabled"
+  },
+  {
+    "description": "Detects cases in which ngrok, a reverse proxy tool, forwards events to the local RDP port, which could be a sign of malicious behaviour",
+    "event_ids": [],
+    "id": "cfba8e23-d224-ff3b-7cb7-dbc6085172a0",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Ngrok Usage with Remote Desktop Service"
+  },
+  {
+    "description": "Detects Code Integrity (CI) engine blocking Microsoft Defender's processes (MpCmdRun and NisSrv) from loading unsigned DLLs which may be an attempt to sideload arbitrary DLL",
+    "event_ids": [],
+    "id": "838d17f1-63ba-03c4-f8ae-2bdfd74a6a08",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Microsoft Defender Blocked from Loading Unsigned DLL"
+  },
+  {
+    "description": "Detects Code Integrity (CI) engine blocking processes from loading unsigned DLLs residing in suspicious locations",
+    "event_ids": [],
+    "id": "15277aa1-7b5b-9e3b-cca8-52c21a36d06c",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Unsigned Binary Loaded From Suspicious Location"
+  },
+  {
+    "description": "Detects repeated failed (outgoing) attempts to mount a hidden share",
+    "event_ids": [],
+    "id": "624e39e1-5bc5-13fe-0b2d-5d988a416f24",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Failed Mounting of Hidden Share"
   },
   {
     "description": "Detects multiple failed logins with multiple valid domain accounts from a single source system using the Kerberos protocol.",
@@ -3058,6 +4618,26 @@
       "0CCE9242-69AE-11D9-BED3-505054503030"
     ],
     "title": "Valid Users Failing to Authenticate From Single Source Using Kerberos"
+  },
+  {
+    "description": "Detects usage of Metasploit SMB PsExec (exploit/windows/smb/psexec) and Impacket psexec.py by triggering on specific service installation",
+    "event_ids": [],
+    "id": "c953a767-8b94-df03-dd53-611baad380fd",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Metasploit Or Impacket Service Installation Via SMB PsExec"
+  },
+  {
+    "description": "This rule detects rare scheduled task creations. Typically software gets installed on multiple systems and not only on a few. The aggregation and count function selects tasks with rare names.",
+    "event_ids": [],
+    "id": "696cf23d-d3f2-0a4d-6aff-b162d692a778",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Rare Scheduled Task Creations"
   },
   {
     "description": "Detects failed logins with multiple disabled domain accounts from a single source system using the Kerberos protocol.",
@@ -3074,15 +4654,15 @@
   {
     "description": "Detects remote execution via scheduled task creation or update on the destination host",
     "event_ids": [
-      "4698",
       "4702",
-      "4624"
+      "4624",
+      "4698"
     ],
     "id": "bc42c437-1ea8-fd0f-d964-e37a58d861fc",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
       "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030",
       "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Remote Schtasks Creation"
@@ -3108,8 +4688,8 @@
     "id": "89ed0fbe-11b8-ce3c-e025-59925225ee99",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "Rare Schtasks Creations"
   },
@@ -3138,6 +4718,26 @@
     "title": "Enumeration via the Global Catalog"
   },
   {
+    "description": "Detects rare service installs that only appear a few times per time frame and could reveal password dumpers, backdoor installs or other types of malicious services",
+    "event_ids": [],
+    "id": "e9acc9e9-8b91-7859-2d0c-446a2c40b937",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Rare Service Installations"
+  },
+  {
+    "description": "Detects known malicious service installs that only appear in cases of lateral movement, credential dumping, and other suspicious activities.",
+    "event_ids": [],
+    "id": "a5f841a8-5dcb-5ee4-73ea-5331859bf763",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Malicious Service Installations"
+  },
+  {
     "description": "Detects failed logins with multiple invalid domain accounts from a single source system using the NTLM protocol.",
     "event_ids": [
       "4776"
@@ -3157,10 +4757,10 @@
     "id": "888d3e17-a1ed-6b11-895c-e1f9b96b35be",
     "level": "high",
     "subcategory_guids": [
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Stored Credentials in Fake Files"
   },
@@ -3172,8 +4772,8 @@
     "id": "30e70d43-6368-123c-a3c8-d23309a3ff97",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Multiple Users Remotely Failing To Authenticate From Single Source"
   },
@@ -3198,8 +4798,8 @@
     "id": "428d3964-3241-1ceb-8f93-b31d8490c822",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Failed Logins with Different Accounts from Single Source System"
   },
@@ -3211,10 +4811,10 @@
     "id": "a4504cb2-23f6-6d94-5ae6-d6013cf1d995",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Multiple File Rename Or Delete Occurred"
   },
@@ -3241,5 +4841,845 @@
       "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Password Spraying via Explicit Credentials"
+  },
+  {
+    "description": "This rule detects a suspicious crash of the Microsoft Malware Protection Engine",
+    "event_ids": [],
+    "id": "ea429061-e3b4-fabd-8bd6-cb98772aeeba",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Microsoft Malware Protection Engine Crash - WER"
+  },
+  {
+    "description": "Detects plugged/unplugged USB devices",
+    "event_ids": [],
+    "id": "12717514-9380-dabc-12b9-113f524ec3ac",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "USB Device Plugged"
+  },
+  {
+    "description": "Detect run not allowed files. Applocker is a very useful tool, especially on servers where unprivileged users have access. For example terminal servers. You need configure applocker and log collect to receive these events.",
+    "event_ids": [],
+    "id": "da0e47f5-493f-9da4-b041-8eb762761118",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "File Was Not Allowed To Run"
+  },
+  {
+    "description": "Detects an appx package added the pipeline of the \"to be processed\" packages which is located in uncommon locations",
+    "event_ids": [],
+    "id": "a3dbb89a-aebc-03c7-295b-ad18d5c7924b",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Uncommon AppX Package Locations"
+  },
+  {
+    "description": "Detects an appx package added to the pipeline of the \"to be processed\" packages which was downloaded from a suspicious domain.\n",
+    "event_ids": [],
+    "id": "7de9c1d0-7b8e-8196-8137-8dcc13c6e960",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious Remote AppX Package Locations"
+  },
+  {
+    "description": "Detects potential installation or installation attempts of known malicious appx packages",
+    "event_ids": [],
+    "id": "8f46b318-b8a3-d268-911f-318d0b43c0f9",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential Malicious AppX Package Installation Attempts"
+  },
+  {
+    "description": "Detects an appx package added the pipeline of the \"to be processed\" packages which is located in suspicious locations",
+    "event_ids": [],
+    "id": "5bb0ef8b-3b9d-8a3c-30c2-0a787e54184a",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious AppX Package Locations"
+  },
+  {
+    "description": "Detects an appx package installation with the error code \"0x80073cff\" which indicates that the package didn't meet the signing requirements and could be suspicious",
+    "event_ids": [],
+    "id": "5cfde458-a9e1-f4b7-92cd-959ead47bdd3",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Suspicious AppX Package Installation Attempt"
+  },
+  {
+    "description": "Detects an appx package deployment that was blocked by the local computer policy",
+    "event_ids": [],
+    "id": "c01e61dd-7cb7-acd0-c6e5-bda4c93b330c",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Deployment Of The AppX Package Was Blocked By The Policy"
+  },
+  {
+    "description": "Detects an appx package deployment that was blocked by AppLocker policy",
+    "event_ids": [],
+    "id": "a902397c-6118-0a8f-7fab-3f8142297d80",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Deployment AppX Package Was Blocked By AppLocker"
+  },
+  {
+    "description": "Detects removal of an exported Exchange mailbox which could be to cover tracks from ProxyShell exploit",
+    "event_ids": [],
+    "id": "47e67dfc-354a-0989-f6b1-f3f888a31278",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Remove Exported Mailbox from Exchange Webserver"
+  },
+  {
+    "description": "Detects a failed installation of a Exchange Transport Agent",
+    "event_ids": [],
+    "id": "29ec9279-2899-b0a0-0b41-6bf40cdda885",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Failed MSExchange Transport Agent Installation"
+  },
+  {
+    "description": "Detects specific patterns found after a successful ProxyLogon exploitation in relation to a Commandlet invocation of Set-OabVirtualDirectory",
+    "event_ids": [],
+    "id": "469804e4-bb11-7cb1-96ce-f7687daa98a0",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "ProxyLogon MSExchange OabVirtualDirectory"
+  },
+  {
+    "description": "Detects the Installation of a Exchange Transport Agent",
+    "event_ids": [],
+    "id": "31aa27f1-7ac6-a316-2786-b13400c130f5",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSExchange Transport Agent Installation - Builtin"
+  },
+  {
+    "description": "Detects a write of an Exchange CSR to an untypical directory or with aspx name suffix which can be used to place a webshell",
+    "event_ids": [],
+    "id": "9c8f1614-f386-ea28-e870-75e3daf99adc",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Certificate Request Export to Exchange Webserver"
+  },
+  {
+    "description": "Rule to detect an adversary setting OabVirtualDirectory External URL property to a script in Exchange Management log",
+    "event_ids": [],
+    "id": "30eb1897-ab7e-5cc9-6f83-cd5abd8ee0dc",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Exchange Set OabVirtualDirectory ExternalUrl Property"
+  },
+  {
+    "description": "Detects a successful export of an Exchange mailbox to untypical directory or with aspx name suffix which can be used to place a webshell or the needed role assignment for it",
+    "event_ids": [],
+    "id": "684f5f59-5de0-7d7a-e983-1e2758d383d6",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Mailbox Export to Exchange Webserver"
+  },
+  {
+    "description": "Detects when adversaries try to stop system services or processes by deleting their respective scheduled tasks in order to conduct data destructive activities\n",
+    "event_ids": [],
+    "id": "0c0e2be2-30d2-c713-0c9c-63cd9752a940",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Important Scheduled Task Deleted"
+  },
+  {
+    "description": "Detects the execution of Scheduled Tasks where the program being run is located in a suspicious location or where it is an unusual program to be run from a Scheduled Task",
+    "event_ids": [],
+    "id": "d5a3d13e-7db3-bcf5-824a-789488ab40fd",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Scheduled Task Executed Uncommon LOLBIN"
+  },
+  {
+    "description": "Detects the execution of Scheduled Tasks where the Program being run is located in a suspicious location or it's an unusale program to be run from a Scheduled Task",
+    "event_ids": [],
+    "id": "c1fd9ca2-a3f8-1adc-0f1d-1d6099f5d827",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Scheduled Task Executed From A Suspicious Location"
+  },
+  {
+    "description": "Detects when an application acquires a certificate private key",
+    "event_ids": [],
+    "id": "dadaca47-d760-88a9-fd35-cbe8a6237499",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Certificate Private Key Acquired"
+  },
+  {
+    "description": "Detect standard users login that are part of high privileged groups such as the Administrator group",
+    "event_ids": [],
+    "id": "7536b3d3-6765-4433-9269-2d460cb10adf",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Standard User In High Privileged Group"
+  },
+  {
+    "description": "Detects installation of a remote msi file from web.",
+    "event_ids": [],
+    "id": "1af7877b-8512-f49c-c11e-a048888c68fa",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSI Installation From Web"
+  },
+  {
+    "description": "Detects MSI package installation from suspicious locations",
+    "event_ids": [],
+    "id": "96acd930-342e-66ca-9855-1285ba8a40ed",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSI Installation From Suspicious Locations"
+  },
+  {
+    "description": "Detects successful installation of Atera Remote Monitoring & Management (RMM) agent as recently found to be used by Conti operators",
+    "event_ids": [],
+    "id": "655bf214-78ac-5d4f-27ac-4e0ede9b68a5",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Atera Agent Installation"
+  },
+  {
+    "description": "An application has been removed. Check if it is critical.",
+    "event_ids": [],
+    "id": "33c276a1-2475-2f1f-aa3d-ec5d61dbe94c",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Application Uninstalled"
+  },
+  {
+    "description": "Detects restricted access to applications by the Software Restriction Policies (SRP) policy",
+    "event_ids": [],
+    "id": "2ebb1619-89c0-1a11-2b58-53ef8c2cb863",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Restricted Software Access By SRP"
+  },
+  {
+    "description": "Detects events generated by user-mode applications when they call the CveEventWrite API when a known vulnerability is trying to be exploited.\nMS started using this log in Jan. 2020 with CVE-2020-0601 (a Windows CryptoAPI vulnerability.\nUnfortunately, that is about the only instance of CVEs being written to this log.\n",
+    "event_ids": [],
+    "id": "f1c99d55-8f38-1ae5-19b6-71d4124f4c46",
+    "level": "critical",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Audit CVE Event"
+  },
+  {
+    "description": "Detects Windows error reporting event where the process that crashed is lsass. This could be the cause of an intentional crash by techniques such as Lsass-Shtinkering to dump credential",
+    "event_ids": [],
+    "id": "fcc29ed2-c7fa-1b44-6db4-de352c7cf1b8",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential Credential Dumping Via WER - Application"
+  },
+  {
+    "description": "This rule detects a suspicious crash of the Microsoft Malware Protection Engine",
+    "event_ids": [],
+    "id": "24cdd840-5da1-6c12-5b58-4da49cc4b11a",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Microsoft Malware Protection Engine Crash"
+  },
+  {
+    "description": "Detects command execution via ScreenConnect RMM",
+    "event_ids": [],
+    "id": "8df2af03-bf29-1ee2-5e6e-476326c561d7",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Remote Access Tool - ScreenConnect Command Execution"
+  },
+  {
+    "description": "Detects file being transferred via ScreenConnect RMM",
+    "event_ids": [],
+    "id": "98bb59e9-ce78-f18f-8355-8a6750afb314",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Remote Access Tool - ScreenConnect File Transfer"
+  },
+  {
+    "description": "Detects potentially highly relevant antivirus events in the application log based on known virus signature names and malware keywords.\n",
+    "event_ids": [],
+    "id": "b0f698cd-af36-2a37-ce9f-2ab614a8b808",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Relevant Anti-Virus Signature Keywords In Application Log"
+  },
+  {
+    "description": "Detects backup catalog deletions",
+    "event_ids": [],
+    "id": "9abb29b7-6fca-9563-2f87-11926d64e17d",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Backup Catalog Deleted"
+  },
+  {
+    "description": "Detects potential abuse of ntdsutil to dump ntds.dit database to a suspicious location",
+    "event_ids": [],
+    "id": "a050e701-373d-fc52-c345-8fbf933e1b82",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Dump Ntds.dit To Suspicious Location"
+  },
+  {
+    "description": "Detects potential abuse of ntdsutil to dump ntds.dit database",
+    "event_ids": [],
+    "id": "b8d0d560-906d-670f-cd10-32ed9179f21a",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Ntdsutil Abuse"
+  },
+  {
+    "description": "Detects when the MSSQL \"xp_cmdshell\" stored procedure is used to execute commands",
+    "event_ids": [],
+    "id": "bc1445fe-1749-b913-f147-64575e1d9ac1",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL XPCmdshell Suspicious Execution"
+  },
+  {
+    "description": "Detects when the a stored procedure is set or cleared for automatic execution in MSSQL. A stored procedure that is set to automatic execution runs every time an instance of SQL Server is started",
+    "event_ids": [],
+    "id": "824a7eb7-81e3-6b27-2ede-6fd2d58348b4",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL SPProcoption Set"
+  },
+  {
+    "description": "Detects failed logon attempts from clients to MSSQL server.",
+    "event_ids": [],
+    "id": "03e217c6-de25-3afa-3833-6c534a6576f0",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL Server Failed Logon"
+  },
+  {
+    "description": "Detects when an attacker tries to backdoor the MSSQL server by adding a backdoor account to the sysadmin fixed server role",
+    "event_ids": [],
+    "id": "d17d99ad-18e9-67e1-6163-054f210fee16",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL Add Account To Sysadmin Role"
+  },
+  {
+    "description": "Detects when the MSSQL \"xp_cmdshell\" stored procedure setting is changed.\n",
+    "event_ids": [],
+    "id": "11635209-eef1-b93a-98bf-33b80e5065a1",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL XPCmdshell Option Change"
+  },
+  {
+    "description": "Detects when an attacker calls the \"ALTER SERVER AUDIT\" or \"DROP SERVER AUDIT\" transaction in order to delete or disable audit logs on the server",
+    "event_ids": [],
+    "id": "e485c12e-8840-1b24-61f7-697e480d63b1",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL Disable Audit Settings"
+  },
+  {
+    "description": "Detects failed logon attempts from clients with external network IP to an MSSQL server. This can be a sign of a bruteforce attack.",
+    "event_ids": [],
+    "id": "2aec0e1c-e7f6-3837-d7f2-ee1c5cac7032",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "MSSQL Server Failed Logon From External Network"
+  },
+  {
+    "description": "Detects blocked load events that did not meet the authenticode signing level requirements or violated the code integrity policy.",
+    "event_ids": [],
+    "id": "a4736e84-f507-2e6b-bc7a-573328447cbf",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Blocked Image/Driver Load For Policy Violation"
+  },
+  {
+    "description": "Detects block events for files that are disallowed by code integrity for protected processes",
+    "event_ids": [],
+    "id": "c2644e00-b2a8-1e98-7dfc-bbef3a929767",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Disallowed File For Protected Processes Has Been Blocked"
+  },
+  {
+    "description": "Detects loaded unsigned image on the system",
+    "event_ids": [],
+    "id": "d6ea0e4a-9918-a082-1c5d-bd5d2a4f0b76",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Unsigned Image Loaded"
+  },
+  {
+    "description": "Detects image load events with revoked certificates by code integrity.",
+    "event_ids": [],
+    "id": "4d4c3fb7-504c-7089-2bb3-26781191b7eb",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Revoked Image Loaded"
+  },
+  {
+    "description": "Detects the presence of a loaded unsigned kernel module on the system.",
+    "event_ids": [],
+    "id": "23f17a2b-73ca-e465-e823-bb1d47543f6d",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Unsigned Kernel Module Loaded"
+  },
+  {
+    "description": "Detects loaded kernel modules that did not meet the WHQL signing requirements.",
+    "event_ids": [],
+    "id": "b1f60092-6ced-8775-b5dd-ac15a042e292",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Unmet WHQL Requirements For Loaded Kernel Module"
+  },
+  {
+    "description": "Detects blocked image load events with revoked certificates by code integrity.",
+    "event_ids": [],
+    "id": "6f9f7b5c-f44b-fe0a-bcb2-ff4a09bd4ccf",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Blocked Image Load With Revoked Certificate"
+  },
+  {
+    "description": "Detects attempted file load events that did not meet the signing level requirements. It often means the file's signature is revoked or a signature with the Lifetime Signing EKU has expired.\nThis event is best correlated with EID 3089 to determine the error of the validation.\n",
+    "event_ids": [],
+    "id": "f45ca591-7575-818e-9a07-7493461a33c3",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Unmet Signing Level Requirements By File Under Validation"
+  },
+  {
+    "description": "Detects the load of a revoked kernel driver",
+    "event_ids": [],
+    "id": "4764bb53-3383-ae11-5351-b67f0001d2a5",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Revoked Kernel Driver Loaded"
+  },
+  {
+    "description": "Detects blocked load attempts of revoked drivers",
+    "event_ids": [],
+    "id": "3838c754-9c4c-f500-6c7d-4c73b29717a9",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "CodeIntegrity - Blocked Driver Load With Revoked Certificate"
+  },
+  {
+    "description": "Detects a DNS server error in which a specified plugin DLL (in registry) could not be loaded",
+    "event_ids": [],
+    "id": "40077f9e-f597-1087-0c4f-8901d1a07af4",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "DNS Server Error Failed Loading the ServerLevelPluginDLL"
+  },
+  {
+    "description": "Detects when a DNS zone transfer failed.",
+    "event_ids": [],
+    "id": "04768e11-3acf-895f-9193-daae77c4678f",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Failed DNS Zone Transfer"
+  },
+  {
+    "description": "Rule to detect the Hybrid Connection Manager service running on an endpoint.",
+    "event_ids": [],
+    "id": "871bc844-4977-a864-457b-46cfba6ddb65",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "HybridConnectionManager Service Running"
+  },
+  {
+    "description": "Detects when an application exports a certificate (and potentially the private key as well) from the local Windows certificate store.",
+    "event_ids": [],
+    "id": "aec05047-d4cd-8eed-6c67-40b018f64c6e",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Certificate Exported From Local Certificate Store"
+  },
+  {
+    "description": "Detects Access to LSASS Process",
+    "event_ids": [],
+    "id": "db45bac6-e4cf-df15-bb73-abdc2bb5b466",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "LSASS Access Detected via Attack Surface Reduction"
+  },
+  {
+    "description": "Detects when someone is adding or removing applications or folders from exploit guard \"ProtectedFolders\" or \"AllowedApplications\"\n",
+    "event_ids": [],
+    "id": "2b57cd91-079d-5f13-07f4-82d7435acd38",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Exploit Guard Tamper"
+  },
+  {
+    "description": "Detects disabling of the \"Automatic Sample Submission\" feature of Windows Defender.",
+    "event_ids": [],
+    "id": "f8be1673-da49-5b78-517b-16094864fab7",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Submit Sample Feature Disabled"
+  },
+  {
+    "description": "Detects the Setting of Windows Defender Exclusions",
+    "event_ids": [],
+    "id": "13020ca6-8f32-26e1-25d6-1f727e58de89",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Exclusions Added"
+  },
+  {
+    "description": "Detects suspicious changes to the Windows Defender configuration",
+    "event_ids": [],
+    "id": "36d5c11e-504a-a3a6-2704-4d6f5f35be41",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Configuration Changes"
+  },
+  {
+    "description": "Detects triggering of AMSI by Windows Defender.",
+    "event_ids": [],
+    "id": "4947e388-9eb4-8e77-4de7-17accc04246e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender AMSI Trigger Detected"
+  },
+  {
+    "description": "Detects blocked attempts to change any of Defender's settings such as \"Real Time Monitoring\" and \"Behavior Monitoring\"",
+    "event_ids": [],
+    "id": "f0a75367-1237-98a3-79c3-c4e7e4f5bacc",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Microsoft Defender Tamper Protection Trigger"
+  },
+  {
+    "description": "Detects the expiration of the grace period of Windows Defender. This means protection against viruses, spyware, and other potentially unwanted software is disabled.\n",
+    "event_ids": [],
+    "id": "5a62f5a9-71eb-a0e2-496d-e062350225df",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Grace Period Expired"
+  },
+  {
+    "description": "Detects issues with Windows Defender Real-Time Protection features",
+    "event_ids": [],
+    "id": "73176728-033d-ef77-a174-554a0bf61f94",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Real-Time Protection Failure/Restart"
+  },
+  {
+    "description": "Detects disabling of Windows Defender Real-time Protection. As this event doesn't contain a lot of information on who initiated this action you might want to reduce it to a \"medium\" level if this occurs too many times in your environment\n",
+    "event_ids": [],
+    "id": "e6c2628d-e4dc-0b32-e087-1c205385af72",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Real-time Protection Disabled"
+  },
+  {
+    "description": "Detects the restoration of files from the defender quarantine",
+    "event_ids": [],
+    "id": "77f49adb-372a-8c7c-0bee-7e361b09b30e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Win Defender Restored Quarantine File"
+  },
+  {
+    "description": "Detects actions taken by Windows Defender malware detection engines",
+    "event_ids": [],
+    "id": "c70d7033-8146-fe73-8430-90b23c296f9d",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Threat Detected"
+  },
+  {
+    "description": "Detects blocking of process creations originating from PSExec and WMI commands",
+    "event_ids": [],
+    "id": "c73d596d-c719-ab68-1753-6aa80ff340d7",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "PSExec and WMI Process Creations Block"
+  },
+  {
+    "description": "Detects disabling of the Windows Defender virus scanning feature",
+    "event_ids": [],
+    "id": "a325b024-9641-6ee4-56c1-20eb9fc4324a",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Virus Scanning Feature Disabled"
+  },
+  {
+    "description": "Windows Defender logs when the history of detected infections is deleted.",
+    "event_ids": [],
+    "id": "e9310b5d-113f-86dc-a3e0-3ed5cefa6088",
+    "level": "informational",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Malware Detection History Deletion"
+  },
+  {
+    "description": "Detects disabling of the Windows Defender feature of scanning for malware and other potentially unwanted software",
+    "event_ids": [],
+    "id": "ac622fde-5d5a-e064-bfd2-55cbb5f1eacb",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Windows Defender Malware And PUA Scanning Disabled"
+  },
+  {
+    "description": "Detects new BITS transfer job where the LocalName/Saved file is stored in a potentially suspicious location",
+    "event_ids": [],
+    "id": "26844668-ef48-7a97-5687-9533e59288b7",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "BITS Transfer Job Download To Potential Suspicious Folder"
+  },
+  {
+    "description": "Detects the creation of a new bits job by PowerShell",
+    "event_ids": [],
+    "id": "23d76ee6-e5fc-fb90-961a-4b412b97cc94",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "New BITS Job Created Via PowerShell"
+  },
+  {
+    "description": "Detects new BITS transfer job saving local files with potential suspicious extensions",
+    "event_ids": [],
+    "id": "b37c7d8f-22b8-a92d-1d1c-593de0fa759e",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "BITS Transfer Job Downloading File Potential Suspicious Extension"
+  },
+  {
+    "description": "Detects BITS transfer job downloading files from a file sharing domain.",
+    "event_ids": [],
+    "id": "4f9e9e60-c580-dd4e-4f06-42a016217d0e",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "BITS Transfer Job Download From File Sharing Domains"
+  },
+  {
+    "description": "Detects the creation of a new bits job by Bitsadmin",
+    "event_ids": [],
+    "id": "f72c1543-44f6-f836-c0da-9bab33600dac",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "New BITS Job Created Via Bitsadmin"
+  },
+  {
+    "description": "Detects a BITS transfer job downloading file(s) from a direct IP address.",
+    "event_ids": [],
+    "id": "5e8a986a-7579-0482-f86e-ad63f6341cd1",
+    "level": "high",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "BITS Transfer Job Download From Direct IP"
+  },
+  {
+    "description": "Detects a suspicious download using the BITS client from a FQDN that is unusual. Adversaries may abuse BITS jobs to persistently execute or clean up after malicious payloads.",
+    "event_ids": [],
+    "id": "8a389ad3-d0c7-ef8c-1fb3-5bb7e31bcf7f",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "BITS Transfer Job With Uncommon Or Suspicious Remote TLD"
+  },
+  {
+    "description": "Detects execution of Sysinternals tools via an AppX package. Attackers could install the Sysinternals Suite to get access to tools such as psexec and procdump to avoid detection based on System paths",
+    "event_ids": [],
+    "id": "a3ffcde3-a83d-3d16-0b83-72f4758207cd",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Sysinternals Tools AppX Versions Execution"
+  },
+  {
+    "description": "Detects common NTLM brute force device names",
+    "event_ids": [],
+    "id": "b7a0fd59-bab8-fec2-28ad-548b2635d87f",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "NTLM Brute Force"
+  },
+  {
+    "description": "Detects logons using NTLM to hosts that are potentially not part of the domain.",
+    "event_ids": [],
+    "id": "b416a5b9-a282-2826-bc58-8b8481d865f6",
+    "level": "medium",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "Potential Remote Desktop Connection to Non-Domain Host"
+  },
+  {
+    "description": "Detects logons using NTLM, which could be caused by a legacy source or attackers",
+    "event_ids": [],
+    "id": "c043d322-c767-faa8-92d4-381dcc35cab3",
+    "level": "low",
+    "subcategory_guids": [
+      "00000000-0000-0000-0000-000000000000"
+    ],
+    "title": "NTLM Logon"
   }
 ]
