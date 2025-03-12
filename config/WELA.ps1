@@ -89,7 +89,7 @@ Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 Write-Output ""
 $totalUsable = ($usablePercentages | Measure-Object -Property UsableCount -Sum).Sum
 $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
-$utilizationPercentage = ($totalUsable / $totalRulesCount) * 100
+$utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can only utilize $utilizationPercentage% of your Security detection rules."
 
 # Step 7: Save the lists of usable and unusable rules to CSV files
