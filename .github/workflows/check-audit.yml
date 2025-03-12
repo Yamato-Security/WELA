@@ -53,8 +53,8 @@ jobs:
 
       - name: Output UsableRules.csv
         run: |
-          Get-Content ./config/UsableRules.csv
+          Get-Content UsableRules.csv
 
       - name: Output UnUsableRules.csv
         run: |
-          Get-Content ./config/UnusableRules.csv
+          Get-Content UnusableRules.csv
