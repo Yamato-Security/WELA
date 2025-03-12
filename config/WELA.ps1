@@ -73,14 +73,17 @@ $unusablePercentages = $unusableCounts | ForEach-Object {
 }
 
 # Step 6: Generate the required outputtotal
+$customOrder = @("critical", "high", "medium", "low", "informational")
 Write-Output "Checking event log audit settings. Please wait."
 Write-Output ""
 Write-Output "Detection rules that can be used on this system versus total possible rules:"
+$usablePercentages = $usablePercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
 $usablePercentages | ForEach-Object {
     Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
 }
 Write-Output ""
 Write-Output "Detection rules that cannot be used on this system:"
+$unusablePercentages = $unusablePercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
 $unusablePercentages | ForEach-Object {
     Write-Output "$($_.Level) rules: $($_.UnusableCount) / $($_.TotalCount) ($($_.Percentage)%)"
 }
@@ -91,7 +94,7 @@ Write-Output ""
 $totalUsable = ($usablePercentages | Measure-Object -Property UsableCount -Sum).Sum
 $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
-Write-Output "You can only utilize $utilizationPercentage% of your Security detection rules."
+Write-Output "You can utilize $utilizationPercentage% of your detection rules."
 
 # Step 7: Save the lists of usable and unusable rules to CSV files
 $usableRules | Select-Object title, level, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
