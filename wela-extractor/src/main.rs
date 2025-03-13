@@ -86,21 +86,6 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
                     "event_ids": event_ids,
                     "subcategory_guids": subcategories
                 }));
-            } else if let Some(tags) = doc["tags"].as_vec() {
-                if !tags.contains(&Yaml::from_str("sysmon")) {
-                    extract_event_ids(&doc, &mut event_ids);
-                    subcategories.insert("00000000-0000-0000-0000-000000000000".to_string());
-                    let event_ids: Vec<String> = event_ids.into_iter().collect();
-                    let subcategories: Vec<String> = subcategories.into_iter().collect();
-                    return Some(json!({
-                        "id": uuid,
-                        "title": title,
-                        "description": desc,
-                        "level": level,
-                        "event_ids": event_ids,
-                        "subcategory_guids": subcategories
-                    }));
-                }
             }
         }
     }
