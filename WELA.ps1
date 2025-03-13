@@ -1,3 +1,7 @@
+# Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
+$outputFilePath = "auditpol_output.txt"
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $outputFilePath
+
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
@@ -11,9 +15,6 @@ $logo = @"
 
 Write-Host $logo -ForegroundColor Green
 
-# Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
-$outputFilePath = "auditpol_output.txt"
-Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $outputFilePath
 $auditpolOutput = Get-Content -Path $outputFilePath
 $filteredOutput = $auditpolOutput | Select-String -NotMatch "No Auditing"
 $extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
@@ -86,8 +87,6 @@ $unusablePercentages = $unusableCounts | ForEach-Object {
 
 # Step 6: Generate the required outputtotal
 $customOrder = @("critical", "high", "medium", "low", "informational")
-Write-Output "Checking event log audit settings. Please wait."
-Write-Output ""
 Write-Output "Detection rules that can be used on this system versus total possible rules:"
 $usablePercentages = $usablePercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
 $usablePercentages | ForEach-Object {
