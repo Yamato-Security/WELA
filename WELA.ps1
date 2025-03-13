@@ -13,7 +13,14 @@ $logo = @"
 
 "@
 
-Write-Host $logo -ForegroundColor Green
+foreach ($line in $logo -split "`n") {
+    foreach ($char in $line.tochararray()) {
+        if ($([int]$char) -le 9580 -and $([int]$char) -ge 9552) {
+            Write-host -ForegroundColor Green $char -NoNewline
+        }
+    }
+    Write-Host ""
+}
 
 $auditpolOutput = Get-Content -Path $outputFilePath
 $filteredOutput = $auditpolOutput | Select-String -NotMatch "No Auditing"
