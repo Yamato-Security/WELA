@@ -6,6 +6,7 @@ $logo = @"
 ┗┓┏┓┏┫┗━━┫┗━┛┃┏━┓┃
  ┗┛┗┛┗━━━┻━━━┻┛ ┗┛
   by Yamato Security
+
 "@
 
 Write-Host $logo -ForegroundColor Green
