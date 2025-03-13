@@ -58,38 +58,58 @@ fn extract_event_ids(yaml: &Yaml, event_ids: &mut HashSet<String>) {
     }
 }
 
-fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
-    if let Some(logsource) = doc["logsource"].as_hash() {
-        if let Some(service) = logsource.get(&Yaml::from_str("service")) {
-            let uuid = doc["id"].as_str().unwrap_or("");
-            let title = doc["title"].as_str().unwrap_or("");
-            let desc = doc["description"].as_str().unwrap_or("");
-            let level = doc["level"].as_str().unwrap_or("");
-            let mut event_ids = HashSet::new();
-            let mut subcategories = HashSet::new();
-            if service.as_str() == Some("security") {
-                extract_event_ids(&doc, &mut event_ids);
-                for event_id in &event_ids {
-                    for (eid, subcategory) in eid_subcategory_pair {
-                        if eid == event_id {
-                            subcategories.insert(subcategory.clone());
-                        }
-                    }
+fn contains_channel_security(yaml: &Yaml) -> bool {
+    match yaml {
+        Yaml::Hash(hash) => {
+            for (key, value) in hash {
+                if key.as_str() == Some("Channel") && value.as_str() == Some("Security") {
+                    return true;
                 }
-                let event_ids: Vec<String> = event_ids.into_iter().collect();
-                let subcategories: Vec<String> = subcategories.into_iter().collect();
-                return Some(json!({
-                    "id": uuid,
-                    "title": title,
-                    "description": desc,
-                    "level": level,
-                    "event_ids": event_ids,
-                    "subcategory_guids": subcategories
-                }));
+                if contains_channel_security(value) {
+                    return true;
+                }
+            }
+        }
+        Yaml::Array(array) => {
+            for item in array {
+                if contains_channel_security(item) {
+                    return true;
+                }
+            }
+        }
+        _ => {}
+    }
+    false
+}
+
+fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
+    if !contains_channel_security(&doc["detection"]) {
+        return None;
+    }
+    let uuid = doc["id"].as_str().unwrap_or("");
+    let title = doc["title"].as_str().unwrap_or("");
+    let desc = doc["description"].as_str().unwrap_or("");
+    let level = doc["level"].as_str().unwrap_or("");
+    let mut event_ids = HashSet::new();
+    let mut subcategories = HashSet::new();
+    extract_event_ids(&doc, &mut event_ids);
+    for event_id in &event_ids {
+        for (eid, subcategory) in eid_subcategory_pair {
+            if eid == event_id {
+                subcategories.insert(subcategory.clone());
             }
         }
     }
-    None
+    let event_ids: Vec<String> = event_ids.into_iter().collect();
+    let subcategories: Vec<String> = subcategories.into_iter().collect();
+    Some(json!({
+        "id": uuid,
+        "title": title,
+        "description": desc,
+        "level": level,
+        "event_ids": event_ids,
+        "subcategory_guids": subcategories
+    }))
 }
 
 fn load_event_id_guid_pairs(file_path: &str) -> Result<Vec<(String, String)>, Box<dyn Error>> {
