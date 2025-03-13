@@ -9,7 +9,6 @@ $filteredOutput | ForEach-Object {
         [void]$extractedStrings.Add($matches[1])
     }
 }
-[void]$extractedStrings.Add("00000000-0000-0000-0000-000000000000")
 
 # Step 2: Read the rules from security_rules.json
 $jsonFilePath = "./config/security_rules.json"
