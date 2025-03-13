@@ -1,5 +1,6 @@
 # Set the console encoding to UTF-8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 
 # Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
 $outputFilePath = "auditpol_output.txt"
