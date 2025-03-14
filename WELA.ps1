@@ -43,7 +43,7 @@ foreach ($rule in $jsonContent) {
 $rules = $jsonContent
 
 # Step 4: Count the number of usable and unusable rules for each level
-$usableRules = $rules | Where-Object { $_.applicable -eq $true }
+$usableSecRules = $rules | Where-Object { $_.applicable -eq $true }
 $unusableRules = $rules | Where-Object { $_.applicable -eq $false }
 
 $totalCounts = $rules | Group-Object -Property level | ForEach-Object {
@@ -53,7 +53,7 @@ $totalCounts = $rules | Group-Object -Property level | ForEach-Object {
     }
 }
 
-$usableCounts = $usableRules | Group-Object -Property level | ForEach-Object {
+$usableSecCounts = $usableSecRules | Group-Object -Property level | ForEach-Object {
     [PSCustomObject]@{
         Level = $_.Name
         Count = $_.Count
@@ -61,7 +61,7 @@ $usableCounts = $usableRules | Group-Object -Property level | ForEach-Object {
 }
 
 # Step 5: Calculate the percentages
-$usablePercentages = $usableCounts | ForEach-Object {
+$usableSecPercentages = $usableSecCounts | ForEach-Object {
     $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
     [PSCustomObject]@{
         Level = $PSItem.Level
@@ -74,19 +74,20 @@ $usablePercentages = $usableCounts | ForEach-Object {
 # Step 6: Generate the required outputtotal
 $customOrder = @("critical", "high", "medium", "low", "informational")
 Write-Output "Detection rules that can be used on this system versus total possible rules:"
-$usablePercentages = $usablePercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
-$usablePercentages | ForEach-Object {
+$usableSecPercentages = $usableSecPercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
+$usableSecPercentages | ForEach-Object {
     Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
 }
+
 Write-Output ""
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 Write-Output ""
-$totalUsable = ($usablePercentages | Measure-Object -Property UsableCount -Sum).Sum
+$totalUsable = ($usableSecPercentages | Measure-Object -Property UsableCount -Sum).Sum
 $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can utilize $utilizationPercentage% of your detection rules."
 
 # Step 7: Save the lists of usable and unusable rules to CSV files
-$usableRules | Select-Object title, level, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
+$usableSecRules | Select-Object title, level, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
 $unusableRules | Select-Object title, level, id | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
