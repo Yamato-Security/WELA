@@ -88,13 +88,15 @@ $rules = Get-ApplicableRules -outputFilePath $outputFilePath -jsonFilePath "./co
 $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
 $usablePwsRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $unusableRules  = $rules | Where-Object { $_.applicable -eq $false }
+$allSecRules    = $rules | Where-Object { $_.channel -eq "sec" }
 
 $totalCounts     = Get-RuleCounts -rules $rules
+$totalSecCounts  = Get-RuleCounts -rules $allSecRules
 $usableSecCounts = Get-RuleCounts -rules $usableSecRules
 $usablePwsCounts = Get-RuleCounts -rules $usablePwsRules
 
 # Step 5: Calculate the Rate
-$usableSecRate = CalculateRate -counts $usableSecCounts -totalCounts $totalCounts
+$usableSecRate = CalculateRate -counts $usableSecCounts -totalCounts $totalSecCounts
 $usablePwsRate = CalculateRate -counts $usablePwsCounts -totalCounts $usablePwsCounts
 
 # Step 6: Generate the required outputtotal
@@ -104,11 +106,11 @@ DisplayRuleRate -usableRate $usablePwsRate -msg "PowerShell event log detection 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 Write-Output ""
-$totalUsable = ($usableSecRate + $usablePwsRate| Measure-Object -Property UsableCount -Sum).Sum
+$totalUsable = ($usableSecRate + $usablePwsRate | Measure-Object -Property UsableCount -Sum).Sum
 $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can utilize $utilizationPercentage% of your detection rules."
 
 # Step 7: Save the lists of usable and unusable rules to CSV files
 $usableSecRules | Select-Object title, level, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
-$unusableRules | Select-Object title, level, id | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
+$unusableRules  | Select-Object title, level, id | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
