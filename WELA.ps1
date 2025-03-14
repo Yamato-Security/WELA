@@ -91,7 +91,7 @@ $usablePwsCounts = Get-RuleCounts -rules $usablePwshRules
 
 # Step 5: Calculate the percentages
 $usableSecPercentages = CalculatePercentages -counts $usableSecCounts -totalCounts $totalCounts
-$usablePwsPercentages = CalculatePercentages -counts $usablePwsCounts -totalCounts $totalCounts
+$usablePwsPercentages = CalculatePercentages -counts $usablePwsCounts -totalCounts $usablePwsCounts
 
 # Step 6: Generate the required outputtotal
 DisplayRulePercentages -usablePercentages $usableSecPercentages -msg "Security event log detection rules:"
