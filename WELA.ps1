@@ -68,7 +68,6 @@ $usablePwshCounts = $usablePwshRules | Group-Object -Property level | ForEach-Ob
     }
 }
 
-
 # Step 5: Calculate the percentages
 $usableSecPercentages = $usableSecCounts | ForEach-Object {
     $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
@@ -99,6 +98,7 @@ $usableSecPercentages | ForEach-Object {
     Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
 }
 
+Write-Output ""
 Write-Output "PowerShell event log detection rules:"
 $usablePwshPercentages = $usablePwshPercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
 $usablePwshPercentages | ForEach-Object {
