@@ -1,17 +1,17 @@
 ﻿function Get-ApplicableRules {
     param (
-        [string]$outputPath,
-        [string]$jsonPath
+        [string]$outputFilePath,
+        [string]$jsonFilePath
     )
 
     $extractedGuids = [System.Collections.Generic.HashSet[string]]::new()
-    Get-Content -Path $outputPath | Select-String -NotMatch "No Auditing" | ForEach-Object {
+    Get-Content -Path $outputFilePath | Select-String -NotMatch "No Auditing" | ForEach-Object {
         if ($_ -match '{(.*?)}') {
             [void]$extractedGuids.Add($matches[1])
         }
     }
 
-    $jsonContent = Get-Content -Path $jsonPath -Raw | ConvertFrom-Json
+    $jsonContent = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
     foreach ($rule in $jsonContent) {
         $rule | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
         foreach ($guid in $rule.subcategory_guids) {
