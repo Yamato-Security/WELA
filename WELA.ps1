@@ -47,6 +47,8 @@ $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channe
 $usablePwshRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $unusableRules = $rules | Where-Object { $_.applicable -eq $false }
 
+Write-Host $usablePwshRules
+
 $totalCounts = $rules | Group-Object -Property level | ForEach-Object {
     [PSCustomObject]@{
         Level = $_.Name
