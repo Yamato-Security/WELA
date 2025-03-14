@@ -24,6 +24,16 @@
     return $jsonContent
 }
 
+function Get-RuleCounts {
+    param ($rules)
+    $rules | Group-Object -Property level | ForEach-Object {
+        [PSCustomObject]@{
+            Level = $_.Name
+            Count = $_.Count
+        }
+    }
+}
+
 # Set the console encoding to UTF-8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -52,26 +62,9 @@ $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channe
 $usablePwshRules = $rules | Where-Object { $_.channel -eq "pwsh" }
 $unusableRules = $rules | Where-Object { $_.applicable -eq $false -and $_.channel -eq "sec" }
 
-$totalCounts = $rules | Group-Object -Property level | ForEach-Object {
-    [PSCustomObject]@{
-        Level = $_.Name
-        Count = $_.Count
-    }
-}
-
-$usableSecCounts = $usableSecRules | Group-Object -Property level | ForEach-Object {
-    [PSCustomObject]@{
-        Level = $_.Name
-        Count = $_.Count
-    }
-}
-
-$usablePwshCounts = $usablePwshRules | Group-Object -Property level | ForEach-Object {
-    [PSCustomObject]@{
-        Level = $_.Name
-        Count = $_.Count
-    }
-}
+$totalCounts = Get-RuleCounts -rules $rules
+$usableSecCounts = Get-RuleCounts -rules $usableSecRules
+$usablePwshCounts = Get-RuleCounts -rules $usablePwshRules
 
 # Step 5: Calculate the percentages
 $usableSecPercentages = $usableSecCounts | ForEach-Object {
