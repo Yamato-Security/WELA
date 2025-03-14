@@ -45,7 +45,7 @@ $rules = $jsonContent
 # Step 4: Count the number of usable and unusable rules for each level
 $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
 $usablePwshRules = $rules | Where-Object { $_.channel -eq "pwsh" }
-$unusableRules = $rules | Where-Object { $_.applicable -eq $false }
+$unusableRules = $rules | Where-Object { $_.applicable -eq $false -and $_.channel -eq "sec" }
 
 $totalCounts = $rules | Group-Object -Property level | ForEach-Object {
     [PSCustomObject]@{
