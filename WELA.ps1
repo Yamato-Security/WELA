@@ -34,6 +34,30 @@ function Get-RuleCounts {
     }
 }
 
+function CalculatePercentages {
+    param ($counts, $totalCounts)
+    $counts | ForEach-Object {
+        $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
+        [PSCustomObject]@{
+            Level = $PSItem.Level
+            UsableCount = $PSItem.Count
+            TotalCount = $total
+            Percentage = "{0:N2}" -f ($PSItem.Count / $total * 100)
+        }
+    }
+}
+
+function DisplayRulePercentages {
+    param ($usablePercentages, $msg)
+    Write-Output $msg
+    $customOrder = @("critical", "high", "medium", "low", "informational")
+    $usablePercentages = $usablePercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
+    $usablePercentages | ForEach-Object {
+        Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
+    }
+    Write-Output ""
+}
+
 # Set the console encoding to UTF-8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -51,7 +75,6 @@ $logo = @"
   by Yamato Security
 
 "@
-
 Write-Host $logo -ForegroundColor Green
 
 # Step 3: Get the applicable rules
@@ -64,50 +87,20 @@ $unusableRules = $rules | Where-Object { $_.applicable -eq $false -and $_.channe
 
 $totalCounts = Get-RuleCounts -rules $rules
 $usableSecCounts = Get-RuleCounts -rules $usableSecRules
-$usablePwshCounts = Get-RuleCounts -rules $usablePwshRules
+$usablePwsCounts = Get-RuleCounts -rules $usablePwshRules
 
 # Step 5: Calculate the percentages
-$usableSecPercentages = $usableSecCounts | ForEach-Object {
-    $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
-    [PSCustomObject]@{
-        Level = $PSItem.Level
-        UsableCount = $PSItem.Count
-        TotalCount = $total
-        Percentage = "{0:N2}" -f ($PSItem.Count / $total * 100)
-    }
-}
-
-$usablePwshPercentages = $usablePwshCounts | ForEach-Object {
-    $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
-    [PSCustomObject]@{
-        Level = $PSItem.Level
-        UsableCount = $PSItem.Count
-        TotalCount = $total
-        Percentage = "{0:N2}" -f ($PSItem.Count / $total * 100)
-    }
-}
-
+$usableSecPercentages = CalculatePercentages -counts $usableSecCounts -totalCounts $totalCounts
+$usablePwsPercentages = CalculatePercentages -counts $usablePwsCounts -totalCounts $totalCounts
 
 # Step 6: Generate the required outputtotal
-$customOrder = @("critical", "high", "medium", "low", "informational")
-Write-Output "Security event log detection rules:"
-$usableSecPercentages = $usableSecPercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
-$usableSecPercentages | ForEach-Object {
-    Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
-}
+DisplayRulePercentages -usablePercentages $usableSecPercentages -msg "Security event log detection rules:"
+DisplayRulePercentages -usablePercentages $usablePwsPercentages -msg "PowerShell event log detection rules:"
 
-Write-Output ""
-Write-Output "PowerShell event log detection rules:"
-$usablePwshPercentages = $usablePwshPercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
-$usablePwshPercentages | ForEach-Object {
-    Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
-}
-
-Write-Output ""
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 Write-Output ""
-$totalUsable = ($usableSecPercentages + $usablePwshPercentages| Measure-Object -Property UsableCount -Sum).Sum
+$totalUsable = ($usableSecPercentages + $usablePwsPercentages| Measure-Object -Property UsableCount -Sum).Sum
 $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can utilize $utilizationPercentage% of your detection rules."
