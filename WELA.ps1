@@ -43,7 +43,8 @@ foreach ($rule in $jsonContent) {
 $rules = $jsonContent
 
 # Step 4: Count the number of usable and unusable rules for each level
-$usableSecRules = $rules | Where-Object { $_.applicable -eq $true }
+$usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
+$usablePwshRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $unusableRules = $rules | Where-Object { $_.applicable -eq $false }
 
 $totalCounts = $rules | Group-Object -Property level | ForEach-Object {
@@ -60,6 +61,14 @@ $usableSecCounts = $usableSecRules | Group-Object -Property level | ForEach-Obje
     }
 }
 
+$usablePwshCounts = $usablePwshRules | Group-Object -Property level | ForEach-Object {
+    [PSCustomObject]@{
+        Level = $_.Name
+        Count = $_.Count
+    }
+}
+
+
 # Step 5: Calculate the percentages
 $usableSecPercentages = $usableSecCounts | ForEach-Object {
     $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
@@ -71,11 +80,28 @@ $usableSecPercentages = $usableSecCounts | ForEach-Object {
     }
 }
 
+$usablePwshPercentages = $usablePwshCounts | ForEach-Object {
+    $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
+    [PSCustomObject]@{
+        Level = $PSItem.Level
+        UsableCount = $PSItem.Count
+        TotalCount = $total
+        Percentage = "{0:N2}" -f ($PSItem.Count / $total * 100)
+    }
+}
+
+
 # Step 6: Generate the required outputtotal
 $customOrder = @("critical", "high", "medium", "low", "informational")
-Write-Output "Detection rules that can be used on this system versus total possible rules:"
+Write-Output "Security event log detection rules:"
 $usableSecPercentages = $usableSecPercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
 $usableSecPercentages | ForEach-Object {
+    Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
+}
+
+Write-Output "PowerShell event log detection rules:"
+$usablePwshPercentages = $usablePwshPercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
+$usablePwshPercentages | ForEach-Object {
     Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
 }
 
@@ -83,7 +109,7 @@ Write-Output ""
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 Write-Output ""
-$totalUsable = ($usableSecPercentages | Measure-Object -Property UsableCount -Sum).Sum
+$totalUsable = ($usableSecPercentages + $usablePwshPercentages| Measure-Object -Property UsableCount -Sum).Sum
 $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can utilize $utilizationPercentage% of your detection rules."
