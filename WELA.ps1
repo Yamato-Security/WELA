@@ -1,4 +1,30 @@
-﻿# Set the console encoding to UTF-8
+﻿function Get-ApplicableRules {
+    param (
+        [string]$outputPath,
+        [string]$jsonPath
+    )
+
+    $extractedGuids = [System.Collections.Generic.HashSet[string]]::new()
+    Get-Content -Path $outputPath | Select-String -NotMatch "No Auditing" | ForEach-Object {
+        if ($_ -match '{(.*?)}') {
+            [void]$extractedGuids.Add($matches[1])
+        }
+    }
+
+    $jsonContent = Get-Content -Path $jsonPath -Raw | ConvertFrom-Json
+    foreach ($rule in $jsonContent) {
+        $rule | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
+        foreach ($guid in $rule.subcategory_guids) {
+            if ($extractedGuids.Contains($guid)) {
+                $rule.applicable = $true
+                break
+            }
+        }
+    }
+    return $jsonContent
+}
+
+# Set the console encoding to UTF-8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
@@ -18,29 +44,8 @@ $logo = @"
 
 Write-Host $logo -ForegroundColor Green
 
-$auditpolOutput = Get-Content -Path $outputFilePath
-$filteredOutput = $auditpolOutput | Select-String -NotMatch "No Auditing"
-$extractedStrings = [System.Collections.Generic.HashSet[string]]::new()
-$filteredOutput | ForEach-Object {
-    if ($_ -match '{(.*?)}') {
-        [void]$extractedStrings.Add($matches[1])
-    }
-}
-
-# Step 2: Read the rules from security_rules.json
-$jsonFilePath = "./config/security_rules.json"
-$jsonContent = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
-
-foreach ($rule in $jsonContent) {
-    $rule | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
-    foreach ($guid in $rule.subcategory_guids) {
-        if ($extractedStrings.Contains($guid)) {
-            $rule.applicable = $true
-            break
-        }
-    }
-}
-$rules = $jsonContent
+# Step 3: Get the applicable rules
+$rules = Get-ApplicableRules -outputFilePath $outputFilePath -jsonFilePath "./config/security_rules.json"
 
 # Step 4: Count the number of usable and unusable rules for each level
 $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
