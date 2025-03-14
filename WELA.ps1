@@ -60,13 +60,6 @@ $usableCounts = $usableRules | Group-Object -Property level | ForEach-Object {
     }
 }
 
-$unusableCounts = $unusableRules | Group-Object -Property level | ForEach-Object {
-    [PSCustomObject]@{
-        Level = $_.Name
-        Count = $_.Count
-    }
-}
-
 # Step 5: Calculate the percentages
 $usablePercentages = $usableCounts | ForEach-Object {
     $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
@@ -78,28 +71,12 @@ $usablePercentages = $usableCounts | ForEach-Object {
     }
 }
 
-$unusablePercentages = $unusableCounts | ForEach-Object {
-    $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
-    [PSCustomObject]@{
-        Level = $PSItem.Level
-        UnusableCount = $PSItem.Count
-        TotalCount = $total
-        Percentage = "{0:N2}" -f ($PSItem.Count / $total * 100)
-    }
-}
-
 # Step 6: Generate the required outputtotal
 $customOrder = @("critical", "high", "medium", "low", "informational")
 Write-Output "Detection rules that can be used on this system versus total possible rules:"
 $usablePercentages = $usablePercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
 $usablePercentages | ForEach-Object {
     Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
-}
-Write-Output ""
-Write-Output "Detection rules that cannot be used on this system:"
-$unusablePercentages = $unusablePercentages | Sort-Object { $customOrder.IndexOf($_.Level) }
-$unusablePercentages | ForEach-Object {
-    Write-Output "$($_.Level) rules: $($_.UnusableCount) / $($_.TotalCount) ($($_.Percentage)%)"
 }
 Write-Output ""
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
