@@ -2,6 +2,36 @@
   {
     "channel": "pwsh",
     "event_ids": [
+      "4104"
+    ],
+    "id": "73be1519-4648-4ed7-b305-605504afc242",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potentially Malicious PwSh"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "d3fb8f7b-88b0-4ff4-bf9b-ca286ce19031",
+    "level": "informational",
+    "subcategory_guids": [],
+    "title": "PwSh Pipeline Exec"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0f3b1343-65a5-4879-b512-9d61b0e4e3ba",
+    "level": "informational",
+    "subcategory_guids": [],
+    "title": "PwSh Scriptblock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
       "400"
     ],
     "id": "bc082394-73e6-4d00-a9af-e7b524ef5085",
@@ -88,8 +118,8 @@
     "id": "de5ed02e-e7b5-47a0-a35c-06a907c988e4",
     "level": "informational",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Task Deleted"
   },
@@ -411,8 +441,8 @@
     "id": "4574194d-e7ca-4356-a95c-21b753a1787e",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "User Guessing"
   },
@@ -473,8 +503,8 @@
     "id": "a85096da-be85-48d7-8ad5-2f957cd74daa",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Logon Failure (Unknown Reason)"
   },
@@ -534,8 +564,8 @@
     "id": "5b0b75dc-9190-4047-b9a8-14164cee8a31",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Failed Logon - Incorrect Password"
   },
@@ -559,8 +589,8 @@
     "id": "8afa97ce-a217-4f7c-aced-3e320a57756d",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Logon Failure (User Does Not Exist)"
   },
@@ -620,8 +650,8 @@
     "id": "e87bd730-df45-4ae9-85de-6c75369c5d29",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Logon Failure (Wrong Password)"
   },
@@ -880,8 +910,8 @@
     "id": "5b6e58ee-c231-4a54-9eee-af2577802e08",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9228-69AE-11D9-BED3-505054503030",
-      "0CCE9229-69AE-11D9-BED3-505054503030"
+      "0CCE9229-69AE-11D9-BED3-505054503030",
+      "0CCE9228-69AE-11D9-BED3-505054503030"
     ],
     "title": "Process Ran With High Privilege"
   },
@@ -1038,8 +1068,8 @@
     "id": "798c8f65-068a-0a31-009f-12739f547a2d",
     "level": "critical",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "OilRig APT Schedule Task Persistence - Security"
   },
@@ -1087,10 +1117,10 @@
     "id": "82b185f4-cdcb-ba23-9fdb-dbc1a732e1a7",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "ScreenConnect User Database Modification - Security"
   },
@@ -1102,23 +1132,23 @@
     "id": "74d067bc-3f42-3855-c13d-771d589cf11c",
     "level": "critical",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "CVE-2024-1708 - ScreenConnect Path Traversal Exploitation - Security"
   },
   {
     "channel": "sec",
     "event_ids": [
+      "4737",
       "4756",
-      "4727",
-      "4755",
       "4754",
+      "4727",
       "4728",
       "4731",
-      "4737"
+      "4755"
     ],
     "id": "2a451b93-9890-5cfe-38aa-1dc4f8f0fe0a",
     "level": "high",
@@ -1231,8 +1261,8 @@
     "id": "fa0084fc-2105-cdc9-c7c1-1752bbb2e4d2",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Kapeka Backdoor Scheduled Task Creation"
   },
@@ -1737,10 +1767,10 @@
     "id": "1aeb71a3-31b4-1a5e-85d8-1631c3a73d43",
     "level": "critical",
     "subcategory_guids": [
-      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "CVE-2023-23397 Exploitation Attempt"
   },
@@ -1791,6 +1821,26 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential APT Mustang Panda Activity Against Australian Gov"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b8581aed-5481-addc-116b-c0b8384cecfc",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Potential POWERTRASH Script Execution"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "384a6ce5-d681-2e87-6a43-6e1a0eb0f316",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Potential APT FIN7 POWERHOLD Execution"
   },
   {
     "channel": "sec",
@@ -1905,8 +1955,8 @@
     "channel": "sec",
     "event_ids": [
       "4698",
-      "4702",
-      "4699"
+      "4699",
+      "4702"
     ],
     "id": "ae16af08-e56e-414a-ceba-cb62e9f3a2ef",
     "level": "high",
@@ -1915,6 +1965,16 @@
       "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Scheduled Tasks Names Used By SVR For GraphicalProton Backdoor"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "017266c4-7b12-7c2b-d2b3-0b8ffe973af8",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Lace Tempest PowerShell Evidence Eraser"
   },
   {
     "channel": "sec",
@@ -1939,6 +1999,16 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Lace Tempest Malware Loader Execution"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "47fec53e-ab09-f2b7-fc9a-c7364aefc12f",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Lace Tempest PowerShell Launcher"
   },
   {
     "channel": "sec",
@@ -2699,8 +2769,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "5145",
       "4663",
+      "5145",
       "4656"
     ],
     "id": "21ead34c-d2d4-2799-6318-2ff9e4aa9222",
@@ -2708,9 +2778,9 @@
     "subcategory_guids": [
       "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE9244-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE9244-69AE-11D9-BED3-505054503030"
     ],
     "title": "BlueSky Ransomware Artefacts"
   },
@@ -3039,6 +3109,26 @@
     "title": "Potential Dridex Activity"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [
+      "104"
+    ],
+    "id": "30966a3a-2224-0e1a-d28d-c0f7e84cfed3",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Important Windows Eventlog Cleared"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "104"
+    ],
+    "id": "8617b59c-812e-c88e-0bd4-5267e0e825f0",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Eventlog Cleared"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "4688"
@@ -3065,8 +3155,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4625",
-      "4624"
+      "4624",
+      "4625"
     ],
     "id": "35890fd4-9ed3-b244-0eff-91fe61e52f8b",
     "level": "medium",
@@ -3104,16 +3194,16 @@
   {
     "channel": "sec",
     "event_ids": [
-      "528",
       "4624",
       "529",
+      "528",
       "4625"
     ],
     "id": "7298c707-7564-3229-7c76-ec514847d8c2",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Interactive Logon to Server Systems"
   },
@@ -16128,6 +16218,106 @@
   {
     "channel": "pwsh",
     "event_ids": [
+      "4103"
+    ],
+    "id": "81b7f962-1b39-9a15-eca7-f718f8e45e85",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Local Firewall Rules Enumeration Via NetFirewallRule Cmdlet"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "66cccc69-033d-56e2-a1e1-f190cc0a9ca0",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "WinAPI Library Calls Via PowerShell Scripts"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "40fd8a4e-3820-0edf-530e-53785ee863e9",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "New Windows Firewall Rule Added Via New-NetFirewallRule Cmdlet - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "822b05a7-afa1-99c7-fc49-578330c9bf81",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Registry Reconnaissance Via PowerShell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b3c17af7-4207-0100-fe3c-3730a1c40c82",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "SMB over QUIC Via PowerShell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "87face0d-1383-7cc4-2da9-2a5da8b81325",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Data Exfiltration Over SMTP Via Send-MailMessage Cmdlet"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "aac8a133-780e-35ed-5d52-60a568765afb",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Windows Mail App Mailbox Access Via PowerShell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6e77c76e-375f-3378-fb5b-0d55e078f8ad",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Use Of Remove-Item to Delete File - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "c0483a49-1049-db52-97c5-ed73a6063b93",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Compress-Archive Cmdlet Execution"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "fc457d0e-1ed4-ecab-aa1f-bd5c4b53c2d9",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "WinAPI Function Calls Via PowerShell Scripts"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
       "400"
     ],
     "id": "315f165d-92fd-170d-d80b-0f16f9cf5384",
@@ -16344,6 +16534,1946 @@
   {
     "channel": "pwsh",
     "event_ids": [
+      "4103"
+    ],
+    "id": "300dbe85-b7a0-be0b-aa57-321c1ee97848",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Get Local Groups Information"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "58925ff0-2936-8ebd-4c28-8fdbb8ac19a8",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Stdin - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "5dea4020-38c8-b6d5-ebdb-2a7cfa20044e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Clear PowerShell History - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "7a595cb6-87c9-7d42-5bf9-f404e939d500",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation CLIP+ Launcher - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "a707acca-c4f5-6929-a1fc-0908ab087be0",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Zip A Folder With PowerShell For Staging In Temp  - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "b2064db0-e465-72c2-edcc-57cfd9676207",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation VAR++ LAUNCHER OBFUSCATION - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "c2325f35-edc7-9b45-d0bc-548ab4074e0a",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Potential RemoteFXvGPUDisablement.EXE Abuse - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "b21405ff-2071-082b-067f-fa116d28a858",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Obfuscated IEX Invocation - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "61ec8448-ba5d-0b4f-8089-eb047d43a2ec",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation VAR+ Launcher - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "118c017d-54bd-d0a7-e24e-74482fd67b54",
+    "level": "critical",
+    "subcategory_guids": [],
+    "title": "Bad Opsec Powershell Code Artifacts"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "acb9f9fe-df3e-be2a-239f-51b194099630",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Use Rundll32 - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "a1d89efd-6d69-416b-3004-ec9c460a863d",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Get Information for SMB Share - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "9863342f-1e0e-72c5-8faa-674337cd6d2b",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "SyncAppvPublishingServer Bypass Powershell Restriction - PS Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "c539a450-9d59-8ac3-1709-f3b5f2e5a989",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation STDIN+ Launcher - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "a26b0227-f81e-097b-19ba-ffbb04417ccc",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Malicious PowerShell Scripts - PoshModule"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "31981511-e5c7-fa6d-65dd-422e26ba8f0d",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious Computer Machine Password by PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "e27c3517-69ca-c8c3-fc57-c4baba10867f",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Invocations - Generic - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "8485a923-ab47-503c-8823-f930f71f83a1",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Use Get-NetTCPConnection - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "6ead282b-ed6b-7f68-1ed2-b8f5fb092b4e",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Use MSHTA - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "043fe2ff-2844-9176-3d40-aa3bf3e794a6",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Active Directory Enumeration Using AD Module - PsModule"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "85b06a92-2ad6-ef34-57c3-fac694f74095",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious Get-ADDBAccount Usage"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "36554b35-d185-3e51-6b7f-9b61726b8d3a",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Malicious PowerShell Commandlets - PoshModule"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "e4ba78e1-d659-9152-8504-cae6d6c7372e",
+    "level": "informational",
+    "subcategory_guids": [],
+    "title": "PowerShell Decompress Commands"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "f3c1031c-796c-6c50-7af9-c490e09550f6",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "AD Groups Or Users Enumeration Using PowerShell - PoshModule"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "b7826f95-a54d-d6e4-d4e0-38998c4eb8d7",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Alternate PowerShell Hosts - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "a0ecd6f3-309d-3ad0-2231-421f98a89f32",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "HackTool - Evil-WinRm Execution - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "93fea8ea-89ab-d08a-3904-a6949999010c",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation COMPRESS OBFUSCATION - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "d8bf9898-a71e-347a-25d6-1fde2e2925e6",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Remote PowerShell Session (PS Module)"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "3a7c8368-70ba-0539-d7a9-662a59306969",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Download - PoshModule"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "d1ec8808-93c9-9dcb-b4b8-b20791287ee2",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Use Clip - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "da4a803e-e609-d187-675c-d7e7f0083763",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Invocations - Specific - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "567da8d6-9387-9852-16ed-a336bfaad91e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation RUNDLL LAUNCHER - PowerShell Module"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "8ed7f4b3-91aa-4c85-95e8-a361f9004b2e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell Get Clipboard"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "97e928f0-6985-66cd-fd2d-3783904a3c7c",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Tamper Windows Defender Remove-MpPreference - ScriptBlockLogging"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "aa7ecfb4-5a28-3a35-0b06-35cdfed46928",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Recon Information for Export with PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "956b0dfd-4aba-c0c7-7608-c7889eea8a67",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "AD Groups Or Users Enumeration Using PowerShell - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "4397a007-0c10-834b-0796-7b4b1b931b03",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Malicious PowerShell Keywords"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "9134b08c-39fa-8211-b3f5-5bd1839b9540",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious GetTypeFromCLSID ShellExecute"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "4956629d-759b-2297-1edf-5751449384cb",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Data Exfiltration Via Audio File"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "2182e106-ae16-770c-3022-a67abacb10d0",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell Deleted Mounted Share"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "98d89b85-61ea-f78b-d1fa-cd52182b6b28",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Registry-Free Process Scope COR_PROFILER"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "8c8871af-c2f2-4671-9f1d-d6c3e90b7c42",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential COM Objects Download Cradles Usage - PS Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b46c37cc-554c-aab3-0744-26f3a5ace219",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Potential Persistence Via Security Descriptors - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "00b36dc9-4f98-0596-4487-6aabd187344b",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Use Rundll32 - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a47e2fc3-e3e3-9763-7cb2-d19df00ad719",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Mount-DiskImage"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "8655ba53-c937-dbcf-91c5-3125219b9497",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Invocations - Specific"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "e3888b82-f1d3-14e8-54e5-16b522dfd8a9",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Download - Powershell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "33f62d96-55cf-87d2-e9f0-0a5fff75a278",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Create Volume Shadow Copy with Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "77e99ce3-b834-1c0d-0fe8-ffd39f1bc29f",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerShell Credential Prompt"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "fd4e11cc-a1e1-264d-4545-f06b97371ed2",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation CLIP+ Launcher - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "654b7573-5b04-0352-d832-f32c333f4a56",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Detect Virtualization Environment"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "36e3fc18-c21d-b046-86b0-9f14ccbb975e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Clear PowerShell History - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "cc813de1-cf1f-dd91-bcfb-3821610d9dfc",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerView PowerShell Cmdlets - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "bf9ed747-37f2-803e-2a51-91d56622d6ba",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Windows Screen Capture with CopyFromScreen"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "55d8816f-49cc-7135-b3b1-63d41ce23a01",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "DSInternals Suspicious PowerShell Cmdlets - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "12b5b805-7b4b-d153-35e2-2230d216346c",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Suspicious PowerShell Keywords"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "4502b93e-2c0d-56b8-7ce1-35523e4fb0ba",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential AMSI Bypass Script Using NULL Bits"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b56d246e-e1d8-6f33-6e90-65864d130915",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious Unblock-File"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "1a8e1936-4b07-2bb2-ef3a-2cdf7d294a56",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Clearing Windows Console History"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "13a97026-d21c-5c67-761d-537efe8f3fe7",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Directory Enumeration"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "e59d0c87-f426-154d-9744-50e5cb987c9f",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious Get-ADReplAccount"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b0c6066e-a243-d2f6-c744-990ed060759c",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Potential Invoke-Mimikatz PowerShell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "246287be-b277-41bc-b620-83f82d6006d3",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Sensitive File Discovery"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "de547eac-5fa2-bf69-1a62-760251de3870",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Winlogon Helper DLL"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a8e07a3d-571c-0d25-729b-fa16be9ea6c5",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious Eventlog Clear"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b32352bf-5bcb-d3c9-a9eb-4bbf8ed85654",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Timestomp"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "cde108d4-944b-2594-02b8-61f2852260a1",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerShell ADRecon Execution"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "d2c72fb1-8ebf-d5d3-1e88-80f15ba1079a",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell WindowStyle Option"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f9203bdd-ca24-aced-1e79-b9cfd7936099",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Connection to Remote Account"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "79769f3b-efb3-9463-e114-7446d4361146",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Malicious Nishang PowerShell Commandlets"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a4603d3c-bb7c-8db0-3d8a-23f265190006",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Execute Invoke-command on Remote Host"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "82a11bd6-070f-3229-f413-73fe2ddd7018",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerShell Set-Acl On Windows Folder - PsScript"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a4fa5d2e-a803-b311-5ff7-669ada2d36eb",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious Invoke-Item From Mount-DiskImage"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "77af6d22-9887-7943-53f1-6a849e2e892d",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Powershell Token Obfuscation - Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "714c75ab-6bed-7c9d-462b-f7f9252e47e5",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PSAsyncShell - Asynchronous TCP Reverse Shell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b49ece4c-cd58-540c-62a8-d4189dc45f3e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell Create Local User"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0e7ff574-cd58-3250-821d-47fedcc03db6",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Process Discovery With Get-Process"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "9a9b4924-bf93-774d-4bee-a2d13260663c",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Potential RemoteFXvGPUDisablement.EXE Abuse - PowerShell ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "129010c2-32d8-8ae8-d3a5-cdd24744231e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Enumerate Credentials from Windows Credential Manager With PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "53f26dda-d088-32eb-a704-03c3b6986b49",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell Script With File Hostname Resolving Capabilities"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "5ab8284b-d017-c68c-31ff-6c9b51010284",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Potential PowerShell Obfuscation Using Character Join"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a91de133-e7bc-3e22-d4ec-af1bfe620409",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell WMI Win32_Product Install MSI"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "c6dce605-3bb0-c881-1c5c-f3e4e9d62577",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious Start-Process PassThru"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "80fe1b47-6d38-9fc5-9535-6afd04b55a15",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Active Directory Enumeration Using AD Module - PsScript"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "5ac6d31e-76f4-b5ee-831e-7d076ff2dca6",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Veeam Backup Servers Credential Dumping Script Execution"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "e84977df-6377-368d-ed22-e05ee31e9947",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Malicious ShellIntel PowerShell Commandlets"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "437d2bdc-4ee9-913b-42df-e947c8193f88",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Dump Credentials from Windows Credential Manager With PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "e701b235-4663-b82b-8611-b51a0706589b",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "NTFS Alternate Data Stream"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "ec4cdf41-f053-d3af-6a68-973d32bacdff",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell LocalAccount Manipulation"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "c9aa7755-6950-a83c-72f5-53d0eab019eb",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Keylogging"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "8094e74c-0e24-f840-50c3-bfcdc98cd6a9",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Add Windows Capability Via PowerShell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6074ad34-a80f-fdd9-5c49-e1a2fc4572c4",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Tamper Windows Defender - ScriptBlockLogging"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "72ba1398-c3d6-c1a6-9133-bc72ccaca90d",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potentially Suspicious Call To Win32_NTEventlogFile Class - PSScript"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "2843f0fc-1a75-2140-6c4c-f5c296073941",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Manipulation of User Computer or Group Security Principals Across AD"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "ebdae8b0-7b83-5602-356e-b214571cee19",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Disable Powershell Command History"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "7f3d30e6-1565-4e09-7b13-5d7c5b8b0947",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerShell ShellCode"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "4dc42aa9-1963-4ee8-e6ed-021575365449",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "PowerShell Script With File Upload Capabilities"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "cb989f20-ebb9-8b1b-a5d6-f98b3929346c",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Disable-WindowsOptionalFeature Command PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f1205c3a-b112-f060-2b3e-b43fd3460482",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Disable of ETW Trace - Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "efbceae5-07cf-4b09-fc03-df062b971e10",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Change User Agents with WebRequest"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "1296d31f-9f66-0be1-424b-a641f15c4475",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "HackTool - Rubeus Execution - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0f434135-833f-9c32-7048-ab3c6264d3d2",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious FromBase64String Usage On Gzip Archive - Ps Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "57b18282-5df7-0636-ee86-75ccdbe55519",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Execute Batch Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f9889db2-6490-a082-33a3-1b46dff5e2f1",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Extracting Information with PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "8acde15f-c52f-455b-127c-8de1892767e5",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious X509Enrollment - Ps Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b38a93d1-2bd3-6583-6617-1f4bdccf8589",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "AMSI Bypass Pattern Assembly GetType"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "777d9383-7a6f-f82a-d22e-2f05f433bc9b",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell Write-EventLog Usage"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b3cb91b9-f3a8-1486-c398-1ea1e5183b3c",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Get Information for SMB Share"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0fb43313-1253-f71b-1a13-e10e073c1627",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Get-ADUser Enumeration Using UserAccountControl Flags"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "d7f88495-fd82-8062-2c13-6036a8358e39",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Automated Collection Command PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "527063ac-15f7-52e7-7ced-4348087aaec7",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation COMPRESS OBFUSCATION - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "57e275e0-10cf-be8d-39b2-027fbfeb2913",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious SSL Connection"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "33811b3f-3506-6bff-bb4a-4250e7714358",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Use Clip - Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "addd9852-1b8e-322b-77eb-4a749ba8dca6",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Windows Defender Exclusions Added - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "3586407d-f3a3-bb2d-8467-0956e15af381",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "PowerShell Script Change Permission Via Set-Acl - PsScript"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "40e38653-158e-78ce-f816-60a159924dc9",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "HackTool - WinPwn Execution - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "245734a0-22f3-d684-07a7-ed1cea011d8e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Root Certificate Installed - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "53ba1f6b-70f2-242f-1377-8dc22d806e78",
+    "level": "critical",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Mailbox Export to Share - PS"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "43de23b6-5e9c-142a-9e42-64992bede784",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious Service DACL Modification Via Set-Service Cmdlet - PS"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "737309de-cb25-6cd6-de11-74ac6a587299",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Abuse of Service Permissions to Hide Services Via Set-Service - PS"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "329df23d-a366-2e13-47f7-3c67cfb56f75",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Deletion of Volume Shadow Copies via WMI with PowerShell - PS Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f1a1daa1-2c4e-6354-e062-1f80427eafc3",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell Remote Session Creation"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "247b332c-8cf3-11c1-bf63-2693c99a6082",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Malicious PowerShell Commandlets - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0357e3d7-f8fe-0601-0902-364f4cdbed81",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Packet Capture Activity Via Start-NetEventSession - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "649adb28-28ab-34b1-166d-cfffb0245bbd",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Unsigned AppX Installation Attempt Using Add-AppxPackage - PsScript"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b16a0b26-d586-4ff7-f200-20927037e55f",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Powershell Install a DLL in System Directory"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "977cdcc1-6d3a-a221-a03f-d794230e01ae",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Create Scheduled Task"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0c3ed50a-e9ab-a1ab-192f-17494d3bcb53",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Access to Browser Login Data"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6535a2a7-e5ce-2a80-726d-8eb3b016084d",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell WMI Persistence"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b935d5dd-d5e5-51df-9c4f-dc30aec0a6e6",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Windows Firewall Profile Disabled"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "369a4eed-03b4-7aea-6309-c6d7173b0567",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "User Discovery And Export Via Get-ADUser Cmdlet - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "c4a3b240-b0c5-3eed-9e95-d3db01157764",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation RUNDLL LAUNCHER - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "308e8029-d702-799b-6aea-82f749348b24",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Invocations - Generic"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "12bd77fd-a44d-6373-2156-4c29b22d9c85",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Powershell Suspicious Win32_PnPEntity"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "d7307e8a-60da-106b-aeb8-c4ebd5c1fb6d",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Use MSHTA - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "e355cee1-576c-66ad-ccaf-3f4dfa5b541e",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Via Stdin - Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "eddbf1d6-60c9-96f5-4cdf-f0947b3aad8f",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Usage Of Web Request Commands And Cmdlets - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "1bc61c35-56bd-6b9c-12fc-5513d8aa80d2",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation VAR+ Launcher - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "2b77aa85-451b-f506-eda5-71bef0c2bfa6",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Potential PowerShell Obfuscation Using Alias Cmdlets"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "33a52335-678e-da31-eb46-d7cfc302cb3e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Remove Account From Domain Admin Group"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "61d6fe12-d403-c9b3-bc3f-fb10de58a4c3",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "AADInternals PowerShell Cmdlets Execution - PsScript"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "94272bf4-116b-5204-4be6-69b2d5648fa4",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious Hyper-V Cmdlets"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0b0963db-269b-9351-ab12-4aa9d1f8a105",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Modify Group Policy Settings - ScriptBlockLogging"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "437f4723-94d2-dfdf-cd3b-9cf2e0af0fba",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "WMIC Unquoted Services Path Lookup - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "edeeb148-ce01-b5b8-a531-3b364b7fd191",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Potential WinAPI Calls Via PowerShell Scripts"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a547df68-c62d-4415-9a62-cbe68f006b9e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Store File In Alternate Data Stream"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "297f849b-2dff-ce76-be52-6f50e2f5d205",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Troubleshooting Pack Cmdlet Execution"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "3c8ea56a-ad16-8598-c24e-3fdd6b345dda",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Password Policy Discovery With Get-AdDefaultDomainPasswordPolicy"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "b5223513-5e9d-2c11-1cf7-d980bfed58f5",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Enable Windows Remote Management"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "77515874-226e-d597-815a-9962d2951358",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerShell Get-Process LSASS in ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f0174af7-3de1-3209-5f81-f96ff9d1f5c6",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious TCP Tunnel Via PowerShell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a4545017-4d6d-c3bd-7fec-62214f01e6b2",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation STDIN+ Launcher - Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "8dd08d08-a638-c74c-8e7a-07d55d3b3318",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerShell PSAttack"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "00f90856-99dc-9ecd-31ca-0d93b7577bac",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Active Directory Computers Enumeration With Get-AdComputer"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "58f5980d-d851-77b4-2f1f-945eb2d3e430",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Certificate Exported Via PowerShell - ScriptBlock"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a427508a-2c94-8fdb-863f-555304b70605",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Replace Desktop Wallpaper by Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a91bd8f4-12c9-8c19-370c-2ddece54fd99",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "WMImplant Hack Tool"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "231be74a-ed58-7e55-d906-23131f589913",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Get Local Groups Information - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "71d6a25b-6fe6-37e2-40bc-c4de171fbbc9",
+    "level": "critical",
+    "subcategory_guids": [],
+    "title": "Silence.EDA Detection"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "0a3956ee-9813-55f3-ca74-4d00e9df5262",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Import PowerShell Modules From Suspicious Directories"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "2e7d9c7a-fab3-d015-8552-39acf165059c",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Security Software Discovery Via Powershell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a57f49ff-b916-4527-881f-bef76dc42248",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell MsXml COM Object"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "baee41a3-2063-6125-778e-0d9710474c06",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Delete Volume Shadow Copies via WMI with PowerShell - PS Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6dcad107-58f0-d885-7198-fe78bda1ff4b",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Powershell Add Name Resolution Policy Table Rule"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6454f2bf-2962-a90a-eec3-6c7bef6be08e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious IO.FileStream"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f698fa3e-50d4-0a6b-4f65-9cc569e1a709",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell XML Execute Command"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "43254631-95ca-6c3c-11bc-16c19f09e819",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious GPO Discovery With Get-GPO"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "aa566d46-235a-b467-88ed-434788883da2",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Persistence Via PowerShell User Profile Using Add-Content"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "647d9a85-b4af-a355-a79e-5ad4afa553bd",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell ICMP Exfiltration"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "4ee64eb7-79b5-d7d2-9ba7-89616409e7d0",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential In-Memory Execution Using Reflection.Assembly"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "00ba998e-b435-22a6-2dbf-e85e1918b8a7",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Powershell Local Email Collection"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "1dc5f777-bb62-c024-3838-e53492b5e574",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Powershell DNSExfiltration"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6ab29276-37b6-8501-afb8-33126a6a9918",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "SyncAppvPublishingServer Execution to Bypass Powershell Restriction"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "802477a9-01ea-d5f8-2ff9-44285787d0f7",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PowerShell Web Access Installation - PsScript"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f5ce4704-7343-4e6a-f741-f53b6d412d1f",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Code Executed Via Office Add-in XLL File"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "e5a59479-4ded-f6c3-ab4d-8d464128fbb2",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Change PowerShell Policies to an Insecure Level - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "389e5737-c793-4d03-4191-fe78d2cc1dcb",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Automated Collection Bookmarks Using Get-ChildItem PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "3bef19ed-f703-65eb-ab07-eebb20abdd4e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "PowerShell Hotfix Enumeration"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "a86c5f75-859a-89ac-20a4-ad3be80336c9",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Computer Discovery And Export Via Get-ADComputer Cmdlet - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "ce3cad3a-afec-9acc-c763-9b4cb0fd5ece",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Service Registry Permissions Weakness Check"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "abc8469f-9601-7199-13b7-9620478f5335",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Detected Windows Software Discovery - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "629a73b6-b63c-b6d1-5e2c-5d7ee3042f44",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Testing Usage of Uncommonly Used Port"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "80aaec39-a75b-8ad7-ac46-14fd5159f93f",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Active Directory Group Enumeration With Get-AdGroup"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "088701bf-4758-9a2a-76c0-2e148a7e122c",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Request A Single Ticket via PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "516b2199-36c5-1a0d-13f4-87bcb22bc2bf",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Mailbox SMTP Forward Rule"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "c9326131-769a-8ba4-03f2-7d17f9847a50",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Suspicious Windows Feature Enabled"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "70b65468-d1e8-0a6b-78c3-a458a95e477b",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation VAR++ LAUNCHER OBFUSCATION - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6154995f-9153-aaa3-dc51-d3062506c78a",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Potential Keylogger Activity"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "30be45df-1ada-4075-3586-5a3d6eda8cd3",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Invoke-Obfuscation Obfuscated IEX Invocation - PowerShell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "43541d1d-9cb1-a49f-2fb9-4121c1302705",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Get Current User"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "d72c1916-ab63-11e1-1916-5e8b3822f133",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "DirectorySearcher Powershell Exploitation"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "7778d03c-e7bd-53bb-1f84-6557e3ecf12d",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Zip A Folder With PowerShell For Staging In Temp - PowerShell Script"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f279fcb8-4560-0d0c-3bee-043b32f9b3fb",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Live Memory Dump Using Powershell"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "9d0ff6ee-9967-a757-d8dc-cf3f3b3546b1",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious New-PSDrive to Admin Share"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
       "400"
     ],
     "id": "19bee8fa-b4db-79ab-2c60-ea8ae4875dcc",
@@ -16521,9 +18651,9 @@
     "id": "4faa08cb-e57e-bb07-cfc2-2153a97a99bf",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "ISO Image Mounted"
@@ -16569,9 +18699,9 @@
   {
     "channel": "sec",
     "event_ids": [
+      "4766",
       "4765",
-      "4738",
-      "4766"
+      "4738"
     ],
     "id": "5335aea0-f1b4-e120-08b6-c80fe4bf99ad",
     "level": "medium",
@@ -16630,16 +18760,16 @@
   {
     "channel": "sec",
     "event_ids": [
-      "675",
       "4768",
-      "4771",
-      "4769"
+      "4769",
+      "675",
+      "4771"
     ],
     "id": "978525c2-97aa-f0e4-8c11-3cf81ea3379b",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9240-69AE-11D9-BED3-505054503030",
-      "0CCE9242-69AE-11D9-BED3-505054503030"
+      "0CCE9242-69AE-11D9-BED3-505054503030",
+      "0CCE9240-69AE-11D9-BED3-505054503030"
     ],
     "title": "Kerberos Manipulation"
   },
@@ -16658,8 +18788,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "6281",
-      "5038"
+      "5038",
+      "6281"
     ],
     "id": "4f738466-2a14-5842-1eb3-481614770a49",
     "level": "informational",
@@ -16712,8 +18842,8 @@
     "id": "93c95eee-748a-e1db-18a5-f40035167086",
     "level": "high",
     "subcategory_guids": [
-      "0CCE923B-69AE-11D9-BED3-505054503030",
-      "0CCE9220-69AE-11D9-BED3-505054503030"
+      "0CCE9220-69AE-11D9-BED3-505054503030",
+      "0CCE923B-69AE-11D9-BED3-505054503030"
     ],
     "title": "AD Privileged Users or Groups Reconnaissance"
   },
@@ -16756,8 +18886,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4742",
-      "5136"
+      "5136",
+      "4742"
     ],
     "id": "c800ccd5-5818-b0f5-1a12-f9c8bc24a433",
     "level": "medium",
@@ -16770,16 +18900,16 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "c7f94c63-6fb7-9686-e2c2-2298c9f56ca9",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921E-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potentially Suspicious AccessMask Requested From LSASS"
   },
@@ -16804,9 +18934,9 @@
     "id": "321196fe-fb10-6b13-c611-3dfe40baa1af",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Azure AD Health Monitoring Agent Registry Keys Access"
@@ -16850,8 +18980,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "5145",
-      "5136"
+      "5136",
+      "5145"
     ],
     "id": "01628b51-85e1-4088-9432-a11cba9f3ebd",
     "level": "high",
@@ -16979,26 +19109,26 @@
     "id": "249d836c-8857-1b98-5d7b-050c2d34e275",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Sysmon Channel Reference Deletion"
   },
   {
     "channel": "sec",
     "event_ids": [
+      "4663",
       "4657",
-      "4656",
-      "4663"
+      "4656"
     ],
     "id": "32337bc9-8e75-bdaf-eaf4-d3b19ee08a67",
     "level": "medium",
     "subcategory_guids": [
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Processes Accessing the Microphone and Webcam"
@@ -17006,8 +19136,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "63308dbe-54a4-9c70-cc90-6d15e10f3505",
     "level": "high",
@@ -17051,8 +19181,8 @@
     "id": "6bcac9cb-eeee-9f45-c5c1-0daaf023ac12",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Failed Logon From Public IP"
   },
@@ -17084,8 +19214,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4729",
-      "633"
+      "633",
+      "4729"
     ],
     "id": "6e0f860b-3678-7396-a4a3-7cf55f7bb01c",
     "level": "low",
@@ -17264,10 +19394,10 @@
     "id": "04a055ea-ffa9-540b-e1d2-d5c1bfd5bc7b",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Teams Application Related ObjectAcess Event"
   },
@@ -17291,8 +19421,8 @@
     "id": "d74b03af-7e5f-bc5b-9e84-9d44af3d61b7",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Scheduled Task Update"
   },
@@ -17454,18 +19584,18 @@
   {
     "channel": "sec",
     "event_ids": [
+      "4658",
       "4656",
-      "4663",
-      "4658"
+      "4663"
     ],
     "id": "70c3269a-a7f2-49bd-1e28-a0921f353db7",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9223-69AE-11D9-BED3-505054503030",
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential Secure Deletion with SDelete"
   },
@@ -17501,10 +19631,10 @@
     "id": "d7742b08-730d-3624-df95-cc3c6eaa3a39",
     "level": "high",
     "subcategory_guids": [
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "SAM Registry Hive Handle Request"
   },
@@ -17517,8 +19647,8 @@
     "id": "bc613d09-5a80-cad3-6f65-c5020f960511",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE923C-69AE-11D9-BED3-505054503030",
-      "0CCE9244-69AE-11D9-BED3-505054503030"
+      "0CCE9244-69AE-11D9-BED3-505054503030",
+      "0CCE923C-69AE-11D9-BED3-505054503030"
     ],
     "title": "Startup/Logon Script Added to Group Policy Object"
   },
@@ -17575,8 +19705,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "5447",
-      "5441"
+      "5441",
+      "5447"
     ],
     "id": "4d56e133-40b5-5b28-07b5-bab0913fc338",
     "level": "high",
@@ -17759,15 +19889,15 @@
     "channel": "sec",
     "event_ids": [
       "4625",
-      "4776",
-      "4624"
+      "4624",
+      "4776"
     ],
     "id": "827aa6c1-1507-3f0a-385a-ade5251bfd71",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9215-69AE-11D9-BED3-505054503030",
       "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE923F-69AE-11D9-BED3-505054503030"
+      "0CCE923F-69AE-11D9-BED3-505054503030",
+      "0CCE9215-69AE-11D9-BED3-505054503030"
     ],
     "title": "Metasploit SMB Authentication"
   },
@@ -17846,15 +19976,15 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "06b8bcc0-326b-518a-3868-fe0721488fb8",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "LSASS Access From Non System Account"
@@ -17890,9 +20020,9 @@
     "level": "medium",
     "subcategory_guids": [
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "SCM Database Handle Failure"
   },
@@ -17952,10 +20082,10 @@
     "id": "d1909400-93d7-de3c-ba13-153c64499c7c",
     "level": "low",
     "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030"
     ],
     "title": "Service Registry Key Read Access Request"
   },
@@ -17968,18 +20098,18 @@
     "id": "777523b0-14f8-1ca2-12c9-d668153661ff",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Windows Defender Exclusion Registry Key - Write Access Requested"
   },
   {
     "channel": "sec",
     "event_ids": [
-      "4899",
-      "4898"
+      "4898",
+      "4899"
     ],
     "id": "aa2d5bf7-bc73-068e-a4df-a887cc3aba2b",
     "level": "high",
@@ -18008,8 +20138,8 @@
     "id": "22d4af9f-97d9-4827-7209-c451ff7f43c6",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9233-69AE-11D9-BED3-505054503030",
-      "0CCE9234-69AE-11D9-BED3-505054503030"
+      "0CCE9234-69AE-11D9-BED3-505054503030",
+      "0CCE9233-69AE-11D9-BED3-505054503030"
     ],
     "title": "HackTool - NoFilter Execution"
   },
@@ -18041,16 +20171,16 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4625",
       "4624",
-      "4776"
+      "4776",
+      "4625"
     ],
     "id": "8b40829b-4556-9bec-a8ad-905688497639",
     "level": "high",
     "subcategory_guids": [
+      "0CCE9215-69AE-11D9-BED3-505054503030",
       "0CCE923F-69AE-11D9-BED3-505054503030",
-      "0CCE9217-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9217-69AE-11D9-BED3-505054503030"
     ],
     "title": "Hacktool Ruler"
   },
@@ -18101,8 +20231,8 @@
     "subcategory_guids": [
       "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE9245-69AE-11D9-BED3-505054503030"
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Password Dumper Activity on LSASS"
   },
@@ -18115,8 +20245,8 @@
     "id": "9ce591d7-6b6d-444a-8c27-8ca626dddad3",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9226-69AE-11D9-BED3-505054503030"
+      "0CCE9226-69AE-11D9-BED3-505054503030",
+      "0CCE9227-69AE-11D9-BED3-505054503030"
     ],
     "title": "Important Scheduled Task Deleted/Disabled"
   },
@@ -18149,16 +20279,16 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4663",
-      "4656"
+      "4656",
+      "4663"
     ],
     "id": "763d50d7-9452-0146-18a1-9ca65e3a2f73",
     "level": "medium",
     "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030",
       "0CCE9245-69AE-11D9-BED3-505054503030",
       "0CCE921F-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
-      "0CCE921E-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Azure AD Health Service Agents Registry Keys Access"
   },
@@ -18246,8 +20376,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4904",
-      "4905"
+      "4905",
+      "4904"
     ],
     "id": "00f253a0-1035-e450-7f6e-e2291dee27ec",
     "level": "informational",
@@ -18391,6 +20521,16 @@
     "title": "Suspicious Bitstransfer via PowerShell"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "f427b1c7-bbad-7bd6-bb0f-65b6170a3cb5",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Execution via CL_Mutexverifiers.ps1"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "4688"
@@ -18461,6 +20601,16 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Execution via MSSQL Xp_cmdshell Stored Procedure"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "5eb9df17-06bd-e2fe-8871-13bd6bd36406",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "PrintNightmare Powershell Exploitation"
   },
   {
     "channel": "sec",
@@ -18583,6 +20733,14 @@
     "title": "Wscript Execution from Non C Drive"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [],
+    "id": "12f93a4e-cd0e-18d7-6969-b345ecc8d40a",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Download"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "4688"
@@ -18617,6 +20775,16 @@
       "0CCE922C-69AE-11D9-BED3-505054503030"
     ],
     "title": "Correct Execution of Nltest.exe"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "830423bc-69e4-b19b-5474-414e4ab0c365",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Suspicious Get-WmiObject"
   },
   {
     "channel": "sec",
@@ -18727,6 +20895,16 @@
     "title": "Invoke-Obfuscation Via Use Rundll32"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [
+      "4103"
+    ],
+    "id": "65efb931-2d64-dea1-b559-544498a9b6f8",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Netcat The Powershell Version - PowerShell Module"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "1102"
@@ -18809,6 +20987,24 @@
     "title": "Abusing Windows Telemetry For Persistence - Registry"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "74dda95a-b492-e2ee-4a33-b22a41a1cb57",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "AzureHound PowerShell Commands"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [],
+    "id": "391b98f2-3f42-0d06-a295-18a2aa29d39a",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Invocations - Generic"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "4688"
@@ -18843,6 +21039,14 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Regsvr32 Anomaly"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [],
+    "id": "349e3bb4-b72b-193d-810e-7d9c145b863e",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "SyncAppvPublishingServer Execution to Bypass Powershell Restriction"
   },
   {
     "channel": "sec",
@@ -18927,6 +21131,16 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Excel Proxy Executing Regsvr32 With Payload"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "6587075c-6239-f6e1-4717-4b7972b1c086",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Execution via CL_Invocation.ps1 - Powershell"
   },
   {
     "channel": "sec",
@@ -19025,6 +21239,16 @@
     "title": "Office Applications Spawning Wmi Cli Alternate"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "63c2d41b-b587-6c55-c256-9c0bb392f0a9",
+    "level": "medium",
+    "subcategory_guids": [],
+    "title": "Accessing Encrypted Credentials from Google Chrome Login Database"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "4688"
@@ -19051,12 +21275,12 @@
   {
     "channel": "sec",
     "event_ids": [
-      "634",
-      "4730",
       "632",
+      "634",
       "4728",
       "4729",
-      "633"
+      "633",
+      "4730"
     ],
     "id": "506379d9-8545-c010-e9a3-693119ab9261",
     "level": "low",
@@ -19114,6 +21338,14 @@
     "title": "Autorun Keys Modification"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [],
+    "id": "3db961f4-6217-4957-b717-e5955c82d6e5",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Suspicious PowerShell Invocations - Specific"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "4688"
@@ -19160,6 +21392,16 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Execute MSDT.EXE Using Diagcab File"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "113fcff8-c64d-8743-88b7-9ff2539cde7d",
+    "level": "low",
+    "subcategory_guids": [],
+    "title": "Powershell File and Directory Discovery"
   },
   {
     "channel": "sec",
@@ -19234,6 +21476,16 @@
     "title": "Winword.exe Loads Suspicious DLL"
   },
   {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "47d13687-edae-dafa-bdab-416474c95f53",
+    "level": "critical",
+    "subcategory_guids": [],
+    "title": "Dnscat Execution"
+  },
+  {
     "channel": "sec",
     "event_ids": [
       "4688"
@@ -19280,6 +21532,16 @@
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Adwind RAT / JRAT - Registry"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "97408cc2-d2e8-83dd-1f84-93da08e9f191",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Execution via CL_Mutexverifiers.ps1 (2 Lines)"
   },
   {
     "channel": "sec",
@@ -19332,16 +21594,16 @@
   {
     "channel": "sec",
     "event_ids": [
+      "4698",
       "4702",
-      "4624",
-      "4698"
+      "4624"
     ],
     "id": "bc42c437-1ea8-fd0f-d964-e37a58d861fc",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
       "0CCE9227-69AE-11D9-BED3-505054503030",
-      "0CCE9215-69AE-11D9-BED3-505054503030"
+      "0CCE9215-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Remote Schtasks Creation"
   },
@@ -19378,10 +21640,20 @@
     "id": "89ed0fbe-11b8-ce3c-e025-59925225ee99",
     "level": "low",
     "subcategory_guids": [
-      "0CCE9226-69AE-11D9-BED3-505054503030",
-      "0CCE9227-69AE-11D9-BED3-505054503030"
+      "0CCE9227-69AE-11D9-BED3-505054503030",
+      "0CCE9226-69AE-11D9-BED3-505054503030"
     ],
     "title": "Rare Schtasks Creations"
+  },
+  {
+    "channel": "pwsh",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "13cf4134-564b-abdb-c83e-dac3ba9bac3c",
+    "level": "high",
+    "subcategory_guids": [],
+    "title": "Execution via CL_Invocation.ps1 (2 Lines)"
   },
   {
     "channel": "sec",
@@ -19427,10 +21699,10 @@
     "id": "888d3e17-a1ed-6b11-895c-e1f9b96b35be",
     "level": "high",
     "subcategory_guids": [
-      "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921F-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030",
+      "0CCE921D-69AE-11D9-BED3-505054503030"
     ],
     "title": "Stored Credentials in Fake Files"
   },
@@ -19474,8 +21746,8 @@
   {
     "channel": "sec",
     "event_ids": [
-      "529",
-      "4625"
+      "4625",
+      "529"
     ],
     "id": "428d3964-3241-1ceb-8f93-b31d8490c822",
     "level": "medium",
@@ -19493,10 +21765,10 @@
     "id": "a4504cb2-23f6-6d94-5ae6-d6013cf1d995",
     "level": "medium",
     "subcategory_guids": [
-      "0CCE9245-69AE-11D9-BED3-505054503030",
-      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE921F-69AE-11D9-BED3-505054503030",
       "0CCE921E-69AE-11D9-BED3-505054503030",
-      "0CCE921F-69AE-11D9-BED3-505054503030"
+      "0CCE921D-69AE-11D9-BED3-505054503030",
+      "0CCE9245-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious Multiple File Rename Or Delete Occurred"
   },
@@ -19911,9 +22183,9 @@
   {
     "channel": "sec",
     "event_ids": [
-      "4657",
       "13",
-      "12"
+      "12",
+      "4657"
     ],
     "id": "46595663-e666-c413-ccf4-028a618ca712",
     "level": "critical",
