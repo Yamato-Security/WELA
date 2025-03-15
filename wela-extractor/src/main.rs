@@ -73,26 +73,40 @@ fn extract_event_ids(yaml: &Yaml, event_ids: &mut HashSet<String>) {
     }
 }
 
-fn contains_channel_security(yaml: &Yaml) -> Option<Channel> {
+fn contains_builtin_channel(yaml: &Yaml) -> Option<Channel> {
+    fn check_channel(value: &Yaml) -> Option<Channel> {
+        match value.as_str() {
+            Some("Security") => Some(Channel::Security),
+            Some("Microsoft-Windows-PowerShell/Operational")
+            | Some("PowerShellCore/Operational")
+            | Some("Windows PowerShell") => Some(Channel::PowerShell),
+            _ => None,
+        }
+    }
+
     match yaml {
         Yaml::Hash(hash) => {
             for (key, value) in hash {
                 if key.as_str() == Some("Channel") {
-                    match value.as_str() {
-                        Some("Security") => return Some(Channel::Security),
-                        Some("Microsoft-Windows-PowerShell/Operational")
-                        | Some("PowerShellCore/Operational")
-                        | Some("Windows PowerShell") => return Some(Channel::PowerShell),
-                        _ => None::<Channel>,
-                    };
-                } else if let Some(channel) = contains_channel_security(value) {
+                    match value {
+                        Yaml::Array(array) => {
+                            for item in array {
+                                if let Some(channel) = check_channel(item) {
+                                    return Some(channel);
+                                }
+                            }
+                        }
+                        Yaml::String(_) => return check_channel(value),
+                        _ => {}
+                    }
+                } else if let Some(channel) = contains_builtin_channel(value) {
                     return Some(channel);
                 }
             }
         }
         Yaml::Array(array) => {
             for item in array {
-                if let Some(channel) = contains_channel_security(item) {
+                if let Some(channel) = contains_builtin_channel(item) {
                     return Some(channel);
                 }
             }
@@ -103,7 +117,7 @@ fn contains_channel_security(yaml: &Yaml) -> Option<Channel> {
 }
 
 fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
-    if let Some(ch) = contains_channel_security(&doc["detection"]) {
+    if let Some(ch) = contains_builtin_channel(&doc["detection"]) {
         let uuid = doc["id"].as_str().unwrap_or("");
         let title = doc["title"].as_str().unwrap_or("");
         let level = doc["level"].as_str().unwrap_or("");
