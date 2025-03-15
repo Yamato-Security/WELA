@@ -55,11 +55,11 @@ function ShowRulesCountsByLevel {
     param ($usableRate, $msg)
     Write-Output $msg
     $levelColorMap = [ordered]@{
-        "critical" = "ff0000"
-        "high" = "ffc100"
-        "medium" = "ffff00"
-        "low" = "00ff00"
-        "informational" = "ffffff"  # Assuming a default color for informational
+        "critical" = "Red"
+        "high" = "Yellow"
+        "medium" = "Cyan"
+        "low" = "Green"
+        "informational" = "White"  # Assuming a default color for informational
     }
     $usableRate | Sort-Object { $levelColorMap.Keys.IndexOf($_.Level) } | ForEach-Object {
         $color = $levelColorMap[$_.Level]
