@@ -122,16 +122,18 @@ $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channe
 $usablePwsRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $unusableRules  = $rules | Where-Object { $_.applicable -eq $false }
 $allSecRules    = $rules | Where-Object { $_.channel -eq "sec" }
+$allPwsRules    = $rules | Where-Object { $_.channel -eq "pwsh" }
 
 # Step 4: Count the number of usable and unusable rules for each level
 $totalCounts     = Get-RuleCounts -rules $rules
 $totalSecCounts  = Get-RuleCounts -rules $allSecRules
+$totalPwsCounts  = Get-RuleCounts -rules $allPwsRules
 $usableSecCounts = Get-RuleCounts -rules $usableSecRules
 $usablePwsCounts = Get-RuleCounts -rules $usablePwsRules
 
 # Step 5: Calculate the usable rate for each level
 $usableSecRate = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
-$usablePwsRate = CalculateUsableRate -counts $usablePwsCounts -totalCounts $usablePwsCounts
+$usablePwsRate = CalculateUsableRate -counts $usablePwsCounts -totalCounts $totalPwsCounts
 
 # Step 6: Show the number of usable and unusable rules for each level
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
