@@ -56,7 +56,7 @@ function ShowRulesCountsByLevel {
     Write-Output $msg
     $levelColorMap = [ordered]@{
         "critical" = "Red"
-        "high" = "Orange"
+        "high" = "DarkYellow"
         "medium" = "Yellow"
         "low" = "Green"
         "informational" = "White"  # Assuming a default color for informational
