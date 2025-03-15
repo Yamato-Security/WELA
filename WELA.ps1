@@ -54,9 +54,16 @@ function CalculateUsableRate {
 function ShowRulesCountsByLevel {
     param ($usableRate, $msg)
     Write-Output $msg
-    $levelOrder = @("critical", "high", "medium", "low", "informational")
-    $usableRate | Sort-Object { $levelOrder.IndexOf($_.Level) } | ForEach-Object {
-        Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
+    $levelColorMap = [ordered]@{
+        "critical" = "ff0000"
+        "high" = "ffc100"
+        "medium" = "ffff00"
+        "low" = "00ff00"
+        "informational" = "ffffff"  # Assuming a default color for informational
+    }
+    $usableRate | Sort-Object { $levelColorMap.Keys.IndexOf($_.Level) } | ForEach-Object {
+        $color = $levelColorMap[$_.Level]
+        Write-Host "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
     }
     Write-Output ""
 }
