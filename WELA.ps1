@@ -80,25 +80,25 @@ $logo = @"
 "@
 Write-Host $logo -ForegroundColor Green
 
-# Step 3: Get the applicable rules
+# Step 3: Set the applicable flag for each rule
 $rules = Set-Applicable -autidpolTxt $autidpolTxt -jsonRulePath "./config/security_rules.json"
 
-# Step 4: Count the number of usable and unusable rules for each level
 $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
 $usablePwsRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $unusableRules  = $rules | Where-Object { $_.applicable -eq $false }
 $allSecRules    = $rules | Where-Object { $_.channel -eq "sec" }
 
+# Step 4: Count the number of usable and unusable rules for each level
 $totalCounts     = Get-RuleCounts -rules $rules
 $totalSecCounts  = Get-RuleCounts -rules $allSecRules
 $usableSecCounts = Get-RuleCounts -rules $usableSecRules
 $usablePwsCounts = Get-RuleCounts -rules $usablePwsRules
 
-# Step 5: Calculate the Rate
+# Step 5: Calculate the usable rate for each level
 $usableSecRate = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
 $usablePwsRate = CalculateUsableRate -counts $usablePwsCounts -totalCounts $usablePwsCounts
 
-# Step 6: Generate the required outputtotal
+# Step 6: Show the number of usable and unusable rules for each level
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
 ShowRulesCountsByLevel -usableRate $usablePwsRate -msg "PowerShell event log detection rules:"
 
