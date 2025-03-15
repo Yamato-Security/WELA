@@ -96,6 +96,17 @@ function ShowRulesCountsByLevel {
     Write-Output ""
 }
 
+function Test-IsAdministrator {
+    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $adminRole = [Security.Principal.WindowsBuiltInRole]::Administrator
+    return (New-Object Security.Principal.WindowsPrincipal($currentUser)).IsInRole($adminRole)
+}
+
+if (-not (Test-IsAdministrator)) {
+    Write-Output "This script must be run as an Administrator."
+    exit
+}
+
 # Set the console encoding to UTF-8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
