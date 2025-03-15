@@ -1,17 +1,17 @@
-﻿function Get-ApplicableRules {
+﻿function Set-Applicable {
     param (
-        [string]$outputFilePath,
-        [string]$jsonFilePath
+        [string]$autidpolTxt,
+        [string]$jsonRulePath
     )
 
     $extractedGuids = [System.Collections.Generic.HashSet[string]]::new()
-    Get-Content -Path $outputFilePath | Select-String -NotMatch "No Auditing" | ForEach-Object {
+    Get-Content -Path $autidpolTxt | Select-String -NotMatch "No Auditing" | ForEach-Object {
         if ($_ -match '{(.*?)}') {
             [void]$extractedGuids.Add($matches[1])
         }
     }
 
-    $jsonContent = Get-Content -Path $jsonFilePath -Raw | ConvertFrom-Json
+    $jsonContent = Get-Content -Path $jsonRulePath -Raw | ConvertFrom-Json
     foreach ($rule in $jsonContent) {
         $rule | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
         if ($rule.channel -eq "pwsh") {
@@ -38,7 +38,7 @@ function Get-RuleCounts {
     }
 }
 
-function CalculateRate {
+function CalculateUsableRate {
     param ($counts, $totalCounts)
     $counts | ForEach-Object {
         $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
@@ -51,12 +51,11 @@ function CalculateRate {
     }
 }
 
-function DisplayRuleRate {
+function ShowRulesCountsByLevel {
     param ($usableRate, $msg)
     Write-Output $msg
-    $customOrder = @("critical", "high", "medium", "low", "informational")
-    $usableRate = $usableRate | Sort-Object { $customOrder.IndexOf($_.Level) }
-    $usableRate | ForEach-Object {
+    $levelOrder = @("critical", "high", "medium", "low", "informational")
+    $usableRate | Sort-Object { $levelOrder.IndexOf($_.Level) } | ForEach-Object {
         Write-Output "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)"
     }
     Write-Output ""
@@ -66,8 +65,8 @@ function DisplayRuleRate {
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 # Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
-$outputFilePath = "auditpol_output.txt"
-Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $outputFilePath
+$autidpolTxt = "auditpol_output.txt"
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
 
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
@@ -82,7 +81,7 @@ $logo = @"
 Write-Host $logo -ForegroundColor Green
 
 # Step 3: Get the applicable rules
-$rules = Get-ApplicableRules -outputFilePath $outputFilePath -jsonFilePath "./config/security_rules.json"
+$rules = Set-Applicable -autidpolTxt $autidpolTxt -jsonRulePath "./config/security_rules.json"
 
 # Step 4: Count the number of usable and unusable rules for each level
 $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
@@ -96,12 +95,12 @@ $usableSecCounts = Get-RuleCounts -rules $usableSecRules
 $usablePwsCounts = Get-RuleCounts -rules $usablePwsRules
 
 # Step 5: Calculate the Rate
-$usableSecRate = CalculateRate -counts $usableSecCounts -totalCounts $totalSecCounts
-$usablePwsRate = CalculateRate -counts $usablePwsCounts -totalCounts $usablePwsCounts
+$usableSecRate = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
+$usablePwsRate = CalculateUsableRate -counts $usablePwsCounts -totalCounts $usablePwsCounts
 
 # Step 6: Generate the required outputtotal
-DisplayRuleRate -usableRate $usableSecRate -msg "Security event log detection rules:"
-DisplayRuleRate -usableRate $usablePwsRate -msg "PowerShell event log detection rules:"
+ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
+ShowRulesCountsByLevel -usableRate $usablePwsRate -msg "PowerShell event log detection rules:"
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
