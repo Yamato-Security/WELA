@@ -1,4 +1,23 @@
-﻿function Set-Applicable {
+﻿function CheckRegistryValue {
+    param (
+        [string]$registryPath,
+        [string]$valueName,
+        [int]$expectedValue
+    )
+
+    try {
+        $value = Get-ItemProperty -Path $registryPath -Name $valueName -ErrorAction Stop
+        if ($value.$valueName -eq $expectedValue) {
+            return $true
+        } else {
+            return $false
+        }
+    } catch {
+        return $false
+    }
+}
+
+function Set-Applicable {
     param (
         [string]$autidpolTxt,
         [string]$jsonRulePath
@@ -11,11 +30,20 @@
         }
     }
 
+    $pwshModuleLogging = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
+    $pwshScriptLogging = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
+
     $jsonContent = Get-Content -Path $jsonRulePath -Raw | ConvertFrom-Json
     foreach ($rule in $jsonContent) {
         $rule | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
         if ($rule.channel -eq "pwsh") {
-            $rule.applicable = $true
+            if ($rule.event_ids -contains "400") {
+                $rule.applicable = $true
+            } elseif ($rule.event_ids -contains "4103") {
+                $rule.applicable = $pwshModuleLogging
+            } elseif ($rule.event_ids -contains "4104") {
+                $rule.applicable = $pwshScriptLogging
+            }
             continue
         }
         foreach ($guid in $rule.subcategory_guids) {
