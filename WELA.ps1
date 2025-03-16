@@ -129,26 +129,46 @@ Write-Host $logo -ForegroundColor Green
 # Step 3: Set the applicable flag for each rule
 $rules = Set-Applicable -autidpolTxt $autidpolTxt -jsonRulePath "./config/security_rules.json"
 
+
+$allSecRules    = $rules | Where-Object { $_.channel -eq "sec" }
+$allPwsClaRules = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "400" }
+$allPwsModRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
+$allPwsScrRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
+
 $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
 $usablePwsRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
+$usablePwsClaRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "400" }
+$usablePwsModRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
+$usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
+
 $unusableRules  = $rules | Where-Object { $_.applicable -eq $false }
-$allSecRules    = $rules | Where-Object { $_.channel -eq "sec" }
-$allPwsRules    = $rules | Where-Object { $_.channel -eq "pwsh" }
 
 # Step 4: Count the number of usable and unusable rules for each level
 $totalCounts     = Get-RuleCounts -rules $rules
 $totalSecCounts  = Get-RuleCounts -rules $allSecRules
-$totalPwsCounts  = Get-RuleCounts -rules $allPwsRules
+$totalPwsCounts  = Get-RuleCounts -rules $allPwsClaRules
+$totalPwsClaCounts  = Get-RuleCounts -rules $allPwsClaRules
+$totalPwsModCounts  = Get-RuleCounts -rules $allPwsModRules
+$totalPwsScrCounts  = Get-RuleCounts -rules $allPwsScrRules
+
 $usableSecCounts = Get-RuleCounts -rules $usableSecRules
 $usablePwsCounts = Get-RuleCounts -rules $usablePwsRules
+$usablePwsClaCounts = Get-RuleCounts -rules $usablePwsClaRules
+$usablePwsModCounts = Get-RuleCounts -rules $usablePwsModRules
+$usablePwsScrCounts = Get-RuleCounts -rules $usablePwsScrRules
 
 # Step 5: Calculate the usable rate for each level
 $usableSecRate = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
 $usablePwsRate = CalculateUsableRate -counts $usablePwsCounts -totalCounts $totalPwsCounts
+$usablePwsClaRate = CalculateUsableRate -counts $usablePwsClaCounts -totalCounts $totalPwsClaCounts
+$usablePwsModRate = CalculateUsableRate -counts $usablePwsModCounts -totalCounts $totalPwsModCounts
+$usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts $totalPwsScrCounts
 
 # Step 6: Show the number of usable and unusable rules for each level
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
-ShowRulesCountsByLevel -usableRate $usablePwsRate -msg "PowerShell event log detection rules:"
+ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules:"
+ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules:"
+ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules:"
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
