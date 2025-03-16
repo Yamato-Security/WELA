@@ -68,15 +68,20 @@ function Get-RuleCounts {
 
 function CalculateUsableRate {
     param ($counts, $totalCounts)
-    $counts | ForEach-Object {
-        $total = ($totalCounts | Where-Object Level -match $PSItem.Level | Select-Object -ExpandProperty Count)[0]
-        [PSCustomObject]@{
-            Level = $PSItem.Level
-            UsableCount = $PSItem.Count
+    $result = @()
+    $totalCounts | ForEach-Object {
+        $level = $_.Level
+        $total = $_.Count
+        $usableCount = ($counts | Where-Object Level -eq $level | Select-Object -ExpandProperty Count -First 1) -or 0
+        $percentage = if ($total -ne 0) { "{0:N2}" -f ($usableCount / $total * 100) } else { "0.00" }
+        $result += [PSCustomObject]@{
+            Level = $level
+            UsableCount = $usableCount
             TotalCount = $total
-            Percentage = "{0:N2}" -f ($PSItem.Count / $total * 100)
+            Percentage = $percentage
         }
     }
+    return $result
 }
 
 function ShowRulesCountsByLevel {
