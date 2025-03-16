@@ -171,9 +171,6 @@ $usablePwsClaRate = CalculateUsableRate -counts $usablePwsClaCounts -totalCounts
 $usablePwsModRate = CalculateUsableRate -counts $usablePwsModCounts -totalCounts $totalPwsModCounts
 $usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts $totalPwsScrCounts
 
-Write-Host $usablePwsModRate
-Write-Host $usablePwsScrRate
-
 # Step 6: Show the number of usable and unusable rules for each level
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
 ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules:"
