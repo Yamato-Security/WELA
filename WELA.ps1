@@ -177,8 +177,8 @@ Write-Host $usablePwsScrRate
 # Step 6: Show the number of usable and unusable rules for each level
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
 ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules:"
-#ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules:"
-#ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules:"
+ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules:"
+ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules:"
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
