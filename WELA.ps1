@@ -101,6 +101,7 @@ function ShowRulesCountsByLevel {
         Write-Host "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
     }
     Write-Output ""
+    Write-Output ""
 }
 
 function Test-IsAdministrator {
