@@ -90,11 +90,6 @@ function ShowRulesCountsByLevel {
         "informational" = "White"  # Assuming a default color for informational
     }
 
-    if ($null -eq $usableRate) {
-        Write-Output "No usable rules found."
-        return
-    }
-
     $usableRate | Sort-Object { $levelColorMap.Keys.IndexOf($_.Level) } | ForEach-Object {
         $color = $levelColorMap[$_.Level]
         Write-Host "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
@@ -173,8 +168,8 @@ $usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts
 # Step 6: Show the number of usable and unusable rules for each level
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
 ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules:"
-ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules:"
-ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules:"
+#ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules:"
+#ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules:"
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
