@@ -58,12 +58,24 @@ function Set-Applicable {
 
 function Get-RuleCounts {
     param ($rules)
-    $rules | Group-Object -Property level | ForEach-Object {
+    $levels = @("critical", "high", "medium", "low", "informational")
+    $counts = $rules | Group-Object -Property level | ForEach-Object {
         [PSCustomObject]@{
             Level = $_.Name
             Count = $_.Count
         }
     }
+
+    foreach ($level in $levels) {
+        if (-not ($counts | Where-Object { $_.Level -eq $level })) {
+            $counts += [PSCustomObject]@{
+                Level = $level
+                Count = 0
+            }
+        }
+    }
+
+    return $counts
 }
 
 function CalculateUsableRate {
