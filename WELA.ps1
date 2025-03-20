@@ -179,10 +179,15 @@ $usablePwsModRate = CalculateUsableRate -counts $usablePwsModCounts -totalCounts
 $usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts $totalPwsScrCounts
 
 # Step 6: Show the number of usable and unusable rules for each level
-ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:"
-ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules:"
-ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules:"
-ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules:"
+$pwsModEnabled = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
+$pwsScrEnabled = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
+$pwsModStatus = if ($pwsModEnabled) { "Enabled" } else { "Disabled" }
+$pwsSrcStatus = if ($pwsScrEnabled) { "Enabled" } else { "Disabled" }
+
+ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: (Partially Enabled)"
+ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules: (Enabled)"
+ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules: ($pwsModStatus)"
+ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules: ($pwsSrcStatus)"
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
