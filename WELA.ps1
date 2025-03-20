@@ -102,7 +102,7 @@ function CalculateTotalUsableRate {
     param ($usableRate)
     $totalUsable = ($usableRate | Measure-Object -Property UsableCount -Sum).Sum
     $totalRulesCount = ($usableRate | Measure-Object -Property TotalCount -Sum).Sum
-    return "{0:N2}" -f ($totalUsable / $totalRulesCount * 100)
+    return "{0:N2}%" -f ($totalUsable / $totalRulesCount * 100)
 }
 
 function ShowRulesCountsByLevel {
