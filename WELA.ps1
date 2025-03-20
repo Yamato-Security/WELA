@@ -95,10 +95,15 @@ function ShowRulesCountsByLevel {
         "low" = "Green"
         "informational" = "White"  # Assuming a default color for informational
     }
-
+    $i = 0
     $usableRate | Sort-Object { $levelColorMap.Keys.IndexOf($_.Level) } | ForEach-Object {
         $color = $levelColorMap[$_.Level]
-        Write-Host "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
+        Write-Host -NoNewline "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
+        if ($i -lt $levelColorMap.Count - 1)
+        {
+            Write-Host -NoNewline ", "
+        }
+        $i++
     }
     Write-Output ""
     Write-Output ""
