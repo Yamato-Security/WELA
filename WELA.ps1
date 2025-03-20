@@ -98,6 +98,13 @@ function CalculateUsableRate {
     return $result
 }
 
+function CalculateTotalUsableRate {
+    param ($usableRate)
+    $totalUsable = ($usableRate | Measure-Object -Property UsableCount -Sum).Sum
+    $totalRulesCount = ($usableRate | Measure-Object -Property TotalCount -Sum).Sum
+    return "{0:N2}" -f ($totalUsable / $totalRulesCount * 100)
+}
+
 function ShowRulesCountsByLevel {
     param ($usableRate, $msg)
     Write-Output $msg
@@ -198,12 +205,15 @@ $pwsModStatus = if ($pwsModEnabled) { "Enabled" } else { "Disabled" }
 $pwsSrcStatus = if ($pwsScrEnabled) { "Enabled" } else { "Disabled" }
 
 # 123 / 1860 (6%)
+$totalUsableSecRate = CalculateTotalUsableRate -usableRate $usableSecRate
+$totalUsablePwsClaRate = CalculateTotalUsableRate -usableRate $usablePwsClaRate
+$totalUsablePwsModRate = CalculateTotalUsableRate -usableRate $usablePwsModRate
+$totalUsablePwsScrRate = CalculateTotalUsableRate -usableRate $usablePwsScrRate
 
-
-ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: (Partially Enabled)"
-ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules: (Enabled)"
-ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules: ($pwsModStatus)"
-ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules: ($pwsSrcStatus)"
+ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: $totalUsableSecRate (Partially Enabled)"
+ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules: $totalUsablePwsClaRate (Enabled)"
+ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules: $totalUsablePwsModRate ($pwsModStatus)"
+ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules: $totalUsablePwsScrRate ($pwsSrcStatus)"
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
