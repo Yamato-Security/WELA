@@ -164,7 +164,7 @@ $allPwsScrRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event
 
 $usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
 $usablePwsRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
-$usablePwsClaRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "400" }
+$usablePwsClaRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0) }
 $usablePwsModRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
 
@@ -196,6 +196,9 @@ $pwsModEnabled = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Po
 $pwsScrEnabled = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
 $pwsModStatus = if ($pwsModEnabled) { "Enabled" } else { "Disabled" }
 $pwsSrcStatus = if ($pwsScrEnabled) { "Enabled" } else { "Disabled" }
+
+# 123 / 1860 (6%)
+
 
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: (Partially Enabled)"
 ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules: (Enabled)"
