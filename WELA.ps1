@@ -204,7 +204,7 @@ $pwsScrEnabled = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Po
 $pwsModStatus = if ($pwsModEnabled) { "Enabled" } else { "Disabled" }
 $pwsSrcStatus = if ($pwsScrEnabled) { "Enabled" } else { "Disabled" }
 
-# 123 / 1860 (6%)
+# Step 7: Calculate the total usable rate
 $totalUsableSecRate = CalculateTotalUsableRate -usableRate $usableSecRate
 $totalUsablePwsClaRate = CalculateTotalUsableRate -usableRate $usablePwsClaRate
 $totalUsablePwsModRate = CalculateTotalUsableRate -usableRate $usablePwsModRate
@@ -223,6 +223,6 @@ $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can utilize $utilizationPercentage% of your detection rules."
 
-# Step 7: Save the lists of usable and unusable rules to CSV files
+# Step 8: Save the lists of usable and unusable rules to CSV files
 $usableSecRules | Select-Object title, level, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
 $unusableRules  | Select-Object title, level, id | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
