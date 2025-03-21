@@ -106,8 +106,10 @@ function CalculateTotalUsableRate {
 }
 
 function ShowRulesCountsByLevel {
-    param ($usableRate, $msg)
-    Write-Output $msg
+    param ($usableRate, $msg, $colorMsg)
+    Write-Host -NoNewline $msg
+    $color = if ($colorMsg -match "Disabled") { "Red" } elseif ($colorMsg -match "Paritial") { "DarkYellow" } else { "White" }
+    Write-Host "$colorMsg" -ForegroundColor $color
     $levelColorMap = [ordered]@{
         "critical" = "Red"
         "high" = "DarkYellow"
@@ -119,7 +121,7 @@ function ShowRulesCountsByLevel {
     Write-Host -NoNewline " - "
     $usableRate | Sort-Object { $levelColorMap.Keys.IndexOf($_.Level) } | ForEach-Object {
         $color = $levelColorMap[$_.Level]
-        Write-Host -NoNewline "$($_.Level) rules: $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
+        Write-Host -NoNewline "$($_.Level): $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
         if ($i -lt $usableRate.Count - 1)
         {
             Write-Host -NoNewline ", "
@@ -210,10 +212,10 @@ $totalUsablePwsClaRate = CalculateTotalUsableRate -usableRate $usablePwsClaRate
 $totalUsablePwsModRate = CalculateTotalUsableRate -usableRate $usablePwsModRate
 $totalUsablePwsScrRate = CalculateTotalUsableRate -usableRate $usablePwsScrRate
 
-ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: $totalUsableSecRate (Partially Enabled)"
-ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules: $totalUsablePwsClaRate (Enabled)"
-ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules: $totalUsablePwsModRate ($pwsModStatus)"
-ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules: $totalUsablePwsScrRate ($pwsSrcStatus)"
+ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules:" -colorMsg "$totalUsableSecRate (Partially Enabled)"
+ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules:" -colorMsg "$totalUsablePwsClaRate (Enabled)"
+ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules:" -colorMsg "$totalUsablePwsModRate ($pwsModStatus)"
+ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules:" -colorMsg "$totalUsablePwsScrRate ($pwsSrcStatus)"
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
