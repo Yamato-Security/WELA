@@ -108,7 +108,7 @@ function CalculateTotalUsableRate {
 function ShowRulesCountsByLevel {
     param ($usableRate, $msg, $colorMsg)
     Write-Host -NoNewline $msg
-    $color = if ($colorMsg -match "Disabled") { "Red" } elseif ($colorMsg -match "Paritial") { "DarkYellow" } else { "White" }
+    $color = if ($colorMsg -match "Disabled") { "Red" } elseif ($colorMsg -contains "Paritial") { "DarkYellow" } else { "White" }
     Write-Host "$colorMsg" -ForegroundColor $color
     $levelColorMap = [ordered]@{
         "critical" = "Red"
