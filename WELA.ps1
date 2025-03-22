@@ -1,12 +1,4 @@
 ﻿Import-Module -Name ./WELAFunctions.psm1
-
-# Set the console encoding to UTF-8
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-
-# Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
-$autidpolTxt = "auditpol_output.txt"
-Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
-
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
@@ -17,42 +9,47 @@ $logo = @"
   by Yamato Security
 
 "@
+
+# Set the console encoding to UTF-8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# Step 1: Run the auditpol command using cmd.exe and redirect its output to a file
+$autidpolTxt = "auditpol_output.txt"
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
+
 Write-Host $logo -ForegroundColor Green
 
 # Step 3: Set the applicable flag for each rule
 $rules = Set-Applicable -autidpolTxt $autidpolTxt -jsonRulePath "./config/security_rules.json"
 
-
-$allSecRules    = $rules | Where-Object { $_.channel -eq "sec" }
-$allPwsClaRules = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "400" }
+$allSecRules       = $rules | Where-Object { $_.channel -eq "sec" }
+$allPwsClaRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0)  }
 $allPwsModRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $allPwsScrRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
 
-$usableSecRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
-$usablePwsRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
+$usableSecRules    = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
+$usablePwsRules    = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $usablePwsClaRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0) }
 $usablePwsModRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
 
-$unusableRules  = $rules | Where-Object { $_.applicable -eq $false }
-
 # Step 4: Count the number of usable and unusable rules for each level
-$totalCounts     = Get-RuleCounts -rules $rules
-$totalSecCounts  = Get-RuleCounts -rules $allSecRules
-$totalPwsCounts  = Get-RuleCounts -rules $allPwsClaRules
+$totalCounts        = Get-RuleCounts -rules $rules
+$totalSecCounts     = Get-RuleCounts -rules $allSecRules
+$totalPwsCounts     = Get-RuleCounts -rules $allPwsClaRules
 $totalPwsClaCounts  = Get-RuleCounts -rules $allPwsClaRules
 $totalPwsModCounts  = Get-RuleCounts -rules $allPwsModRules
 $totalPwsScrCounts  = Get-RuleCounts -rules $allPwsScrRules
 
-$usableSecCounts = Get-RuleCounts -rules $usableSecRules
-$usablePwsCounts = Get-RuleCounts -rules $usablePwsRules
+$usableSecCounts    = Get-RuleCounts -rules $usableSecRules
+$usablePwsCounts    = Get-RuleCounts -rules $usablePwsRules
 $usablePwsClaCounts = Get-RuleCounts -rules $usablePwsClaRules
 $usablePwsModCounts = Get-RuleCounts -rules $usablePwsModRules
 $usablePwsScrCounts = Get-RuleCounts -rules $usablePwsScrRules
 
 # Step 5: Calculate the usable rate for each level
-$usableSecRate = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
-$usablePwsRate = CalculateUsableRate -counts $usablePwsCounts -totalCounts $totalPwsCounts
+$usableSecRate    = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
+$usablePwsRate    = CalculateUsableRate -counts $usablePwsCounts -totalCounts $totalPwsCounts
 $usablePwsClaRate = CalculateUsableRate -counts $usablePwsClaCounts -totalCounts $totalPwsClaCounts
 $usablePwsModRate = CalculateUsableRate -counts $usablePwsModCounts -totalCounts $totalPwsModCounts
 $usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts $totalPwsScrCounts
@@ -64,7 +61,7 @@ $pwsModStatus = if ($pwsModEnabled) { "Enabled" } else { "Disabled" }
 $pwsSrcStatus = if ($pwsScrEnabled) { "Enabled" } else { "Disabled" }
 
 # Step 7: Calculate the total usable rate
-$totalUsableSecRate = CalculateTotalUsableRate -usableRate $usableSecRate
+$totalUsableSecRate    = CalculateTotalUsableRate -usableRate $usableSecRate
 $totalUsablePwsClaRate = CalculateTotalUsableRate -usableRate $usablePwsClaRate
 $totalUsablePwsModRate = CalculateTotalUsableRate -usableRate $usablePwsModRate
 $totalUsablePwsScrRate = CalculateTotalUsableRate -usableRate $usablePwsScrRate
@@ -83,5 +80,6 @@ $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can utilize $utilizationPercentage% of your detection rules."
 
 # Step 8: Save the lists of usable and unusable rules to CSV files
+$unusableRules  = $rules | Where-Object { $_.applicable -eq $false }
 $usableSecRules | Select-Object title, level, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
 $unusableRules  | Select-Object title, level, id | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
