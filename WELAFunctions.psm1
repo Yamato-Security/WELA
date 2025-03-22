@@ -195,7 +195,7 @@ function ShowRulesCountsByLevel {
     $usableRate | Sort-Object { $levelColorMap.Keys.IndexOf($_.Level) } | ForEach-Object {
         $color = $levelColorMap[$_.Level]
         $level = if ($_.Level -match "informational") { "info" } else { $_.Level }
-        Write-Host -NoNewline "$($level): $($_.UsableCount) / $($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
+        Write-Host -NoNewline "$($level): $($_.UsableCount)/$($_.TotalCount) ($($_.Percentage)%)" -ForegroundColor $color
         if ($i -lt $usableRate.Count - 1)
         {
             Write-Host -NoNewline ", "
