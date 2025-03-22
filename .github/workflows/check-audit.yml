@@ -2,7 +2,7 @@ name: Check audit setting
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   workflow_dispatch:
 
 jobs:

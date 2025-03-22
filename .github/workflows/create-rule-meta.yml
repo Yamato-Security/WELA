@@ -19,15 +19,3 @@ jobs:
 
       - name: Run
         run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../config/eid_subcategory_mapping.csv ../config/security_rules.json
-
-      - name: Push changes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add *.json
-          git commit -m "Automated update"
-          if [ "$(git log -1 --pretty=%B)" = "Automated update" ]; then
-            git push origin main
-          fi
