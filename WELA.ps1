@@ -23,6 +23,7 @@ Write-Host $logo -ForegroundColor Green
 $rules = Set-Applicable -autidpolTxt $autidpolTxt -jsonRulePath "./config/security_rules.json"
 
 $allSecRules       = $rules | Where-Object { $_.channel -eq "sec" }
+$allPwsRules       = $rules | Where-Object { $_.channel -eq "pwsh" }
 $allPwsClaRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0)  }
 $allPwsModRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $allPwsScrRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
@@ -36,7 +37,7 @@ $usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.cha
 # Step 4: Count the number of usable and unusable rules for each level
 $totalCounts        = Get-RuleCounts -rules $rules
 $totalSecCounts     = Get-RuleCounts -rules $allSecRules
-$totalPwsCounts     = Get-RuleCounts -rules $allPwsClaRules
+$totalPwsCounts     = Get-RuleCounts -rules $allPwsRules
 $totalPwsClaCounts  = Get-RuleCounts -rules $allPwsClaRules
 $totalPwsModCounts  = Get-RuleCounts -rules $allPwsModRules
 $totalPwsScrCounts  = Get-RuleCounts -rules $allPwsScrRules
