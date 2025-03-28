@@ -220,8 +220,4 @@ function Test-IsAdministrator {
     return (New-Object Security.Principal.WindowsPrincipal($currentUser)).IsInRole($adminRole)
 }
 
-if (-not (Test-IsAdministrator)) {
-    Write-Output "This script must be run as an Administrator."
-    exit
-}
 
