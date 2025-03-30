@@ -1,5 +1,6 @@
 function ShowVerboseSecurity {
     $msg  = @"
+Detailed Security category settings:
 Account Logon
   - Credential Validation $m_credential_validation
     - Volume: Depends on NTLM usage. Could be high on DCs and low on clients and servers.
