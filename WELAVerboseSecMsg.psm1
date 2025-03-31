@@ -231,7 +231,5 @@ System
     - Recommended settings: Success and Failure
 "@
 
-    # 変数部分を色付きで出力
-    $coloredMsg = $msg -replace '\$(\w+)', { param($match) "`e[31m$match`e[0m" }
-    Write-Host $coloredMsg
+    Write-Host $msg
 }
