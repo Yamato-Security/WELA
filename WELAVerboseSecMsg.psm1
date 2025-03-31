@@ -234,4 +234,3 @@ System
     $coloredMsg = $msg -replace '\$(\w+)', { param($match) "`e[31m$match`e[0m" }
     Write-Host $coloredMsg
 }
-
