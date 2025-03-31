@@ -231,10 +231,7 @@ System
     - Recommended settings: Success and Failure
 "@
 
-    # 変数展開を有効にする
-    $expandedMsg = $ExecutionContext.InvokeCommand.ExpandString($msg)
-
     # 変数部分を色付きで出力
-    $coloredMsg = $expandedMsg -replace '\$(\w+)', { param($match) "`e[31m$match`e[0m" }
+    $coloredMsg = $msg -replace '\$(\w+)', { param($match) "`e[31m$match`e[0m" }
     Write-Host $coloredMsg
 }
