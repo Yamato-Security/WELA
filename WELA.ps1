@@ -1,5 +1,5 @@
 ﻿Import-Module -Name ./WELAFunctions.psm1
-Import-Module -Name ./WELAVerboseSecMsg.psm1
+Import-Module -Name ./WELAVerboseSecAudit.psm1
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
