@@ -233,10 +233,10 @@ System
 
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
-        if ($line -match "\$(\w+)") {
-            $parts = $line -split "(\$\w+)"
+        if ($line -match '\$(\w+)') {
+            $parts = $line -split '(\$\w+)'
             foreach ($part in $parts) {
-                if ($part -match "\$(\w+)") {
+                if ($part -match '\$(\w+)') {
                     Write-Host -NoNewline $part -ForegroundColor Red
                 } else {
                     Write-Host -NoNewline $part
