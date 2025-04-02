@@ -235,8 +235,8 @@ System
     foreach ($line in $msgLines) {
         if ($line -contains 'disabled') {
             Write-Host $line -ForegroundColor Red
-            Write-Host "****"
         } else {
+            Write-Host "****"
             Write-Host $line
         }
     }
