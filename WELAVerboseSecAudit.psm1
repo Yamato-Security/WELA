@@ -288,7 +288,7 @@ System
             }
             Write-Host ""
         } else {
-            Write-Host $line
+            Write-Host -NoNewline  $line
         }
     }
     Write-Host ""
