@@ -271,6 +271,7 @@ System
                     Write-Host -NoNewline $part
                 }
             }
+            Write-Host ""
         } elseif ($line -match '.*enabled.*\(') {
             Write-Host $line -ForegroundColor Green -NoNewline
         } else {
