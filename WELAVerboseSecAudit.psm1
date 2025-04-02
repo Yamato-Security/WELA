@@ -272,9 +272,9 @@ System
                 }
             }
         } elseif ($line -match '.*enabled.*\(') {
-            Write-Host $line -ForegroundColor Green
+            Write-Host $line -ForegroundColor Green -NoNewline
         } else {
-            Write-Host $line
+            Write-Host $line -NoNewline
         }
     }
     Write-Host ""
