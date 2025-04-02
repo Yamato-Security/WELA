@@ -242,6 +242,7 @@ System
                     Write-Host -NoNewline $part
                 }
             }
+            Write-Host ""
         } else {
             Write-Host $line
         }
