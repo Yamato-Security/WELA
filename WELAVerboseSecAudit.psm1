@@ -24,7 +24,7 @@ function Get-RuleCounts {
     $status = if ($filteredRules[0].applicable) { "enabled" } else { "disabled" }
 
     $result = "$status ("
-    $result += $levels | ForEach-Object { "$_: $($counts[$_])" } -join " | "
+    #$result += $levels | ForEach-Object { "$_: ${$counts[$_])" } -join " | "
     $result += ")"
 
     return $result
