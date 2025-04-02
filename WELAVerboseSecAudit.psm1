@@ -5,9 +5,6 @@ function Get-RuleCounts {
     )
 
     $filteredRules = $rules | Where-Object { $_.subcategory_guids -contains $guid }
-    if (($filteredRules | Measure-Object).Count -eq 0) {
-        return "no rules"
-    }
 
     $groupedRules = $filteredRules | Group-Object -Property level
 
