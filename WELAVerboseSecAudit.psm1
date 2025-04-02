@@ -31,7 +31,6 @@ function ShowVerboseSecurity {
     param (
         [array]$rules
     )
-    Get-RuleCounts -guid "0CCE9226-69AE-11D9-BED3-505054503030" -rules $rules
     $m_credential_validation = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_kerberos_authentication_service = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_kerberos_sevice_ticket_operations = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
