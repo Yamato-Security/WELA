@@ -233,7 +233,7 @@ System
 
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
-        if ($line -match '^\s*disabled.*\)$') {
+        if ($line -contains 'disabled') {
             Write-Host -NoNewline $line -ForegroundColor Red
         } else {
             Write-Host $line
