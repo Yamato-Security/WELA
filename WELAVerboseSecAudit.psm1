@@ -276,7 +276,6 @@ System
                     Write-Host -NoNewline $part
                 }
             }
-            Write-Host ""
         } elseif ($line -match '.*enabled.*\(') {
             $parts = $line -split '(enabled.*\))'
             foreach ($part in $parts) {
@@ -286,7 +285,6 @@ System
                     Write-Host -NoNewline $part
                 }
             }
-            Write-Host ""
         } else {
             Write-Host -NoNewline  $line
         }
