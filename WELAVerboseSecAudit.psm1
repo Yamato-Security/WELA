@@ -244,6 +244,8 @@ System
 #                }
 #            }
 #            Write-Host ""
+        } elseif ($line -match '.*enabled.*') {
+            Write-Host $line -ForegroundColor Green
         } else {
             Write-Host $line
         }
