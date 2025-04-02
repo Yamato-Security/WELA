@@ -1,32 +1,3 @@
-function Get-RuleCounts {
-    param (
-        [string]$guid,
-        [array]$rules
-    )
-
-    $filteredRules = $rules | Where-Object { $_.subcategory_guids -contains $guid }
-
-    $groupedRules = $filteredRules | Group-Object -Property level
-
-    $levels = @("critical", "high", "medium", "low", "informational")
-    $counts = @{}
-    foreach ($level in $levels) {
-        $counts[$level] = 0
-    }
-
-    foreach ($group in $groupedRules) {
-        $counts[$group.Name] = $group.Count
-    }
-
-    $status = if ($filteredRules[0].applicable) { "enabled" } else { "disabled" }
-
-    $result = "$status ("
-    #$result += $levels | ForEach-Object { "$_: ${$counts[$_])" } -join " | "
-    $result += ")"
-
-    return $result
-}
-
 function ShowVerboseSecurity {
     param (
         [array]$rules
