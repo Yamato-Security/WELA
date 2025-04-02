@@ -234,7 +234,14 @@ System
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
         if ($line -match '.*disabled.*') {
-            Write-Host $line -ForegroundColor Red
+            $parts = $line -split '(disabled.*\))'
+            foreach ($part in $parts) {
+                if ($part -match '.*disabled.*$') {
+                    Write-Host -NoNewline $part -ForegroundColor Red
+                } else {
+                    Write-Host -NoNewline $part
+                }
+            }
         } else {
             Write-Host $line
         }
