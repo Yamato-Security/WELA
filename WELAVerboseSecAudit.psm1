@@ -1,7 +1,35 @@
+function CountRules {
+    param (
+        [string]$guid,
+        [array]$rules
+    )
+    $filterd_rules = $rules | Where-Object { $_.subcategory_guids -contains $guid }
+
+    $counts = @{
+        critical = 0
+        high = 0
+        medium = 0
+        low = 0
+        informational = 0
+    }
+
+    # ルールをループしてlevel毎にカウント
+    foreach ($rule in $filterd_rules) {
+        if ($counts.ContainsKey($rule.level)) {
+            $counts[$rule.level]++
+        }
+    }
+
+    $result = "(critical: $($counts['critical']) | high: $($counts['high']) | medium: $($counts['medium']) | low: $($counts['low']), info: $($counts['informational']))"
+    return $result
+}
+
 function ShowVerboseSecurity {
     param (
         [array]$rules
     )
+    CountRules -guid "0CCE9226-69AE-11D9-BED3-505054503030" -rules $rules
+
     $m_credential_validation = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_kerberos_authentication_service = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_kerberos_sevice_ticket_operations = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
