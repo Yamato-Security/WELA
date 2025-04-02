@@ -234,7 +234,8 @@ System
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
         if ($line -contains 'disabled') {
-            Write-Host -NoNewline $line -ForegroundColor Red
+            Write-Host $line -ForegroundColor Red
+            Write-Host "****"
         } else {
             Write-Host $line
         }
