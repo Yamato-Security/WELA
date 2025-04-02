@@ -278,7 +278,15 @@ System
             }
             Write-Host ""
         } elseif ($line -match '.*enabled.*\(') {
-            Write-Host $line -ForegroundColor Green -NoNewline
+            $parts = $line -split '(enabled.*\))'
+            foreach ($part in $parts) {
+                if ($part -match '.*enabled.*$') {
+                    Write-Host -NoNewline $part -ForegroundColor Red
+                } else {
+                    Write-Host -NoNewline $part
+                }
+            }
+            Write-Host ""
         } else {
             Write-Host $line
         }
