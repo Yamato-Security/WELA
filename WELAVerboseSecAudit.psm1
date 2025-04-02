@@ -281,7 +281,7 @@ System
             $parts = $line -split '(enabled.*\))'
             foreach ($part in $parts) {
                 if ($part -match '.*enabled.*$') {
-                    Write-Host -NoNewline $part -ForegroundColor Red
+                    Write-Host -NoNewline $part -ForegroundColor Green
                 } else {
                     Write-Host -NoNewline $part
                 }
