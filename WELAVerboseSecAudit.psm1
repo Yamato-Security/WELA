@@ -19,7 +19,7 @@ function CountRules {
         }
     }
 
-    $result = "(critical: $($counts['critical']) | high: $($counts['high']) | medium: $($counts['medium']) | low: $($counts['low']), info: $($counts['informational']))"
+    $result = "disabled (critical: $($counts['critical']) | high: $($counts['high']) | medium: $($counts['medium']) | low: $($counts['low']), info: $($counts['informational']))"
     return $result
 }
 
@@ -28,48 +28,48 @@ function ShowVerboseSecurity {
         [array]$rules
     )
 
-    $m_credential_validation = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_kerberos_authentication_service = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_kerberos_sevice_ticket_operations = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_computer_account_management = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_other_account_management = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_security_group_management = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_user_account_management = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_plug_and_play_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_process_creation = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_process_termination = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_rpc_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_token_right_adjusted_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_directory_service_access = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_account_lockout = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_logoff = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_logon = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_other_logon_logoff_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_special_logon = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_certification_services = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_detailed_file_share = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_file_share = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_file_system = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
+    $m_credential_validation = CountRules -guid "" -rules $rules
+    $m_kerberos_authentication_service = CountRules -guid "" -rules $rules
+    $m_kerberos_sevice_ticket_operations = CountRules -guid "" -rules $rules
+    $m_computer_account_management = CountRules -guid "" -rules $rules
+    $m_other_account_management = CountRules -guid "" -rules $rules
+    $m_security_group_management = CountRules -guid "" -rules $rules
+    $m_user_account_management = CountRules -guid "" -rules $rules
+    $m_plug_and_play_events = CountRules -guid "" -rules $rules
+    $m_process_creation = CountRules -guid "" -rules $rules
+    $m_process_termination = CountRules -guid "" -rules $rules
+    $m_rpc_events = CountRules -guid "" -rules $rules
+    $m_token_right_adjusted_events = CountRules -guid "" -rules $rules
+    $m_directory_service_access = CountRules -guid "" -rules $rules
+    $m_account_lockout = CountRules -guid "" -rules $rules
+    $m_logoff = CountRules -guid "" -rules $rules
+    $m_logon = CountRules -guid "" -rules $rules
+    $m_other_logon_logoff_events = CountRules -guid "" -rules $rules
+    $m_special_logon = CountRules -guid "" -rules $rules
+    $m_certification_services = CountRules -guid "" -rules $rules
+    $m_detailed_file_share = CountRules -guid "" -rules $rules
+    $m_file_share = CountRules -guid "" -rules $rules
+    $m_file_system = CountRules -guid "" -rules $rules
     $m_filtering_platform_connection = CountRules -guid "0CCE9226-69AE-11D9-BED3-505054503030" -rules $rules
-    $m_filtering_platform_packet_drop = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_kernel_object = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_handle_manipulation = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_other_object_access_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_registry = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_removable_storage = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_sam = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_audit_policy_change = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_authentication_policy_change = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_authorization_policy_change = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_filtering_platform_policy_change = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_mpssvc_rule_level_policy_change = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_other_policy_change_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_non_sensitive_use_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_sensitive_privilege_use = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_other_system_events = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_security_state_change = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_security_system_extension = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_system_integrity = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
+    $m_filtering_platform_packet_drop = CountRules -guid "" -rules $rules
+    $m_kernel_object = CountRules -guid "" -rules $rules
+    $m_handle_manipulation = CountRules -guid "" -rules $rules
+    $m_other_object_access_events = CountRules -guid "" -rules $rules
+    $m_registry = CountRules -guid "" -rules $rules
+    $m_removable_storage = CountRules -guid "" -rules $rules
+    $m_sam = CountRules -guid "" -rules $rules
+    $m_audit_policy_change = CountRules -guid "" -rules $rules
+    $m_authentication_policy_change = CountRules -guid "" -rules $rules
+    $m_authorization_policy_change = CountRules -guid "" -rules $rules
+    $m_filtering_platform_policy_change = CountRules -guid "" -rules $rules
+    $m_mpssvc_rule_level_policy_change = CountRules -guid "" -rules $rules
+    $m_other_policy_change_events = CountRules -guid "" -rules $rules
+    $m_non_sensitive_use_events = CountRules -guid "" -rules $rules
+    $m_sensitive_privilege_use = CountRules -guid "" -rules $rules
+    $m_other_system_events = CountRules -guid "" -rules $rules
+    $m_security_state_change = CountRules -guid "0CCE9210-69AE-11D9-BED3-505054503030" -rules $rules
+    $m_security_system_extension = CountRules -guid "" -rules $rules
+    $m_system_integrity = CountRules -guid "" -rules $rules
 
     $msg  = @"
 Detailed Security category settings:
