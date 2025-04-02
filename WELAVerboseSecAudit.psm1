@@ -237,7 +237,7 @@ System
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
         if ($line -match '.*disabled.*') {
-            Write-Host $line -ForegroundColor Red
+            Write-Host $line -ForegroundColor Red -NoNewline
 #            $parts = $line -split '(disabled.*\))'
 #            foreach ($part in $parts) {
 #                if ($part -match '.*disabled.*$') {
@@ -248,9 +248,9 @@ System
 #            }
 #            Write-Host ""
         } elseif ($line -match '.*enabled.*') {
-            Write-Host $line -ForegroundColor Green
+            Write-Host $line -ForegroundColor Green -NoNewline
         } else {
-            Write-Host $line
+            Write-Host $line -NoNewline
         }
     }
     Write-Host ""
