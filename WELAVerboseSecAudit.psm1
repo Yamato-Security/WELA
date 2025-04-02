@@ -274,7 +274,7 @@ System
         } elseif ($line -match '.*enabled.*\(') {
             Write-Host $line -ForegroundColor Green -NoNewline
         } else {
-            Write-Host $line -NoNewline
+            Write-Host $line
         }
     }
     Write-Host ""
