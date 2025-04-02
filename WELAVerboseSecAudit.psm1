@@ -236,18 +236,18 @@ System
 
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
-        if ($line -match '.*disabled.*') {
+        if ($line -match '.*disabled.*\(') {
             Write-Host $line -ForegroundColor Red
-#            $parts = $line -split '(disabled.*\))'
-#            foreach ($part in $parts) {
-#                if ($part -match '.*disabled.*$') {
-#                    Write-Host -NoNewline $part -ForegroundColor Red
-#                } else {
-#                    Write-Host -NoNewline $part
-#                }
-#            }
-#            Write-Host ""
-        } elseif ($line -match '.*enabled.*') {
+            $parts = $line -split '(disabled.*\))'
+            foreach ($part in $parts) {
+                if ($part -match '.*disabled.*$') {
+                    Write-Host -NoNewline $part -ForegroundColor Red
+                } else {
+                    Write-Host -NoNewline $part
+                }
+            }
+            Write-Host ""
+        } elseif ($line -match '.*enabled.*\(') {
             Write-Host $line -ForegroundColor Green
         } else {
             Write-Host $line
