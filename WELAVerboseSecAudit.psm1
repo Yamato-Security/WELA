@@ -13,7 +13,6 @@ function CountRules {
         informational = 0
     }
 
-    # ルールをループしてlevel毎にカウント
     foreach ($rule in $filterd_rules) {
         if ($counts.ContainsKey($rule.level)) {
             $counts[$rule.level]++
@@ -28,7 +27,6 @@ function ShowVerboseSecurity {
     param (
         [array]$rules
     )
-    CountRules -guid "0CCE9226-69AE-11D9-BED3-505054503030" -rules $rules
 
     $m_credential_validation = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_kerberos_authentication_service = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
@@ -52,7 +50,7 @@ function ShowVerboseSecurity {
     $m_detailed_file_share = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_file_share = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_file_system = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
-    $m_filtering_platform_connection = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
+    $m_filtering_platform_connection = CountRules -guid "0CCE9226-69AE-11D9-BED3-505054503030" -rules $rules
     $m_filtering_platform_packet_drop = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_kernel_object = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
     $m_handle_manipulation = "disabled (critical: 10 | high: 100 | medium | low: 10, info: 1000)"
