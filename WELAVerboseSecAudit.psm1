@@ -5,6 +5,9 @@ function CountRules {
     )
     $filterd_rules = $rules | Where-Object { $_.subcategory_guids -contains $guid }
 
+    if ($filterd_rules.Count -eq 0) {
+        return "(No rule)"
+    }
     $counts = @{
         critical = 0
         high = 0
@@ -18,8 +21,8 @@ function CountRules {
             $counts[$rule.level]++
         }
     }
-
-    $result = "disabled (critical: $($counts['critical']) | high: $($counts['high']) | medium: $($counts['medium']) | low: $($counts['low']), info: $($counts['informational']))"
+    $status = if ($rules[0].applicable) { "enabled" } else { "disabled" }
+    $result = "$status (critical: $($counts['critical']) | high: $($counts['high']) | medium: $($counts['medium']) | low: $($counts['low']), info: $($counts['informational']))"
     return $result
 }
 
