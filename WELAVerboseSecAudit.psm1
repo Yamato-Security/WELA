@@ -41,7 +41,9 @@ function ShowVerboseSecurity {
     $m_rpc_events = CountRules -guid "0CCE922E-69AE-11D9-BED3-505054503030" -rules $rules
     $m_token_right_adjusted_events = CountRules -guid "0CCE924A-69AE-11D9-BED3-505054503030" -rules $rules
     $m_directory_service_access = CountRules -guid "0CCE923B-69AE-11D9-BED3-505054503030" -rules $rules
+    $m_directory_service_changes = CountRules -guid "0CCE923C-69AE-11D9-BED3-505054503030" -rules $rules
     $m_account_lockout = CountRules -guid "0CCE9217-69AE-11D9-BED3-505054503030" -rules $rules
+    $m_group_membership = CountRules -guid "0CCE9249-69AE-11D9-BED3-505054503030" -rules $rules
     $m_logoff = CountRules -guid "0CCE9216-69AE-11D9-BED3-505054503030" -rules $rules
     $m_logon = CountRules -guid "0CCE9215-69AE-11D9-BED3-505054503030" -rules $rules
     $m_other_logon_logoff_events = CountRules -guid "0CCE921C-69AE-11D9-BED3-505054503030" -rules $rules
@@ -129,7 +131,7 @@ DS (Directory Service) Access
     - Volume: High
     - Default settings: Client OS: No Auditing | Server OS: Success
     - Recommended settings: Client OS: No Auditing | ADDS Server: Success and Failure
-  - Directory Service Changes
+  - Directory Service Changes $m_directory_service_changes
     - Volume: High
     - Default settings: No Auditing
     - Recommended settings: Client OS: No Auditing | ADDS Server: Success and Failure
@@ -138,7 +140,7 @@ Logon/Logoff
     - Volume: Low
     - Default settings: Success
     - Recommended settings: Success and Failure
-  - Group Membership
+  - Group Membership $m_group_membership
     - Volume: Adds an extra 4627 event to every logon.
     - Default settings: No Auditing
     - Recommended settings: No Auditing
