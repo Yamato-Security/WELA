@@ -33,7 +33,7 @@ function ColorPrint {
         [array]$sub_categories
     )
 
-    if ($line -eq $category) {
+    if ($line.Trim() -eq $category.Trim()) {
         $allEnabled = $true
         $allDisabled = $true
 
