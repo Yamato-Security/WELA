@@ -268,7 +268,7 @@ System
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
         if ($line -match '.*disabled.*\(') {
-            Write-Host -$line -ForegroundColor Red
+            Write-Host $line -ForegroundColor Red
         } elseif ($line -match '.*enabled.*\(') {
             Write-Host $line -ForegroundColor Green
         } elseif ($line -match '.*No rule.*') {
