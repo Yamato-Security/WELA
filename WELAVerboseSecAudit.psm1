@@ -26,6 +26,38 @@ function CountRules {
     return $result
 }
 
+function ColorPrint {
+    param (
+        [string]$line,
+        [string]$category,
+        [array]$sub_categories
+    )
+
+    if ($line -notmatch $category) {
+        return
+    }
+
+    $allEnabled = $true
+    $allDisabled = $true
+
+    foreach ($sub_category in $sub_categories) {
+        if ($sub_category -notmatch 'enabled') {
+            $allEnabled = $false
+        }
+        if ($sub_category -notmatch 'disabled') {
+            $allDisabled = $false
+        }
+    }
+
+    if ($allEnabled) {
+        Write-Host $category -ForegroundColor Green
+    } elseif ($allDisabled) {
+        Write-Host $category -ForegroundColor Red
+    } else {
+        Write-Host $category -ForegroundColor DarkYellow
+    }
+}
+
 function ShowVerboseSecurity {
     param (
         [array]$rules
@@ -276,6 +308,69 @@ System
         } else {
             Write-Host $line
         }
+        ColorPrint -line $line -category "Account Logon" -sub_categories @(
+            $m_credential_validation,
+            $m_kerberos_authentication_service,
+            $m_kerberos_sevice_ticket_operations
+        )
+        ColorPrint -line $line -category "Account Management" -sub_categories @(
+            $m_computer_account_management,
+            $m_other_account_management,
+            $m_security_group_management,
+            $m_user_account_management
+        )
+        ColorPrint -line $line -category "Detailed Tracking" -sub_categories @(
+            $m_plug_and_play_events,
+            $m_process_creation,
+            $m_process_termination,
+            $m_rpc_events,
+            $m_token_right_adjusted_events
+        )
+        ColorPrint -line $line -category "DS (Directory Service) Access" -sub_categories @(
+            $m_directory_service_access,
+            $m_directory_service_changes
+        )
+        ColorPrint -line $line -category "Logon/Logoff" -sub_categories @(
+            $m_account_lockout,
+            $m_group_membership,
+            $m_logoff,
+            $m_logon,
+            $m_other_logon_logoff_events,
+            $m_special_logon
+        )
+        ColorPrint -line $line -category "Object Access" -sub_categories @(
+            $m_certification_services,
+            $m_detailed_file_share,
+            $m_file_share,
+            $m_file_system,
+            $m_filtering_platform_connection,
+            $m_filtering_platform_packet_drop,
+            $m_kernel_object,
+            $m_handle_manipulation,
+            $m_other_object_access_events,
+            $m_registry,
+            $m_removable_storage,
+            $m_sam
+        )
+        ColorPrint -line $line -category "Policy Change" -sub_categories @(
+            $m_audit_policy_change,
+            $m_authentication_policy_change,
+            $m_authorization_policy_change,
+            $m_filtering_platform_policy_change,
+            $m_mpssvc_rule_level_policy_change,
+            $m_other_policy_change_events
+        )
+        ColorPrint -line $line -category "Privilege Use" -sub_categories @(
+            $m_non_sensitive_use_events,
+            $m_sensitive_privilege_use
+        )
+        ColorPrint -line $line -category "System" -sub_categories @(
+            $m_other_system_events,
+            $m_security_state_change,
+            $m_security_system_extension,
+            $m_system_integrity
+        )
+
     }
     Write-Host ""
 }
