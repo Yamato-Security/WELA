@@ -271,6 +271,8 @@ System
             Write-Host -$line -ForegroundColor Red
         } elseif ($line -match '.*enabled.*\(') {
             Write-Host $line -ForegroundColor Green
+        } elseif ($line -match '.*No rule.*\(') {
+            Write-Host $line -ForegroundColor DarkYellow
         } else {
             Write-Host $line
         }
