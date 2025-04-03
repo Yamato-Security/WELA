@@ -299,17 +299,6 @@ System
 
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
-        if ($line -match '.*disabled.*\(') {
-            Write-Host $line -ForegroundColor Red
-        } elseif ($line -match '.*enabled.*\(') {
-            Write-Host $line -ForegroundColor Green
-        } elseif ($line -match '.*No rule.*') {
-            Write-Host $line -ForegroundColor DarkYellow
-        } else {
-            if ($line -notmatch "Account Logon" -and $line -notmatch "Account Management" -and $line -notmatch "Detailed Tracking" -and $line -notmatch "DS (Directory Service) Access" -and $line -notmatch "Logon/Logoff" -and $line -notmatch "Object Access" -and $line -notmatch "Policy Change" -and $line -notmatch "Privilege Use" -and $line -notmatch "System") {
-                Write-Host $line
-            }
-        }
         ColorPrint -line $line -category "Account Logon" -sub_categories @(
             $m_credential_validation,
             $m_kerberos_authentication_service,
@@ -372,7 +361,17 @@ System
             $m_security_system_extension,
             $m_system_integrity
         )
-
+        if ($line -match '.*disabled.*\(') {
+            Write-Host $line -ForegroundColor Red
+        } elseif ($line -match '.*enabled.*\(') {
+            Write-Host $line -ForegroundColor Green
+        } elseif ($line -match '.*No rule.*') {
+            Write-Host $line -ForegroundColor DarkYellow
+        } else {
+            if ($line -notmatch "Account Logon" -and $line -notmatch "Account Management" -and $line -notmatch "Detailed Tracking" -and $line -notmatch "DS (Directory Service) Access" -and $line -notmatch "Logon/Logoff" -and $line -notmatch "Object Access" -and $line -notmatch "Policy Change" -and $line -notmatch "Privilege Use" -and $line -notmatch "System") {
+                Write-Host $line
+            }
+        }
     }
     Write-Host ""
 }
