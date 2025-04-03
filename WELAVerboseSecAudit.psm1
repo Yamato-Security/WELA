@@ -21,7 +21,7 @@ function CountRules {
             $counts[$rule.level]++
         }
     }
-    $status = if ($filterd_rules[0].applicable) { "enabled" } else { "disabled" }
+    $status = if ($filterd_rules[0].applicable) { ": enabled" } else { ": disabled" }
     $result = "$status (critical: $($counts['critical']) | high: $($counts['high']) | medium: $($counts['medium']) | low: $($counts['low']), info: $($counts['informational']))"
     return $result
 }
@@ -268,25 +268,9 @@ System
     $msgLines = $msg -split "`n"
     foreach ($line in $msgLines) {
         if ($line -match '.*disabled.*\(') {
-            $parts = $line -split '(disabled.*\))'
-            foreach ($part in $parts) {
-                if ($part -match '.*disabled.*$') {
-                    Write-Host -NoNewline $part -ForegroundColor Red
-                } else {
-                    Write-Host -NoNewline $part
-                }
-            }
-            Write-Host ""
+            Write-Host -$line -ForegroundColor Red
         } elseif ($line -match '.*enabled.*\(') {
-            $parts = $line -split '(enabled.*\))'
-            foreach ($part in $parts) {
-                if ($part -match '.*enabled.*$') {
-                    Write-Host -NoNewline $part -ForegroundColor Green
-                } else {
-                    Write-Host -NoNewline $part
-                }
-            }
-            Write-Host ""
+            Write-Host $line -ForegroundColor Green
         } else {
             Write-Host $line
         }
