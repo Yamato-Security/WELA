@@ -33,28 +33,26 @@ function ColorPrint {
         [array]$sub_categories
     )
 
-    if ($line -notmatch $category) {
-        return
-    }
+    if ($line -eq $category) {
+        $allEnabled = $true
+        $allDisabled = $true
 
-    $allEnabled = $true
-    $allDisabled = $true
-
-    foreach ($sub_category in $sub_categories) {
-        if ($sub_category -notmatch 'enabled') {
-            $allEnabled = $false
+        foreach ($sub_category in $sub_categories) {
+            if ($sub_category -notmatch 'enabled') {
+                $allEnabled = $false
+            }
+            if ($sub_category -notmatch 'disabled') {
+                $allDisabled = $false
+            }
         }
-        if ($sub_category -notmatch 'disabled') {
-            $allDisabled = $false
-        }
-    }
 
-    if ($allEnabled) {
-        Write-Host $category -ForegroundColor Green
-    } elseif ($allDisabled) {
-        Write-Host $category -ForegroundColor Red
-    } else {
-        Write-Host $category -ForegroundColor DarkYellow
+        if ($allEnabled) {
+            Write-Host $category -ForegroundColor Green
+        } elseif ($allDisabled) {
+            Write-Host $category -ForegroundColor Red
+        } else {
+            Write-Host $category -ForegroundColor DarkYellow
+        }
     }
 }
 
