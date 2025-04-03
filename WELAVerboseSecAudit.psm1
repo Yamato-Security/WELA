@@ -306,7 +306,9 @@ System
         } elseif ($line -match '.*No rule.*') {
             Write-Host $line -ForegroundColor DarkYellow
         } else {
-            Write-Host $line
+            if ($line -notmatch "Account Logon" -and $line -notmatch "Account Management" -and $line -notmatch "Detailed Tracking" -and $line -notmatch "DS (Directory Service) Access" -and $line -notmatch "Logon/Logoff" -and $line -notmatch "Object Access" -and $line -notmatch "Policy Change" -and $line -notmatch "Privilege Use" -and $line -notmatch "System") {
+                Write-Host $line
+            }
         }
         ColorPrint -line $line -category "Account Logon" -sub_categories @(
             $m_credential_validation,
