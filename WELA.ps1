@@ -1,4 +1,5 @@
 ﻿Import-Module -Name ./WELAFunctions.psm1
+Import-Module -Name ./WELAVerboseSecAudit.psm1
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
@@ -67,10 +68,11 @@ $totalUsablePwsClaRate = CalculateTotalUsableRate -usableRate $usablePwsClaRate
 $totalUsablePwsModRate = CalculateTotalUsableRate -usableRate $usablePwsModRate
 $totalUsablePwsScrRate = CalculateTotalUsableRate -usableRate $usablePwsScrRate
 
-ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: " -colorMsg "$totalUsableSecRate (Partially Enabled)"
 ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules: " -colorMsg "$totalUsablePwsClaRate (Enabled)"
 ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules: " -colorMsg "$totalUsablePwsModRate ($pwsModStatus)"
 ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules: " -colorMsg "$totalUsablePwsScrRate ($pwsSrcStatus)"
+ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: " -colorMsg "$totalUsableSecRate (Partially Enabled)"
+ShowVerboseSecurity -rules $rules
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
