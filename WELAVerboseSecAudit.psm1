@@ -6,7 +6,7 @@ function CountRules {
     $filterd_rules = $rules | Where-Object { $_.subcategory_guids -contains $guid }
 
     if ($filterd_rules.Count -eq 0) {
-        return "(No rule)"
+        return "no rules"
     }
     $counts = @{
         critical = 0
