@@ -117,7 +117,7 @@ Account Logon
     - Volume: High
     - Default settings: Client OS: No Auditing | Server OS: Success
     - Recommended settings: Client OS: No Auditing | Server OS: Success and Failure
-  - Kerberos Service Ticket Operations $m_kerberos_sevice_ticket_operations
+  - Kerberos Service Ticket Operations: $m_kerberos_sevice_ticket_operations
     - Volume: High
     - Default settings: Client OS: No Auditing | Server OS: Success
     - Recommended settings: Domain Controllers: Success and Failure
