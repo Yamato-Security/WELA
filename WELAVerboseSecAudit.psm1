@@ -363,7 +363,7 @@ System
             Write-Host $line -ForegroundColor Red
         } elseif ($line -match '.*enabled.*\(') {
             Write-Host $line -ForegroundColor Green
-        } elseif ($line -match '.*No rule.*') {
+        } elseif ($line -match '.*no rules.*') {
             Write-Host $line -ForegroundColor DarkYellow
         } else {
             if ($line -notmatch "Account Logon" -and $line -notmatch "Account Management" -and $line -notmatch "Detailed Tracking" -and $line -notmatch "DS \(Directory Service\) Access" -and $line -notmatch "Logon/Logoff" -and $line -notmatch "Object Access" -and $line -notmatch "Policy Change" -and $line -notmatch "Privilege Use" -and $line -notmatch "System") {
