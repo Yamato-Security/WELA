@@ -21,7 +21,7 @@ function CountRules {
             $counts[$rule.level]++
         }
     }
-    $status = if ($filterd_rules[0].applicable) { " enabled" } else { " disabled" }
+    $status = if ($filterd_rules[0].applicable) { "enabled" } else { "disabled" }
     $result = "$status (critical: $($counts['critical']) | high: $($counts['high']) | medium: $($counts['medium']) | low: $($counts['low']), info: $($counts['informational']))"
     return $result
 }
