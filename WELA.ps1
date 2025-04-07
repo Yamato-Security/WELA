@@ -28,12 +28,15 @@ $allPwsRules       = $rules | Where-Object { $_.channel -eq "pwsh" }
 $allPwsClaRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0)  }
 $allPwsModRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $allPwsScrRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
+$allOtherRules     = $rules | Where-Object { $_.channel -eq "other" }
 
 $usableSecRules    = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
 $usablePwsRules    = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $usablePwsClaRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0) }
 $usablePwsModRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
+$usableOtherRules  = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "other" }
+
 
 # Step 4: Count the number of usable and unusable rules for each level
 $totalCounts        = Get-RuleCounts -rules $rules
@@ -42,12 +45,14 @@ $totalPwsCounts     = Get-RuleCounts -rules $allPwsRules
 $totalPwsClaCounts  = Get-RuleCounts -rules $allPwsClaRules
 $totalPwsModCounts  = Get-RuleCounts -rules $allPwsModRules
 $totalPwsScrCounts  = Get-RuleCounts -rules $allPwsScrRules
+$totalOtherCounts   = Get-RuleCounts -rules $allOtherRules
 
 $usableSecCounts    = Get-RuleCounts -rules $usableSecRules
 $usablePwsCounts    = Get-RuleCounts -rules $usablePwsRules
 $usablePwsClaCounts = Get-RuleCounts -rules $usablePwsClaRules
 $usablePwsModCounts = Get-RuleCounts -rules $usablePwsModRules
 $usablePwsScrCounts = Get-RuleCounts -rules $usablePwsScrRules
+$usableOtherCounts  = Get-RuleCounts -rules $usableOtherRules
 
 # Step 5: Calculate the usable rate for each level
 $usableSecRate    = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
@@ -55,6 +60,7 @@ $usablePwsRate    = CalculateUsableRate -counts $usablePwsCounts -totalCounts $t
 $usablePwsClaRate = CalculateUsableRate -counts $usablePwsClaCounts -totalCounts $totalPwsClaCounts
 $usablePwsModRate = CalculateUsableRate -counts $usablePwsModCounts -totalCounts $totalPwsModCounts
 $usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts $totalPwsScrCounts
+$usableOtherRate  = CalculateUsableRate -counts $usableOtherCounts -totalCounts $totalOtherCounts
 
 # Step 6: Show the number of usable and unusable rules for each level
 $pwsModEnabled = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
@@ -67,10 +73,12 @@ $totalUsableSecRate    = CalculateTotalUsableRate -usableRate $usableSecRate
 $totalUsablePwsClaRate = CalculateTotalUsableRate -usableRate $usablePwsClaRate
 $totalUsablePwsModRate = CalculateTotalUsableRate -usableRate $usablePwsModRate
 $totalUsablePwsScrRate = CalculateTotalUsableRate -usableRate $usablePwsScrRate
+$totalUsableOtherRate  = CalculateTotalUsableRate -usableRate $usableOtherRate
 
 ShowRulesCountsByLevel -usableRate $usablePwsClaRate -msg "PowerShell classic logging detection rules: " -colorMsg "$totalUsablePwsClaRate (Enabled)"
 ShowRulesCountsByLevel -usableRate $usablePwsModRate -msg "PowerShell module logging detection rules: " -colorMsg "$totalUsablePwsModRate ($pwsModStatus)"
 ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script block logging detection rules: " -colorMsg "$totalUsablePwsScrRate ($pwsSrcStatus)"
+ShowRulesCountsByLevel -usableRate $usableOtherRate -msg "OtherLog rules: " -colorMsg "$totalUsableOtherRate (Enabled)"
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: " -colorMsg "$totalUsableSecRate (Partially Enabled)"
 ShowVerboseSecurity -rules $rules
 

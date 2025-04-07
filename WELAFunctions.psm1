@@ -70,6 +70,10 @@ function Set-Applicable {
     $jsonContent = Get-Content -Path $jsonRulePath -Raw | ConvertFrom-Json
     foreach ($rule in $jsonContent) {
         $rule | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
+        if ($rule.channel -eq "other") {
+            $rule.applicable = $true
+            continue
+        }
         if ($rule.channel -eq "pwsh") {
             if ($rule.event_ids -contains "400" -or $rule.event_ids -contains "600" -or $rule.event_ids.Count -eq 0) {
                 $rule.applicable = $true

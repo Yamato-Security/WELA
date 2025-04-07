@@ -117,11 +117,11 @@ fn contains_builtin_channel(yaml: &Yaml) -> Option<Channel> {
 }
 
 fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
+    let uuid = doc["id"].as_str().unwrap_or("");
+    let title = doc["title"].as_str().unwrap_or("");
+    let level = doc["level"].as_str().unwrap_or("");
+    let mut event_ids = HashSet::new();
     if let Some(ch) = contains_builtin_channel(&doc["detection"]) {
-        let uuid = doc["id"].as_str().unwrap_or("");
-        let title = doc["title"].as_str().unwrap_or("");
-        let level = doc["level"].as_str().unwrap_or("");
-        let mut event_ids = HashSet::new();
         let mut subcategories = HashSet::new();
         extract_event_ids(&doc, &mut event_ids);
         for event_id in &event_ids {
@@ -141,6 +141,39 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
             "event_ids": event_ids,
             "subcategory_guids": subcategories
         }));
+    } else {
+        let tags = doc["tags"].as_vec();
+        if let Some(tags) = tags {
+            let mut sysmon_tag = false;
+            for tag in tags {
+                if let Some(tag) = tag.as_str() {
+                    if tag == "sysmon" {
+                        sysmon_tag = true;
+                    }
+                }
+            }
+            if !sysmon_tag {
+                extract_event_ids(&doc, &mut event_ids);
+                return Some(json!({
+                    "id": uuid,
+                    "title": title,
+                    "channel": "other",
+                    "level": level,
+                    "event_ids": event_ids,
+                    "subcategory_guids": []
+                }));
+            }
+        } else {
+            extract_event_ids(&doc, &mut event_ids);
+            return Some(json!({
+                "id": uuid,
+                "title": title,
+                "channel": "other",
+                "level": level,
+                "event_ids": event_ids,
+                "subcategory_guids": []
+            }));
+        }
     }
     None
 }
