@@ -35,7 +35,6 @@ $usablePwsRules    = $rules | Where-Object { $_.applicable -eq $true -and $_.cha
 $usablePwsClaRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0) }
 $usablePwsModRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
-$usableOtherRules  = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "other" }
 
 
 # Step 4: Count the number of usable and unusable rules for each level
@@ -52,7 +51,7 @@ $usablePwsCounts    = Get-RuleCounts -rules $usablePwsRules
 $usablePwsClaCounts = Get-RuleCounts -rules $usablePwsClaRules
 $usablePwsModCounts = Get-RuleCounts -rules $usablePwsModRules
 $usablePwsScrCounts = Get-RuleCounts -rules $usablePwsScrRules
-$usableOtherCounts  = Get-RuleCounts -rules $usableOtherRules
+$usableOtherCounts  = Get-RuleCounts -rules $totalOtherCounts
 
 # Step 5: Calculate the usable rate for each level
 $usableSecRate    = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
