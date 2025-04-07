@@ -24,14 +24,12 @@ Write-Host $logo -ForegroundColor Green
 $rules = Set-Applicable -autidpolTxt $autidpolTxt -jsonRulePath "./config/security_rules.json"
 
 $allSecRules       = $rules | Where-Object { $_.channel -eq "sec" }
-$allPwsRules       = $rules | Where-Object { $_.channel -eq "pwsh" }
 $allPwsClaRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0)  }
 $allPwsModRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $allPwsScrRules    = $rules | Where-Object { $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
 $allOtherRules     = $rules | Where-Object { $_.channel -eq "other" }
 
 $usableSecRules    = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "sec" }
-$usablePwsRules    = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" }
 $usablePwsClaRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and ($_.event_ids -contains "400" -or $_.event_ids -contains "600" -or $_.event_ids.Count -eq 0) }
 $usablePwsModRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4103" }
 $usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.channel -eq "pwsh" -and $_.event_ids -contains "4104" }
@@ -40,21 +38,18 @@ $usablePwsScrRules = $rules | Where-Object { $_.applicable -eq $true -and $_.cha
 # Step 4: Count the number of usable and unusable rules for each level
 $totalCounts        = Get-RuleCounts -rules $rules
 $totalSecCounts     = Get-RuleCounts -rules $allSecRules
-$totalPwsCounts     = Get-RuleCounts -rules $allPwsRules
 $totalPwsClaCounts  = Get-RuleCounts -rules $allPwsClaRules
 $totalPwsModCounts  = Get-RuleCounts -rules $allPwsModRules
 $totalPwsScrCounts  = Get-RuleCounts -rules $allPwsScrRules
 $totalOtherCounts   = Get-RuleCounts -rules $allOtherRules
 
 $usableSecCounts    = Get-RuleCounts -rules $usableSecRules
-$usablePwsCounts    = Get-RuleCounts -rules $usablePwsRules
 $usablePwsClaCounts = Get-RuleCounts -rules $usablePwsClaRules
 $usablePwsModCounts = Get-RuleCounts -rules $usablePwsModRules
 $usablePwsScrCounts = Get-RuleCounts -rules $usablePwsScrRules
 
 # Step 5: Calculate the usable rate for each level
 $usableSecRate    = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
-$usablePwsRate    = CalculateUsableRate -counts $usablePwsCounts -totalCounts $totalPwsCounts
 $usablePwsClaRate = CalculateUsableRate -counts $usablePwsClaCounts -totalCounts $totalPwsClaCounts
 $usablePwsModRate = CalculateUsableRate -counts $usablePwsModCounts -totalCounts $totalPwsModCounts
 $usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts $totalPwsScrCounts
@@ -83,7 +78,7 @@ ShowVerboseSecurity -rules $rules
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 Write-Output ""
-$totalUsable = ($usableSecRate + $usablePwsRate | Measure-Object -Property UsableCount -Sum).Sum
+$totalUsable = ($usableSecRate + $totalUsablePwsClaRate + $totalUsablePwsModRate + $totalUsablePwsScrRate + $usableOtherRate | Measure-Object -Property UsableCount -Sum).Sum
 $totalRulesCount = ($totalCounts | Measure-Object -Property Count -Sum).Sum
 $utilizationPercentage = "{0:N2}" -f (($totalUsable / $totalRulesCount) * 100)
 Write-Output "You can utilize $utilizationPercentage% of your detection rules."
