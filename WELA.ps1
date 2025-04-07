@@ -51,7 +51,6 @@ $usablePwsCounts    = Get-RuleCounts -rules $usablePwsRules
 $usablePwsClaCounts = Get-RuleCounts -rules $usablePwsClaRules
 $usablePwsModCounts = Get-RuleCounts -rules $usablePwsModRules
 $usablePwsScrCounts = Get-RuleCounts -rules $usablePwsScrRules
-$usableOtherCounts  = Get-RuleCounts -rules $totalOtherCounts
 
 # Step 5: Calculate the usable rate for each level
 $usableSecRate    = CalculateUsableRate -counts $usableSecCounts -totalCounts $totalSecCounts
@@ -59,7 +58,7 @@ $usablePwsRate    = CalculateUsableRate -counts $usablePwsCounts -totalCounts $t
 $usablePwsClaRate = CalculateUsableRate -counts $usablePwsClaCounts -totalCounts $totalPwsClaCounts
 $usablePwsModRate = CalculateUsableRate -counts $usablePwsModCounts -totalCounts $totalPwsModCounts
 $usablePwsScrRate = CalculateUsableRate -counts $usablePwsScrCounts -totalCounts $totalPwsScrCounts
-$usableOtherRate  = CalculateUsableRate -counts $usableOtherCounts -totalCounts $totalOtherCounts
+$usableOtherRate  = CalculateUsableRate -counts $totalOtherCounts -totalCounts $totalOtherCounts    # OtherルールはすべてEnabled扱い
 
 # Step 6: Show the number of usable and unusable rules for each level
 $pwsModEnabled = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
