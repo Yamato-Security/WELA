@@ -373,3 +373,100 @@ System
     }
     Write-Host ""
 }
+
+function ShowVerboseOther {
+    param (
+        [array]$rules
+    )
+    $msg = @"
+Application: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 20 MB
+  - Recommended settings: Enabled. 128 MB+
+AppLocker: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled if AppLocker is enabled? 1 MB
+  - Recommended settings: Enabled. 256 MB+
+Bits-Client Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+CodeIntegrity Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+Diagnosis-Scripted Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+DriverFrameworks-UserMode Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: No Auditing. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+Firewall: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled? 1 MB
+  - Recommended settings: Enabled. 256 MB+
+NTLM Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled but Auditing is disabled. 1 MB
+  - Recommended settings: Enabled. 1 MB
+PrintService:
+  - Admin  100% (Enabled)
+    - Rules:
+    - Default settings: Enabled. 1 MB
+    - Recommended settings: Enabled. 128 MB+
+  - Operational  0% (Disabled)
+    - Rules:
+    - Default settings: Disabled. 1 MB
+    - Recommended settings: Enabled. 128 MB+
+Security-Mitigations KernelMode and UserMode: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+SMBClient Security: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 8 MB
+  - Recommended settings: Enabled. 128 MB+
+System: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 20 MB
+  - Recommended settings: Enabled. 128 MB+
+TaskScheduler Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Disabled. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+TerminalServices-LocalSessionManager Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+WMI-Activity Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled on Win10/2016+. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+Windows Defender Operational: 100% (Enabled)
+  - Rules:
+  - Default settings: Enabled. 1 MB
+  - Recommended settings: Enabled. 128 MB+
+"@
+    $msgLines = $msg -split "`n"
+    foreach ($line in $msgLines) {
+        if ($line -match '.*disabled.*\(')
+        {
+            Write-Host $line -ForegroundColor Red
+        }
+        elseif ($line -match '.*enabled.*\(')
+        {
+            Write-Host $line -ForegroundColor Green
+        }
+        elseif ($line -match '.*no rules.*')
+        {
+            Write-Host $line -ForegroundColor DarkYellow
+        }
+        else
+        {
+            Write-Host $line
+        }
+    }
+    Write-Host ""
+}

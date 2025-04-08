@@ -74,6 +74,7 @@ ShowRulesCountsByLevel -usableRate $usablePwsScrRate -msg "PowerShell script blo
 ShowRulesCountsByLevel -usableRate $usableOtherRate -msg "OtherLog rules: " -colorMsg "$totalUsableOtherRate (Enabled)"
 ShowRulesCountsByLevel -usableRate $usableSecRate -msg "Security event log detection rules: " -colorMsg "$totalUsableSecRate (Partially Enabled)"
 ShowVerboseSecurity -rules $rules
+ShowVerboseOther -rules $rules
 
 Write-Output "Usable detection rules list saved to: UsableRules.csv"
 Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
