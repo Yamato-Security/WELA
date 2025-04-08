@@ -371,7 +371,6 @@ System
             }
         }
     }
-    Write-Host ""
 }
 
 function ShowVerboseOther {
