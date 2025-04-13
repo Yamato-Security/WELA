@@ -71,7 +71,11 @@
                     foreach ($level in [WELA]::Levels) {
                         $count = $this.RulesCount[$level]
                         if ($level -eq "informational") {
-                            $ruleCounts += "info:$([string]$count)"
+                            if ($count -eq 0) {
+                                $ruleCounts += "info:0"
+                            } else {
+                                $ruleCounts += "info:$([string]$count), "
+                            }
                         } else {
                             $ruleCounts += "$($level):$($count), "
                         }
@@ -1016,7 +1020,11 @@ function AuditLogSetting {
             foreach ($level in [WELA]::Levels) {
                 $count = $_.RulesCount[$level]
                 if ($level -eq "informational") {
-                    $ruleCounts += "info:$([string]$count)"
+                    if ($count -eq 0) {
+                        $ruleCounts += "info:0"
+                    } else {
+                        $ruleCounts += "info:$([string]$count), "
+                    }
                 } else {
                     $ruleCounts += "$($level):$($count), "
                 }
@@ -1034,7 +1042,11 @@ function AuditLogSetting {
             foreach ($level in [WELA]::Levels) {
                 $count = $_.RulesCount[$level]
                 if ($level -eq "informational") {
-                    $ruleCounts += "info:$([string]$count)"
+                    if ($count -eq 0) {
+                        $ruleCounts += "info:0"
+                    } else {
+                        $ruleCounts += "info:$([string]$count), "
+                    }
                 } else {
                     $ruleCounts += "$($level):$($count), "
                 }
