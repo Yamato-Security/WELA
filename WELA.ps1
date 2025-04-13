@@ -1014,7 +1014,7 @@ function AuditLogSetting {
             $_ | Add-Member -MemberType NoteProperty -Name TotalRuleByLevel -Value ""
             $ruleCounts = ""
             foreach ($level in [WELA]::Levels) {
-                $count = $this.RulesCount[$level]
+                $count = $_.RulesCount[$level]
                 if ($level -eq "informational") {
                     $ruleCounts += "info:$count"
                 } else {
@@ -1032,7 +1032,7 @@ function AuditLogSetting {
             $_ | Add-Member -MemberType NoteProperty -Name TotalRuleByLevel -Value ""
             $ruleCounts = ""
             foreach ($level in [WELA]::Levels) {
-                $count = $this.RulesCount[$level]
+                $count = $_.RulesCount[$level]
                 if ($level -eq "informational") {
                     $ruleCounts += "info:$count"
                 } else {
