@@ -79,7 +79,7 @@
                     $ruleCounts += ")"
                 }
                 if ($this.SubCategory) {
-                    Write-Host "  - $($this.SubCategory): $ruleCounts" -ForegroundColor $color
+                    Write-Host "  - $this.SubCategory: $ruleCounts" -ForegroundColor $color
                 }
                 if ($this.DefaultSetting) {
                     Write-Host "    - Default Setting: $($this.DefaultSetting)"
@@ -91,7 +91,7 @@
                     Write-Host "    - Volume: $($this.Volume)"
                 }
                 if ($this.Note) {
-                    Write-Host "  - Note: $($this.Note)"
+                    Write-Host "    - Note: $($this.Note)"
                 }
 
             }
