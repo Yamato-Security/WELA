@@ -1,4 +1,4 @@
-class WELA {
+﻿class WELA {
     static [array] $Levels = @('critical', 'high', 'medium', 'low', 'informational')
     [string] $Category
     [string] $SubCategory
