@@ -195,6 +195,78 @@ function AuditLogSetting {
     }
     $auditResult = @()
 
+    # Application
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Application")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Application",
+            "",
+            $enabled,
+            $rules,
+            "Enabled. 20 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # Applocker
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-AppLocker/MSI and Script")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "AppLocker",
+            "",
+            $enabled,
+            $rules,
+            "Enabled if AppLocker is enabled? 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # Bits-Client Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Bits-Client/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Bits-Client Operational",
+            "",
+            $enabled,
+            $rules,
+            "Enabled. 1 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # CodeIntegrity Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-CodeIntegrity/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "CodeIntegrity Operational",
+            "",
+            $enabled,
+            $rules,
+            "Enabled. 1 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
     # PowerShell
     ## Classic
     $guid    = ""
@@ -207,7 +279,11 @@ function AuditLogSetting {
             "PowerShell",
             "Classic",
             $enabled,
-            $rules
+            $rules,
+            "Client OS: No Auditing | Server OS: Success",
+            "Client and Server OSes: Success and Failure",
+            "Depends on NTLM usage. Could be high on DCs and low on clients and servers.",
+            ""
     )
 
     ## Module
