@@ -201,7 +201,7 @@ function AuditLogSetting {
     $channels = @("Application")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
-    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
     $auditResult += [WELA]::New(
             "Application",
             "",
@@ -219,7 +219,7 @@ function AuditLogSetting {
     $channels = @("Microsoft-Windows-AppLocker/MSI and Script")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
-    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
     $auditResult += [WELA]::New(
             "AppLocker",
             "",
@@ -237,7 +237,7 @@ function AuditLogSetting {
     $channels = @("Microsoft-Windows-Bits-Client/Operational")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
-    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
     $auditResult += [WELA]::New(
             "Bits-Client Operational",
             "",
@@ -255,7 +255,7 @@ function AuditLogSetting {
     $channels = @("Microsoft-Windows-CodeIntegrity/Operational")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
-    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
     $auditResult += [WELA]::New(
             "CodeIntegrity Operational",
             "",
