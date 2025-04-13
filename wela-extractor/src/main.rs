@@ -11,6 +11,7 @@ use yaml_rust2::{Yaml, YamlLoader};
 enum Channel {
     Security,
     PowerShell,
+    Other(String),
 }
 
 impl Display for Channel {
@@ -18,6 +19,7 @@ impl Display for Channel {
         match self {
             Channel::Security => write!(f, "sec"),
             Channel::PowerShell => write!(f, "pwsh"),
+            Channel::Other(name) => write!(f, "{}", name),
         }
     }
 }
@@ -80,7 +82,7 @@ fn contains_builtin_channel(yaml: &Yaml) -> Option<Channel> {
             Some("Microsoft-Windows-PowerShell/Operational")
             | Some("PowerShellCore/Operational")
             | Some("Windows PowerShell") => Some(Channel::PowerShell),
-            _ => None,
+            val => Some(Channel::Other(val?.to_string())),
         }
     }
 
@@ -117,6 +119,10 @@ fn contains_builtin_channel(yaml: &Yaml) -> Option<Channel> {
 }
 
 fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option<Value> {
+    let sysmon_tag = doc["tags"].as_vec().map_or(false, |tags| tags.iter().any(|tag| tag.as_str() == Some("sysmon")));
+    if sysmon_tag {
+        return None;
+    }
     if let Some(ch) = contains_builtin_channel(&doc["detection"]) {
         let uuid = doc["id"].as_str().unwrap_or("");
         let title = doc["title"].as_str().unwrap_or("");
