@@ -158,6 +158,25 @@ function RuleFilter {
     return $result
 }
 
+function CheckRegistryValue {
+    param (
+        [string]$registryPath,
+        [string]$valueName,
+        [int]$expectedValue
+    )
+
+    try {
+        $value = Get-ItemProperty -Path $registryPath -Name $valueName -ErrorAction Stop
+        if ($value.$valueName -eq $expectedValue) {
+            return $true
+        } else {
+            return $false
+        }
+    } catch {
+        return $false
+    }
+}
+
 function AuditLogSetting {
     param (
         [string] $outType
@@ -195,7 +214,7 @@ function AuditLogSetting {
     $guid    = ""
     $eids     = @("4103")
     $channels = @("pwsh")
-    $enabled  = $false
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $auditResult += [WELA]::New(
@@ -209,7 +228,7 @@ function AuditLogSetting {
     $guid    = ""
     $eids     = @("4104")
     $channels = @("pwsh")
-    $enabled  = $false
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $auditResult += [WELA]::New(
