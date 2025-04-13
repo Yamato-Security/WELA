@@ -1050,7 +1050,7 @@ function AuditLogSetting {
             }
             $_.RuleCountByLevel = $ruleCounts
         }
-        $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     }
     $usableRules     = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
     $unUsableRules   = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $false }
