@@ -1074,8 +1074,8 @@ $logo = @"
 $help = @"
 Usage:
   ./WELA.ps1 audit       # Audit current setting and show in stdout, save to csv
-  ./WELA.ps1 audit table # Audit current setting and show in table layout, save to csv
   ./WELA.ps1 audit gui   # Audit current setting and show in gui, save to csv
+  ./WELA.ps1 audit table # Audit current setting and show in table layout, save to csv
   ./WELA.ps1 help        # Show this help
 "@
 
