@@ -1009,9 +1009,9 @@ function AuditLogSetting {
             Write-Host ""
         }
         $auditResult | ForEach-Object {
-            $_ | Add-Member -MemberType NoteProperty -Name TotalRules -Value 0
-            $_.TotalRules = ($_.Rules | Measure-Object).Count
-            $_ | Add-Member -MemberType NoteProperty -Name TotalRuleByLevel -Value ""
+            $_ | Add-Member -MemberType NoteProperty -Name RuleCount -Value 0
+            $_.RuleCount = ($_.Rules | Measure-Object).Count
+            $_ | Add-Member -MemberType NoteProperty -Name RuleCountByLevel -Value ""
             $ruleCounts = ""
             foreach ($level in [WELA]::Levels) {
                 $count = $_.RulesCount[$level]
@@ -1021,15 +1021,15 @@ function AuditLogSetting {
                     $ruleCounts += "$($level):$count, "
                 }
             }
-            $_.TotalRuleByLevel = $ruleCounts
+            $_.RuleCountByLevel = $ruleCounts
         }
         $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
         $auditResult | ForEach-Object {
-            $_ | Add-Member -MemberType NoteProperty -Name TotalRules -Value 0
-            $_.TotalRules = ($_.Rules | Measure-Object).Count
-            $_ | Add-Member -MemberType NoteProperty -Name TotalRuleByLevel -Value ""
+            $_ | Add-Member -MemberType NoteProperty -Name RuleCount -Value 0
+            $_.RuleCount = ($_.Rules | Measure-Object).Count
+            $_ | Add-Member -MemberType NoteProperty -Name RuleCountByLevel -Value ""
             $ruleCounts = ""
             foreach ($level in [WELA]::Levels) {
                 $count = $_.RulesCount[$level]
@@ -1039,7 +1039,7 @@ function AuditLogSetting {
                     $ruleCounts += "$($level):$count, "
                 }
             }
-            $_.TotalRuleByLevel = $ruleCounts
+            $_.RuleCountByLevel = $ruleCounts
         }
         $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     }
