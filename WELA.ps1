@@ -984,6 +984,26 @@ function AuditLogSetting {
         $_.SetApplicable($enabledguid)
         $_.CountByLevel()
     }
+
+    $auditResult | ForEach-Object {
+        $_ | Add-Member -MemberType NoteProperty -Name RuleCount -Value 0
+        $_.RuleCount = ($_.Rules | Measure-Object).Count
+        $_ | Add-Member -MemberType NoteProperty -Name RuleCountByLevel -Value ""
+        $ruleCounts = ""
+        foreach ($level in [WELA]::Levels) {
+            $count = $_.RulesCount[$level]
+            if ($level -eq "informational") {
+                if (-not $count) {
+                    $count = 0
+                }
+                $ruleCounts += "info:$([string]$count)"
+            } else {
+                $ruleCounts += "$($level):$($count), "
+            }
+        }
+        $_.RuleCountByLevel = $ruleCounts
+    }
+
     if ($outType -eq "std") {
         $auditResult | Group-Object -Property Category | ForEach-Object {
             $enabledCount = ($_.Group | Where-Object { $_.Enabled -eq $false }).Count -eq 0
@@ -1011,45 +1031,9 @@ function AuditLogSetting {
             }
             Write-Host ""
         }
-        $auditResult | ForEach-Object {
-            $_ | Add-Member -MemberType NoteProperty -Name RuleCount -Value 0
-            $_.RuleCount = ($_.Rules | Measure-Object).Count
-            $_ | Add-Member -MemberType NoteProperty -Name RuleCountByLevel -Value ""
-            $ruleCounts = ""
-            foreach ($level in [WELA]::Levels) {
-                $count = $_.RulesCount[$level]
-                if ($level -eq "informational") {
-                    if (-not $count) {
-                       $count = 0
-                    }
-                    $ruleCounts += "info:$([string]$count)"
-                } else {
-                    $ruleCounts += "$($level):$($count), "
-                }
-            }
-            $_.RuleCountByLevel = $ruleCounts
-        }
         $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
-        $auditResult | ForEach-Object {
-            $_ | Add-Member -MemberType NoteProperty -Name RuleCount -Value 0
-            $_.RuleCount = ($_.Rules | Measure-Object).Count
-            $_ | Add-Member -MemberType NoteProperty -Name RuleCountByLevel -Value ""
-            $ruleCounts = ""
-            foreach ($level in [WELA]::Levels) {
-                $count = $_.RulesCount[$level]
-                if ($level -eq "informational") {
-                    if (-not $count) {
-                        $count = 0
-                    }
-                    $ruleCounts += "info:$([string]$count)"
-                } else {
-                    $ruleCounts += "$($level):$($count), "
-                }
-            }
-            $_.RuleCountByLevel = $ruleCounts
-        }
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     }
     $usableRules     = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
