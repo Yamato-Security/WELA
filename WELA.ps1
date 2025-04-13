@@ -378,7 +378,7 @@ function AuditLogSetting {
     )
 
     #### Process Termination
-    $guid    = "0CCE922B-69AE-11D9-BED3-505054503030"
+    $guid    = "0CCE922C-69AE-11D9-BED3-505054503030"
     $eids     = @()
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
