@@ -1034,7 +1034,7 @@ function AuditLogSetting {
         $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, Enabled, DefaultSetting, RecommendedSetting| Out-GridView -Title "WELA Audit Result"
     } elseif ($outType -eq "table") {
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Format-Table
     }
