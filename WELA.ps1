@@ -79,19 +79,19 @@
                     $ruleCounts += ")"
                 }
                 if ($this.SubCategory) {
-                    Write-Host "  -$($this.SubCategory): $ruleCounts" -ForegroundColor $color
+                    Write-Host "  - $($this.SubCategory): $ruleCounts" -ForegroundColor $color
                 }
                 if ($this.DefaultSetting) {
-                    Write-Host "    -Default Setting: $($this.DefaultSetting)"
+                    Write-Host "    - Default Setting: $($this.DefaultSetting)"
                 }
                 if ($this.RecommendedSetting) {
-                    Write-Host "    -Recommended Setting: $($this.RecommendedSetting)"
+                    Write-Host "    - Recommended Setting: $($this.RecommendedSetting)"
                 }
                 if ($this.Volume) {
-                    Write-Host "    -Volume: $($this.Volume)"
+                    Write-Host "    - Volume: $($this.Volume)"
                 }
                 if ($this.Note) {
-                    Write-Host "  -Note: $($this.Note)"
+                    Write-Host "  - Note: $($this.Note)"
                 }
 
             }
@@ -1015,7 +1015,7 @@ function AuditLogSetting {
             $_.TotalRuleByLevel = ($_.RulesCount.GetEnumerator() | ForEach-Object { "$($_.Key):$($_.Value)" }) -join ", "
         }
         $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
-        Write-Output "Audit check result saved to: WELA-Audit-Result.csv.csv"
+        Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
         $auditResult | ForEach-Object {
             $_ | Add-Member -MemberType NoteProperty -Name TotalRules -Value 0
