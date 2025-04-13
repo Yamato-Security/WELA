@@ -1012,7 +1012,16 @@ function AuditLogSetting {
             $_ | Add-Member -MemberType NoteProperty -Name TotalRules -Value 0
             $_.TotalRules = ($_.Rules | Measure-Object).Count
             $_ | Add-Member -MemberType NoteProperty -Name TotalRuleByLevel -Value ""
-            $_.TotalRuleByLevel = ([WELA]::Levels | ForEach-Object { "$($_):$($_.RulesCount[$_])" }) -join ", "
+            $ruleCounts = ""
+            foreach ($level in [WELA]::Levels) {
+                $count = $this.RulesCount[$level]
+                if ($level -eq "informational") {
+                    $ruleCounts += "info:$count"
+                } else {
+                    $ruleCounts += "$($level):$count, "
+                }
+            }
+            $_.TotalRuleByLevel = $ruleCounts
         }
         $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
@@ -1021,7 +1030,16 @@ function AuditLogSetting {
             $_ | Add-Member -MemberType NoteProperty -Name TotalRules -Value 0
             $_.TotalRules = ($_.Rules | Measure-Object).Count
             $_ | Add-Member -MemberType NoteProperty -Name TotalRuleByLevel -Value ""
-            $_.TotalRuleByLevel = ([WELA]::Levels | ForEach-Object { "$($_):$($_.RulesCount[$_])" }) -join ", "
+            $ruleCounts = ""
+            foreach ($level in [WELA]::Levels) {
+                $count = $this.RulesCount[$level]
+                if ($level -eq "informational") {
+                    $ruleCounts += "info:$count"
+                } else {
+                    $ruleCounts += "$($level):$count, "
+                }
+            }
+            $_.TotalRuleByLevel = $ruleCounts
         }
         $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     }
