@@ -1025,8 +1025,8 @@ function AuditLogSetting {
 
     if ($outType -eq "std") {
         $auditResult | Group-Object -Property Category | ForEach-Object {
-            $enabledCount = ($_.Group | Where-Object { $_.Enabled -eq $false }).Count -eq 0
-            $disabledCount = ($_.Group | Where-Object { $_.Enabled -eq $true }).Count -eq 0
+            $enabledCount = ($_.Group | Where-Object { $_.Enabled -eq $false }).Count
+            $disabledCount = ($_.Group | Where-Object { $_.Enabled -eq $true }).Count
             $out = ""
             $color = ""
             if ($enabledCount)
@@ -1044,11 +1044,12 @@ function AuditLogSetting {
                 $out = "Partially Enabled"
                 $color = "DarkYellow"
             }
+            # TODO add percentage
             $enabledPercentage = "0.00%"
             if ($enabledCount + $disabledCount -ne 0) {
                 $enabledPercentage = "{0:N2}%" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
-            Write-Host "$( $_.Name ): $out($($enabledPercentage))" -ForegroundColor $color
+            Write-Host "$( $_.Name ): $out" -ForegroundColor $color
             $_.Group | ForEach-Object {
                 $_.Output($outType)
             }
