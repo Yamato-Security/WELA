@@ -182,7 +182,7 @@ function AuditLogSetting {
         [string] $outType
     )
     $autidpolTxt = "./auditpol.txt"
-    # Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
     $enabledguid = [System.Collections.Generic.HashSet[string]]::new()
     Get-Content -Path $autidpolTxt | Select-String -NotMatch "No Auditing" | ForEach-Object {
         if ($_ -match '{(.*?)}') {
