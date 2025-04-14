@@ -360,7 +360,7 @@ function AuditLogSetting {
             "Classic",
             $enabled,
             [array]$rules,
-            "Enabled 15 MB",
+            "Enabled. 15 MB",
             "Enabled",
             "",
             ""
