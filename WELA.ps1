@@ -81,6 +81,10 @@
                     }
                     $ruleCounts += ")"
                 }
+                if ($this.Category -ne "PowerShell" -and $this.Category -notcontains "Security") {
+                    Write-Host "$($this.Category): $ruleCounts" -ForegroundColor $color
+
+                }
                 if ($this.SubCategory) {
                     Write-Host "  - $($this.SubCategory): $ruleCounts" -ForegroundColor $color
                 }
