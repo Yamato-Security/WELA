@@ -1044,7 +1044,8 @@ function AuditLogSetting {
                 $out = "Partially Enabled"
                 $color = "DarkYellow"
             }
-            Write-Host "$( $_.Name ): $out" -ForegroundColor $color
+            $enabledPercentage = "{0:N2}" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
+            Write-Host "$( $_.Name ): $out($($enabledPercentage)" -ForegroundColor $color
             $_.Group | ForEach-Object {
                 $_.Output($outType)
             }
