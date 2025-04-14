@@ -75,7 +75,7 @@ fn extract_event_ids(yaml: &Yaml, event_ids: &mut HashSet<String>) {
     }
 }
 
-fn contains_builtin_channel(yaml: &Yaml) -> Option<Channel> {
+fn contains_builtin_channel(yaml: &Yaml) -> Option<Vec<Channel>> {
     fn check_channel(value: &Yaml) -> Option<Channel> {
         match value.as_str() {
             Some("Security") => Some(Channel::Security),
@@ -92,13 +92,21 @@ fn contains_builtin_channel(yaml: &Yaml) -> Option<Channel> {
                 if key.as_str() == Some("Channel") {
                     match value {
                         Yaml::Array(array) => {
+                            let mut channels = Vec::new();
                             for item in array {
                                 if let Some(channel) = check_channel(item) {
-                                    return Some(channel);
+                                    channels.push(channel);
                                 }
                             }
+                            if !channels.is_empty() {
+                                return Some(channels);
+                            }
                         }
-                        Yaml::String(_) => return check_channel(value),
+                        Yaml::String(_) => {
+                            if let Some(channel) = check_channel(value) {
+                                return Some(vec![channel]);
+                            }
+                        }
                         _ => {}
                     }
                 } else if let Some(channel) = contains_builtin_channel(value) {
@@ -142,7 +150,7 @@ fn parse_yaml(doc: Yaml, eid_subcategory_pair: &Vec<(String, String)>) -> Option
         return Some(json!({
             "id": uuid,
             "title": title,
-            "channel": ch.to_string(),
+            "channel": ch.iter().map(|c| c.to_string()).collect::<Vec<String>>(),
             "level": level,
             "event_ids": event_ids,
             "subcategory_guids": subcategories
