@@ -182,7 +182,7 @@ function AuditLogSetting {
         [string] $outType
     )
     $autidpolTxt = "./auditpol.txt"
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
+    # Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
     $enabledguid = [System.Collections.Generic.HashSet[string]]::new()
     Get-Content -Path $autidpolTxt | Select-String -NotMatch "No Auditing" | ForEach-Object {
         if ($_ -match '{(.*?)}') {
@@ -1025,16 +1025,15 @@ function AuditLogSetting {
 
     if ($outType -eq "std") {
         $auditResult | Group-Object -Property Category | ForEach-Object {
-            $enabledCount = ($_.Group | Where-Object { $_.Enabled -eq $false }).Count
-            $disabledCount = ($_.Group | Where-Object { $_.Enabled -eq $true }).Count
+            $enabledCount = ($_.Group | Where-Object { $_.Enabled -eq $true } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
+            $disabledCount = ($_.Group | Where-Object { $_.Enabled -eq $false } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
             $out = ""
             $color = ""
-            if ($enabledCount)
-            {
+            if ($disabledCount -eq 0 -and $enabledCount -ne 0){
                 $out = "Enabled"
                 $color = "Green"
             }
-            elseif ($disabledCount)
+            elseif ($disabledCount -ne 0 -and $enabledCount -eq 0)
             {
                 $out = "Disabled"
                 $color = "Red"
@@ -1044,12 +1043,11 @@ function AuditLogSetting {
                 $out = "Partially Enabled"
                 $color = "DarkYellow"
             }
-            # TODO add percentage
             $enabledPercentage = "0.00%"
             if ($enabledCount + $disabledCount -ne 0) {
                 $enabledPercentage = "{0:N2}%" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
-            Write-Host "$( $_.Name ): $out" -ForegroundColor $color
+            Write-Host "$( $_.Name ): $out($($enabledPercentage))" -ForegroundColor $color
             $_.Group | ForEach-Object {
                 $_.Output($outType)
             }
