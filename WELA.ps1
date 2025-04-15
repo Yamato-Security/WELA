@@ -60,11 +60,11 @@
         switch ($Format.ToLower()) {
             "std" {
                 $color = if ($this.Enabled) { "Green" } else { "Red" }
-                $logEnabled = if ($this.Enabled) { "Enabled" } else { "Disabled" }
                 $ruleCounts = ""
+                $logEnabled = if ($this.Enabled) { "Enabled" } else { "Disabled" }
                 $allZero = $this.RulesCount.Values | Where-Object { $_ -ne 0 } | Measure-Object | Select-Object -ExpandProperty Count
                 if ($allZero -eq 0) {
-                    $ruleCounts = "no rules"
+                    $ruleCounts = "(no rules)"
                     $color = "DarkYellow"
                 } else {
                     $ruleCounts = "$($logEnabled) ("
@@ -72,7 +72,7 @@
                         $count = $this.RulesCount[$level]
                         if ($level -eq "informational") {
                             if (-not $count) {
-                                $count = 0
+                                $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
                             }
                             $ruleCounts += "info:$([string]$count)"
                         } else {
@@ -83,6 +83,8 @@
                 }
                 if ($this.SubCategory) {
                     Write-Host "  - $($this.SubCategory): $ruleCounts" -ForegroundColor $color
+                } else {
+                    Write-Host "  - $($ruleCounts)" -ForegroundColor $color
                 }
                 if ($this.DefaultSetting) {
                     Write-Host "    - Default Setting: $($this.DefaultSetting)"
@@ -131,11 +133,14 @@ function RuleFilter {
     )
     $result = $false
     if ($category_channels.Count -gt 0) {
-        if ($category_channels -contains $rule.channel) {
-            $result = $true
-        } else {
+        foreach ($channel in $rule.channel) {
+            if ($category_channels -contains $channel) {
+                $result = $true
+                break
+            }
             $result = $false
         }
+
     }
     if ($category_eids.Count -gt 0) {
         foreach ($eid in $rule.event_ids) {
@@ -179,10 +184,13 @@ function CheckRegistryValue {
 
 function AuditLogSetting {
     param (
-        [string] $outType
+        [string] $outType,
+        [bool] $debug
     )
     $autidpolTxt = "./auditpol.txt"
-    Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
+    if (-not $debug) {
+        Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
+    }
     $enabledguid = [System.Collections.Generic.HashSet[string]]::new()
     Get-Content -Path $autidpolTxt | Select-String -NotMatch "No Auditing" | ForEach-Object {
         if ($_ -match '{(.*?)}') {
@@ -194,6 +202,150 @@ function AuditLogSetting {
         $_ | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
     }
     $auditResult = @()
+
+    # Application
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Application")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Application",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 20 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # Applocker
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-AppLocker/MSI and Script", "Microsoft-Windows-AppLocker/EXE and DLL", "Microsoft-Windows-AppLocker/Packaged app-Deployment", "Microsoft-Windows-AppLocker/Packaged app-Execution")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Applocker",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled if AppLocker is enabled? 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # Bits-Client Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Bits-Client/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Bits-Client Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # CodeIntegrity Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-CodeIntegrity/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "CodeIntegrity Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # Diagnosis-Scripted Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Diagnosis-Scripted/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Diagnosis-Scripted Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # DriverFrameworks-UserMode Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-DriverFrameworks-UserMode/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "DriverFrameworks-UserMode Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # Firewall
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Windows Firewall With Advanced Security/Firewall")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Firewall",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # NTLM Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Diagnosis-Scripted/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Microsoft-Windows-NTLM/Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "This log is recommended to enable if you want to disable NTLM authentication",
+            "",
+            ""
+    )
 
     # PowerShell
     ## Classic
@@ -207,7 +359,11 @@ function AuditLogSetting {
             "PowerShell",
             "Classic",
             $enabled,
-            $rules
+            [array]$rules,
+            "Enabled. 15 MB",
+            "Enabled",
+            "",
+            ""
     )
 
     ## Module
@@ -221,7 +377,11 @@ function AuditLogSetting {
             "PowerShell",
             "Module",
             $enabled,
-            $rules
+            [array]$rules,
+            "No Auditing",
+            "Enabled",
+            "High",
+            ""
     )
 
     ## ScriptBlock
@@ -235,7 +395,47 @@ function AuditLogSetting {
             "PowerShell",
             "ScriptBlock",
             $enabled,
-            $rules
+            [array]$rules,
+            "On Win 10/2016+, if a PowerShell script is flagged as suspicious by AMSI, it will be logged with a level of Warning",
+            "Enabled",
+            "High",
+            ""
+    )
+
+    # PrintService Admin
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-PrintService/Admin")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "PrintService",
+            "PrintService Admin",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # PrintService Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-PrintService/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "PrintService",
+            "PrintService Operational",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
     )
 
     # Security
@@ -251,7 +451,7 @@ function AuditLogSetting {
             "Security Advanced (Account Logon)",
             "Credential Validation",
             $enabled,
-            $rules,
+            [array]$rules,
             "Client OS: No Auditing | Server OS: Success",
             "Client and Server OSes: Success and Failure",
             "Depends on NTLM usage. Could be high on DCs and low on clients and servers.",
@@ -268,7 +468,7 @@ function AuditLogSetting {
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
             $enabled,
-            $rules,
+            [array]$rules,
             "Client OS: No Auditing | Server OS: Success",
             "Client OS: No Auditing | Server OS: Success and Failure",
             "High",
@@ -285,7 +485,7 @@ function AuditLogSetting {
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
             $enabled,
-            $rules,
+            [array]$rules,
             "Client OS: No Auditing | Server OS: Success",
             "Domain Controllers: Success and Failure",
             "High",
@@ -303,7 +503,7 @@ function AuditLogSetting {
             "Security Advanced (Account Management)",
             "Computer Account Management",
             $enabled,
-            $rules,
+            [array]$rules,
             "Client OS: No Auditing | Server OS: Success",
             "Domain Controllers: Success and Failure",
             "High",
@@ -320,7 +520,7 @@ function AuditLogSetting {
             "Security Advanced (Account Management)",
             "Other Account Management Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "Low",
@@ -337,7 +537,7 @@ function AuditLogSetting {
             "Security Advanced (Account Management)",
             "Security Group Management",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "Low",
@@ -354,7 +554,7 @@ function AuditLogSetting {
             "Security Advanced (Account Management)",
             "User Account Management",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "Low",
@@ -372,7 +572,7 @@ function AuditLogSetting {
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "Low",
@@ -389,7 +589,7 @@ function AuditLogSetting {
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure if sysmon is not configured",
             "High",
@@ -406,7 +606,7 @@ function AuditLogSetting {
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "No Auditing unless you want to track the lifespan of processes",
             "High",
@@ -423,7 +623,7 @@ function AuditLogSetting {
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Unknown. Needs testing",
             "High on RPC servers (According to Microsoft)",
@@ -440,7 +640,7 @@ function AuditLogSetting {
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Unknown. Needs testing",
             "Unknown",
@@ -458,7 +658,7 @@ function AuditLogSetting {
             "Security Advanced (DS Access)",
             "Directory Service Access",
             $enabled,
-            $rules,
+            [array]$rules,
             "Client OS: No Auditing | Server OS: Success",
             "Client OS: No Auditing | ADDS Server: Success and Failure",
             "High",
@@ -475,7 +675,7 @@ function AuditLogSetting {
             "Security Advanced (DS Access)",
             "Directory Service Changes",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Client OS: No Auditing | ADDS Server: Success and Failure",
             "High",
@@ -493,7 +693,7 @@ function AuditLogSetting {
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
             $enabled,
-            $rules,
+            [array]$rules,
             "Success",
             "Success and Failure",
             "Low",
@@ -510,7 +710,7 @@ function AuditLogSetting {
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "No Auditing",
             "Adds an extra 4627 event to every logon",
@@ -527,7 +727,7 @@ function AuditLogSetting {
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "No Auditing",
             "Adds an extra 4627 event to every logon",
@@ -544,7 +744,7 @@ function AuditLogSetting {
             "Security Advanced (Logon/Logoff)",
             "Logon",
             $enabled,
-            $rules,
+            [array]$rules,
             "Client OS: Success | Server OS: Success and Failure",
             "Success and Failure",
             "Low on clients, medium on DCs or network servers",
@@ -561,7 +761,7 @@ function AuditLogSetting {
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "Low",
@@ -578,7 +778,7 @@ function AuditLogSetting {
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
             $enabled,
-            $rules,
+            [array]$rules,
             "Success",
             "Success and Failure",
             "Low on clients. Medium on DC or network servers",
@@ -597,7 +797,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Certification Services",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure for AD CS role servers",
             "Low to medium",
@@ -614,7 +814,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Certification Services",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "No Auditing due to the high noise level. Enable if you can though",
             "Very high for file servers and DCs, however, may be necessary if you want to track who is accessing what files as well as detect various lateral movement",
@@ -631,7 +831,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "File Share",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "High for file servers and DCs",
@@ -648,7 +848,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "File System",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Enable SACLs just for sensitive files",
             "Depends on SACL rules",
@@ -665,7 +865,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure if you have enough space and are not monitoring network connections with sysmon. This should cause a high amount of events though",
             "High",
@@ -682,7 +882,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure for AD CS role servers",
             "High",
@@ -699,7 +899,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Kernel Object",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure but do not enable Audit the access of global system objects as you will generate too many 4663: Object Access events",
             "High if auditing access of global object access is enabled",
@@ -716,7 +916,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Handle Manipulation",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "High",
@@ -733,7 +933,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Other Object Access Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "Low",
@@ -750,7 +950,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Registry",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Set SACLs for only the registry keys that you want to monitor",
             "Depends on SACLs",
@@ -767,7 +967,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "Removable Storage",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure if you want to monitor external device usage",
             "Depends on how much removable storage is used",
@@ -784,7 +984,7 @@ function AuditLogSetting {
             "Security Advanced (Object Access)",
             "SAM",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure for AD CS role servers",
             "Success and Failure if you can but may cause too high volume of noise so should be tested beforehand",
@@ -802,7 +1002,7 @@ function AuditLogSetting {
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
             $enabled,
-            $rules,
+            [array]$rules,
             "Success",
             "Success and Failure",
             "Low",
@@ -819,7 +1019,7 @@ function AuditLogSetting {
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
             $enabled,
-            $rules,
+            [array]$rules,
             "Success",
             "Success and Failure",
             "Low",
@@ -836,7 +1036,7 @@ function AuditLogSetting {
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Unknown. Needs testing",
             "Medium to High",
@@ -853,7 +1053,7 @@ function AuditLogSetting {
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Unknown, Needs testing",
             "Low",
@@ -870,7 +1070,7 @@ function AuditLogSetting {
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Unknown, Needs testing",
             "Low",
@@ -887,7 +1087,7 @@ function AuditLogSetting {
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "No Auditing (Note: ACSC recommends Success and Failure, however, this results in a lot of noise of 5447 (A Windows Filtering Platform filter has been changed) events being generated.)",
             "Low",
@@ -905,7 +1105,7 @@ function AuditLogSetting {
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "No Auditing",
             "Very high",
@@ -922,7 +1122,7 @@ function AuditLogSetting {
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure However, this may be too noisy",
             "High",
@@ -940,7 +1140,7 @@ function AuditLogSetting {
             "Security Advanced (System)",
             "Other System Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "Success and Failure",
             "Unknown. Needs testing",
             "Low",
@@ -957,7 +1157,7 @@ function AuditLogSetting {
             "Security Advanced (System)",
             "Other System Events",
             $enabled,
-            $rules,
+            [array]$rules,
             "Success",
             "Success and Failure",
             "Low",
@@ -974,7 +1174,7 @@ function AuditLogSetting {
             "Security Advanced (System)",
             "Security System Extension",
             $enabled,
-            $rules,
+            [array]$rules,
             "No Auditing",
             "Success and Failure",
             "Low, but more on DCs",
@@ -991,13 +1191,156 @@ function AuditLogSetting {
             "Security Advanced (System)",
             "System Integrity",
             $enabled,
-            $rules,
+            [array]$rules,
             "Success and Failure",
             "Success and Failure",
             "Low",
             ""
     )
 
+    # Security-Mitigations KernelMode
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Security-Mitigations*")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Security-Mitigations KernelMode",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # Security-Mitigations UserMode
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Security-Mitigations*")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Security-Mitigations UserMode",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 256 MB+",
+            "",
+            ""
+    )
+
+    # SMBClient Security
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-SmbClient/Security")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "SMBClient Security",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 8 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # System
+    $guid    = ""
+    $eids     = @()
+    $channels = @("System")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "System",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 20 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # TaskScheduler Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-TaskScheduler/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "TaskScheduler Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # TerminalServices-LocalSessionManager Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-TerminalServices-LocalSessionManager/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "TerminalServices-LocalSessionManager Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # WMI-Activity Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-WMI-Activity/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "WMI-Activity Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
+
+    # Windows Defender Operational
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Windows Defender/Operational")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Windows Defender Operational",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled. 1 MB",
+            "Enabled. 128 MB+",
+            "",
+            ""
+    )
 
     $auditResult | ForEach-Object {
         $_.SetApplicable($enabledguid)
@@ -1045,15 +1388,18 @@ function AuditLogSetting {
             }
             $enabledPercentage = "0.00%"
             if ($enabledCount + $disabledCount -ne 0) {
-                $enabledPercentage = "{0:N2}%" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
+                $enabledPercentage = "({0:N2}%)" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
-            Write-Host "$( $_.Name ): $out($($enabledPercentage))" -ForegroundColor $color
+            if ($_.Name -notmatch "Powershell" -and $_.Name -notmatch "Security") {
+                $enabledPercentage = ""
+            }
+            Write-Host "$( $_.Name ): $out$($enabledPercentage)" -ForegroundColor $color
             $_.Group | ForEach-Object {
                 $_.Output($outType)
             }
             Write-Host ""
         }
-        $auditResult | Select-Object -Property Category, SubCategory, TotalRules, TotalRuleByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
@@ -1114,10 +1460,15 @@ $command = $args[0].ToLower()
 switch ($command) {
     "audit"  {
         $outType = "std"
+        $debug = $false
         if ($args.Count -eq 2) {
             $outType = $args[1].ToLower()
         }
-        AuditLogSetting $outType
+        if ($args.Count -eq 3) {
+            $outType = $args[1].ToLower()
+            $debug = $args[2].ToLower() -eq "debug"
+        }
+        AuditLogSetting $outType $debug
     }
     "help" {
         Write-Host $help
