@@ -1388,9 +1388,12 @@ function AuditLogSetting {
             }
             $enabledPercentage = "0.00%"
             if ($enabledCount + $disabledCount -ne 0) {
-                $enabledPercentage = "{0:N2}%" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
+                $enabledPercentage = "({0:N2}%)" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
-            Write-Host "$( $_.Name ): $out($($enabledPercentage))" -ForegroundColor $color
+            if ($_.Name -notmatch "Powershell" -and $_.Name -notmatch "Security") {
+                $enabledPercentage = ""
+            }
+            Write-Host "$( $_.Name ): $out$($enabledPercentage)" -ForegroundColor $color
             $_.Group | ForEach-Object {
                 $_.Output($outType)
             }
