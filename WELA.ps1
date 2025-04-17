@@ -1492,6 +1492,7 @@ Usage:
   ./WELA.ps1 audit-settings       # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings gui   # Audit current setting and show in gui, save to csv
   ./WELA.ps1 audit-settings table # Audit current setting and show in table layout, save to csv
+  ./WELA.ps1 audit-filesize       # Audit current file size and show in stdout, save to csv
   ./WELA.ps1 help        # Show this help
 "@
 
