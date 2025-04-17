@@ -1440,7 +1440,7 @@ function AuditFileSize {
         "Microsoft-Windows-Bits-Client/Operational" = @("1MB", "128MB+")
         "Microsoft-Windows-CodeIntegrity/Operational" = @("1MB", "128MB+")
         "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1MB", "128MB+")
-        "Microsoft-Windows-PowerShell/Operational" = @("20MB", "TBD")
+        "Microsoft-Windows-PowerShell/Operational" = @("20MB", "256MB+")
         "Microsoft-Windows-PrintService/Admin" = @("1MB", "128MB+")
         "Microsoft-Windows-PrintService/Operational" = @("1MB", "128MB+")
         "Microsoft-Windows-Security-Mitigations/KernelMode" = @("1MB", "128MB+")
@@ -1452,7 +1452,7 @@ function AuditFileSize {
         "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall" = @("1MB", "256MB+")
         "Security" = @("20MB", "256MB+")
         "System" = @("20MB", "128MB+")
-        "Windows PowerShell" = @("15MB", "TBD")
+        "Windows PowerShell" = @("15MB", "256MB+")
     }
 
     $results = @()
@@ -1461,10 +1461,10 @@ function AuditFileSize {
         $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
         $results += [PSCustomObject]@{
             LogName     = $logInfo.LogName
-            LogSize     = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
+            CurrentLogSize     = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
             MaxLogSize  = "{0:N2} MB" -f ($logInfo.MaximumSizeInBytes / 1MB)
-            Description1 = $logNames[$logName][0] #
-            Description2 = $logNames[$logName][1] #
+            Default = $logNames[$logName][0] #
+            Recommended = $logNames[$logName][1] #
         }
     }
 
