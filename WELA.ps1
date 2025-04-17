@@ -1471,6 +1471,8 @@ function AuditFileSize {
     }
 
     $results | Format-Table -AutoSize
+    $results | Export-Csv -Path "WELA-FileSize-Result.csv" -NoTypeInformation
+    Write-Host "Audit file size result saved to: WELA-FileSize-Result.csv"
 }
 
 
