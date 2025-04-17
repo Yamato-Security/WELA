@@ -49,7 +49,7 @@ jobs:
 
       - name: Run WELA.ps1
         run: |
-          ./WELA.ps1 audit
+          ./WELA.ps1 audit-settings
 
       - name: Output UsableRules.csv
         run: |

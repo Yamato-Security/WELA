@@ -1428,6 +1428,50 @@ function AuditLogSetting {
 }
 
 
+function AuditFileSize {
+    # 対象のイベントログ名をハッシュテーブル化
+    $logNames = @{
+        "Application" = @("20MB", "128MB+")
+        "Microsoft-Windows-AppLocker/EXE and DLL" = @("1MB", "256MB+")
+        "Microsoft-Windows-AppLocker/MSI and Script" = @("1MB", "256MB+")
+        "Microsoft-Windows-AppLocker/Packaged app-Deployment" = @("1MB", "256MB+")
+        "Microsoft-Windows-AppLocker/Packaged app-Execution" = @("1MB", "256MB+")
+        "Microsoft-Windows-Bits-Client/Analytic" = @("1MB", "128MB+")
+        "Microsoft-Windows-Bits-Client/Operational" = @("1MB", "128MB+")
+        "Microsoft-Windows-CodeIntegrity/Operational" = @("1MB", "128MB+")
+        "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1MB", "128MB+")
+        "Microsoft-Windows-PowerShell/Operational" = @("20MB", "TBD")
+        "Microsoft-Windows-PrintService/Admin" = @("1MB", "128MB+")
+        "Microsoft-Windows-PrintService/Operational" = @("1MB", "128MB+")
+        "Microsoft-Windows-Security-Mitigations/KernelMode" = @("1MB", "128MB+")
+        "Microsoft-Windows-Security-Mitigations/UserMode" = @("1MB", "128MB+")
+        "Microsoft-Windows-SmbClient/Security" = @("8MB", "128MB+")
+        "Microsoft-Windows-TaskScheduler/Operational" = @("1MB", "128MB+")
+        "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational" = @("1MB", "128MB+")
+        "Microsoft-Windows-Windows Defender/Operational" = @("16MB", "128MB+")
+        "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall" = @("1MB", "256MB+")
+        "Security" = @("20MB", "256MB+")
+        "System" = @("20MB", "128MB+")
+        "Windows PowerShell" = @("15MB", "TBD")
+    }
+
+    $results = @()
+
+    foreach ($logName in $logNames.Keys) {
+        $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
+        $results += [PSCustomObject]@{
+            LogName     = $logInfo.LogName
+            LogSize     = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
+            MaxLogSize  = "{0:N2} MB" -f ($logInfo.MaximumSizeInBytes / 1MB)
+            Description1 = $logNames[$logName][0] #
+            Description2 = $logNames[$logName][1] #
+        }
+    }
+
+    $results | Format-Table -AutoSize
+}
+
+
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
@@ -1441,9 +1485,9 @@ $logo = @"
 
 $help = @"
 Usage:
-  ./WELA.ps1 audit       # Audit current setting and show in stdout, save to csv
-  ./WELA.ps1 audit gui   # Audit current setting and show in gui, save to csv
-  ./WELA.ps1 audit table # Audit current setting and show in table layout, save to csv
+  ./WELA.ps1 audit-settings       # Audit current setting and show in stdout, save to csv
+  ./WELA.ps1 audit-settings gui   # Audit current setting and show in gui, save to csv
+  ./WELA.ps1 audit-settings table # Audit current setting and show in table layout, save to csv
   ./WELA.ps1 help        # Show this help
 "@
 
@@ -1458,7 +1502,7 @@ if ($args.Count -eq 0) {
 $command = $args[0].ToLower()
 
 switch ($command) {
-    "audit"  {
+    "audit-settings"  {
         $outType = "std"
         $debug = $false
         if ($args.Count -eq 2) {
@@ -1470,6 +1514,10 @@ switch ($command) {
         }
         AuditLogSetting $outType $debug
     }
+    "audit-filesize" {
+        AuditFileSize
+    }
+
     "help" {
         Write-Host $help
     }
