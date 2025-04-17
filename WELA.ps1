@@ -1457,7 +1457,7 @@ function AuditFileSize {
 
     $results = @()
 
-    foreach ($logName in $logNames.Keys) {
+    foreach ($logName in $logNames.Keys | Sort-Object) {
         $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
         $results += [PSCustomObject]@{
             LogName     = $logInfo.LogName
