@@ -1463,8 +1463,8 @@ function AuditFileSize {
         $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
         $results += [PSCustomObject]@{
             LogFilePath = Split-Path $logInfo.LogFilePath -Leaf
-            CurrentLogSize     = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
-            MaxLogSize  = "{0:N2} MB" -f ($logInfo.MaximumSizeInBytes / 1MB)
+            CurrentLogSize     = "{0} MB" -f ($logInfo.FileSize / 1MB)
+            MaxLogSize  = "{0} MB" -f ($logInfo.MaximumSizeInBytes / 1MB)
             Default = $logNames[$logName][0] #
             Recommended = $logNames[$logName][1] #
         }
