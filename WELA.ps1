@@ -1449,7 +1449,7 @@ function AuditFileSize {
         "Microsoft-Windows-SmbClient/Security" = @("8 MB", "128 MB+")
         "Microsoft-Windows-TaskScheduler/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-Windows Defender/Operational" = @("16MB", "128MB+")
+        "Microsoft-Windows-Windows Defender/Operational" = @("16MB", "128 MB+")
         "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall" = @("1 MB", "256 MB+")
         "Microsoft-Windows-WMI-Activity/Operational" = @("1 MB", "128 MB+")
         "Security" = @("20 MB", "256 MB+")
