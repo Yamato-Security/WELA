@@ -1476,14 +1476,15 @@ function AuditFileSize {
     }
 
     # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
-    Write-Host ("{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}" -f `
+    $tableLayout = "{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}"
+    Write-Host ($tableLayout -f `
         "Log File Path", `
         "Current Size", `
         "Max Size", `
         "Default", `
         "Recommended", `
         "Correct Setting")
-    Write-Host ("{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}" -f `
+    Write-Host ($tableLayout -f `
         "-------------", `
         "------------", `
         "--------", `
@@ -1492,7 +1493,7 @@ function AuditFileSize {
         "--------------")
     foreach ($result in $results) {
         $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
-        Write-Host ("{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}" -f `
+        Write-Host ($tableLayout -f `
         $result.LogFilePath, `
         $result.CurrentLogSize, `
         $result.MaxLogSize, `
