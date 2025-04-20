@@ -1464,6 +1464,7 @@ function AuditFileSize {
         $maxLogSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
         $recommendedSize = [int]($logNames[$logName][1] -replace " MB\+?", "")
         $correctSetting = if ($maxLogSize -ge $recommendedSize) { "Y" } else { "N" }
+        $logIsFull = $logInfo.FileSize -gt $logInfo.MaximumSizeInBytes
 
         $results += [PSCustomObject]@{
             LogFile         = Split-Path $logInfo.LogFilePath -Leaf
@@ -1471,7 +1472,7 @@ function AuditFileSize {
             MaxLogSize      = "$maxLogSize MB"
             Default         = $logNames[$logName][0]
             Recommended     = $logNames[$logName][1]
-            IsLogFull       = $logInfo.IsLogFull
+            IsLogFull       = $logIsFull
             LogMode         = $logInfo.LogMode
             CorrectSetting  = $correctSetting
         }
