@@ -1478,7 +1478,7 @@ function AuditFileSize {
     }
 
     # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
-    $tableLayout = "{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}"
+    $tableLayout = "{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10} {5,-10} {5,-10}"
     Write-Host ($tableLayout -f `
         "Log File", `
         "Current Size", `
@@ -1495,7 +1495,10 @@ function AuditFileSize {
         "--------", `
         "------", `
         "-----------", `
-        "--------------")
+        "--------------", `
+        "--------------", `
+        "--------" `
+        )
     foreach ($result in $results) {
         $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
         Write-Host ($tableLayout -f `
