@@ -1489,7 +1489,7 @@ function AuditFileSize {
         "--------", `
         "------", `
         "-----------", `
-        "------------")
+        "--------------")
     foreach ($result in $results) {
         $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
         Write-Host ("{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}" -f `
