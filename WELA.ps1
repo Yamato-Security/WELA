@@ -1428,6 +1428,86 @@ function AuditLogSetting {
 }
 
 
+function AuditFileSize {
+    # 対象のイベントログ名をハッシュテーブル化
+    $logNames = @{
+        "Application" = @("20 MB", "128 MB+")
+        "Microsoft-Windows-AppLocker/EXE and DLL" = @("1 MB", "256 MB+")
+        "Microsoft-Windows-AppLocker/MSI and Script" = @("1 MB", "256 MB+")
+        "Microsoft-Windows-AppLocker/Packaged app-Deployment" = @("1 MB", "256 MB+")
+        "Microsoft-Windows-AppLocker/Packaged app-Execution" = @("1 MB", "256 MB+")
+        "Microsoft-Windows-Bits-Client/Analytic" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-Bits-Client/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-CodeIntegrity/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-NTLM/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-PowerShell/Operational" = @("20 MB", "256 MB+")
+        "Microsoft-Windows-PrintService/Admin" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-PrintService/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-Security-Mitigations/KernelMode" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-Security-Mitigations/UserMode" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-SmbClient/Security" = @("8 MB", "128 MB+")
+        "Microsoft-Windows-TaskScheduler/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-Windows Defender/Operational" = @("16MB", "128 MB+")
+        "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall" = @("1 MB", "256 MB+")
+        "Microsoft-Windows-WMI-Activity/Operational" = @("1 MB", "128 MB+")
+        "Security" = @("20 MB", "256 MB+")
+        "System" = @("20 MB", "128 MB+")
+        "Windows PowerShell" = @("15 MB", "256 MB+")
+    }
+
+    $results = @()
+
+    foreach ($logName in $logNames.Keys | Sort-Object) {
+        $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
+        $maxLogSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
+        $recommendedSize = [int]($logNames[$logName][1] -replace " MB\+?", "")
+        $correctSetting = if ($maxLogSize -ge $recommendedSize) { "Y" } else { "N" }
+
+        $results += [PSCustomObject]@{
+            LogFile         = Split-Path $logInfo.LogFilePath -Leaf
+            CurrentLogSize  = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
+            MaxLogSize      = "$maxLogSize MB"
+            Default         = $logNames[$logName][0]
+            Recommended     = $logNames[$logName][1]
+            CorrectSetting  = $correctSetting
+        }
+    }
+
+    # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
+    $tableLayout = "{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}"
+    Write-Host ($tableLayout -f `
+        "Log File", `
+        "Current Size", `
+        "Max Size", `
+        "Default", `
+        "Recommended", `
+        "Correct Setting")
+    Write-Host ($tableLayout -f `
+        "--------", `
+        "------------", `
+        "--------", `
+        "------", `
+        "-----------", `
+        "--------------")
+    foreach ($result in $results) {
+        $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
+        Write-Host ($tableLayout -f `
+        $result.LogFile, `
+        $result.CurrentLogSize, `
+        $result.MaxLogSize, `
+        $result.Default, `
+        $result.Recommended, `
+        $result.CorrectSetting) -ForegroundColor $color
+    }
+
+    $results | Export-Csv -Path "WELA-FileSize-Result.csv" -NoTypeInformation
+    Write-Host ""
+    Write-Host "Audit file size result saved to: WELA-FileSize-Result.csv"
+}
+
+
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
@@ -1441,9 +1521,10 @@ $logo = @"
 
 $help = @"
 Usage:
-  ./WELA.ps1 audit       # Audit current setting and show in stdout, save to csv
-  ./WELA.ps1 audit gui   # Audit current setting and show in gui, save to csv
-  ./WELA.ps1 audit table # Audit current setting and show in table layout, save to csv
+  ./WELA.ps1 audit-settings       # Audit current setting and show in stdout, save to csv
+  ./WELA.ps1 audit-settings gui   # Audit current setting and show in gui, save to csv
+  ./WELA.ps1 audit-settings table # Audit current setting and show in table layout, save to csv
+  ./WELA.ps1 audit-filesize       # Audit current file size and show in stdout, save to csv
   ./WELA.ps1 help        # Show this help
 "@
 
@@ -1458,7 +1539,7 @@ if ($args.Count -eq 0) {
 $command = $args[0].ToLower()
 
 switch ($command) {
-    "audit"  {
+    "audit-settings"  {
         $outType = "std"
         $debug = $false
         if ($args.Count -eq 2) {
@@ -1470,6 +1551,10 @@ switch ($command) {
         }
         AuditLogSetting $outType $debug
     }
+    "audit-filesize" {
+        AuditFileSize
+    }
+
     "help" {
         Write-Host $help
     }
