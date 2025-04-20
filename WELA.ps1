@@ -1463,7 +1463,9 @@ function AuditFileSize {
         $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
         $maxLogSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
         $recommendedSize = [int]($logNames[$logName][1] -replace " MB\+?", "")
-        $correctSetting = if ($maxLogSize -ge $recommendedSize) { "Y" } else { "N" }
+        $logIsFull = $logInfo.FileSize -gt $logInfo.MaximumSizeInBytes
+        $logMode = if ($logInfo.LogMode -eq "Retain") { "NoOverwrite" } else { $logInfo.LogMode }
+        $correctSetting = if ($maxLogSize -ge $recommendedSize -and $logMode -ne "NoOverwrite") { "Y" } else { "N" }
 
         $results += [PSCustomObject]@{
             LogFile         = Split-Path $logInfo.LogFilePath -Leaf
@@ -1471,26 +1473,34 @@ function AuditFileSize {
             MaxLogSize      = "$maxLogSize MB"
             Default         = $logNames[$logName][0]
             Recommended     = $logNames[$logName][1]
+            IsLogFull       = $logIsFull
+            LogMode         = $logMode
             CorrectSetting  = $correctSetting
         }
     }
 
     # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
-    $tableLayout = "{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}"
+    $tableLayout = "{0,-75} {1,-15} {2,-10} {3,-10} {4,-15} {5,-10} {6,-15} {7,-10}"
     Write-Host ($tableLayout -f `
         "Log File", `
         "Current Size", `
         "Max Size", `
         "Default", `
         "Recommended", `
-        "Correct Setting")
+        "Is Full", `
+        "Log Mode", `
+        "Correct Setting" `
+        )
     Write-Host ($tableLayout -f `
         "--------", `
         "------------", `
         "--------", `
         "------", `
         "-----------", `
-        "--------------")
+        "-------", `
+        "--------", `
+        "--------------" `
+        )
     foreach ($result in $results) {
         $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
         Write-Host ($tableLayout -f `
@@ -1499,7 +1509,10 @@ function AuditFileSize {
         $result.MaxLogSize, `
         $result.Default, `
         $result.Recommended, `
-        $result.CorrectSetting) -ForegroundColor $color
+        $result.IsLogFull, `
+        $result.LogMode, `
+        $result.CorrectSetting `
+        ) -ForegroundColor $color
     }
 
     $results | Export-Csv -Path "WELA-FileSize-Result.csv" -NoTypeInformation
