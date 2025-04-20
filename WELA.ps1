@@ -1486,7 +1486,7 @@ function AuditFileSize {
         "Max Size", `
         "Default", `
         "Recommended", `
-        "Log Full", `
+        "Is Log Full", `
         "Log Mode", `
         "Correct Setting" `
         )
@@ -1496,7 +1496,7 @@ function AuditFileSize {
         "--------", `
         "------", `
         "-----------", `
-        "--------", `
+        "-----------", `
         "--------", `
         "--------------" `
         )
