@@ -1461,17 +1461,48 @@ function AuditFileSize {
 
     foreach ($logName in $logNames.Keys | Sort-Object) {
         $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
+        $maxLogSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
+        $recommendedSize = [int]($logNames[$logName][1] -replace " MB\+?", "")
+        $correctSetting = if ($maxLogSize -ge $recommendedSize) { "Y" } else { "N" }
+
         $results += [PSCustomObject]@{
-            LogFilePath = Split-Path $logInfo.LogFilePath -Leaf
-            CurrentLogSize     = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
-            MaxLogSize  = "{0} MB" -f [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
-            Default = $logNames[$logName][0]
-            Recommended = $logNames[$logName][1]
+            LogFilePath     = Split-Path $logInfo.LogFilePath -Leaf
+            CurrentLogSize  = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
+            MaxLogSize      = "$maxLogSize MB"
+            Default         = $logNames[$logName][0]
+            Recommended     = $logNames[$logName][1]
+            CorrectSetting  = $correctSetting
         }
     }
 
-    $results | Format-Table -AutoSize
+    # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
+    Write-Host ("{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}" -f `
+        "Log File Path", `
+        "Current Size", `
+        "Max Size", `
+        "Default", `
+        "Recommended", `
+        "Correct Setting")
+    Write-Host ("{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}" -f `
+        "-------------", `
+        "------------", `
+        "--------", `
+        "------", `
+        "-----------", `
+        "------------")
+    foreach ($result in $results) {
+        $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
+        Write-Host ("{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-10}" -f `
+        $result.LogFilePath, `
+        $result.CurrentLogSize, `
+        $result.MaxLogSize, `
+        $result.Default, `
+        $result.Recommended, `
+        $result.CorrectSetting) -ForegroundColor $color
+    }
+
     $results | Export-Csv -Path "WELA-FileSize-Result.csv" -NoTypeInformation
+    Write-Host ""
     Write-Host "Audit file size result saved to: WELA-FileSize-Result.csv"
 }
 
