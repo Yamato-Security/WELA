@@ -1463,8 +1463,9 @@ function AuditFileSize {
         $logInfo = Get-WinEvent -ListLog $logName -ErrorAction Stop
         $maxLogSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
         $recommendedSize = [int]($logNames[$logName][1] -replace " MB\+?", "")
-        $correctSetting = if ($maxLogSize -ge $recommendedSize) { "Y" } else { "N" }
         $logIsFull = $logInfo.FileSize -gt $logInfo.MaximumSizeInBytes
+        $logMode = if ($logInfo.LogMode -eq "Retain") { "NoOverwrite" } else { $logInfo.LogMode }
+        $correctSetting = if ($maxLogSize -ge $recommendedSize -and $logMode -ne "NoOverwrite") { "Y" } else { "N" }
 
         $results += [PSCustomObject]@{
             LogFile         = Split-Path $logInfo.LogFilePath -Leaf
@@ -1473,7 +1474,7 @@ function AuditFileSize {
             Default         = $logNames[$logName][0]
             Recommended     = $logNames[$logName][1]
             IsLogFull       = $logIsFull
-            LogMode         = $logInfo.LogMode
+            LogMode         = $logMode
             CorrectSetting  = $correctSetting
         }
     }
