@@ -1478,7 +1478,7 @@ function AuditFileSize {
     }
 
     # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
-    $tableLayout = "{0,-75} {1,-15} {2,-12} {3,-12} {4,-12} {5,-12} {6,-12} {7,-12}"
+    $tableLayout = "{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-15} {6,-15} {7,-15}"
     Write-Host ($tableLayout -f `
         "Log File", `
         "Current Size", `
