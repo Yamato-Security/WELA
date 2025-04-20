@@ -1471,23 +1471,23 @@ function AuditFileSize {
             MaxLogSize      = "$maxLogSize MB"
             Default         = $logNames[$logName][0]
             Recommended     = $logNames[$logName][1]
-            CorrectSetting  = $correctSetting
             IsLogFull       = $logInfo.IsLogFull
             LogMode         = $logInfo.LogMode
+            CorrectSetting  = $correctSetting
         }
     }
 
     # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
-    $tableLayout = "{0,-75} {1,-15} {2,-15} {3,-15} {4,-15} {5,-15} {6,-15} {7,-15}"
+    $tableLayout = "{0,-75} {1,-15} {2,-10} {3,-10} {4,-10} {5,-10} {6,-10} {7,-10}"
     Write-Host ($tableLayout -f `
         "Log File", `
         "Current Size", `
         "Max Size", `
         "Default", `
         "Recommended", `
-        "Correct Setting", `
         "Log Full", `
-        "Log Mode" `
+        "Log Mode", `
+        "Correct Setting" `
         )
     Write-Host ($tableLayout -f `
         "--------", `
@@ -1495,9 +1495,9 @@ function AuditFileSize {
         "--------", `
         "------", `
         "-----------", `
-        "--------------", `
         "-------", `
-        "-------" `
+        "-------", `
+        "--------------" `
         )
     foreach ($result in $results) {
         $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
@@ -1507,9 +1507,9 @@ function AuditFileSize {
         $result.MaxLogSize, `
         $result.Default, `
         $result.Recommended, `
-        $result.CorrectSetting, `
         $result.IsLogFull, `
-        $result.LogMode `
+        $result.LogMode, `
+        $result.CorrectSetting `
         ) -ForegroundColor $color
     }
 
