@@ -1472,6 +1472,8 @@ function AuditFileSize {
             Default         = $logNames[$logName][0]
             Recommended     = $logNames[$logName][1]
             CorrectSetting  = $correctSetting
+            IsLogFull       = $logInfo.IsLogFull
+            LogMode         = $logInfo.LogMode
         }
     }
 
@@ -1483,7 +1485,10 @@ function AuditFileSize {
         "Max Size", `
         "Default", `
         "Recommended", `
-        "Correct Setting")
+        "Correct Setting", `
+        "Is Log Full", `
+        "Log Mode" `
+        )
     Write-Host ($tableLayout -f `
         "--------", `
         "------------", `
@@ -1499,7 +1504,10 @@ function AuditFileSize {
         $result.MaxLogSize, `
         $result.Default, `
         $result.Recommended, `
-        $result.CorrectSetting) -ForegroundColor $color
+        $result.CorrectSetting, `
+        $result.IsLogFull, `
+        $result.LogMode `
+        ) -ForegroundColor $color
     }
 
     $results | Export-Csv -Path "WELA-FileSize-Result.csv" -NoTypeInformation
