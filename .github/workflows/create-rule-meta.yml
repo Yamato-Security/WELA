@@ -1,7 +1,5 @@
 name: create security_rules.json
 on:
-  push:
-    branches: [ "*" ]
   schedule:
     - cron: '0 20 * * *'
   workflow_dispatch:
