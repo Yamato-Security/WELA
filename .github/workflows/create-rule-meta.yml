@@ -1,7 +1,9 @@
-name: create-rule-meta.json
+name: create security_rules.json
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
+  schedule:
+    - cron: '0 20 * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,6 +12,15 @@ jobs:
     steps:
       - name: Checkout self repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: WELA
+
+      - name: Checkout wela-extractor
+        uses: actions/checkout@v4
+        with:
+          repository: Yamato-Security/WELA-RulesGenerator
+          path: wela-extractor
 
       - name: Checkout hayabusa-rules
         uses: actions/checkout@v4
@@ -18,4 +29,60 @@ jobs:
           path: hayabusa-rules
 
       - name: Run
-        run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../config/eid_subcategory_mapping.csv ../config/security_rules.json
+        run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../WELA/config/eid_subcategory_mapping.csv ../WELA/config/security_rules.json
+
+      - name: Create Text
+        id: create-text
+        run: |
+          pushd WELA
+          echo "action_date=$(date '+%Y-%m-%d  %H:%M:%S')" >> $GITHUB_ENV
+          echo "change_exist=true" >> $GITHUB_ENV
+          git_new=$(git diff --name-status --diff-filter=AC)
+          git_mod=$(git diff --name-status --diff-filter=MR)
+          git_del=$(git diff --name-status --diff-filter=D)
+          is_rule_changed=$(git status)
+          if [ "${is_rule_changed}" =~ nothing\sto\scommit ]; then
+            echo "change_exist=false" >> $GITHUB_ENV
+          else
+          	echo "<details><summary>New files</summary>" >> ../changed_rule.logs
+          	echo "${git_new}" >> ../changed_rule.logs
+          	echo "</details>" >> ../changed_rule.logs
+          	echo "<details><summary>Modified files</summary>" >> ../changed_rule.logs
+          	echo "${git_mod}" >> ../changed_rule.logs
+          	echo "</details>" >> ../changed_rule.logs
+          	echo "<details><summary>Deleted files</summary>" >> ../changed_rule.logs
+          	echo "${git_del}" >> ../changed_rule.logs
+          	echo "</details>" >> ../changed_rule.logs
+          fi
+          popd
+
+      - name: Create Pull Request
+        if: env.change_exist == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v4
+        with:
+          path: WELA
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Sigma Rule Update (${{ env.action_date }})
+          branch: rules/auto-sigma-update
+          delete-branch: true
+          title: '[Auto] Sigma Update report(${{ env.action_date }})' ### If a PR with the same name already exists, this github action library will not create a new pull request but it will update the PR with the same name. Therefore I added the date to the pull request's title so it creates a new PR.
+          branch-suffix: timestamp ### I use this field in order to avoid name duplication. If the pull request which is related to the same branch exists, the pull request is not newly created but is updated. So the next step will be skipped due to its if-field
+          body: |
+            ${{ env.action_date }} Update report
+
+      - name: Enable Pull Request Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created' # This only runs if there were sigma rules updates and a new PR was created.
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
+
+      - name: upload change log
+        if: env.change_exist == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: changed_rule_log
+          path: ${{ github.workspace }}/changed_rule.logs
+          retention-days: 30
