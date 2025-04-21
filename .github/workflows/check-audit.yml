@@ -14,39 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-#      - name: auditpol /list /subcategory:* /r
-#        run: auditpol /list /subcategory:* /r
-#
-#      - name: auditpol /get /category:*
-#        run: auditpol /get /category:*
-#
-#      - name: Get-WinEvent -ListLog * | Select-Object LogName, MaximumSizeInBytes
-#        run: Get-WinEvent -ListLog * | Select-Object LogName, MaximumSizeInBytes
-#
-#      - name: Get-WinEvent -ListProvider *
-#        run: (Get-WinEvent -ListProvider Microsoft-Windows-Security-Auditing).Events | ForEach-Object { [PSCustomObject]@{EventID=$_.Id; Description=($_.Description -replace "`r`n", " ") -replace "\..*", ""} }
-#
-#      - name: Checkout self repository
-#        uses: actions/checkout@v4
-#
-#      - name: Load audit settings(json)
-#        run: |
-#            $startTime = Get-Date
-#            $audit_settings = Get-Content -Path ./config/security_rules.json -Raw | ConvertFrom-Json
-#            $audit_settings
-#            $endTime = Get-Date
-#            $duration = $endTime - $startTime
-#            Write-Output "Duration: $duration"
-#
-#      - name: Load audit settings(csv)
-#        run: |
-#            $startTime = Get-Date
-#            $audit_settings = Import-Csv ./config/eid_subcategory_mapping.csv
-#            $audit_settings
-#            $endTime = Get-Date
-#            $duration = $endTime - $startTime
-#            Write-Output "Duration: $duration"
-
       - name: Run WELA.ps1 audit-settings
         run: |
           ./WELA.ps1 audit-settings
