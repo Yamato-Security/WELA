@@ -5,3 +5,4 @@ Cargo.lock
 *.pdb
 .idea/
 *.csv
+.DS_Store
