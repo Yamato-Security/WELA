@@ -1521,6 +1521,24 @@ function AuditFileSize {
 }
 
 
+function UpdateRules {
+    $urls = @(
+        "https://raw.githubusercontent.com/Yamato-Security/WELA/main/config/eid_subcategory_mapping.csv",
+        "https://raw.githubusercontent.com/Yamato-Security/WELA/main/config/security_rules.json"
+    )
+    $outputPaths = @(
+        "./config/eid_subcategory_mapping.csv",
+        "./config/security_rules.json"
+    )
+
+    for ($i = 0; $i -lt $urls.Count; $i++) {
+        Write-Host "Downloading $($urls[$i])"
+        Invoke-WebRequest -Uri $urls[$i] -OutFile $outputPaths[$i] -UseBasicParsing
+        Write-Host "Saved to $($outputPaths[$i])"
+        Write-Host ""
+    }
+}
+
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
@@ -1538,6 +1556,7 @@ Usage:
   ./WELA.ps1 audit-settings gui   # Audit current setting and show in gui, save to csv
   ./WELA.ps1 audit-settings table # Audit current setting and show in table layout, save to csv
   ./WELA.ps1 audit-filesize       # Audit current file size and show in stdout, save to csv
+  ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
   ./WELA.ps1 help        # Show this help
 "@
 
@@ -1566,6 +1585,10 @@ switch ($command) {
     }
     "audit-filesize" {
         AuditFileSize
+    }
+
+    "update-rules" {
+        UpdateRules
     }
 
     "help" {
