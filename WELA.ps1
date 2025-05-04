@@ -1408,8 +1408,8 @@ function AuditLogSetting {
     }
     $usableRules     = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
     $unUsableRules   = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $false }
-    $usableRules | Select-Object title, level, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
-    $unusableRules  | Select-Object title, level, id | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
+    $usableRules | Select-Object title, level, service, category, description, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
+    $unusableRules  | Select-Object title, level, service, category, description, id  | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
     Write-Output "Usable detection rules list saved to: UsableRules.csv"
     Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 
