@@ -74,9 +74,12 @@
                             if (-not $count) {
                                 $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
                             }
-                            $ruleCounts += "info:$([string]$count)"
+                            $ruleCounts += "info: $([string]$count)"
                         } else {
-                            $ruleCounts += "$($level):$($count), "
+                            if (-not $count) {
+                                $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
+                            }
+                            $ruleCounts += "$($level): $($count), "
                         }
                     }
                     $ruleCounts += ")"
@@ -215,8 +218,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 20 MB",
-            "Enabled. 128 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -233,10 +236,10 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled if AppLocker is enabled? 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
-            ""
+            "Enabled if AppLocker is enabled?"
     )
 
     # Bits-Client Operational
@@ -251,8 +254,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -269,8 +272,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -287,8 +290,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -305,8 +308,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -323,8 +326,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -341,10 +344,10 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "This log is recommended to enable if you want to disable NTLM authentication",
+            "Enabled",
+            "Enabled",
             "",
-            ""
+            "This log is recommended to enable if you want to disable NTLM authentication"
     )
 
     # PowerShell
@@ -360,7 +363,7 @@ function AuditLogSetting {
             "Classic",
             $enabled,
             [array]$rules,
-            "Enabled. 15 MB",
+            "Enabled",
             "Enabled",
             "",
             ""
@@ -396,10 +399,10 @@ function AuditLogSetting {
             "ScriptBlock",
             $enabled,
             [array]$rules,
-            "On Win 10/2016+, if a PowerShell script is flagged as suspicious by AMSI, it will be logged with a level of Warning",
+            "Partially Enabled",
             "Enabled",
             "High",
-            ""
+            "On Win 10/2016+, if a PowerShell script is flagged as suspicious by AMSI, it will be logged with a level of Warning in default setting"
     )
 
     # PrintService Admin
@@ -414,8 +417,8 @@ function AuditLogSetting {
             "PrintService Admin",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -432,8 +435,8 @@ function AuditLogSetting {
             "PrintService Operational",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -591,9 +594,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Success and Failure if sysmon is not configured",
+            "Success and Failure",
             "High",
-            ""
+            "if sysmon is not configured"
     )
 
     #### Process Termination
@@ -608,9 +611,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "No Auditing unless you want to track the lifespan of processes",
+            "No Auditing",
             "High",
-            ""
+            "unless you want to track the lifespan of processes"
     )
 
     #### RPC Events
@@ -625,7 +628,7 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Unknown. Needs testing",
+            "",
             "High on RPC servers (According to Microsoft)",
             ""
     )
@@ -642,8 +645,8 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Unknown. Needs testing",
-            "Unknown",
+            "",
+            "",
             ""
     )
 
@@ -816,9 +819,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "No Auditing due to the high noise level. Enable if you can though",
+            "No Auditing",
             "Very high for file servers and DCs, however, may be necessary if you want to track who is accessing what files as well as detect various lateral movement",
-            ""
+            "Due to the high noise level. Enable if you can though"
     )
 
     #### File Share
@@ -850,9 +853,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Enable SACLs just for sensitive files",
+            "Enable",
             "Depends on SACL rules",
-            ""
+            "Enable SACLs just for sensitive files"
     )
 
     #### Filtering Platform Connection
@@ -867,9 +870,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Success and Failure if you have enough space and are not monitoring network connections with sysmon. This should cause a high amount of events though",
+            "Success and Failure",
             "High",
-            ""
+            "Success and Failure if you have enough space and are not monitoring network connections with sysmon. This should cause a high amount of events though"
     )
 
     #### Filtering Platform Packet Drop
@@ -884,9 +887,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Success and Failure for AD CS role servers",
+            "Success and Failure",
             "High",
-            ""
+            "for AD CS role servers"
     )
 
     #### Kernel Object
@@ -901,9 +904,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Success and Failure but do not enable Audit the access of global system objects as you will generate too many 4663: Object Access events",
+            "Success and Failure",
             "High if auditing access of global object access is enabled",
-            ""
+            "Success and Failure but do not enable Audit the access of global system objects as you will generate too many 4663: Object Access events"
     )
 
     #### Handle Manipulation
@@ -952,9 +955,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Set SACLs for only the registry keys that you want to monitor",
+            "Success and Failure",
             "Depends on SACLs",
-            ""
+            "Set SACLs for only the registry keys that you want to monitor"
     )
 
     #### Removable Storage
@@ -969,9 +972,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Success and Failure if you want to monitor external device usage",
+            "Success and Failure",
             "Depends on how much removable storage is used",
-            ""
+            "if you want to monitor external device usage"
     )
 
     #### SAM
@@ -986,9 +989,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Success and Failure for AD CS role servers",
+            "Success and Failure",
             "Success and Failure if you can but may cause too high volume of noise so should be tested beforehand",
-            ""
+            "for AD CS role servers"
     )
 
     ### Policy Change
@@ -1038,7 +1041,7 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Unknown. Needs testing",
+            "",
             "Medium to High",
             ""
     )
@@ -1055,7 +1058,7 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Unknown, Needs testing",
+            "",
             "Low",
             ""
     )
@@ -1072,7 +1075,7 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Unknown, Needs testing",
+            "",
             "Low",
             ""
     )
@@ -1089,9 +1092,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "No Auditing (Note: ACSC recommends Success and Failure, however, this results in a lot of noise of 5447 (A Windows Filtering Platform filter has been changed) events being generated.)",
+            "No Auditing ",
             "Low",
-            ""
+            "ACSC recommends Success and Failure, however, this results in a lot of noise of 5447 (A Windows Filtering Platform filter has been changed) events being generated"
     )
 
     ### Privilege Use
@@ -1124,9 +1127,9 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "No Auditing",
-            "Success and Failure However, this may be too noisy",
+            "Success and Failure",
             "High",
-            ""
+            "However, this may be too noisy"
     )
 
     ### System
@@ -1142,7 +1145,7 @@ function AuditLogSetting {
             $enabled,
             [array]$rules,
             "Success and Failure",
-            "Unknown. Needs testing",
+            "",
             "Low",
             ""
     )
@@ -1210,8 +1213,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -1228,8 +1231,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 256 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -1246,8 +1249,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 8 MB",
-            "Enabled. 128 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -1264,8 +1267,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 20 MB",
-            "Enabled. 128 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -1282,8 +1285,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 128 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -1300,8 +1303,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 128 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -1318,8 +1321,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 128 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
@@ -1336,8 +1339,8 @@ function AuditLogSetting {
             "",
             $enabled,
             [array]$rules,
-            "Enabled. 1 MB",
-            "Enabled. 128 MB+",
+            "Enabled",
+            "Enabled",
             "",
             ""
     )
