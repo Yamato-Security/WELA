@@ -396,7 +396,7 @@ function AuditLogSetting {
             "ScriptBlock",
             $enabled,
             [array]$rules,
-            "Patially Enabled",
+            "Partially Enabled",
             "Enabled",
             "High",
             "On Win 10/2016+, if a PowerShell script is flagged as suspicious by AMSI, it will be logged with a level of Warning in default setting"
