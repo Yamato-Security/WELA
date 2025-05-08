@@ -74,9 +74,12 @@
                             if (-not $count) {
                                 $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
                             }
-                            $ruleCounts += "info:$([string]$count)"
+                            $ruleCounts += "info: $([string]$count)"
                         } else {
-                            $ruleCounts += "$($level):$($count), "
+                            if (-not $count) {
+                                $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
+                            }
+                            $ruleCounts += "$($level): $($count), "
                         }
                     }
                     $ruleCounts += ")"
