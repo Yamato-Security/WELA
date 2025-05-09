@@ -197,6 +197,25 @@ function GuideYamatoSecurity
         [object[]] $all_rules
     )
     $auditResult = @()
+
+    # Application
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Application")
+    $enabled  = $true
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $auditResult += [WELA]::New(
+            "Application",
+            "",
+            $enabled,
+            [array]$rules,
+            "Enabled",
+            "Enabled",
+            "",
+            ""
+    )
+
     # Applocker
     $guid    = ""
     $eids     = @()
@@ -1326,6 +1345,7 @@ function GuideASD {
     )
 
     $auditResult = @()
+
     # Application
     $guid    = ""
     $eids     = @()
@@ -2473,6 +2493,7 @@ function GuideMSC {
     )
 
     $auditResult = @()
+
     # Application
     $guid    = ""
     $eids     = @()
