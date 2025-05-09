@@ -1,7 +1,7 @@
 ﻿param (
     [string]$Cmd,
     [string]$OutType = "std",
-    [string]$Guide = "YamatoSecurity",
+    [string]$Baseline = "YamatoSecurity",
     [bool]$Debug = $false
 )
 
@@ -4766,7 +4766,7 @@ function GuideMSS {
 function AuditLogSetting {
     param (
         [string] $outType,
-        [string] $guide,
+        [string] $Baseline,
         [bool] $debug
     )
 
@@ -4786,13 +4786,13 @@ function AuditLogSetting {
     }
     $auditResult = @()
 
-    if ($guide.ToLower() -eq "yamatosecurity") {
+    if ($Baseline.ToLower() -eq "yamatosecurity") {
         $auditResult = GuideYamatoSecurity $all_rules
-    } elseif ($guide.ToLower() -eq "asd") {
+    } elseif ($Baseline.ToLower() -eq "asd") {
         $auditResult = GuideASD $all_rules
-    } elseif ($guide.ToLower() -eq "microsoft_client") {
+    } elseif ($Baseline.ToLower() -eq "microsoft_client") {
         $auditResult = GuideMSC $all_rules
-    } elseif ($guide.ToLower() -eq "microsoft_server") {
+    } elseif ($Baseline.ToLower() -eq "microsoft_server") {
         $auditResult = GuideMSS $all_rules
     }
 
@@ -5020,11 +5020,11 @@ Write-Host $logo -ForegroundColor Green
 switch ($Cmd.ToLower()) {
     "audit-settings"  {
         $validGuides = @("YamatoSecurity", "ASD", "Microsoft_Client", "Microsoft_Server")
-        if (-not ($validGuides -contains $Guide.ToLower())) {
+        if (-not ($validGuides -contains $Baseline.ToLower())) {
             Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
             break
         }
-        AuditLogSetting $OutType $Guide $Debug
+        AuditLogSetting $OutType $Baseline $Debug
     }
     "audit-filesize" {
         AuditFileSize
