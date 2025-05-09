@@ -5006,9 +5006,9 @@ $logo = @"
 
 $help = @"
 Usage:
-  ./WELA.ps1 -Cmd audit-settings -Guide YamatoSecurity     # Audit current setting and show in stdout, save to csv
-  ./WELA.ps1 -Cmd audit-settings -Guide ASD -OutType gui   # Audit current setting and show in gui, save to csv
-  ./WELA.ps1 -Cmd audit-filesize -Guide YamatoSecurity     # Audit current file size and show in stdout, save to csv
+  ./WELA.ps1 -Cmd audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
+  ./WELA.ps1 -Cmd audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
+  ./WELA.ps1 -Cmd audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
   ./WELA.ps1 -Cmd update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
   ./WELA.ps1 help        # Show this help
 "@
