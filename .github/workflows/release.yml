@@ -1,0 +1,72 @@
+name: WELA Release Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ver:
+        required: true
+        default: "1.0.0"
+        description: "Version of the release"
+      branch_or_tag:
+        required: true
+        default: "main"
+        description: "Branch or Tag to checkout"
+jobs:
+  upload:
+    runs-on: ${{ matrix.info.os }}
+    strategy:
+      matrix:
+        info:
+          - { os: "windows-latest" }
+          - { os: "macos-latest" }
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch_or_tag }}
+          submodules: 'true'
+
+      - name: Package and Zip - Windows
+        if: contains(matrix.info.os, 'windows') == true
+        shell: pwsh
+        run: |
+          mkdir -p release-binaries
+          Copy-Item -Path WELA.ps1 -Destination release-binaries/
+          Copy-Item -Recurse -Path ./config -Destination release-binaries/
+
+      - name: Set Artifact Name
+        if: contains(matrix.info.os, 'windows') == true
+        id: set_artifact_name
+        shell: bash
+        run: |
+          echo "artifact_name=wela-${{ github.event.inputs.release_ver }}" >> $GITHUB_OUTPUT ;;
+
+      - name: Upload Artifacts
+        if: contains(matrix.info.os, 'windows') == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set_artifact_name.outputs.artifact_name }}
+          path: release-binaries/*
+
+      - name: Setup node
+        if: matrix.info.os == 'macos-latest'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create PDF
+        if: matrix.info.os == 'macos-latest'
+        run: |
+          npm i -g md-to-pdf
+          md-to-pdf ./*.md --md-file-encoding utf-8
+          mv ./README.pdf ./README-${{ github.event.inputs.release_ver }}-English.pdf
+          mv ./README-Japanese.pdf ./README-${{ github.event.inputs.release_ver }}-Japanese.pdf
+
+      - name: Upload Document Artifacts
+        if: matrix.info.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wela-documents
+          path: |
+            ./*.pdf
