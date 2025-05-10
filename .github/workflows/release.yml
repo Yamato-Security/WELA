@@ -40,7 +40,7 @@ jobs:
         id: set_artifact_name
         shell: bash
         run: |
-          echo "artifact_name=wela-${{ github.event.inputs.release_ver }}" >> $GITHUB_OUTPUT ;;
+          echo "artifact_name=wela-${{ github.event.inputs.release_ver }}" >> $GITHUB_OUTPUT
 
       - name: Upload Artifacts
         if: contains(matrix.info.os, 'windows') == true
