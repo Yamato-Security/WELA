@@ -13,52 +13,52 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Check PowerShell version
+      - name: Check PowerShell version(PowerShell core)
         run: |
           $PSVersionTable.PSVersion
         shell: pwsh
 
-      - name: Run WELA.ps1 audit-settings
+      - name: Run WELA.ps1 audit-settings(PowerShell core)
         run: |
           ./WELA.ps1 audit-settings
         shell: pwsh
 
-      - name: Run WELA.ps1 audit-filesize
+      - name: Run WELA.ps1 audit-filesize(PowerShell core)
         run: |
           ./WELA.ps1 audit-filesize
         shell: pwsh
 
-      - name: Output UsableRules.csv
+      - name: Output UsableRules.csv(PowerShell core)
         run: |
           Get-Content UsableRules.csv
         shell: pwsh
 
-      - name: Output UnUsableRules.csv
+      - name: Output UnUsableRules.csv(PowerShell core)
         run: |
           Get-Content UnusableRules.csv
         shell: pwsh
 
-      - name: Check PowerShell version
+      - name: Check PowerShell version(PowerShell 5.1)
         run: |
           $PSVersionTable.PSVersion
         shell: powershell
 
-      - name: Run WELA.ps1 audit-settings
+      - name: Run WELA.ps1 audit-settings(PowerShell 5.1)
         run: |
           ./WELA.ps1 audit-settings
         shell: powershell
 
-      - name: Run WELA.ps1 audit-filesize
+      - name: Run WELA.ps1 audit-filesize(PowerShell 5.1)
         run: |
           ./WELA.ps1 audit-filesize
         shell: powershell
 
-      - name: Output UsableRules.csv
+      - name: Output UsableRules.csv(PowerShell 5.1)
         run: |
           Get-Content UsableRules.csv
         shell: powershell
 
-      - name: Output UnUsableRules.csv
+      - name: Output UnUsableRules.csv(PowerShell 5.1)
         run: |
           Get-Content UnusableRules.csv
         shell: powershell
