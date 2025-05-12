@@ -64,6 +64,9 @@ WELA helps identify these issues and provides actionable recommendations to impr
 ![WELA FileSize](screenshots/filesize.png)
 
 # Features
+- **Audit Windows Event Log settings**: Check the current settings of Windows Event Logs and compare them with recommended settings.
+- Checking Windows Event Log audit settings based on **real-world Sigma rule detectability**.
+- **Audit Windows Event Log file sizes**: Check the current file sizes of Windows Event Logs and compare them with recommended settings.
 
 # Prerequisites
 * PowerShell 5.1+
@@ -77,11 +80,6 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 1. Unzip the [release zip file](https://github.com/Yamato-Security/wela/releases).
 2. Open PowerShell with **Administrator privileges**.
 3. `./WELA.ps1 help` to run WELA.
-
-# Command List
-* `audit-settings`: Audit Windows Event Log settings
-* `audit-filesize`: Audit Windows Event Log file sizes
-* `update-rules` : Update Sigma contents in config directory
 
 # Command Usage
 ## audit-settings
