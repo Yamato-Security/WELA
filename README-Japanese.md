@@ -97,8 +97,8 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 
 # コマンド使用例
 ## audit-settings
-`audit-settings` command checks the Windows Event Log audit policy settings and compares them with the recommended settings from [Yamato Security](https://github.com/Yamato-Security/EnableWindowsLogSettings), [Microsoft(Sever/Client)](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations), and [Australian Signals Directorate (ASD)](https://www.cyber.gov.au/resources-business-and-government/maintaining-devices-and-systems/system-hardening-and-administration/system-monitoring/windows-event-logging-and-forwarding).
-RuleCount indicates the number of [Sigma rules](https://github.com/SigmaHQ/sigma) that can detect events within that category.
+`audit-settings`コマンドは、Windowsイベントログ監査ポリシー設定を評価し、[Yamato Security](https://github.com/Yamato-Security/EnableWindowsLogSettings)、[Microsoft(Sever/Client)](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations)、[Australian Signals Directorate (ASD)](https://www.cyber.gov.au/resources-business-and-government/maintaining-devices-and-systems/system-hardening-and-administration/system-monitoring/windows-event-logging-and-forwarding)の推奨設定と比較します。
+RuleCountは、そのカテゴリ内のイベントを検出できる[Sigmaルール](https://github.com/SigmaHQ/sigma)の数を示します。
 
 #### `audit-settings` command examples
 YamatoSecurityの推奨設定でチェックし、CSV形式で保存する:
@@ -165,8 +165,8 @@ WELAのSigmaルール設定ファイルを更新する:
 
 # 貢献者
 
-* Fukusuke Takahashi (core developer)
-* Zach Mathis (project leader, tool design, testing, etc...) (@yamatosecurity)
+* Fukusuke Takahashi (コア開発者)
+* Zach Mathis (プロジェクトリーダー, ツールデザイン, テスト,　など...) (@yamatosecurity)
 
 # 謝辞
 
