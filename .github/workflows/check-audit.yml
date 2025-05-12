@@ -16,19 +16,49 @@ jobs:
       - name: Check PowerShell version
         run: |
           $PSVersionTable.PSVersion
+        shell: pwsh
 
       - name: Run WELA.ps1 audit-settings
         run: |
           ./WELA.ps1 audit-settings
+        shell: pwsh
 
       - name: Run WELA.ps1 audit-filesize
         run: |
           ./WELA.ps1 audit-filesize
+        shell: pwsh
 
       - name: Output UsableRules.csv
         run: |
           Get-Content UsableRules.csv
+        shell: pwsh
 
       - name: Output UnUsableRules.csv
         run: |
           Get-Content UnusableRules.csv
+        shell: pwsh
+
+      - name: Check PowerShell version
+        run: |
+          $PSVersionTable.PSVersion
+        shell: powershell
+
+      - name: Run WELA.ps1 audit-settings
+        run: |
+          ./WELA.ps1 audit-settings
+        shell: powershell
+
+      - name: Run WELA.ps1 audit-filesize
+        run: |
+          ./WELA.ps1 audit-filesize
+        shell: powershell
+
+      - name: Output UsableRules.csv
+        run: |
+          Get-Content UsableRules.csv
+        shell: powershell
+
+      - name: Output UnUsableRules.csv
+        run: |
+          Get-Content UnusableRules.csv
+        shell: powershell
