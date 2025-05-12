@@ -44,6 +44,7 @@ WELA helps identify these issues and provides actionable recommendations to impr
   - [audit-settings](#audit-settings)
   - [audit-filesize](#audit-filesize)
   - [update-rules](#update-rules)
+- [Other Windows Event Log Audit Settings Related Resources](#other-windows-event-log-audit-settings-related-resources)
 - [Contribution](#contribution)
 - [Bug Submission](#bug-submission)
 - [License](#license)
