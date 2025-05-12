@@ -19,7 +19,7 @@
 
 
 # About WELA
-Windows Event Log Auditor
+WELA(Windows Event Log Analyzer)(ゑ羅) is a tool for auditing Windows Event Log settings and file sizes.
 
 # Companion Projects
 
