@@ -110,12 +110,17 @@ Check by Microsoft recommend setting (Client) and Display results in Table forma
 
 ## audit-filesize
 ### `audit-filesize` command examples
-Check Windows Event Log file size and save to CSV:  
+Check Windows Event Log file size by YamatoSecurity recommended settings and save to CSV:  
 ```
 ./WELA.ps1 audit-filesize
 ```
 
 ## update-rules
+### `update-rulese` command examples
+Update WELA's Sigma rules config files:  
+```
+./WELA.ps1 update-rules
+```
 
 # Other Windows Event Log Audit Related Resources
 
@@ -126,7 +131,7 @@ Check Windows Event Log file size and save to CSV:
 # Contribution
 
 We would love any form of contribution.
-Pull requests, rule creation and sample logs are the best, but feature requests notifying us of bugs, etc... are also very welcome.
+Pull requests, rule creation, and sample logs are the best, but feature requests notifying us of bugs, etc... are also very welcome.
 
 At the least, **if you like our tools and resources, then please give us a star on GitHub and show your support!**
 
@@ -137,7 +142,7 @@ At the least, **if you like our tools and resources, then please give us a star 
 
 # License
 
-* WELA is released under [MIT License]()
+* WELA is released under [MIT License](https://opensource.org/licenses/MIT)
 
 # Contributors
 
