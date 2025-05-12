@@ -102,7 +102,7 @@ Check by Microsoft recommend setting (Client) and Display results in Table forma
 
 ## audit-filesize
 ### `audit-filesize` command examples
-Check Windows Event Log file size and save results to CSV:  
+Check Windows Event Log file size and save to CSV:  
 `./WELA.ps1 audit-filesize`
 
 ## update-rules
