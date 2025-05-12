@@ -172,6 +172,6 @@ At the least, **if you like our tools and resources, then please give us a star 
 * [Microsoft: Advanced security auditing FAQ](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/advanced-security-auditing-faq)
 * [SigmaHQ](https://github.com/SigmaHQ/sigma)
 
-# Twitter
+# X
 
-You can receive the latest news about WELA, rule updates, other Yamato Security tools, etc... by following us on Twitter at [@SecurityYamato](https://twitter.com/SecurityYamato).
+You can receive the latest news about WELA, rule updates, other Yamato Security tools, etc... by following us on X at [@SecurityYamato](https://twitter.com/SecurityYamato).
