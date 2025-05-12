@@ -109,6 +109,8 @@ Check by Microsoft recommend setting (Client) and Display results in Table forma
 ```
 
 ## audit-filesize
+`audit-filesize` command checks the Windows Event Log file size and compares it with the recommended settings from **Yamato Security**.
+
 ### `audit-filesize` command examples
 Check Windows Event Log file size by YamatoSecurity recommended settings and save to CSV:  
 ```
