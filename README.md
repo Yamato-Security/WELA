@@ -1,5 +1,13 @@
 <div align="center">
+ <p>
+    <img alt="WELA Logo" src="screenshots/WELA-logo.png" width="20%">
+  <h1>
+   WELA (Windows Event Log Auditor) ゑ羅
+  </h1>
+<div align="center">
  [ <b>English</b> ] | [<a href="README-Japanese.md">日本語</a>]
+</div>
+ </p>
 </div>
 
 ---
