@@ -73,9 +73,9 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 
 # 機能
 - Windows Event Log Audit policyに対する評価
-- Checking **based on the major Windows Event Log Audit configuration guides**.
-- Checking Windows Event Log audit settings based on **real-world Sigma rule detectability**.
-- Audit Windows Event Log file sizes and suggest the recommended size.
+- 主要なWindowsイベントログ監査設定ガイドに基づくチェック
+- Windows Event Logの監査設定を、実際のSigmaルールの検知範囲に基づいて評価
+- Windows Event Logのファイルサイズを監査し、推奨サイズを提案
 
 # 前提要件
 * PowerShell 5.1+
@@ -91,9 +91,9 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 3. `./WELA.ps1 help`を実行する
 
 # コマンド一覧
-- `audit-settings`: Check Windows Event Log audit policy settings.
-- `audit-filesize`: Check Windows Event Log file size.
-- `update-rules`: Update WELA's Sigma rules config files.
+- `audit-settings`: Windowsイベントログ監査ポリシー設定を評価する
+- `audit-filesize`: Windowsイベントログファイルサイズを評価する
+- `update-rules`: WELAのSigmaルール設定ファイルを更新する
 
 # コマンド使用例
 ## audit-settings
@@ -101,22 +101,22 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 RuleCount indicates the number of [Sigma rules](https://github.com/SigmaHQ/sigma) that can detect events within that category.
 
 #### `audit-settings` command examples
-Check by YamatoSecurity(Default) recommend setting and save to CSV:
+YamatoSecurityの推奨設定でチェックし、CSV形式で保存する:
 ```
 ./WELA.ps1 audit-settings
 ```
 
-Check by Australian Signals Directorate recommend setting and save to CSV:
+Australian Signals Directorateの推奨設定でチェックし、CSV形式で保存する:
 ```
 ./WELA.ps1 audit-settings -BaseLine ASD
 ```
 
-Check by Microsoft recommend setting (Server) and Display results in GUI:
+Microsoftの推奨設定(Server)でチェックし、GUI形式で表示する:
 ```
 ./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui
 ```
 
-Check by Microsoft recommend setting (Client) and Display results in Table format:
+Microsoftの推奨設定(Client)でチェックし、Table形式で表示する:
 ```
 ./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table
 ```
@@ -125,14 +125,14 @@ Check by Microsoft recommend setting (Client) and Display results in Table forma
 `audit-filesize` command checks the Windows Event Log file size and compares it with the recommended settings from **Yamato Security**.
 
 #### `audit-filesize` command examples
-Check Windows Event Log file size by YamatoSecurity recommended settings and save to CSV:
+WindowsイベントログファイルサイズをYamatoSecurityの推奨設定でチェックし、CSV形式で保存する:
 ```
 ./WELA.ps1 audit-filesize
 ```
 
 ## update-rules
 #### `update-rulese` command examples
-Update WELA's Sigma rules config files:
+WELAのSigmaルール設定ファイルを更新する:
 ```
 ./WELA.ps1 update-rules
 ```
