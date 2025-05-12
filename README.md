@@ -129,7 +129,7 @@ Check Windows Event Log file size by YamatoSecurity recommended settings and sav
 ```
 
 ## update-rules
-#### `update-rulese` command examples
+#### `update-rules` command examples
 Update WELA's Sigma rules config files:  
 ```
 ./WELA.ps1 update-rules
