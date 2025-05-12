@@ -131,7 +131,7 @@ WindowsイベントログファイルサイズをYamatoSecurityの推奨設定�
 ```
 
 ## update-rules
-#### `update-rulese` command examples
+#### `update-rules` command examples
 WELAのSigmaルール設定ファイルを更新する:
 ```
 ./WELA.ps1 update-rules
