@@ -40,6 +40,10 @@ WELA helps identify these issues and provides actionable recommendations to impr
 - [Features](#features)
 - [Downloads](#downloads)
 - [Command List](#command-list)
+- [Command Usage](#command-usage)
+  - [audit-settings](#audit-settings)
+  - [audit-filesize](#audit-filesize)
+  - [update-rules](#update-rules)
 - [Contribution](#contribution)
 - [Bug Submission](#bug-submission)
 - [License](#license)
@@ -82,12 +86,16 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 2. Open PowerShell with **Administrator privileges**.
 3. `./WELA.ps1 help` to run WELA.
 
+# Command List
+- `audit-settings`: Check Windows Event Log audit policy settings.
+- `audit-filesize`: Check Windows Event Log file size.
+- `update-rules`: Update WELA's Sigma rules config files.
+
 # Command Usage
 ## audit-settings
 `audit-settings` command checks the Windows Event Log audit policy settings and compares them with the recommended settings from **Yamato Security**, **Microsoft(Sever/Client)**, and **Australian Signals Directorate (ASD)**.
 
-
-### `audit-settings` command examples
+#### `audit-settings` command examples
 Check by YamatoSecurity(Default) recommend setting and save to CSV:  
 ```
 ./WELA.ps1 audit-settings
@@ -111,14 +119,14 @@ Check by Microsoft recommend setting (Client) and Display results in Table forma
 ## audit-filesize
 `audit-filesize` command checks the Windows Event Log file size and compares it with the recommended settings from **Yamato Security**.
 
-### `audit-filesize` command examples
+#### `audit-filesize` command examples
 Check Windows Event Log file size by YamatoSecurity recommended settings and save to CSV:  
 ```
 ./WELA.ps1 audit-filesize
 ```
 
 ## update-rules
-### `update-rulese` command examples
+#### `update-rulese` command examples
 Update WELA's Sigma rules config files:  
 ```
 ./WELA.ps1 update-rules
