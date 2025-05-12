@@ -27,9 +27,9 @@ WELA helps identify these issues and provides actionable recommendations to impr
 
 # Companion Projects
 
-* [EnableWindowsLogSettings](https://github.com/Yamato-Security/EnableWindowsLogSettings) A guide for Windows Event Log settings.
-* [EventLog-Baseline-Guide](https://github.com/Yamato-Security/EventLog-Baseline-Guide) A guide to creating a baseline of Windows Event Logs Audit Settings.
-* [WELA-RulesGenerator](https://github.com/Yamato-Security/WELA-RulesGenerator) A tool for generating Sigma rules from Windows Event Log settings.
+* [EnableWindowsLogSettings](https://github.com/Yamato-Security/EnableWindowsLogSettings) Yamato Security's Windows Event Log Configuration Guide For DFIR And Threat Hunting.
+* [EventLog-Baseline-Guide](https://github.com/Yamato-Security/EventLog-Baseline-Guide) A tool to visualize detection gaps in Sigma rules and major Windows Event Log configuration guides.
+* [WELA-RulesGenerator](https://github.com/Yamato-Security/WELA-RulesGenerator) A tool for generating WELA's Sigma rule-related config files.
 
 # Table of Contents
 
