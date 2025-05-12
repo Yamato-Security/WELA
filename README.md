@@ -94,6 +94,7 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 # Command Usage
 ## audit-settings
 `audit-settings` command checks the Windows Event Log audit policy settings and compares them with the recommended settings from **[Yamato Security](https://github.com/Yamato-Security/EnableWindowsLogSettings)**, **[Microsoft(Sever/Client)](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations)**, and **[Australian Signals Directorate (ASD)](https://www.cyber.gov.au/resources-business-and-government/maintaining-devices-and-systems/system-hardening-and-administration/system-monitoring/windows-event-logging-and-forwarding)**.
+RuleCount indicates the number of [Sigma rules](https://github.com/SigmaHQ/sigma) that can detect events within that category.
 
 #### `audit-settings` command examples
 Check by YamatoSecurity(Default) recommend setting and save to CSV:  
@@ -162,6 +163,7 @@ At the least, **if you like our tools and resources, then please give us a star 
 
 # Acknowledgements
 
+* [SigmaHQ](https://github.com/SigmaHQ/sigma)
 
 # Twitter
 
