@@ -1,6 +1,6 @@
 <div align="center">
  <p>
-    <img alt="WELA Logo" src="screenshots/WELA-logo.png" width="20%">
+    <img alt="WELA Logo" src="screenshots/WELA-Logo.png" width="20%">
   <h1>
    WELA (Windows Event Log Auditor) ゑ羅
   </h1>
