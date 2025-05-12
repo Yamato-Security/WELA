@@ -133,7 +133,7 @@ Update WELA's Sigma rules config files:
 ./WELA.ps1 update-rules
 ```
 
-# Other Windows Event Log Audit Related Resources
+# Other Windows Event Log Audit Settings Related Resources
 
 * [A Data-Driven Approach to Windows Advanced Audit Policy – What to Enable and Why](https://www.splunk.com/en_us/blog/security/windows-audit-policy-guide.html)
 * [Audit Policy Recommendations](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations)
