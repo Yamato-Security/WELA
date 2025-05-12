@@ -88,16 +88,16 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 
 
 ### `audit-settings` command examples
-Check audit policy by YamatoSecurity(Default) recommend setting and save results to CSV:  
+Check by YamatoSecurity(Default) recommend setting and save to CSV:  
 `./WELA.ps1 audit-settings`
 
-Check audit policy by Australian Signals Directorate recommend setting and save results to CSV:  
+Check by Australian Signals Directorate recommend setting and save to CSV:  
 `./WELA.ps1 audit-settings -BaseLine ASD`
 
-Check audit policy by Microsoft recommend setting (Server) and Display results in GUI:  
+Check by Microsoft recommend setting (Server) and Display results in GUI:  
 `./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui`
 
-Check audit policy by Microsoft recommend setting (Client) and Display results in Table format:  
+Check by Microsoft recommend setting (Client) and Display results in Table format:  
 `./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table`
 
 ## audit-filesize
