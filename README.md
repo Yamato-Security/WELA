@@ -84,6 +84,9 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 
 # Command Usage
 ## audit-settings
+`audit-settings` command checks the Windows Event Log audit policy settings and compares them with the recommended settings from **Yamato Security**, **Microsoft(Sever/Client)**, and **Australian Signals Directorate (ASD)**.
+
+
 ### `audit-settings` command examples
 Check audit policy by YamatoSecurity(Default) recommend setting and save results to CSV:  
 `./WELA.ps1 audit-settings`
@@ -91,10 +94,10 @@ Check audit policy by YamatoSecurity(Default) recommend setting and save results
 Check audit policy by Australian Signals Directorate recommend setting and save results to CSV:  
 `./WELA.ps1 audit-settings -BaseLine ASD`
 
-Check audit policy by Microsoft recommend setting and Display results in GUI:  
+Check audit policy by Microsoft recommend setting (Server) and Display results in GUI:  
 `./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui`
 
-Check audit policy by Microsoft recommend setting and Display results in Table format:  
+Check audit policy by Microsoft recommend setting (Client) and Display results in Table format:  
 `./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table`
 
 ## audit-filesize
