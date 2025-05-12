@@ -13,6 +13,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Check PowerShell version
+        run: |
+          $PSVersionTable.PSVersion
 
       - name: Run WELA.ps1 audit-settings
         run: |
