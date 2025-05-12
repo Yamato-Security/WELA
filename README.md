@@ -89,21 +89,31 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 
 ### `audit-settings` command examples
 Check by YamatoSecurity(Default) recommend setting and save to CSV:  
-`./WELA.ps1 audit-settings`
+```
+./WELA.ps1 audit-settings
+```
 
 Check by Australian Signals Directorate recommend setting and save to CSV:  
-`./WELA.ps1 audit-settings -BaseLine ASD`
+```
+./WELA.ps1 audit-settings -BaseLine ASD
+```
 
 Check by Microsoft recommend setting (Server) and Display results in GUI:  
-`./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui`
+```
+./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui
+```
 
 Check by Microsoft recommend setting (Client) and Display results in Table format:  
-`./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table`
+```
+./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table
+```
 
 ## audit-filesize
 ### `audit-filesize` command examples
 Check Windows Event Log file size and save to CSV:  
-`./WELA.ps1 audit-filesize`
+```
+./WELA.ps1 audit-filesize
+```
 
 ## update-rules
 
