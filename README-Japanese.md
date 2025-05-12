@@ -122,7 +122,7 @@ Microsoftの推奨設定(Client)でチェックし、Table形式で表示する:
 ```
 
 ## audit-filesize
-`audit-filesize` command checks the Windows Event Log file size and compares it with the recommended settings from **Yamato Security**.
+`audit-filesize`コマンドは、Windowsイベントログファイルサイズを評価し、**Yamato Security**の推奨設定と比較します。
 
 #### `audit-filesize` command examples
 WindowsイベントログファイルサイズをYamatoSecurityの推奨設定でチェックし、CSV形式で保存する:
