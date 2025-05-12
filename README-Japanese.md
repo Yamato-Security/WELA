@@ -57,7 +57,7 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 
 # スクリーンショット
 
-## Startup
+## スタートアップ
 ![WELA Startup](screenshots/startup.png)
 
 ## audit-settings (stdout)
@@ -72,23 +72,23 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 ![WELA FileSize](screenshots/filesize.png)
 
 # 機能
-- Audit Windows Event Log Audit policy settings.
+- Windows Event Log Audit policyに対する評価
 - Checking **based on the major Windows Event Log Audit configuration guides**.
 - Checking Windows Event Log audit settings based on **real-world Sigma rule detectability**.
 - Audit Windows Event Log file sizes and suggest the recommended size.
 
 # 前提要件
 * PowerShell 5.1+
-* Run PowerShell with Administrator privileges
+* PowerShellをAdministrator権限で実行する
 
 # ダウンロード
 
-Please download the latest stable version of WELA from the [Releases](https://github.com/Yamato-Security/wela/releases) page.
+[リリースページ](https://github.com/Yamato-Security/wela/releases)から最新の安定版WELAをダウンロードしてください。
 
 # WELAの実行
-1. Unzip the [release zip file](https://github.com/Yamato-Security/wela/releases).
-2. Open PowerShell with **Administrator privileges**.
-3. `./WELA.ps1 help` to run WELA.
+1.  [release zip file](https://github.com/Yamato-Security/wela/releases)を展開する。
+2. **Administrator権限**でPowerShellを開く。
+3. `./WELA.ps1 help`を実行する
 
 # コマンド一覧
 - `audit-settings`: Check Windows Event Log audit policy settings.
@@ -149,19 +149,19 @@ Update WELA's Sigma rules config files:
 
 # 貢献
 
-We would love any form of contribution.
-Pull requests, rule creation, and sample logs are the best, but feature requests notifying us of bugs, etc... are also very welcome.
+わたしたちは、どんな形でも貢献を歓迎します。
+プルリクエスト、ルール作成、サンプルログの提供が最も歓迎されますが、バグの報告や機能リクエストなども大歓迎です。
 
-At the least, **if you like our tools and resources, then please give us a star on GitHub and show your support!**
+少なくとも、**私たちのツールやリソースが気に入ったら、GitHubでスターをつけて応援してください！**
 
 # 不具合の報告
 
-* Please submit any bugs you find [here.](https://github.com/Yamato-Security/wela/issues/new?assignees=&labels=bug&template=bug_report.md&title=%5Bbug%5D)
-* This project is currently actively maintained, and we are happy to fix any bugs reported.
+* 不具合の報告は、[こちら](https://github.com/Yamato-Security/wela/issues/new?assignees=&labels=bug&template=bug_report.md&title=%5Bbug%5D)からお願いします。
+* このプロジェクトは現在も積極的にメンテナンスされており、バグの報告や機能のリクエストは大歓迎です。
 
 # ライセンス
 
-* WELA is released under [MIT License](https://opensource.org/licenses/MIT)
+* WELAは、[MITライセンス](https://opensource.org/licenses/MIT)のもとでリリースされています。
 
 # 貢献者
 
@@ -176,4 +176,4 @@ At the least, **if you like our tools and resources, then please give us a star 
 
 # X
 
-You can receive the latest news about WELA, rule updates, other Yamato Security tools, etc... by following us on X at [@SecurityYamato](https://twitter.com/SecurityYamato).
+WELAの最新情報、ルールの更新、Yamato Securityの他のツールなどについては、X[@SecurityYamato](https://twitter.com/SecurityYamato)で発信しています。
