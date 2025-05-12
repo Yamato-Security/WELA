@@ -64,7 +64,7 @@ WELA helps identify these issues and provides actionable recommendations to impr
 ![WELA FileSize](screenshots/filesize.png)
 
 # Features
-- Audit Windows Event Log Audit policy settings
+- Audit Windows Event Log Audit policy settings.
 - Checking **based on the major Windows Event Log Audit configuration guides**.
 - Checking Windows Event Log audit settings based on **real-world Sigma rule detectability**.
 - Audit Windows Event Log file sizes and suggest the recommended size.
@@ -84,7 +84,24 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 
 # Command Usage
 ## audit-settings
+### `audit-settings` command examples
+Check audit policy by YamatoSecurity(Default) recommend setting and save results to CSV:  
+`./WELA.ps1 audit-settings`
+
+Check audit policy by Australian Signals Directorate recommend setting and save results to CSV:  
+`./WELA.ps1 audit-settings -BaseLine ASD`
+
+Check audit policy by Microsoft recommend setting and Display results in GUI:  
+`./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui`
+
+Check audit policy by Microsoft recommend setting and Display results in Table format:  
+`./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table`
+
 ## audit-filesize
+### `audit-filesize` command examples
+Check Windows Event Log file size and save results to CSV:  
+`./WELA.ps1 audit-filesize`
+
 ## update-rules
 
 # Other Windows Event Log Audit Related Resources
