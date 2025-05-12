@@ -65,7 +65,7 @@ WELA helps identify these issues and provides actionable recommendations to impr
 
 # Features
 - Audit Windows Event Log Audit policy settings
-- Checking based on the major Windows Event Log Audit configuration guides
+- Checking **based on the major Windows Event Log Audit configuration guides**.
 - Checking Windows Event Log audit settings based on **real-world Sigma rule detectability**.
 - Audit Windows Event Log file sizes and suggest the recommended size.
 
