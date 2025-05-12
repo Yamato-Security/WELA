@@ -93,7 +93,7 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 
 # Command Usage
 ## audit-settings
-`audit-settings` command checks the Windows Event Log audit policy settings and compares them with the recommended settings from **Yamato Security**, **Microsoft(Sever/Client)**, and **Australian Signals Directorate (ASD)**.
+`audit-settings` command checks the Windows Event Log audit policy settings and compares them with the recommended settings from **[Yamato Security](https://github.com/Yamato-Security/EnableWindowsLogSettings)**, **[Microsoft(Sever/Client)](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations)**, and **[Australian Signals Directorate (ASD)](https://www.cyber.gov.au/resources-business-and-government/maintaining-devices-and-systems/system-hardening-and-administration/system-monitoring/windows-event-logging-and-forwarding)**.
 
 #### `audit-settings` command examples
 Check by YamatoSecurity(Default) recommend setting and save to CSV:  
@@ -134,6 +134,7 @@ Update WELA's Sigma rules config files:
 
 # Other Windows Event Log Audit Related Resources
 
+* [EnableWindowsLogSettings](https://github.com/Yamato-Security/EnableWindowsLogSettings) Yamato Security's Windows Event Log Configuration Guide For DFIR And Threat Hunting.
 * [Audit Policy Recommendations](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations)
 * [Windows event logging and forwarding](https://www.cyber.gov.au/resources-business-and-government/maintaining-devices-and-systems/system-hardening-and-administration/system-monitoring/windows-event-logging-and-forwarding)
 * [A Data-Driven Approach to Windows Advanced Audit Policy – What to Enable and Why](https://www.splunk.com/en_us/blog/security/windows-audit-policy-guide.html)
@@ -158,6 +159,9 @@ At the least, **if you like our tools and resources, then please give us a star 
 
 * Fukusuke Takahashi (core developer)
 * Zach Mathis (project leader, tool design, testing, etc...) (@yamatosecurity)
+
+# Acknowledgements
+
 
 # Twitter
 
