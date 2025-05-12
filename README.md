@@ -19,10 +19,11 @@
 
 
 # About WELA
-**WELA (Windows Event Log Analyzer, ゑ羅) is a tool for auditing Windows Event Log settings and log file sizes**.
-Windows Event Logs are essential for Digital Forensics and Incident Response (DFIR), offering insights into system activity and security events.
-However, **Default Windows Event Log settings often cause issues—such as small log sizes, weak audit policies, and blind spots in detection**—that hinder effective investigations.
-WELA helps identify these issues and provides actionable recommendations to improve log settings and strengthen security visibility.
+**WELA (Windows Event Log Analyzer, ゑ羅)** is a tool for auditing Windows Event Log settings and log file sizes.
+Windows Event Logs are a vital source of information for Digital Forensics and Incident Response (DFIR), providing visibility into system activity and security events.
+**However, default configurations often lead to problems such as limited log retention, insufficient audit policies, and blind spots that reduce detection capability**.
+WELA helps uncover these weaknesses and offers practical recommendations to improve audit settings and enhance security visibility.
+It also assesses log configurations **based on real-world Sigma rule coverage**, allowing users to evaluate what can—or cannot—be detected undercurrent settings.
 
 
 # Companion Projects
