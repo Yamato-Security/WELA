@@ -13,6 +13,8 @@
 ---
 
 <p align="center">
+    <a href="https://conference.auscert.org.au/speaker/fukusuke-takahashi/"><img src="https://img.shields.io/badge/AUSCERT-2025-blue"></a>
+    <a href="https://www.infosec-city.com/sin-25"><img src="https://img.shields.io/badge/SINCON-2025-blue"></a>
     <a href="https://github.com/Yamato-Security/wela/commits/main/"><img src="https://img.shields.io/github/commit-activity/t/Yamato-Security/wela/main" /></a>
     <a href="https://twitter.com/SecurityYamato"><img src="https://img.shields.io/twitter/follow/SecurityYamato?style=social"/></a>
 </p>
@@ -34,26 +36,34 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 
 # 目次
 
-- [WELAについて](#WELAについて)
+- [WELAについて](#welaについて)
 - [関連プロジェクト](#関連プロジェクト)
 - [目次](#目次)
 - [スクリーンショット](#スクリーンショット)
+  - [スタートアップ](#スタートアップ)
+  - [audit-settings (stdout)](#audit-settings-stdout)
+  - [audit-settings (gui)](#audit-settings-gui)
+  - [audit-settings (table)](#audit-settings-table)
+  - [audit-filesize](#audit-filesize)
 - [機能](#機能)
 - [前提要件](#前提要件)
 - [ダウンロード](#ダウンロード)
-- [WELAの実行](#WELAの実行)
+- [WELAの実行](#welaの実行)
 - [コマンド一覧](#コマンド一覧)
 - [コマンド使用例](#コマンド使用例)
-    - [audit-settings](#audit-settings)
-    - [audit-filesize](#audit-filesize)
-    - [update-rules](#update-rules)
-- [Windowsイベントログの監査設定に関するその他の参考資料](#Windowsイベントログの監査設定に関するその他の参考資料)
+  - [audit-settings](#audit-settings)
+      - [`audit-settings` command examples](#audit-settings-command-examples)
+  - [audit-filesize](#audit-filesize-1)
+      - [`audit-filesize` command examples](#audit-filesize-command-examples)
+  - [update-rules](#update-rules)
+      - [`update-rules` command examples](#update-rules-command-examples)
+- [Windowsイベントログの監査設定に関するその他の参考資料](#windowsイベントログの監査設定に関するその他の参考資料)
 - [貢献](#貢献)
 - [不具合の報告](#不具合の報告)
 - [ライセンス](#ライセンス)
 - [貢献者](#貢献者)
 - [謝辞](#謝辞)
-- [X](#X)
+- [X](#x)
 
 # スクリーンショット
 

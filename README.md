@@ -13,6 +13,8 @@
 ---
 
 <p align="center">
+    <a href="https://conference.auscert.org.au/speaker/fukusuke-takahashi/"><img src="https://img.shields.io/badge/AUSCERT-2025-blue"></a>
+    <a href="https://www.infosec-city.com/sin-25"><img src="https://img.shields.io/badge/SINCON-2025-blue"></a>
     <a href="https://github.com/Yamato-Security/wela/commits/main/"><img src="https://img.shields.io/github/commit-activity/t/Yamato-Security/wela/main" /></a>
     <a href="https://twitter.com/SecurityYamato"><img src="https://img.shields.io/twitter/follow/SecurityYamato?style=social"/></a>
 </p>
@@ -38,20 +40,30 @@ It also assesses log configurations **based on real-world Sigma rule coverage**,
 - [Companion Projects](#companion-projects)
 - [Table of Contents](#table-of-contents)
 - [Screenshots](#screenshots)
+  - [Startup](#startup)
+  - [audit-settings (stdout)](#audit-settings-stdout)
+  - [audit-settings (gui)](#audit-settings-gui)
+  - [audit-settings (table)](#audit-settings-table)
+  - [audit-filesize](#audit-filesize)
 - [Features](#features)
+- [Prerequisites](#prerequisites)
 - [Downloads](#downloads)
+- [Running WELA](#running-wela)
 - [Command List](#command-list)
 - [Command Usage](#command-usage)
   - [audit-settings](#audit-settings)
-  - [audit-filesize](#audit-filesize)
+      - [`audit-settings` command examples](#audit-settings-command-examples)
+  - [audit-filesize](#audit-filesize-1)
+      - [`audit-filesize` command examples](#audit-filesize-command-examples)
   - [update-rules](#update-rules)
+      - [`update-rules` command examples](#update-rules-command-examples)
 - [Other Windows Event Log Audit Settings Related Resources](#other-windows-event-log-audit-settings-related-resources)
 - [Contribution](#contribution)
 - [Bug Submission](#bug-submission)
 - [License](#license)
 - [Contributors](#contributors)
 - [Acknowledgements](#acknowledgements)
-- [Twitter](#twitter)
+- [X](#x)
 
 # Screenshots
 
