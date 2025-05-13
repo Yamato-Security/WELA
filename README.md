@@ -21,18 +21,18 @@
 
 
 # About WELA
-**WELA (Windows Event Log Analyzer, ゑ羅)** is a tool for auditing Windows Event Log settings and log file sizes.
-Windows Event Logs are a vital source of information for Digital Forensics and Incident Response (DFIR), providing visibility into system activity and security events.
-**However, default configurations often lead to problems such as limited log retention, insufficient audit policies, and blind spots that reduce detection capability**.
+**WELA (Windows Event Log Analyzer, ゑ羅)** is a tool for auditing Windows event log settings.
+Windows event logs are a vital source of information for Digital Forensics and Incident Response (DFIR), providing visibility into system activity and security events.
+**Unfortunately, default configurations often lead to problems such as limited log retention, insufficient audit policies, and blind spots that reduce detection capability**.
 WELA helps uncover these weaknesses and offers practical recommendations to improve audit settings and enhance security visibility.
-It also assesses log configurations **based on real-world Sigma rule coverage**, allowing users to evaluate what can—or cannot—be detected undercurrent settings.
+WELA also assesses log configurations **based on real-world Sigma rule coverage**, allowing users to evaluate what can or cannot be detected under current the settings.
 
 
 # Companion Projects
 
-* [EnableWindowsLogSettings](https://github.com/Yamato-Security/EnableWindowsLogSettings) Yamato Security's Windows Event Log Configuration Guide.
-* [EventLog-Baseline-Guide](https://github.com/Yamato-Security/EventLog-Baseline-Guide) A tool to visualize detection gaps in Sigma rules and major guides.
-* [WELA-RulesGenerator](https://github.com/Yamato-Security/WELA-RulesGenerator) A tool for generating WELA's Sigma rule-related config files.
+* [EnableWindowsLogSettings](https://github.com/Yamato-Security/EnableWindowsLogSettings): Yamato Security's Windows Event Log Configuration Guide.
+* [EventLog-Baseline-Guide](https://github.com/Yamato-Security/EventLog-Baseline-Guide): A tool to visualize detection gaps in Sigma rules and major guides.
+* [WELA-RulesGenerator](https://github.com/Yamato-Security/WELA-RulesGenerator): A tool for generating WELA's Sigma rule-related config files.
 
 # Table of Contents
 
@@ -40,9 +40,9 @@ It also assesses log configurations **based on real-world Sigma rule coverage**,
 - [Companion Projects](#companion-projects)
 - [Table of Contents](#table-of-contents)
 - [Screenshots](#screenshots)
-  - [Startup](#startup)
-  - [audit-settings (stdout)](#audit-settings-stdout)
-  - [audit-settings (gui)](#audit-settings-gui)
+  - [Startup Help Menu](#startup-help-menu)
+  - [audit-settings (terminal output)](#audit-settings-terminal-output)
+  - [audit-settings (GUI)](#audit-settings-gui)
   - [audit-settings (table)](#audit-settings-table)
   - [audit-filesize](#audit-filesize)
 - [Features](#features)
@@ -52,27 +52,27 @@ It also assesses log configurations **based on real-world Sigma rule coverage**,
 - [Command List](#command-list)
 - [Command Usage](#command-usage)
   - [audit-settings](#audit-settings)
-      - [`audit-settings` command examples](#audit-settings-command-examples)
+    - [`audit-settings` command examples](#audit-settings-command-examples)
   - [audit-filesize](#audit-filesize-1)
-      - [`audit-filesize` command examples](#audit-filesize-command-examples)
+    - [`audit-filesize` command examples](#audit-filesize-command-examples)
   - [update-rules](#update-rules)
       - [`update-rules` command examples](#update-rules-command-examples)
 - [Other Windows Event Log Audit Settings Related Resources](#other-windows-event-log-audit-settings-related-resources)
-- [Contribution](#contribution)
+- [Contributions](#contributions)
 - [Bug Submission](#bug-submission)
 - [License](#license)
 - [Contributors](#contributors)
 - [Acknowledgements](#acknowledgements)
-- [X](#x)
+- [Twitter](#twitter)
 
 # Screenshots
 
-## Startup
+## Startup Help Menu
 ![WELA Startup](screenshots/startup.png)
 
-## audit-settings (stdout)
+## audit-settings (terminal output)
 ![WELA Stdout](screenshots/stdout.png)
-## audit-settings (gui)
+## audit-settings (GUI)
 ![WELA GUI](screenshots/gui.png)
 
 ## audit-settings (table)
@@ -82,14 +82,14 @@ It also assesses log configurations **based on real-world Sigma rule coverage**,
 ![WELA FileSize](screenshots/filesize.png)
 
 # Features
-- Audit Windows Event Log Audit policy settings.
-- Checking **based on the major Windows Event Log Audit configuration guides**.
-- Checking Windows Event Log audit settings based on **real-world Sigma rule detectability**.
-- Audit Windows Event Log file sizes and suggest the recommended size.
+- Auditing Windows event log audit policy settings.
+- Checking **based on the major Windows event log audit configuration guidelines**.
+- Checking Windows event log audit settings based on **real-world Sigma rule detectability**.
+- Auditing of Windows event log file sizes and suggestions for the recommended size.
 
 # Prerequisites
-* PowerShell 5.1+
-* Run PowerShell with Administrator privileges
+* Windows PowerShell 5.1 or PowerShell Core
+* Running PowerShell with Administrator privileges
 
 # Downloads
 
@@ -98,44 +98,44 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 # Running WELA
 1. Unzip the [release zip file](https://github.com/Yamato-Security/wela/releases).
 2. Open PowerShell with **Administrator privileges**.
-3. `./WELA.ps1 help` to run WELA.
+3. `./WELA.ps1 help` to run WELA and see the help usage.
 
 # Command List
-- `audit-settings`: Check Windows Event Log audit policy settings.
-- `audit-filesize`: Check Windows Event Log file size.
+- `audit-settings`: Check Windows event log audit policy settings.
+- `audit-filesize`: Check Windows event log file size.
 - `update-rules`: Update WELA's Sigma rules config files.
 
 # Command Usage
 ## audit-settings
-`audit-settings` command checks the Windows Event Log audit policy settings and compares them with the recommended settings from [Yamato Security](https://github.com/Yamato-Security/EnableWindowsLogSettings), [Microsoft(Sever/Client)](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations), and [Australian Signals Directorate (ASD)](https://www.cyber.gov.au/resources-business-and-government/maintaining-devices-and-systems/system-hardening-and-administration/system-monitoring/windows-event-logging-and-forwarding).
-RuleCount indicates the number of [Sigma rules](https://github.com/SigmaHQ/sigma) that can detect events within that category.
+The `audit-settings` command checks the Windows event log audit policy settings and compares them with the recommended settings from [Yamato Security](https://github.com/Yamato-Security/EnableWindowsLogSettings), [Microsoft(Sever/Client)](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations), and [Australian Signals Directorate (ASD)](https://www.cyber.gov.au/resources-business-and-government/maintaining-devices-and-systems/system-hardening-and-administration/system-monitoring/windows-event-logging-and-forwarding).
+`RuleCount` indicates the number of [Sigma rules](https://github.com/SigmaHQ/sigma) that can detect events within that category.
 
-#### `audit-settings` command examples
-Check by YamatoSecurity(Default) recommend setting and save to CSV:  
+### `audit-settings` command examples
+Check with the default Yamato Security's recommended settings and save results to CSV:  
 ```
 ./WELA.ps1 audit-settings
 ```
 
-Check by Australian Signals Directorate recommend setting and save to CSV:  
+Check with the Australian Signals Directorate's recommended settings and save results to CSV:  
 ```
 ./WELA.ps1 audit-settings -BaseLine ASD
 ```
 
-Check by Microsoft recommend setting (Server) and Display results in GUI:  
+Check with Microsoft's recommended Server OS settings and display results in a GUI:  
 ```
 ./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui
 ```
 
-Check by Microsoft recommend setting (Client) and Display results in Table format:  
+Check with Microsoft's recommended Client OS settings and display results in table format:  
 ```
 ./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table
 ```
 
 ## audit-filesize
-`audit-filesize` command checks the Windows Event Log file size and compares it with the recommended settings from **Yamato Security**.
+The `audit-filesize` command checks the Windows event logs' file size and compares them with the recommended settings from Yamato Security's recommendations.
 
-#### `audit-filesize` command examples
-Check Windows Event Log file size by YamatoSecurity recommended settings and save to CSV:  
+### `audit-filesize` command examples
+Check the Windows event log file size with Yamato Security's recommendations and save results to CSV:  
 ```
 ./WELA.ps1 audit-filesize
 ```
@@ -157,10 +157,10 @@ Update WELA's Sigma rules config files:
 * [mdecrevoisier/Windows-auditing-baseline](https://github.com/mdecrevoisier/Windows-auditing-baseline)
 * [palantir/windows-event-forwarding](https://github.com/palantir/windows-event-forwarding/tree/master/group-policy-objects)
 
-# Contribution
+# Contributions
 
 We would love any form of contribution.
-Pull requests, rule creation, and sample logs are the best, but feature requests notifying us of bugs, etc... are also very welcome.
+Pull requests are the best, but feature requests notifying us of bugs, etc... through issues are also very welcome.
 
 At the least, **if you like our tools and resources, then please give us a star on GitHub and show your support!**
 
@@ -171,7 +171,7 @@ At the least, **if you like our tools and resources, then please give us a star 
 
 # License
 
-* WELA is released under [MIT License](https://opensource.org/licenses/MIT)
+* WELA is released under the [MIT License](https://opensource.org/licenses/MIT).
 
 # Contributors
 
@@ -184,6 +184,6 @@ At the least, **if you like our tools and resources, then please give us a star 
 * [Microsoft: Advanced security auditing FAQ](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/advanced-security-auditing-faq)
 * [SigmaHQ](https://github.com/SigmaHQ/sigma)
 
-# X
+# Twitter
 
-You can receive the latest news about WELA, rule updates, other Yamato Security tools, etc... by following us on X at [@SecurityYamato](https://twitter.com/SecurityYamato).
+You can receive the latest news about WELA, rule updates, other Yamato Security tools, etc... by following us on Twitter at [@SecurityYamato](https://twitter.com/SecurityYamato).
