@@ -12,7 +12,7 @@ class WELA {
     [bool] $Enabled
     [array] $Rules
     [hashtable] $RulesCount
-    [string] $DefaultSetting = ""
+    [string] $CurrentSetting = ""
     [string] $RecommendedSetting = ""
     [string] $Volume = ""
     [string] $Note = ""
@@ -26,12 +26,12 @@ class WELA {
     }
 
 
-    WELA([string] $Category, [string] $SubCategory, [bool] $Enabled, [array] $Rules, [string] $DefaultSetting, [string] $RecommendedSetting, [string] $Volume, [string] $Note) {
+    WELA([string] $Category, [string] $SubCategory, [bool] $Enabled, [array] $Rules, [string] $CurrentSetting, [string] $RecommendedSetting, [string] $Volume, [string] $Note) {
         $this.Category = $Category
         $this.SubCategory = $SubCategory
         $this.Enabled = $Enabled
         $this.Rules = $Rules
-        $this.DefaultSetting = $DefaultSetting
+        $this.CurrentSetting = $CurrentSetting
         $this.RecommendedSetting = $RecommendedSetting
         $this.Volume = $Volume
         $this.Note = $Note
@@ -96,8 +96,8 @@ class WELA {
                 } else {
                     Write-Host "  - $($ruleCounts)" -ForegroundColor $color
                 }
-                if ($this.DefaultSetting) {
-                    Write-Host "    - Default Setting: $($this.DefaultSetting)"
+                if ($this.CurrentSetting) {
+                    Write-Host "    - Current Setting: $($this.CurrentSetting)"
                 }
                 if ($this.RecommendedSetting) {
                     Write-Host "    - Recommended Setting: $($this.RecommendedSetting)"
@@ -4874,12 +4874,12 @@ function AuditLogSetting {
             }
             Write-Host ""
         }
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, CurrentSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, DefaultSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, CurrentSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     } elseif ($outType -eq "table") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, Enabled, DefaultSetting, RecommendedSetting, Volume | Format-Table
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, Enabled, CurrentSetting, RecommendedSetting, Volume | Format-Table
     }
     $usableRules     = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
     $unUsableRules   = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $false }
