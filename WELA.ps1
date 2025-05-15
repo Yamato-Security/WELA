@@ -4874,12 +4874,12 @@ function AuditLogSetting {
             }
             Write-Host ""
         }
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, CurrentSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, CurrentSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, Enabled, CurrentSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, CurrentSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     } elseif ($outType -eq "table") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, Enabled, CurrentSetting, RecommendedSetting, Volume | Format-Table
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, CurrentSetting, RecommendedSetting, Volume | Format-Table
     }
     $usableRules     = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
     $unUsableRules   = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $false }
