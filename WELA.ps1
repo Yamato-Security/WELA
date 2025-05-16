@@ -100,7 +100,7 @@ class WELA {
                     Write-Host "    - Default Setting: $($this.DefaultSetting)"
                 }
                 if ($this.CurrentSetting) {
-                    Write-Host "    - CurrentSetting Setting: $($this.CurrentSetting)"
+                    Write-Host "    - Current Setting: $($this.CurrentSetting)"
                 }
                 if ($this.RecommendedSetting) {
                     Write-Host "    - Recommended Setting: $($this.RecommendedSetting)"
