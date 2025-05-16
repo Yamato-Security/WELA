@@ -371,7 +371,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Module",
@@ -390,7 +390,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "ScriptBlock",
@@ -447,7 +447,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -465,7 +465,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -483,7 +483,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -502,7 +502,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -520,7 +520,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -538,7 +538,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -556,7 +556,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -575,7 +575,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -593,7 +593,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -611,7 +611,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -629,7 +629,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
@@ -647,7 +647,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
@@ -666,7 +666,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -684,7 +684,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -703,7 +703,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -721,7 +721,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -739,7 +739,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -757,7 +757,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -775,7 +775,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -793,7 +793,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -813,7 +813,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -831,7 +831,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -849,7 +849,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -867,7 +867,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -885,7 +885,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -903,7 +903,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -921,7 +921,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -939,7 +939,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -957,7 +957,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -975,7 +975,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -993,7 +993,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -1011,7 +1011,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -1030,7 +1030,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -1048,7 +1048,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -1066,7 +1066,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -1084,7 +1084,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -1102,7 +1102,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -1120,7 +1120,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -1139,7 +1139,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -1157,7 +1157,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -1176,7 +1176,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -1194,7 +1194,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -1212,7 +1212,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -1230,7 +1230,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
@@ -1249,7 +1249,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security-Mitigations KernelMode",
             "",
@@ -1268,7 +1268,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security-Mitigations UserMode",
             "",
@@ -1287,7 +1287,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "SMBClient Security",
             "",
@@ -1306,7 +1306,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "System",
             "",
@@ -1569,7 +1569,7 @@ function GuideASD {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Module",
@@ -1588,7 +1588,7 @@ function GuideASD {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "ScriptBlock",
@@ -1645,7 +1645,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -1663,7 +1663,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -1681,7 +1681,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -1700,7 +1700,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -1718,7 +1718,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -1736,7 +1736,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -1754,7 +1754,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -1773,7 +1773,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -1791,7 +1791,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -1809,7 +1809,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -1827,7 +1827,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
@@ -1845,7 +1845,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
@@ -1864,7 +1864,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -1882,7 +1882,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -1901,7 +1901,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -1919,7 +1919,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -1937,7 +1937,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -1955,7 +1955,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -1973,7 +1973,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -1991,7 +1991,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -2011,7 +2011,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -2029,7 +2029,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -2047,7 +2047,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -2065,7 +2065,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -2083,7 +2083,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -2101,7 +2101,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -2119,7 +2119,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -2137,7 +2137,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -2155,7 +2155,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -2173,7 +2173,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -2191,7 +2191,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -2209,7 +2209,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -2228,7 +2228,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -2246,7 +2246,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -2264,7 +2264,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -2282,7 +2282,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -2300,7 +2300,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -2318,7 +2318,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -2337,7 +2337,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -2355,7 +2355,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -2374,7 +2374,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -2392,7 +2392,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -2410,7 +2410,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -2428,7 +2428,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
@@ -2447,7 +2447,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security-Mitigations KernelMode",
             "",
@@ -2466,7 +2466,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security-Mitigations UserMode",
             "",
@@ -2485,7 +2485,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "SMBClient Security",
             "",
@@ -2766,7 +2766,7 @@ function GuideMSC {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Module",
@@ -2785,7 +2785,7 @@ function GuideMSC {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "ScriptBlock",
@@ -2842,7 +2842,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -2860,7 +2860,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -2878,7 +2878,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -2897,7 +2897,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -2915,7 +2915,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -2933,7 +2933,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -2951,7 +2951,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -2970,7 +2970,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -2988,7 +2988,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -3006,7 +3006,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -3024,7 +3024,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
@@ -3042,7 +3042,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
@@ -3061,7 +3061,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -3079,7 +3079,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -3098,7 +3098,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -3116,7 +3116,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -3134,7 +3134,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -3152,7 +3152,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -3170,7 +3170,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -3188,7 +3188,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -3208,7 +3208,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -3226,7 +3226,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -3244,7 +3244,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -3262,7 +3262,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -3280,7 +3280,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -3298,7 +3298,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -3316,7 +3316,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -3334,7 +3334,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -3352,7 +3352,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -3370,7 +3370,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -3388,7 +3388,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -3406,7 +3406,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -3425,7 +3425,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -3443,7 +3443,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -3461,7 +3461,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -3479,7 +3479,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -3497,7 +3497,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -3515,7 +3515,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -3534,7 +3534,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -3552,7 +3552,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -3571,7 +3571,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -3589,7 +3589,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -3607,7 +3607,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -3625,7 +3625,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
@@ -3644,7 +3644,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security-Mitigations KernelMode",
             "",
@@ -3663,7 +3663,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security-Mitigations UserMode",
             "",
@@ -3682,7 +3682,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "SMBClient Security",
             "",
@@ -3962,7 +3962,7 @@ function GuideMSS {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Module",
@@ -3981,7 +3981,7 @@ function GuideMSS {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "ScriptBlock",
@@ -4038,7 +4038,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -4056,7 +4056,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -4074,7 +4074,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -4093,7 +4093,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -4111,7 +4111,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -4129,7 +4129,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -4147,7 +4147,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -4166,7 +4166,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -4184,7 +4184,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -4202,7 +4202,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -4220,7 +4220,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
@@ -4238,7 +4238,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
@@ -4257,7 +4257,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -4275,7 +4275,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -4294,7 +4294,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -4312,7 +4312,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -4330,7 +4330,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -4348,7 +4348,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -4366,7 +4366,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -4384,7 +4384,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -4404,7 +4404,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -4422,7 +4422,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -4440,7 +4440,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -4458,7 +4458,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -4476,7 +4476,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -4494,7 +4494,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -4512,7 +4512,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -4530,7 +4530,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -4548,7 +4548,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -4566,7 +4566,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -4584,7 +4584,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -4602,7 +4602,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -4621,7 +4621,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -4639,7 +4639,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -4657,7 +4657,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -4675,7 +4675,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -4693,7 +4693,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -4711,7 +4711,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -4730,7 +4730,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -4748,7 +4748,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -4767,7 +4767,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -4785,7 +4785,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -4803,7 +4803,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -4821,7 +4821,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    $current  = if ($enabled) { "Enabled" } else { "No auditing" }
+    $current  = if ($enabled) { "Enabled" } else { "No Auditing" }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
