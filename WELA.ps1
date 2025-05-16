@@ -66,9 +66,9 @@ class WELA {
     [void] Output([string] $Format) {
         switch ($Format.ToLower()) {
             "std" {
-                $color = if ($this.Enabled) { "Green" } else { "Red" }
+                $color = if ($this.CurrentSetting -eq "Enabled") { "Green" } else { "Red" }
                 $ruleCounts = ""
-                $logEnabled = if ($this.Enabled) { "Enabled" } else { "Disabled" }
+                $logEnabled = $this.CurrentSetting
                 $allZero = $this.RulesCount.Values | Where-Object { $_ -ne 0 } | Measure-Object | Select-Object -ExpandProperty Count
                 if ($allZero -eq 0) {
                     $ruleCounts = "(no rules)"
