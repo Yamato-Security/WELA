@@ -5040,8 +5040,8 @@ function AuditLogSetting {
 
     if ($outType -eq "std") {
         $auditResult | Group-Object -Property Category | ForEach-Object {
-            $enabledCount = ($_.Group | Where-Object { $_.Enabled -eq $true } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
-            $disabledCount = ($_.Group | Where-Object { $_.Enabled -eq $false } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
+            $enabledCount = ($_.Group | Where-Object { $_.CurrentSetting -eq "Enabled" } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
+            $disabledCount = ($_.Group | Where-Object { $_.CurrentSetting -ne "Enabled" } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
             $out = ""
             $color = ""
             if ($disabledCount -eq 0 -and $enabledCount -ne 0){
