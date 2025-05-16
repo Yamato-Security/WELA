@@ -391,7 +391,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "Disabled"}
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Module",
@@ -410,7 +410,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = if ($enabled) { "Enabled" } else { "Disabled"}
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
             "ScriptBlock",
@@ -5082,7 +5082,7 @@ function AuditLogSetting {
             if ($enabledCount + $disabledCount -ne 0) {
                 $enabledPercentage = "({0:N2}%)" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
-            if ($_.Name -notmatch "Powershell" -and $_.Name -notmatch "Security Advanced " -and $_.Name -notcontains "PrintService") {
+            if ($_.Name -notmatch "Powershell" -and $_.Name -notcontains "Security Advanced" -and $_.Name -notcontains "PrintService") {
                 $enabledPercentage = ""
             }
             Write-Host "$( $_.Name ): $out$($enabledPercentage)" -ForegroundColor $color
