@@ -210,8 +210,8 @@ function GuideYamatoSecurity
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $auditResult += [WELA]::New(
             "Application",
+            "",
             "Enabled",
-            $enabled,
             [array]$rules,
             "Enabled",
             "Enabled",
