@@ -5082,7 +5082,7 @@ function AuditLogSetting {
             if ($enabledCount + $disabledCount -ne 0) {
                 $enabledPercentage = "({0:N2}%)" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
-            if ($_.Name -notmatch "Powershell" -and $_.Name -notcontains "Security Advanced" -and $_.Name -notcontains "PrintService") {
+            if ($_.Name -notmatch "Powershell" -and $_.Name -notmatch "Security Advanced" -and $_.Name -notmatch "PrintService") {
                 $enabledPercentage = ""
             }
             Write-Host "$( $_.Name ): $out$($enabledPercentage)" -ForegroundColor $color
