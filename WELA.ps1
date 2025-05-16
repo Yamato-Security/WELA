@@ -1346,7 +1346,7 @@ function GuideYamatoSecurity
     $auditResult += [WELA]::New(
             "TerminalServices-LocalSessionManager Operational",
             "",
-            $enabled,
+            "Enabled",
             [array]$rules,
             "Enabled",
             "Enabled",
