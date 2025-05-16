@@ -391,7 +391,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = $enabled ? "Enabled" : "Disabled"
+    $current  = if ($enabled) { "Enabled" } else { "Disabled"}
     $auditResult += [WELA]::New(
             "PowerShell",
             "Module",
@@ -410,7 +410,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    $current  = $enabled ? "Enabled" : "Disabled"
+    $current  = if ($enabled) { "Enabled" } else { "Disabled"}
     $auditResult += [WELA]::New(
             "PowerShell",
             "ScriptBlock",
