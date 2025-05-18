@@ -758,12 +758,12 @@ function GuideYamatoSecurity
     
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
-            "Group Membership",
+            "Logoff",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
-            "No Auditing",
-            "Adds an extra 4627 event to every logon",
+            "Success",
+            "Success",
+            "",
             ""
     )
 
@@ -850,7 +850,7 @@ function GuideYamatoSecurity
     
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
-            "Certification Services",
+            "Detailed File Share",
             $auditpol[$guid],
             [array]$rules,
             "No Auditing",
@@ -1213,7 +1213,7 @@ function GuideYamatoSecurity
     
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
-            "Other System Events",
+            "Security State Change",
             $auditpol[$guid],
             [array]$rules,
             "Success",
@@ -1957,10 +1957,10 @@ function GuideASD {
     
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
-            "Group Membership",
+            "Logoff",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -2049,7 +2049,7 @@ function GuideASD {
     
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
-            "Certification Services",
+            "Detailed File Share",
             $auditpol[$guid],
             [array]$rules,
             "No Auditing",
@@ -2412,7 +2412,7 @@ function GuideASD {
     
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
-            "Other System Events",
+            "Security State Change",
             $auditpol[$guid],
             [array]$rules,
             "Success",
@@ -3155,10 +3155,10 @@ function GuideMSC {
     
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
-            "Group Membership",
+            "Logoff",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -3247,7 +3247,7 @@ function GuideMSC {
     
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
-            "Certification Services",
+            "Detailed File Share",
             $auditpol[$guid],
             [array]$rules,
             "No Auditing",
@@ -3610,7 +3610,7 @@ function GuideMSC {
     
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
-            "Other System Events",
+            "Security State Change",
             $auditpol[$guid],
             [array]$rules,
             "Success",
@@ -4353,10 +4353,10 @@ function GuideMSS {
     
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
-            "Group Membership",
+            "Logoff",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -4445,7 +4445,7 @@ function GuideMSS {
     
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
-            "Certification Services",
+            "Detailed File Share",
             $auditpol[$guid],
             [array]$rules,
             "No Auditing",
@@ -4808,7 +4808,7 @@ function GuideMSS {
     
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
-            "Other System Events",
+            "Security State Change",
             $auditpol[$guid],
             [array]$rules,
             "Success",
