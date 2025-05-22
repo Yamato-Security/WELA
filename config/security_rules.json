@@ -5944,6 +5944,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects execution of Adfind.exe utility, which can be used for reconnaissance in an Active Directory environment",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "5cba86ae-86b3-1aba-fe62-8b82c1fb1f92",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "PUA - AdFind.EXE Execution"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects Windows Installer service (msiexec.exe) spawning \"cmd\" or \"powershell\"",
     "event_ids": [
       "4688"
@@ -30750,6 +30767,22 @@
     "title": "Domain Trust Discovery"
   },
   {
+    "category": "ps_script",
+    "channel": [
+      "pwsh",
+      "pwsh"
+    ],
+    "description": "Deletes Windows Volume Shadow Copies with PowerShell code and Get-WMIObject. This technique is used by numerous ransomware families such as Sodinokibi/REvil",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "baee41a3-2063-6125-778e-0d9710474c06",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [],
+    "title": "Delete Volume Shadow Copies via WMI with PowerShell - PS Script"
+  },
+  {
     "category": "",
     "channel": [
       "System"
@@ -31737,6 +31770,21 @@
     "service": "system",
     "subcategory_guids": [],
     "title": "NTLMv1 Logon Between Client and Server"
+  },
+  {
+    "category": "",
+    "channel": [
+      "System"
+    ],
+    "description": "Detects \"BugCheck\" errors indicating the system rebooted due to a crash, capturing the bugcheck code, dump file path, and report ID.",
+    "event_ids": [
+      "1001"
+    ],
+    "id": "d4ccca35-9fd6-1ed8-f5d5-84f755404fdd",
+    "level": "medium",
+    "service": "system",
+    "subcategory_guids": [],
+    "title": "Crash Dump Created By Operating System"
   },
   {
     "category": "",
@@ -33959,22 +34007,6 @@
     "service": "",
     "subcategory_guids": [],
     "title": "WMImplant Hack Tool"
-  },
-  {
-    "category": "ps_script",
-    "channel": [
-      "pwsh",
-      "pwsh"
-    ],
-    "description": "Deletes Windows Volume Shadow Copies with PowerShell code and Get-WMIObject. This technique is used by numerous ransomware families such as Sodinokibi/REvil",
-    "event_ids": [
-      "4104"
-    ],
-    "id": "baee41a3-2063-6125-778e-0d9710474c06",
-    "level": "high",
-    "service": "",
-    "subcategory_guids": [],
-    "title": "Delete Volume Shadow Copies via WMI with PowerShell - PS Script"
   },
   {
     "category": "ps_script",
