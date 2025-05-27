@@ -6607,6 +6607,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the use of reg.exe to export registry paths associated with third-party credentials.\nCredential stealers have been known to use this technique to extract sensitive information from the registry.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "c870786e-ac3c-7be8-93ba-79705472c787",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Registry Export of Third-Party Credentials"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects usage of \"IMEWDBLD.exe\" to download arbitrary files",
     "event_ids": [
       "4688"
@@ -27420,6 +27437,23 @@
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "NetNTLM Downgrade Attack"
+  },
+  {
+    "category": "",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects suspicious Kerberos TGT requests with pre-authentication disabled (Pre-Authentication Type = 0) and Ticket Encryption Type (0x17) i.e, RC4-HMAC.\nThis may indicate an AS-REP Roasting attack, where attackers request AS-REP messages for accounts without pre-authentication and attempt to crack the encrypted ticket offline to recover user passwords.\n",
+    "event_ids": [
+      "4768"
+    ],
+    "id": "15481d86-14a7-85e7-b1a2-ff2eab19060e",
+    "level": "medium",
+    "service": "security",
+    "subcategory_guids": [
+      "0CCE9242-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potential AS-REP Roasting via Kerberos TGT Requests"
   },
   {
     "category": "",
