@@ -6987,6 +6987,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the execution of obfuscated PowerShell commands that attempt to install MSI packages via the Windows Installer COM object (`WindowsInstaller.Installer`).\nThe technique involves manipulating strings to hide functionality, such as constructing class names using string insertion (e.g., 'indowsInstaller.Installer'.Insert(0,'W')) and correcting\nmalformed URLs (e.g., converting 'htps://' to 'https://') at runtime. This behavior is commonly associated with malware loaders or droppers that aim to bypass static detection\nby hiding intent in runtime-generated strings and using legitimate tools for code execution. The use of `InstallProduct` and COM object creation, particularly combined with\nhidden window execution and suppressed UI, indicates an attempt to install software (likely malicious) without user interaction.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "74a80804-adfc-f831-6290-6ae386436db4",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Obfuscated PowerShell MSI Install via WindowsInstaller COM"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects calls to PowerShell with Invoke-WebRequest cmdlet using direct IP access",
     "event_ids": [
       "4688"
@@ -13491,7 +13508,7 @@
     "subcategory_guids": [
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
-    "title": "Potential PowerShell Obfuscation Via WCHAR"
+    "title": "Potential PowerShell Obfuscation Via WCHAR/CHAR"
   },
   {
     "category": "process_creation",
@@ -15509,7 +15526,7 @@
       "4688"
     ],
     "id": "1d0387b6-6de7-eb5c-ffe9-ee892ff26f07",
-    "level": "medium",
+    "level": "high",
     "service": "",
     "subcategory_guids": [
       "0CCE922B-69AE-11D9-BED3-505054503030"
@@ -31944,23 +31961,6 @@
     "title": "Potential CVE-2021-40444 Exploitation Attempt"
   },
   {
-    "category": "registry_set",
-    "channel": [
-      "sec"
-    ],
-    "description": "Detects patterns as noticed in exploitation of Windows CVE-2021-31979 CVE-2021-33771 vulnerability and DevilsTongue malware by threat group Sourgum",
-    "event_ids": [
-      "4657"
-    ],
-    "id": "a4072638-9c3a-3307-e4f9-458edbb60efb",
-    "level": "critical",
-    "service": "",
-    "subcategory_guids": [
-      "0CCE921E-69AE-11D9-BED3-505054503030"
-    ],
-    "title": "CVE-2021-31979 CVE-2021-33771 Exploits"
-  },
-  {
     "category": "",
     "channel": [
       "System"
@@ -31979,20 +31979,21 @@
     "title": "Potential CVE-2021-42278 Exploitation Attempt"
   },
   {
-    "category": "",
+    "category": "registry_set",
     "channel": [
-      "MSExchange Management"
+      "sec"
     ],
-    "description": "Detects log entries that appear in exploitation attempts against MS Exchange RCE CVE-2021-42321",
+    "description": "Detects patterns as noticed in exploitation of Windows CVE-2021-31979 CVE-2021-33771 vulnerability and DevilsTongue malware by threat group Sourgum",
     "event_ids": [
-      "6",
-      "8"
+      "4657"
     ],
-    "id": "429ee035-2f74-8a92-ad19-a448e450bb5e",
-    "level": "high",
-    "service": "msexchange-management",
-    "subcategory_guids": [],
-    "title": "Possible Exploitation of Exchange RCE CVE-2021-42321"
+    "id": "a4072638-9c3a-3307-e4f9-458edbb60efb",
+    "level": "critical",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "CVE-2021-31979 CVE-2021-33771 Exploits"
   },
   {
     "category": "process_creation",
@@ -32010,6 +32011,22 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential SystemNightmare Exploitation Attempt"
+  },
+  {
+    "category": "",
+    "channel": [
+      "MSExchange Management"
+    ],
+    "description": "Detects log entries that appear in exploitation attempts against MS Exchange RCE CVE-2021-42321",
+    "event_ids": [
+      "6",
+      "8"
+    ],
+    "id": "429ee035-2f74-8a92-ad19-a448e450bb5e",
+    "level": "high",
+    "service": "msexchange-management",
+    "subcategory_guids": [],
+    "title": "Possible Exploitation of Exchange RCE CVE-2021-42321"
   },
   {
     "category": "process_creation",
@@ -33031,21 +33048,6 @@
     "title": "CVE-2023-38331 Exploitation Attempt - Suspicious WinRAR Child Process"
   },
   {
-    "category": "",
-    "channel": [
-      "Application"
-    ],
-    "description": "Detects corrupted packets sent to the MSMQ service. Could potentially be a sign of CVE-2023-21554 exploitation",
-    "event_ids": [
-      "2027"
-    ],
-    "id": "0bcc2c11-231f-f491-7985-3571fee7f2c5",
-    "level": "high",
-    "service": "application",
-    "subcategory_guids": [],
-    "title": "MSMQ Corrupted Packet Encountered"
-  },
-  {
     "category": "process_creation",
     "channel": [
       "sec"
@@ -33148,6 +33150,21 @@
     "service": "application",
     "subcategory_guids": [],
     "title": "CVE-2023-40477 Potential Exploitation - WinRAR Application Crash"
+  },
+  {
+    "category": "",
+    "channel": [
+      "Application"
+    ],
+    "description": "Detects corrupted packets sent to the MSMQ service. Could potentially be a sign of CVE-2023-21554 exploitation",
+    "event_ids": [
+      "2027"
+    ],
+    "id": "0bcc2c11-231f-f491-7985-3571fee7f2c5",
+    "level": "high",
+    "service": "application",
+    "subcategory_guids": [],
+    "title": "MSMQ Corrupted Packet Encountered"
   },
   {
     "category": "",
