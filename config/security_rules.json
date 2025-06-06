@@ -12024,7 +12024,7 @@
       "4688"
     ],
     "id": "452b2159-5e6e-c494-63b9-b385d6195f58",
-    "level": "critical",
+    "level": "high",
     "service": "",
     "subcategory_guids": [
       "0CCE922B-69AE-11D9-BED3-505054503030"
