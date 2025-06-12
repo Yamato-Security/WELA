@@ -812,6 +812,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the execution of \"RegAsm.exe\" without a commandline flag or file, which might indicate potential process injection activity.\nUsually \"RegAsm.exe\" should point to a dedicated DLL file or call the help with the \"/?\" flag.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "4865bce7-425b-5efe-ad03-7dfe40725e2b",
+    "level": "low",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "RegAsm.EXE Execution Without CommandLine Flags or Files"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects command lines that indicate unwanted modifications to registry keys that disable important Internet Explorer security features",
     "event_ids": [
       "4688"
@@ -8428,7 +8445,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects the usage of \"reg.exe\" to tamper with different Windows Defender registry keys in order to disable some important features related to protection and detection",
+    "description": "Detects the usage of \"reg.exe\" to tamper with different Windows Defender registry keys in order to disable some important features related to protection and detection\n",
     "event_ids": [
       "4688"
     ],
@@ -14412,7 +14429,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detection for mshta.exe suspicious execution patterns sometimes involving file polyglotism",
+    "description": "Detects execution of mshta.exe with file types that looks like they do not typically represent HTA (HTML Application) content,\nsuch as .png, .jpg, .zip, .pdf, and others, which are often polyglots. MSHTA is a legitimate Windows utility for executing HTML Applications\ncontaining VBScript or JScript. Threat actors often abuse this lolbin utility to download and\nexecute malicious scripts disguised as benign files or hosted under misleading extensions to evade detection.\n",
     "event_ids": [
       "4688"
     ],
@@ -14422,7 +14439,7 @@
     "subcategory_guids": [
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
-    "title": "MSHTA Suspicious Execution 01"
+    "title": "MSHTA Execution with Suspicious File Extensions"
   },
   {
     "category": "process_creation",
@@ -31233,6 +31250,21 @@
     "service": "application",
     "subcategory_guids": [],
     "title": "MSSQL Add Account To Sysadmin Role"
+  },
+  {
+    "category": "",
+    "channel": [
+      "Application"
+    ],
+    "description": "Detects the invocation of MS SQL transactions that are destructive towards table or database data, such as \"DROP TABLE\" or \"DROP DATABASE\".\n",
+    "event_ids": [
+      "33205"
+    ],
+    "id": "ca403782-4ab3-76a6-b804-069219ccbd7f",
+    "level": "medium",
+    "service": "application",
+    "subcategory_guids": [],
+    "title": "MSSQL Destructive Query"
   },
   {
     "category": "",
