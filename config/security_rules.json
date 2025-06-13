@@ -5657,6 +5657,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects attempts to query system information directly from the Windows Registry.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "62c2be2f-ba0e-142b-7bf8-cf4b2b8a6bf5",
+    "level": "low",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "System Information Discovery via Registry Queries"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the execution of Process Hacker based on binary metadata information (Image, Hash, Imphash, etc).\nProcess Hacker is a tool to view and manipulate processes, kernel options and other low level options.\nThreat actors abused older vulnerable versions to manipulate system processes.\n",
     "event_ids": [
       "4688"
@@ -17211,6 +17228,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Verclsid.exe Runs COM Object"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the execution of SharpSuccessor, a tool used to exploit the BadSuccessor attack for privilege escalation in WinServer 2025 Active Directory environments.\nSuccessful usage of this tool can let the attackers gain the domain admin privileges by exploiting the BadSuccessor vulnerability.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "b0559eb5-33e0-09c4-c9bb-88007b5981ca",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "HKTL - SharpSuccessor Privilege Escalation Tool Execution"
   },
   {
     "category": "process_creation",
