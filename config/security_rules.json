@@ -32017,6 +32017,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects execution of processes with image paths starting with WebDAV shares (\\\\), which might indicate malicious file execution from remote web shares.\nExecution of processes from WebDAV shares can be a sign of lateral movement or exploitation attempts, especially if the process is not a known legitimate application.\nExploitation Attempt of vulnerabilities like CVE-2025-33053 also involves executing processes from WebDAV paths.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "b84be625-d670-8b06-9f7d-13ccfe3a5785",
+    "level": "low",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Process Execution From WebDAV Share"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects unusually long PowerShell command lines with a length of 1000 characters or more",
     "event_ids": [
       "4688"
@@ -36207,6 +36224,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious CrushFTP Child Process"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects potential exploitation of remote code execution vulnerability CVE-2025-33053\nwhich involves unauthorized code execution via WebDAV through external control of file names or paths.\nThe exploit abuses legitimate utilities like iediagcmd.exe or CustomShellHost.exe  by manipulating\ntheir working directories to point to attacker-controlled WebDAV servers, causing them to execute\nmalicious executables (like route.exe) from the WebDAV path instead of legitimate system binaries\nthrough Process.Start() search order manipulation.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "5cceaffb-6b96-605b-5c7e-58a2f125f151",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potential Exploitation of RCE Vulnerability CVE-2025-33053"
   },
   {
     "category": "registry_set",
