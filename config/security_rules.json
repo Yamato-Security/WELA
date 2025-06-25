@@ -6269,6 +6269,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects potential execution of MeshAgent which is a tool used for remote access.\nHistorical data shows that threat actors rename MeshAgent binary to evade detection.\nMatching command lines with the '--meshServiceName' argument can indicate that the MeshAgent is being used for remote access.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "8137d225-9af4-eac6-7709-6bcb96a183f2",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Remote Access Tool - Potential MeshAgent Execution - Windows"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects addition of users to highly privileged groups via \"Net\" or \"Add-LocalGroupMember\".",
     "event_ids": [
       "4688"
@@ -13726,6 +13743,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious GUP Usage"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the execution of a renamed instance of the Remote Monitoring and Management (RMM) tool, MeshAgent.\nRMM tools such as MeshAgent are commonly utilized by IT administrators for legitimate remote support and system management.\nHowever, malicious actors may exploit these tools by renaming them to bypass detection mechanisms, enabling unauthorized access and control over compromised systems.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "3ab572a4-6b9c-6004-a772-cf0ce1400109",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Remote Access Tool - Renamed MeshAgent Execution - Windows"
   },
   {
     "category": "process_creation",
