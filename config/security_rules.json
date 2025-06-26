@@ -15007,6 +15007,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the execution of PowerShell commands that attempt to install MSI packages via the\nWindows Installer COM object (`WindowsInstaller.Installer`) hosted remotely.\nThis could be indication of malicious software deployment or lateral movement attempts using Windows Installer functionality.\nAnd the usage of WindowsInstaller COM object rather than msiexec could be an attempt to bypass the detection.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "67cbe37e-314f-cce4-2882-0cb45993a3c5",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "PowerShell MSI Install via WindowsInstaller COM From Remote Location"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the execution of certutil with certain flags that allow the utility to download files from direct IPs.",
     "event_ids": [
       "4688"
