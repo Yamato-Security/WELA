@@ -2597,6 +2597,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects potentially suspicious subprocesses such as LOLBINs spawned by web browsers. This activity could be associated with the \"FileFix\" social engineering technique,\nwhere users are tricked into launching the file explorer via a browser-based phishing page and pasting malicious commands into the address bar.\nThe technique abuses clipboard manipulation and disguises command execution as benign file path access, resulting in covert execution of system utilities.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "0b4162ed-2534-2656-6d4a-8d2ad218617b",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "FileFix - Suspicious Child Process from Browser File Upload Abuse"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects suspicious commandline flags used by PsExec and PAExec to escalate a command line to LOCAL_SYSTEM rights",
     "event_ids": [
       "4688"
