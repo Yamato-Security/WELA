@@ -36311,6 +36311,23 @@
     "title": "Potential Exploitation of RCE Vulnerability CVE-2025-33053"
   },
   {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects potential exploitation of CVE-2025-49144, a local privilege escalation vulnerability in Notepad++ installers (v8.8.1 and prior) where the installer calls regsvr32.exe without specifying the full path.\nThis allows an attacker to execute arbitrary code with elevated privileges by placing a malicious regsvr32.exe alongside this Legitimate Notepad++ installer.\nThe vulnerability is triggered when the installer attempts to register the NppShell.dll file, which is a component of Notepad++.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "1df6028e-e6fa-9d43-0ec9-a502e12d85dd",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potential Notepad++ CVE-2025-49144 Exploitation"
+  },
+  {
     "category": "registry_set",
     "channel": [
       "sec"
