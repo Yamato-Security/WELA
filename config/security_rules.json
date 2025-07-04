@@ -591,6 +591,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the invocation of vshadow.exe with the -exec parameter that executes a specified script or command after the shadow copies are created but before the VShadow tool exits.\nVShadow is a command-line tool that you can use to create and manage volume shadow copies. While legitimate backup or administrative scripts may use this flag,\nattackers can leverage this parameter to proxy the execution of malware.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "b31f0683-91b2-ad1b-a771-24124f22e83e",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Proxy Execution via Vshadow"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the usage of \"hh.exe\" to execute/download remotely hosted \".chm\" files.",
     "event_ids": [
       "4688"
@@ -11454,6 +11471,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the execution of the Doppelanger hacktool which is used to dump LSASS memory via process cloning while evading common detection methods",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "06624157-0db4-9e8c-200f-fcfe2788d3e4",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "HackTool - Doppelanger LSASS Dumper Execution"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the import of an alternate data stream with regini.exe, regini.exe can be used to modify registry keys.",
     "event_ids": [
       "4688"
@@ -13505,6 +13539,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Start of NT Virtual DOS Machine"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects usage of HollowReaper, a process hollowing shellcode launcher used for stealth payload execution through process hollowing.\nIt replaces the memory of a legitimate process with custom shellcode, allowing the attacker to execute payloads under the guise of trusted binaries.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "4620f95a-0964-646b-6b21-78a838f03ac3",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "HackTool - HollowReaper Execution"
   },
   {
     "category": "process_creation",
