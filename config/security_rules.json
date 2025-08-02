@@ -14087,6 +14087,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects modifications or creations of Windows Defender's default threat action settings based on severity to 'allow' or take 'no action'.\nThis is a highly suspicious configuration change that effectively disables Defender's ability to automatically mitigate threats of a certain severity level,\nallowing malicious software to run unimpeded. An attacker might use this technique to bypass defenses before executing payloads.\n",
+    "event_ids": [
+      "4657"
+    ],
+    "id": "4162459b-68e6-524b-ec5a-48ed032b96cd",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Windows Defender Threat Severity Default Action Modified"
+  },
+  {
+    "category": "registry_event",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the presence of a registry key created during Azorult execution",
     "event_ids": [
       "12",
@@ -17227,7 +17244,7 @@
     "subcategory_guids": [
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
-    "title": "Suspicious Powershell In Registry Run Keys"
+    "title": "Suspicious PowerShell In Registry Run Keys"
   },
   {
     "category": "registry_set",
@@ -18418,6 +18435,23 @@
     "service": "",
     "subcategory_guids": [],
     "title": "PrintNightmare Powershell Exploitation"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects suspicious ways to download files or content using PowerShell",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "0b1811c8-8c1e-c6bb-1af2-2fe3b42a6b56",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "PowerShell Web Download"
   },
   {
     "category": "process_creation",
@@ -19933,6 +19967,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Xwizard.EXE Execution From Non-Default Location"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the use of wmic.exe to modify user account settings and explicitly disable password expiration.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "b1293fae-fc5a-74c7-dfc9-3ad02ce661b2",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Password Set to Never Expire via WMI"
   },
   {
     "category": "process_creation",
@@ -28065,7 +28116,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects potential DLL files being downloaded using the PowerShell Invoke-WebRequest cmdlet",
+    "description": "Detects potential DLL files being downloaded using the PowerShell Invoke-WebRequest or Invoke-RestMethod cmdlets.",
     "event_ids": [
       "4688"
     ],
@@ -28603,23 +28654,6 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Remote Access Tool - AnyDesk Silent Installation"
-  },
-  {
-    "category": "process_creation",
-    "channel": [
-      "sec"
-    ],
-    "description": "Detects suspicious ways to download files or content using PowerShell",
-    "event_ids": [
-      "4688"
-    ],
-    "id": "0b1811c8-8c1e-c6bb-1af2-2fe3b42a6b56",
-    "level": "medium",
-    "service": "",
-    "subcategory_guids": [
-      "0CCE922B-69AE-11D9-BED3-505054503030"
-    ],
-    "title": "PowerShell Web Download"
   },
   {
     "category": "process_creation",
@@ -32689,6 +32723,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the use of PowerShell to execute the 'Set-MpPreference' cmdlet to configure Windows Defender's threat severity default action to 'Allow' (value '6') or 'NoAction' (value '9').\nThis is a highly suspicious configuration change that effectively disables Defender's ability to automatically mitigate threats of a certain severity level.\nAn attacker might use this technique via the command line to bypass defenses before executing payloads.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "118c7926-b646-c48e-0be5-da48f765543e",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "PowerShell Defender Threat Severity Default Action Set to 'Allow' or 'NoAction'"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Well-known TAP software installation. Possible preparation for data exfiltration using tunneling techniques",
     "event_ids": [
       "4688"
@@ -35188,6 +35239,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the use of reg.exe or PowerShell to delete the Windows Defender context menu handler registry keys.\nThis action removes the \"Scan with Microsoft Defender\" option from the right-click menu for files, directories, and drives.\nAttackers may use this technique to hinder manual, on-demand scans and reduce the visibility of the security product.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "2f67b2ed-f7b9-c3fd-7e0a-a17cb1920bab",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Windows Defender Context Menu Removed"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects potentially suspicious processes being spawned by a web server process which could be the result of a successfully placed web shell or exploitation\n",
     "event_ids": [
       "4688"
@@ -35301,6 +35369,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Deleted Data Overwritten Via Cipher.EXE"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the use of reg.exe to disable the Event Tracing for Windows (ETW) Autologger session for Windows Defender API and Audit events.\nBy setting the 'Start' value to '0' for the 'DefenderApiLogger' or 'DefenderAuditLogger' session, an attacker can prevent these critical security events\nfrom being logged, effectively blinding monitoring tools that rely on this data. This is a powerful defense evasion technique.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "900cc808-eb18-0106-55ac-478667fa36d5",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Disabling Windows Defender WMI Autologger Session via Reg.exe"
   },
   {
     "category": "process_creation",
