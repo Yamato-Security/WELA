@@ -5420,7 +5420,7 @@
     "subcategory_guids": [
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
-    "title": "Detect Virtualbox Driver Installation OR Starting Of VMs"
+    "title": "Virtualbox Driver Installation or Starting of VMs"
   },
   {
     "category": "process_creation",
@@ -9705,6 +9705,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Python Function Execution Security Warning Disabled In Excel"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects attempts to disable windows recovery environment using Reagentc.\nReAgentc.exe is a command-line tool in Windows used to manage the Windows Recovery Environment (WinRE).\nIt allows users to enable, disable, and configure WinRE, which is used for troubleshooting and repairing common boot issues.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "7e941643-69fc-290f-3b49-eee5d24adde8",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Windows Recovery Environment Disabled Via Reagentc"
   },
   {
     "category": "process_creation",
