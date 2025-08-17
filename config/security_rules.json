@@ -33969,6 +33969,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects potential exploitation of CVE-2025-53770 by identifying indicators such as suspicious command lines discovered in Post-Exploitation activities.\nCVE-2025-53770 is a zero-day vulnerability in SharePoint that allows remote code execution.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "acecfe24-cf2a-2635-dded-a45c357eea3f",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potential SharePoint ToolShell CVE-2025-53770 Exploitation Indicators"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects Winword starting uncommon sub process MicroScMgmt.exe as used in exploits for CVE-2015-1641",
     "event_ids": [
       "4688"
