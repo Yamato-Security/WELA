@@ -14075,6 +14075,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects suspicious child processes created by CrushFTP. It could be an indication of exploitation of a RCE vulnerability such as CVE-2025-54309.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "81ef2b50-ae07-2c4b-4242-6669c7176fec",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potential Exploitation of CrushFTP RCE Vulnerability (CVE-2025-54309)"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects potential exploitation of CVE-2025-49144, a local privilege escalation vulnerability in Notepad++ installers (v8.8.1 and prior) where the installer calls regsvr32.exe without specifying the full path.\nThis allows an attacker to execute arbitrary code with elevated privileges by placing a malicious regsvr32.exe alongside this Legitimate Notepad++ installer.\nThe vulnerability is triggered when the installer attempts to register the NppShell.dll file, which is a component of Notepad++.\n",
     "event_ids": [
       "4688"
@@ -19495,6 +19512,23 @@
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "MaxMpxCt Registry Value Changed"
+  },
+  {
+    "category": "registry_set",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects potential ClickFix malware execution patterns by monitoring registry modifications in RunMRU keys containing HTTP/HTTPS links.\nClickFix is known to be distributed through phishing campaigns and uses techniques like clipboard hijacking and fake CAPTCHA pages.\nThrough the fakecaptcha pages, the adversary tricks users into opening the Run dialog box and pasting clipboard-hijacked content,\nsuch as one-liners that execute remotely hosted malicious files or scripts.\n",
+    "event_ids": [
+      "4657"
+    ],
+    "id": "00d744c2-1966-dcdc-2c72-3a12d7b5fd2d",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potential ClickFix Execution Pattern - Registry"
   },
   {
     "category": "registry_set",
@@ -30775,6 +30809,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the suspicious use of the Velociraptor DFIR tool to execute other tools or download additional payloads, as seen in a campaign where it was abused for remote access and to stage further attacks.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "d6a4c9bc-d5cf-bd43-fc5b-0a8b0a3c125f",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Suspicious Velociraptor Child Process"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects usage of the \"sc.exe\" utility adding a new service with special permission seen used by threat actors which makes the service hidden and unremovable.",
     "event_ids": [
       "4688"
@@ -33064,6 +33115,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Potential Script Proxy Execution Via CL_Mutexverifiers.ps1"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects potential access attempts to the PowerShell console history directly via history file (ConsoleHost_history.txt).\nThis can give access to plaintext passwords used in PowerShell commands or used for general reconnaissance.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "3becf1a9-6869-2795-e158-31485eae103f",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potential PowerShell Console History Access Attempt via History File"
   },
   {
     "category": "process_creation",
@@ -36963,6 +37031,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the usage of wmic.exe to manipulate Windows registry via the WMI StdRegProv class.\nThis behaviour could be potentially suspicious because it uses an alternative method to modify registry keys instead of legitimate registry tools like reg.exe or regedit.exe.\nAttackers specifically choose this technique to evade detection and bypass security monitoring focused on traditional registry modification commands.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "287709ae-0175-f8df-11fc-9ec74c46d8c9",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Registry Manipulation via WMI Stdregprov"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the execution of a renamed AutoIt2.exe or AutoIt3.exe.\nAutoIt is a scripting language and automation tool for Windows systems. While primarily used for legitimate automation tasks, it can be misused in cyber attacks.\nAttackers can leverage AutoIt to create and distribute malware, including keyloggers, spyware, and botnets. A renamed AutoIt executable is particularly suspicious.\n",
     "event_ids": [
       "4688"
@@ -40238,6 +40323,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Windows Backup Deleted Via Wbadmin.EXE"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects TacticalRMM agent installations where the --api, --auth, and related flags are used on the command line.\nThese parameters configure the agent to connect to a specific RMM server with authentication, client ID, and site ID.\nThis technique could indicate a threat actor attempting to register the agent with an attacker-controlled RMM infrastructure silently.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "7997ec07-1c34-0bba-64bc-d699a65b149f",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Remote Access Tool - TacticalRMM Agent Registration to Potentially Attacker-Controlled Server"
   },
   {
     "category": "process_creation",
