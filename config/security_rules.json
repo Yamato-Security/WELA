@@ -2187,7 +2187,7 @@
       "pwsh",
       "pwsh"
     ],
-    "description": "Adversaries may attempt to find local system groups and permission settings.\nThe knowledge of local system permission groups can help adversaries determine which groups exist and which users belong to a particular group.\nAdversaries may use this information to determine which users have elevated permissions, such as the users found within the local administrators group.\n",
+    "description": "Detects the use of PowerShell modules and cmdlets to gather local group information.\nAdversaries may use local system permission groups to determine which groups exist and which users belong to a particular group such as the local administrators group.\n",
     "event_ids": [
       "4104"
     ],
@@ -3115,7 +3115,7 @@
       "pwsh",
       "pwsh"
     ],
-    "description": "Adversaries may attempt to find local system groups and permission settings.\nThe knowledge of local system permission groups can help adversaries determine which groups exist and which users belong to a particular group.\nAdversaries may use this information to determine which users have elevated permissions, such as the users found within the local administrators group.\n",
+    "description": "Detects the use of PowerShell modules and cmdlets to gather local group information.\nAdversaries may use local system permission groups to determine which groups exist and which users belong to a particular group such as the local administrators group.\n",
     "event_ids": [
       "4103"
     ],
@@ -4061,6 +4061,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "HackTool - XORDump Execution"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects suspicious child processes related to Windows Shell utilities spawned by `conhost.exe`, which could indicate malicious activity using trusted system components.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "faa3b493-02b2-9e9c-3d74-8a59a0205e5d",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potentially Suspicious Child Processes Spawned by ConHost"
   },
   {
     "category": "process_creation",
@@ -5019,6 +5036,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the creation of a scheduled task using schtasks.exe, potentially in combination with curl for downloading payloads and PowerShell for executing them.\nThis facilitates executing malicious payloads or connecting with C&C server persistently without dropping the malware sample on the host.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "16cf2db0-5355-1ded-b4a7-522991ff6460",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Scheduled Task Creation with Curl and PowerShell Execution Combo"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects Obfuscated Powershell via Stdin in Scripts",
     "event_ids": [
       "4688"
@@ -5387,6 +5421,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Suspicious RASdial Activity"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects attempts to disable security event logging by adding the `MiniNt` registry key.\nThis key is used to disable the Windows Event Log service, which collects and stores event logs from the operating system and applications.\nAdversaries may want to disable this service to prevent logging of security events that could be used to detect their activities.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "847d9f6f-a38e-7aa1-9da8-20f3f4c1d416",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Security Event Logging Disabled via MiniNt Registry Key - Process"
   },
   {
     "category": "process_creation",
@@ -5846,6 +5897,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Uncommon System Information Discovery Via Wmic.EXE"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the creation of scheduled tasks that involve system processes, which may indicate malicious actors masquerading as or abusing these processes to execute payloads or maintain persistence.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "84d137d9-0fe0-de23-4c5c-4530db9c5575",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Scheduled Task Creation Masquerading as System Processes"
   },
   {
     "category": "process_creation",
@@ -9688,6 +9756,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Net WebClient Casing Anomalies"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the use of PowerShell with Uninstall-WindowsFeature or Remove-WindowsFeature cmdlets to disable or remove the Windows Defender GUI feature, a common technique used by adversaries to evade defenses.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "9610d848-8049-b860-c3ee-235db9eccfc4",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Suspicious Uninstall of Windows Defender Feature via PowerShell"
   },
   {
     "category": "process_creation",
@@ -14420,6 +14505,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects execution of JavaScript or JSC files using NodeJs binary node.exe, that could be potentially suspicious.\nNode.js is a popular open-source JavaScript runtime that runs code outside browsers and is widely used for both frontend and backend development.\nAdversaries have been observed abusing Node.js to disguise malware as legitimate processes, evade security defenses, and maintain persistence within target systems.\nBecause Node.js is commonly used, this rule may generate false positives in some environments. However, if such activity is unusual in your environment, it is highly suspicious and warrants immediate investigation.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "5b59cdaa-a618-5038-0573-2902a6798a29",
+    "level": "low",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "NodeJS Execution of JavaScript File"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects potential DLL sideloading using the Microsoft Office winword process via the '/l' flag.",
     "event_ids": [
       "4688"
@@ -15695,6 +15797,23 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects malicious behavior where the MMC utility (`mmc.exe`) executes files with reversed extensions caused by Right-to-Left Override (RLO) abuse, disguising them as document formats.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "5602c07f-c042-d14f-190e-cf750711227e",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "MMC Executing Files with Reversed Extensions Using RTLO Abuse"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects a suspicious output redirection to the local admins share, this technique is often found in malicious scripts or hacktool stagers",
     "event_ids": [
       "4688"
@@ -16675,6 +16794,23 @@
       "0CCE922B-69AE-11D9-BED3-505054503030"
     ],
     "title": "Firewall Rule Update Via Netsh.EXE"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects potentially suspicious inline JavaScript execution using Node.js with specific keywords in the command line.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "7d713cf5-4d56-75d5-a689-0206993c4d03",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Potentially Suspicious Inline JavaScript Execution via NodeJS Binary"
   },
   {
     "category": "process_creation",
@@ -24614,7 +24750,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects the addition of a key 'MiniNt' to the registry. Upon a reboot, Windows Event Log service will stopped write events.",
+    "description": "Detects the addition of a key 'MiniNt' to the registry. Upon a reboot, Windows Event Log service will stop writing events.",
     "event_ids": [
       "4657"
     ],
@@ -26920,6 +27056,23 @@
       "0CCE921E-69AE-11D9-BED3-505054503030"
     ],
     "title": "Old TLS1.0/TLS1.1 Protocol Version Enabled"
+  },
+  {
+    "category": "registry_set",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the addition of the 'MiniNt' key to the registry. Upon a reboot, Windows Event Log service will stop writing events.\nWindows Event Log is a service that collects and stores event logs from the operating system and applications. It is an important component of Windows security and auditing.\nAdversary may want to disable this service to disable logging of security events which could be used to detect their activities.\n",
+    "event_ids": [
+      "4657"
+    ],
+    "id": "bff51a59-a1b9-f1f5-f5e4-ac2e523d572a",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030"
+    ],
+    "title": "Security Event Logging Disabled via MiniNt Registry Key - Registry Set"
   },
   {
     "category": "registry_set",
