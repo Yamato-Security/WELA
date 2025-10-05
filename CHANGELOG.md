@@ -5,6 +5,7 @@
 **Bug Fixes:**
 
 - Some of the rule count was not accurate. (#99) (@fukusuket)
+- TaskScheduler log settings were not accurately reported. (#100 (@fukusuket))
 
 ## 1.0.0 [2025/05/20] - AUSCERT/SINCON Release
 
