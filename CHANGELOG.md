@@ -1,4 +1,10 @@
-# Initial Release
+# CHANGELOG
+
+## 2.0.0 [2025/11/16] - CODE BLUE Release
+
+**Bug Fixes:**
+
+- Some of the rule count was not accurate. (#99) (@fukusuket)
 
 ## 1.0.0 [2025/05/20] - AUSCERT/SINCON Release
 
