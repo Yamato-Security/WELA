@@ -5046,10 +5046,10 @@ function AuditLogSetting {
         $ruleCounts = ""
         foreach ($level in [WELA]::Levels) {
             $count = $_.RulesCount[$level]
+            if (-not $count) {
+                $count = 0
+            }
             if ($level -eq "informational") {
-                if (-not $count) {
-                    $count = 0
-                }
                 $ruleCounts += "info:$([string]$count)"
             } else {
                 $ruleCounts += "$($level):$($count), "
