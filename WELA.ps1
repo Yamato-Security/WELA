@@ -1338,13 +1338,14 @@ function GuideYamatoSecurity
     $guid    = ""
     $eids     = @()
     $channels = @("Microsoft-Windows-TaskScheduler/Operational")
-    $enabled  = $true
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-TaskScheduler/Operational" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
-            "Enabled",
+            $current,
             [array]$rules,
             "Enabled",
             "Enabled",
@@ -2536,13 +2537,14 @@ function GuideASD {
     $guid    = ""
     $eids     = @()
     $channels = @("Microsoft-Windows-TaskScheduler/Operational")
-    $enabled  = $true
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-TaskScheduler/Operational" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
-            "Enabled",
+            $current,
             [array]$rules,
             "Enabled",
             "",
@@ -3734,13 +3736,14 @@ function GuideMSC {
     $guid    = ""
     $eids     = @()
     $channels = @("Microsoft-Windows-TaskScheduler/Operational")
-    $enabled  = $true
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-TaskScheduler/Operational" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
-            "Enabled",
+            $current,
             [array]$rules,
             "Enabled",
             "",
@@ -4929,13 +4932,14 @@ function GuideMSS {
     $guid    = ""
     $eids     = @()
     $channels = @("Microsoft-Windows-TaskScheduler/Operational")
-    $enabled  = $true
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-TaskScheduler/Operational" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
-            "Enabled",
+            $current,
             [array]$rules,
             "Enabled",
             "",
