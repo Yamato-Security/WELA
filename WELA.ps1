@@ -350,7 +350,7 @@ function GuideYamatoSecurity
     # NTLM Operational
     $guid    = ""
     $eids     = @()
-    $channels = @("Microsoft-Windows-Diagnosis-Scripted/Operational")
+    $channels = @("Microsoft-Windows-NTLM/Operational")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
@@ -1545,7 +1545,7 @@ function GuideASD {
     # NTLM Operational
     $guid    = ""
     $eids     = @()
-    $channels = @("Microsoft-Windows-Diagnosis-Scripted/Operational")
+    $channels = @("Microsoft-Windows-NTLM/Operational")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
@@ -2743,7 +2743,7 @@ function GuideMSC {
     # NTLM Operational
     $guid    = ""
     $eids     = @()
-    $channels = @("Microsoft-Windows-Diagnosis-Scripted/Operational")
+    $channels = @("Microsoft-Windows-NTLM/Operational")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
@@ -3941,7 +3941,7 @@ function GuideMSS {
     # NTLM Operational
     $guid    = ""
     $eids     = @()
-    $channels = @("Microsoft-Windows-Diagnosis-Scripted/Operational")
+    $channels = @("Microsoft-Windows-NTLM/Operational")
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
@@ -5046,10 +5046,10 @@ function AuditLogSetting {
         $ruleCounts = ""
         foreach ($level in [WELA]::Levels) {
             $count = $_.RulesCount[$level]
+            if (-not $count) {
+                $count = 0
+            }
             if ($level -eq "informational") {
-                if (-not $count) {
-                    $count = 0
-                }
                 $ruleCounts += "info:$([string]$count)"
             } else {
                 $ruleCounts += "$($level):$($count), "
