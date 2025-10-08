@@ -8520,6 +8520,27 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects attempts to delete Internet Information Services (IIS) log files via command line utilities, which is a common defense evasion technique used by attackers to cover their tracks.\nThreat actors often abuse vulnerabilities in web applications hosted on IIS servers to gain initial access and later delete IIS logs to evade detection.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "bb67b9c1-36b4-5057-bac0-7c90c9147791",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "attack.defense-evasion",
+      "attack.t1070"
+    ],
+    "title": "IIS WebServer Log Deletion via CommandLine Utilities"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the execution of \"csvde.exe\" in order to export organizational Active Directory structure.",
     "event_ids": [
       "4688"
