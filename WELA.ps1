@@ -77,15 +77,12 @@ class WELA {
                     $ruleCounts = "$($logEnabled) ("
                     foreach ($level in [WELA]::Levels) {
                         $count = $this.RulesCount[$level]
+                        if (-not $count) {
+                            $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
+                        }
                         if ($level -eq "informational") {
-                            if (-not $count) {
-                                $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
-                            }
                             $ruleCounts += "info: $([string]$count)"
                         } else {
-                            if (-not $count) {
-                                $count = 0 # 明示的に0を設定しないと空文字列に変換されるため
-                            }
                             $ruleCounts += "$($level): $($count), "
                         }
                     }
@@ -228,6 +225,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Application",
             "",
@@ -246,6 +244,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Applocker",
             "",
@@ -264,6 +263,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Bits-Client Operational",
             "",
@@ -282,6 +282,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "CodeIntegrity Operational",
             "",
@@ -300,6 +301,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Diagnosis-Scripted Operational",
             "",
@@ -318,6 +320,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "DriverFrameworks-UserMode Operational",
             "",
@@ -336,6 +339,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Firewall",
             "",
@@ -354,6 +358,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Microsoft-Windows-NTLM/Operational",
             "",
@@ -373,6 +378,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Classic",
@@ -391,6 +397,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
@@ -410,6 +417,7 @@ function GuideYamatoSecurity
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
@@ -429,6 +437,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Admin",
@@ -447,6 +456,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Operational",
@@ -467,6 +477,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -484,6 +495,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -501,6 +513,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -519,6 +532,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -536,7 +550,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -554,7 +568,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -572,7 +586,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -591,7 +605,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -609,7 +623,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -627,7 +641,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -645,14 +659,14 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
             $auditpol[$guid],
             [array]$rules,
             "No Auditing",
-            "",
+            "No Auditing",
             "High on RPC servers (According to Microsoft)",
             ""
     )
@@ -663,14 +677,14 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
             $auditpol[$guid],
             [array]$rules,
             "No Auditing",
-            "",
+            "No Auditing",
             "",
             ""
     )
@@ -682,7 +696,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -700,7 +714,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -719,7 +733,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -737,7 +751,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -755,7 +769,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logoff",
@@ -773,7 +787,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -791,7 +805,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -809,7 +823,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -829,7 +843,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -847,7 +861,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Detailed File Share",
@@ -865,7 +879,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -883,7 +897,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -901,7 +915,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -919,7 +933,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -937,7 +951,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -955,7 +969,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -973,7 +987,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -991,7 +1005,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -1009,7 +1023,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -1027,7 +1041,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -1046,7 +1060,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -1064,7 +1078,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -1082,7 +1096,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -1100,7 +1114,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -1118,7 +1132,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -1136,7 +1150,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -1155,7 +1169,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -1173,7 +1187,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -1192,7 +1206,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -1210,7 +1224,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security State Change",
@@ -1228,7 +1242,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -1246,7 +1260,7 @@ function GuideYamatoSecurity
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
@@ -1265,7 +1279,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations KernelMode",
             "",
@@ -1284,7 +1298,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations UserMode",
             "",
@@ -1303,7 +1317,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "SMBClient Security",
             "",
@@ -1322,7 +1336,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "System",
             "",
@@ -1342,6 +1356,7 @@ function GuideYamatoSecurity
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
@@ -1360,6 +1375,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TerminalServices-LocalSessionManager Operational",
             "",
@@ -1378,6 +1394,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "WMI-Activity Operational",
             "",
@@ -1396,6 +1413,7 @@ function GuideYamatoSecurity
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Windows Defender Operational",
             "",
@@ -1424,6 +1442,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Application",
             "",
@@ -1442,6 +1461,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Applocker",
             "",
@@ -1460,6 +1480,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Bits-Client Operational",
             "",
@@ -1478,6 +1499,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "CodeIntegrity Operational",
             "",
@@ -1496,6 +1518,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Diagnosis-Scripted Operational",
             "",
@@ -1514,6 +1537,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "DriverFrameworks-UserMode Operational",
             "",
@@ -1532,6 +1556,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Firewall",
             "",
@@ -1550,6 +1575,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "Microsoft-Windows-NTLM/Operational",
             "",
@@ -1569,6 +1595,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $enabled }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Classic",
@@ -1587,6 +1614,7 @@ function GuideASD {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
@@ -1606,6 +1634,7 @@ function GuideASD {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
@@ -1625,6 +1654,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Admin",
@@ -1643,6 +1673,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Operational",
@@ -1663,7 +1694,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -1681,7 +1712,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -1699,7 +1730,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -1718,7 +1749,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -1736,7 +1767,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -1754,7 +1785,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -1772,7 +1803,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -1791,7 +1822,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -1809,7 +1840,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -1827,7 +1858,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -1845,7 +1876,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
@@ -1863,7 +1894,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
@@ -1882,7 +1913,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -1900,7 +1931,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -1919,7 +1950,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -1937,7 +1968,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -1955,7 +1986,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logoff",
@@ -1973,7 +2004,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -1991,7 +2022,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -2009,7 +2040,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -2029,7 +2060,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -2047,7 +2078,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Detailed File Share",
@@ -2065,7 +2096,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -2083,7 +2114,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -2101,7 +2132,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -2119,7 +2150,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -2137,7 +2168,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -2155,7 +2186,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -2173,7 +2204,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -2191,7 +2222,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -2209,7 +2240,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -2227,7 +2258,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -2246,7 +2277,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -2264,7 +2295,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -2282,7 +2313,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -2300,7 +2331,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -2318,7 +2349,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -2336,7 +2367,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -2355,7 +2386,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -2373,7 +2404,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -2392,7 +2423,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -2410,7 +2441,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security State Change",
@@ -2428,7 +2459,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -2446,7 +2477,7 @@ function GuideASD {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
@@ -2465,7 +2496,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations KernelMode",
             "",
@@ -2484,7 +2515,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations UserMode",
             "",
@@ -2503,7 +2534,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "SMBClient Security",
             "",
@@ -2522,6 +2553,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "System",
             "",
@@ -2541,6 +2573,7 @@ function GuideASD {
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
@@ -2559,6 +2592,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TerminalServices-LocalSessionManager Operational",
             "",
@@ -2577,6 +2611,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "WMI-Activity Operational",
             "",
@@ -2595,6 +2630,7 @@ function GuideASD {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Windows Defender Operational",
             "",
@@ -2623,6 +2659,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Application",
             "",
@@ -2641,6 +2678,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Applocker",
             "",
@@ -2659,6 +2697,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Bits-Client Operational",
             "",
@@ -2677,6 +2716,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "CodeIntegrity Operational",
             "",
@@ -2695,6 +2735,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Diagnosis-Scripted Operational",
             "",
@@ -2713,6 +2754,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "DriverFrameworks-UserMode Operational",
             "",
@@ -2731,6 +2773,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Firewall",
             "",
@@ -2749,6 +2792,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Microsoft-Windows-NTLM/Operational",
             "",
@@ -2768,6 +2812,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Classic",
@@ -2787,6 +2832,7 @@ function GuideMSC {
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Module",
@@ -2805,6 +2851,7 @@ function GuideMSC {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
@@ -2824,6 +2871,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Admin",
@@ -2842,6 +2890,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Operational",
@@ -2862,7 +2911,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -2880,7 +2929,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -2898,7 +2947,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -2917,7 +2966,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -2935,7 +2984,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -2953,7 +3002,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -2971,7 +3020,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -2990,7 +3039,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -3008,7 +3057,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -3026,7 +3075,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -3044,7 +3093,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
@@ -3062,7 +3111,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
@@ -3081,7 +3130,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -3099,7 +3148,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -3118,7 +3167,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -3136,7 +3185,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -3154,7 +3203,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logoff",
@@ -3172,7 +3221,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -3190,7 +3239,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -3208,7 +3257,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -3228,7 +3277,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -3246,7 +3295,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Detailed File Share",
@@ -3264,7 +3313,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -3282,7 +3331,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -3300,7 +3349,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -3318,7 +3367,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -3336,7 +3385,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -3354,7 +3403,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -3372,7 +3421,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -3390,7 +3439,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -3408,7 +3457,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -3426,7 +3475,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -3445,7 +3494,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -3463,7 +3512,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -3481,7 +3530,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -3499,7 +3548,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -3517,7 +3566,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -3535,7 +3584,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -3554,7 +3603,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -3572,7 +3621,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -3591,7 +3640,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -3609,7 +3658,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security State Change",
@@ -3627,7 +3676,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -3645,7 +3694,7 @@ function GuideMSC {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
@@ -3664,7 +3713,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations KernelMode",
             "",
@@ -3683,7 +3732,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations UserMode",
             "",
@@ -3702,7 +3751,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "SMBClient Security",
             "",
@@ -3721,6 +3770,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "System",
             "",
@@ -3740,6 +3790,7 @@ function GuideMSC {
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
@@ -3758,6 +3809,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TerminalServices-LocalSessionManager Operational",
             "",
@@ -3776,6 +3828,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "WMI-Activity Operational",
             "",
@@ -3794,6 +3847,7 @@ function GuideMSC {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Windows Defender Operational",
             "",
@@ -3822,6 +3876,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Application",
             "",
@@ -3840,6 +3895,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Applocker",
             "",
@@ -3858,6 +3914,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Bits-Client Operational",
             "",
@@ -3876,6 +3933,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "CodeIntegrity Operational",
             "",
@@ -3894,6 +3952,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Diagnosis-Scripted Operational",
             "",
@@ -3912,6 +3971,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "DriverFrameworks-UserMode Operational",
             "",
@@ -3930,6 +3990,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Firewall",
             "",
@@ -3948,6 +4009,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Microsoft-Windows-NTLM/Operational",
             "",
@@ -3967,6 +4029,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PowerShell",
             "Classic",
@@ -3985,6 +4048,7 @@ function GuideMSS {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -valueName "EnableModuleLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $false }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
@@ -4004,6 +4068,7 @@ function GuideMSS {
     $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -valueName "EnableScriptBlockLogging" -expectedValue 1
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $auditResult += [WELA]::New(
             "PowerShell",
@@ -4023,6 +4088,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Admin",
@@ -4041,6 +4107,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "PrintService",
             "PrintService Operational",
@@ -4061,7 +4128,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Credential Validation",
@@ -4079,7 +4146,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Authentication Service",
@@ -4097,7 +4164,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Logon)",
             "Kerberos Service Ticket Operations",
@@ -4116,7 +4183,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Computer Account Management",
@@ -4134,7 +4201,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Other Account Management Events",
@@ -4152,7 +4219,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "Security Group Management",
@@ -4170,7 +4237,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Account Management)",
             "User Account Management",
@@ -4189,7 +4256,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Plug and Play Events",
@@ -4207,7 +4274,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Creation",
@@ -4225,7 +4292,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Process Termination",
@@ -4243,7 +4310,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "RPC Events",
@@ -4261,7 +4328,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Detailed Tracking)",
             "Token Right Adjusted Events",
@@ -4280,7 +4347,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Access",
@@ -4298,7 +4365,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (DS Access)",
             "Directory Service Changes",
@@ -4317,7 +4384,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Account Lockout",
@@ -4335,7 +4402,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Group Membership",
@@ -4353,7 +4420,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logoff",
@@ -4371,7 +4438,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Logon",
@@ -4389,7 +4456,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Other Logon/Logoff Events",
@@ -4407,7 +4474,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Logon/Logoff)",
             "Special Logon",
@@ -4427,7 +4494,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Certification Services",
@@ -4445,7 +4512,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Detailed File Share",
@@ -4463,7 +4530,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File Share",
@@ -4481,7 +4548,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "File System",
@@ -4499,7 +4566,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Connection",
@@ -4517,7 +4584,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Filtering Platform Packet Drop",
@@ -4535,7 +4602,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Kernel Object",
@@ -4553,7 +4620,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Handle Manipulation",
@@ -4571,7 +4638,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Other Object Access Events",
@@ -4589,7 +4656,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Registry",
@@ -4607,7 +4674,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "Removable Storage",
@@ -4625,7 +4692,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Object Access)",
             "SAM",
@@ -4644,7 +4711,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Audit Policy Change",
@@ -4662,7 +4729,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authentication Policy Change",
@@ -4680,7 +4747,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Authorization Policy Change",
@@ -4698,7 +4765,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Filtering Platform Policy Change",
@@ -4716,7 +4783,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "MPSSVC Rule-Level Policy Change",
@@ -4734,7 +4801,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (Policy Change)",
             "Other Policy Change Events",
@@ -4753,7 +4820,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Non-Sensitive Privilege Use",
@@ -4771,7 +4838,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $false }
     $auditResult += [WELA]::New(
             "Security Advanced (Privilege Use)",
             "Sensitive Privilege Use",
@@ -4790,7 +4857,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Other System Events",
@@ -4808,7 +4875,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security State Change",
@@ -4826,7 +4893,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "Security System Extension",
@@ -4844,7 +4911,7 @@ function GuideMSS {
     $channels = @("sec")
     $enabled  = $enabledguid -contains $guid
     $rules    = ApplyRules -enabled $enabled -rules $all_rules -guid $guid
-    
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security Advanced (System)",
             "System Integrity",
@@ -4863,6 +4930,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations KernelMode",
             "",
@@ -4881,6 +4949,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Security-Mitigations UserMode",
             "",
@@ -4899,6 +4968,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "SMBClient Security",
             "",
@@ -4917,6 +4987,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "System",
             "",
@@ -4936,6 +5007,7 @@ function GuideMSS {
     $current  = if ($enabled) { "Enabled" } else { "Disabled" }
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TaskScheduler Operational",
             "",
@@ -4954,6 +5026,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "TerminalServices-LocalSessionManager Operational",
             "",
@@ -4972,6 +5045,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "WMI-Activity Operational",
             "",
@@ -4990,6 +5064,7 @@ function GuideMSS {
     $enabled  = $true
     $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
     $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
     $auditResult += [WELA]::New(
             "Windows Defender Operational",
             "",
@@ -5025,6 +5100,7 @@ function AuditLogSetting {
     $all_rules = Get-Content -Path "config/security_rules.json" -Raw | ConvertFrom-Json
     $all_rules | ForEach-Object {
         $_ | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
+        $_ | Add-Member -MemberType NoteProperty -Name "ideal" -Value $false
     }
     $auditResult = @()
 
@@ -5102,12 +5178,18 @@ function AuditLogSetting {
     } elseif ($outType -eq "table") {
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, DefaultSetting, CurrentSetting, RecommendedSetting, Volume | Format-Table
     }
-    $usableRules     = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
+    $usableRules  = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
     $unUsableRules   = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $false }
     $usableRules | Select-Object title, level, service, category, description, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
     $unusableRules  | Select-Object title, level, service, category, description, id  | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
     Write-Output "Usable detection rules list saved to: UsableRules.csv"
     Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
+
+    Export-MitreHeatmap　-usableRules $usableRules -OutputPath "mitre-ttp-heatmap-current.json"
+    Write-Output "MITRE ATT&CK Navigator data(based on current settings) saved to: mitre-ttp-navigator-current.json"
+    $idealRules  = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.ideal -eq $true }
+    Export-MitreHeatmap　-usableRules $idealRules -OutputPath "mitre-ttp-heatmap-ideal.json"
+    Write-Output "MITRE ATT&CK Navigator data(based on ideal settings) saved to: mitre-ttp-navigator-ideal.json"
 
     $totalRulesCount = $auditResult | Select-Object -ExpandProperty Rules | Measure-Object | Select-Object -ExpandProperty Count
     $usableRulesCount = $usableRules | Measure-Object | Select-Object -ExpandProperty Count
@@ -5122,6 +5204,70 @@ function AuditLogSetting {
     Write-Host "You can utilize $utilizationPercentage% of your detection rules." -ForegroundColor $color
     Write-Host ""
 }
+
+
+function Export-MitreHeatmap {
+    param (
+        [Parameter(Mandatory = $true)]
+        [array]$usableRules,
+
+        [Parameter(Mandatory = $false)]
+        [string]$OutputPath = "mitre-ttp-heatmap.json"
+    )
+    $tagMapping = @{}
+    $usableRules | ForEach-Object {
+        $rule = $_
+        $rule.tags | ForEach-Object {
+            $tag = $_
+            if (-not $tagMapping.ContainsKey($tag)) {
+                $tagMapping[$tag] = @()
+            }
+            $tagMapping[$tag] += $rule.title
+        }
+    }
+
+    $result = @{}
+    $tagMapping.Keys | ForEach-Object {
+        $result[$_] = $tagMapping[$_] -join ", "
+    }
+
+    $techniques = $result.GetEnumerator() | ForEach-Object {
+        @{
+            "techniqueID" = $_.Key
+            "score" = ($_.Value.ToCharArray() | Where-Object { $_ -eq ',' }).Count + 1
+            "comment" = $_.Value
+            "showSubtechniques" = $true
+        }
+    }
+
+    $heatmap = @{
+        "name" = "WELA detection heatmap"
+        "versions" = @{
+            "attack" = "17"
+            "navigator" = "5.1.0"
+            "layer" = "4.5"
+        }
+        "domain" = "enterprise-attack"
+        "description" = "WELA detection heatmap"
+        "techniques" = $techniques
+        "gradient" = @{
+            "colors" = @("#8ec843ff", "#ffe766ff", "#ff6666ff")
+            "minValue" = 0
+            "maxValue" = 100
+        }
+        "legendItems" = @()
+        "metadata" = @()
+        "links" = @()
+        "showTacticRowBackground" = $false
+        "tacticRowBackground" = "#dddddd"
+        "selectTechniquesAcrossTactics" = $true
+        "selectSubtechniquesWithParent" = $false
+        "selectVisibleTechniques" = $false
+    }
+
+    $heatmap | ConvertTo-Json -Depth 10 | Out-File $OutputPath
+}
+
 
 
 function AuditFileSize {
