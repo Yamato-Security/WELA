@@ -5185,10 +5185,10 @@ function AuditLogSetting {
     Write-Output "Usable detection rules list saved to: UsableRules.csv"
     Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 
-    Export-MitreHeatmap　-usableRules $usableRules -OutputPath "mitre-ttp-heatmap-current.json"
+    Export-MitreHeatmap -usableRules $usableRules -OutputPath "mitre-ttp-navigator-current.json"
     Write-Output "MITRE ATT&CK Navigator data(based on current settings) saved to: mitre-ttp-navigator-current.json"
     $idealRules  = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.ideal -eq $true }
-    Export-MitreHeatmap　-usableRules $idealRules -OutputPath "mitre-ttp-heatmap-ideal.json"
+    Export-MitreHeatmap -usableRules $idealRules -OutputPath "mitre-ttp-navigator-ideal.json"
     Write-Output "MITRE ATT&CK Navigator data(based on ideal settings) saved to: mitre-ttp-navigator-ideal.json"
 
     $totalRulesCount = $auditResult | Select-Object -ExpandProperty Rules | Measure-Object | Select-Object -ExpandProperty Count
