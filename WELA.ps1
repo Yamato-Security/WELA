@@ -5185,11 +5185,12 @@ function AuditLogSetting {
     Write-Output "Usable detection rules list saved to: UsableRules.csv"
     Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 
-    Export-MitreHeatmap -usableRules $usableRules -OutputPath "mitre-ttp-navigator-current.json"
+    $sigma_rules = $auditResult | Select-Object -ExpandProperty Rules
+    Export-MitreHeatmap -sigmaRules $sigma_rules -OutputPath "mitre-ttp-navigator-current.json"
     Write-Output "MITRE ATT&CK Navigator data(based on current settings) saved to: mitre-ttp-navigator-current.json"
-    $idealRules  = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.ideal -eq $true }
-    Export-MitreHeatmap -usableRules $idealRules -OutputPath "mitre-ttp-navigator-ideal.json"
-    Write-Output "MITRE ATT&CK Navigator data(based on ideal settings) saved to: mitre-ttp-navigator-ideal.json"
+    Export-MitreHeatmap -sigmaRules $sigma_rules -OutputPath "mitre-ttp-navigator-ideal.json" -UseIdealCount $true
+    Write-Output "MITRE ATT&CK Navigator data(based on current settings) saved to: mitre-ttp-navigator-ideal.json"
+
 
     $totalRulesCount = $auditResult | Select-Object -ExpandProperty Rules | Measure-Object | Select-Object -ExpandProperty Count
     $usableRulesCount = $usableRules | Measure-Object | Select-Object -ExpandProperty Count
@@ -5209,36 +5210,71 @@ function AuditLogSetting {
 function Export-MitreHeatmap {
     param (
         [Parameter(Mandatory = $true)]
-        [array]$usableRules,
+        [array]$sigmaRules,
 
         [Parameter(Mandatory = $false)]
-        [string]$OutputPath = "mitre-ttp-heatmap.json"
+        [string]$OutputPath = "mitre-ttp-heatmap.json",
+
+        [Parameter(Mandatory=$false)]
+        [bool]$UseIdealCount = $false
     )
     $tagMapping = @{}
-    $usableRules | ForEach-Object {
+    $sigmaRules | ForEach-Object {
         $rule = $_
-        $rule.tags | ForEach-Object {
-            $tag = $_
-            if (-not $tagMapping.ContainsKey($tag)) {
-                $tagMapping[$tag] = @()
+        if ($rule.tags) {
+            $rule.tags | ForEach-Object {
+                $tag = $_
+                if (-not $tagMapping.ContainsKey($tag)) {
+                    $tagMapping[$tag] = @{
+                        titles = @()
+                        idealCount = 0
+                        applicableCount = 0
+                    }
+                }
+                $tagMapping[$tag].titles += $rule.title
+                if ($rule.applicable -eq $true) {
+                    $tagMapping[$tag].applicableCount++
+                }
+                if ($rule.ideal -eq $true) {
+                    $tagMapping[$tag].idealCount++
+                }
             }
-            $tagMapping[$tag] += $rule.title
         }
     }
 
-    $result = @{}
+    $techniques = @()
     $tagMapping.Keys | ForEach-Object {
-        $result[$_] = $tagMapping[$_] -join ", "
-    }
+        $techniqueId = $_
+        $info = $tagMapping[$techniqueId]
+        $titlesCount = $info.titles.Count
+        $score = if ($titlesCount -gt 0) {
+            [math]::Round(($info.applicableCount / $titlesCount) * 100, 2)
+        } else {
+            0
+        }
+        if ($info.idealCount -gt 0 -and $info.applicableCount -eq 0) {
+            $score = 0
+        }
 
-    $techniques = $result.GetEnumerator() | ForEach-Object {
-        @{
-            "techniqueID" = $_.Key
-            "score" = ($_.Value.ToCharArray() | Where-Object { $_ -eq ',' }).Count + 1
-            "comment" = $_.Value
-            "showSubtechniques" = $true
+        if ($UseIdealCount) {
+            $score = [math]::Round(($info.idealCount / $titlesCount) * 100, 2)
+        }
+
+        $techniques += @{
+            techniqueID = $techniqueId
+            score = $score
+            comment = ($info.titles -join ", ")
+            showSubtechniques = $true
         }
     }
+
+    $colors = @(
+        "#c62828",  # Red
+        "#fff176",  # Yellow
+        "#ffa726",  # Orange
+        "#c8e6c9",  # Light Green
+        "#2e7d32"   # Dark Green
+    )
 
     $heatmap = @{
         "name" = "WELA detection heatmap"
@@ -5251,7 +5287,7 @@ function Export-MitreHeatmap {
         "description" = "WELA detection heatmap"
         "techniques" = $techniques
         "gradient" = @{
-            "colors" = @("#8ec843ff", "#ffe766ff", "#ff6666ff")
+            "colors" = $colors
             "minValue" = 0
             "maxValue" = 100
         }
