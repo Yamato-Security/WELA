@@ -5248,7 +5248,7 @@ function Export-MitreHeatmap {
         $info = $tagMapping[$techniqueId]
         $titlesCount = $info.titles.Count
         $score = if ($titlesCount -gt 0) {
-            [math]::Round(($info.applicableCount / $titlesCount) * 100, 2)
+            [int][math]::Round(($info.applicableCount / $titlesCount) * 100, 2)
         } else {
             0
         }
@@ -5257,7 +5257,7 @@ function Export-MitreHeatmap {
         }
 
         if ($UseIdealCount) {
-            $score = [math]::Round(($info.idealCount / $titlesCount) * 100, 2)
+            $score = [int][math]::Round(($info.idealCount / $titlesCount) * 100, 2)
         }
 
         $techniques += @{
