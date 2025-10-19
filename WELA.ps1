@@ -5421,22 +5421,38 @@ function ConfigureAuditSettings {
     param (
         [string] $Baseline = "YamatoSecurity"
     )
-    # Requires Administrator privileges
+
+    # 管理者権限の確認
     if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
         Write-Error "This script requires Administrator privileges"
         exit 1
     }
 
-    # Set Security and PowerShell-related logs' maximum file size to 1 GB
+    # ログサイズ定数
     $oneGB = 1073741824
-    wevtutil sl Security /ms:$oneGB
-    wevtutil sl Microsoft-Windows-PowerShell/Operational /ms:$oneGB
-    wevtutil sl "Windows PowerShell" /ms:$oneGB
-    wevtutil sl PowerShellCore/Operational /ms:$oneGB
-
-    # Set all other important logs to 128 MB
     $oneTwentyEightMB = 134217728
-    $logs = @(
+
+    # セキュリティおよびPowerShellログを1GBに設定
+    Write-Host "Configuring Event Logs..."
+    Write-Host ""
+    $largeLogs = @(
+        "Security",
+        "Microsoft-Windows-PowerShell/Operational",
+        "Windows PowerShell"
+    )
+
+    foreach ($log in $largeLogs) {
+        try {
+            wevtutil sl $log /ms:$oneGB 2>&1 | Out-Null
+            Write-Host "  [OK] $log : 1 GB"
+        }
+        catch {
+            Write-Host "  [ERROR] $log : $_" -ForegroundColor Red
+        }
+    }
+
+    # その他の重要なログを128MBに設定
+    $mediumLogs = @(
         "System",
         "Application",
         "Microsoft-Windows-Windows Defender/Operational",
@@ -5460,76 +5476,121 @@ function ConfigureAuditSettings {
         "Microsoft-Windows-TaskScheduler/Operational"
     )
 
-    foreach ($log in $logs) {
-        wevtutil sl $log /ms:$oneTwentyEightMB
+    foreach ($log in $mediumLogs) {
+        try {
+            wevtutil sl $log /ms:$oneTwentyEightMB 2>&1 | Out-Null
+            Write-Host "  [OK] $log : 128 MB"
+        }
+        catch {
+            Write-Host "  [ERROR] $log : $_" -ForegroundColor Red
+        }
     }
 
-    # Enable logs that need to be enabled
-    wevtutil sl Microsoft-Windows-TaskScheduler/Operational /e:true
-    wevtutil sl Microsoft-Windows-DriverFrameworks-UserMode/Operational /e:true
+    # 特定のログの有効化
+    Write-Host "Enabling Event Logs..."
+    foreach ($log in @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational")) {
+        try {
+            wevtutil sl $log /e:true 2>&1 | Out-Null
+            Write-Host "  [OK] Enabled: $log"
+        }
+        catch {
+            Write-Host "  [ERROR] Failed to enable $log : $_" -ForegroundColor Red
+        }
+    }
 
-    # Enable PowerShell Module logging
-    New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -Force | Out-Null
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -Name "EnableModuleLogging" -Value 1 -Type DWord
-    New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames" -Force | Out-Null
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames" -Name "*" -Value "*" -Type String
+    # PowerShell ロギングの設定
+    Write-Host "Configuring PowerShell Logging..."
+    $regPaths = @(
+        @{Path = "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging"; Name = "EnableModuleLogging"; Value = 1},
+        @{Path = "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging"; Name = "EnableScriptBlockLogging"; Value = 1}
+    )
 
-    # Enable PowerShell Script Block logging
-    New-Item -Path "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -Force | Out-Null
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -Name "EnableScriptBlockLogging" -Value 1 -Type DWord
+    foreach ($reg in $regPaths) {
+        try {
+            New-Item -Path $reg.Path -Force | Out-Null
+            Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value $reg.Value -Type DWord
+            Write-Host "  [OK] Set $($reg.Name)"
+        }
+        catch {
+            Write-Host "  [ERROR] Failed to set registry: $_" -ForegroundColor Red
+        }
+    }
 
-    # Account Logon
-    auditpol /set /subcategory:{0CCE923F-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9242-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9240-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    # モジュール名レジストリの設定
+    try {
+        $moduleLoggingPath = "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames"
+        New-Item -Path $moduleLoggingPath -Force | Out-Null
+        Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
+        Write-Host "  [OK] Module logging enabled for all modules"
+    }
+    catch {
+        Write-Host "  [ERROR] Failed to configure module names: $_" -ForegroundColor Red
+    }
 
-    # Account Management
-    auditpol /set /subcategory:{0CCE9236-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE923A-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9237-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9235-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    # コマンドライン監査の有効化
+    Write-Host "Enabling Command Line Auditing..."
+    $regPath = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
+    $arguments = "add $regPath /v ProcessCreationIncludeCmdLine_Enabled /f /t REG_DWORD /d 1"
+    $process = Start-Process -FilePath "reg.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
 
-    # Detailed Tracking
-    auditpol /set /subcategory:{0cce9248-69ae-11d9-bed3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE922B-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" -Force | Out-Null
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" -Name "ProcessCreationIncludeCmdLine_Enabled" -Value 1 -Type DWord
-    auditpol /set /subcategory:{0CCE922E-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    if ($process.ExitCode -eq 0) {
+        Write-Host "  [OK] Command line auditing enabled"
+    }
+    else {
+        Write-Host "  [ERROR] Command line auditing failed (ExitCode: $($process.ExitCode))" -ForegroundColor Red
+    }
 
-    # DS Access
-    auditpol /set /subcategory:{0CCE923B-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE923C-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    # 監査ポリシーの設定
+    Write-Host "Configuring Audit Policies..."
+    $auditPolicies = @(
+        @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "{0CCE923F-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "{0CCE9242-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Account Logon"; Name = "Kerberos Service Ticket Operations"; GUID = "{0CCE9240-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Account Management"; Name = "Computer Account Management"; GUID = "{0CCE9236-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Account Management"; Name = "Other Account Management Events"; GUID = "{0CCE923A-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Account Management"; Name = "Security Group Management"; GUID = "{0CCE9237-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Account Management"; Name = "User Account Management"; GUID = "{0CCE9235-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Detailed Tracking"; Name = "Plug and Play"; GUID = "{0cce9248-69ae-11d9-bed3-505054503030}"},
+        @{Category = "Detailed Tracking"; Name = "Process Creation"; GUID = "{0CCE922B-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Detailed Tracking"; Name = "RPC Events"; GUID = "{0CCE922E-69AE-11D9-BED3-505054503030}"},
+        @{Category = "DS Access"; Name = "Directory Service Access"; GUID = "{0CCE923B-69AE-11D9-BED3-505054503030}"},
+        @{Category = "DS Access"; Name = "Directory Service Changes"; GUID = "{0CCE923C-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Logon/Logoff"; Name = "Account Lockout"; GUID = "{0CCE9217-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Logon/Logoff"; Name = "Logoff"; GUID = "{0CCE9216-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Logon/Logoff"; Name = "Logon"; GUID = "{0CCE9215-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Logon/Logoff"; Name = "Other Logon/Logoff Events"; GUID = "{0CCE921C-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Logon/Logoff"; Name = "Special Logon"; GUID = "{0CCE921B-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Object Access"; Name = "Certification Services"; GUID = "{0CCE9221-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Object Access"; Name = "File Share"; GUID = "{0CCE9224-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Object Access"; Name = "Filtering Platform Connection"; GUID = "{0CCE9226-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Object Access"; Name = "Other Object Access Events"; GUID = "{0CCE9227-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Object Access"; Name = "Removable Storage"; GUID = "{0CCE9245-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Object Access"; Name = "SAM"; GUID = "{0CCE9220-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Policy Change"; Name = "Audit Policy Change"; GUID = "{0CCE922F-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Policy Change"; Name = "Authentication Policy Change"; GUID = "{0CCE9230-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Policy Change"; Name = "Other Policy Change Events"; GUID = "{0CCE9234-69AE-11D9-BED3-505054503030}"},
+        @{Category = "Privilege Use"; Name = "Sensitive Privilege Use"; GUID = "{0CCE9228-69AE-11D9-BED3-505054503030}"},
+        @{Category = "System"; Name = "Security State Change"; GUID = "{0CCE9210-69AE-11D9-BED3-505054503030}"; Success = "enable"},
+        @{Category = "System"; Name = "Security System Extension"; GUID = "{0CCE9211-69AE-11D9-BED3-505054503030}"; Success = "enable"},
+        @{Category = "System"; Name = "System Integrity"; GUID = "{0CCE9212-69AE-11D9-BED3-505054503030}"; Success = "enable"},
+        @{Category = "System"; Name = "Other System Events"; GUID = "{0CCE9214-69AE-11D9-BED3-505054503030}"; Success = "disable"}
+    )
 
-    # Logon/Logoff
-    auditpol /set /subcategory:{0CCE9217-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9216-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9215-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE921C-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE921B-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    foreach ($policy in $auditPolicies) {
+        $successFlag = if ($policy.Success) { $policy.Success } else { "enable" }
+        $arguments = "/set /subcategory:$($policy.GUID) /success:$successFlag /failure:enable"
+        $process = Start-Process -FilePath "auditpol.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
 
-    # Object Access
-    auditpol /set /subcategory:{0CCE9221-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9224-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9226-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9227-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9245-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9220-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+        if ($process.ExitCode -eq 0) {
+            Write-Host "  [OK] $($policy.Category) - $($policy.Name)"
+        }
+        else {
+            Write-Host "  [ERROR] $($policy.Category) - $($policy.Name) (ExitCode: $($process.ExitCode))" -ForegroundColor Red
+        }
+    }
 
-    # Policy Change
-    auditpol /set /subcategory:{0CCE922F-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9230-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9234-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-
-    # Privilege Use
-    auditpol /set /subcategory:{0CCE9228-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-
-    # System
-    auditpol /set /subcategory:{0CCE9214-69AE-11D9-BED3-505054503030} /success:disable /failure:enable
-    auditpol /set /subcategory:{0CCE9210-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9211-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-    auditpol /set /subcategory:{0CCE9212-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
-
-    Write-Host "Configuration completed successfully" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Configuration completed successfully"
 }
 
 $logo = @"
