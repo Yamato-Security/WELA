@@ -5173,9 +5173,6 @@ function AuditLogSetting {
         }
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, RecommendedSetting, Volume, Note | Export-Csv -Path "WELA-Audit-Result.csv" -NoTypeInformation
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
-    } elseif ($outType -eq "gui") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
-        Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "table") {
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, DefaultSetting, CurrentSetting, RecommendedSetting, Volume | Format-Table
     }
@@ -5188,6 +5185,8 @@ function AuditLogSetting {
     if ($outType -eq "gui") {
         $usableRules | Select-Object title, level, service, category, description, id | Out-GridView -Title "Usable Detection Rules"
         $unUsableRules  | Select-Object title, level, service, category, description, id  | Out-GridView -Title "Unusable Detection Rules"
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     }
 
     Write-Output "Usable detection rules list saved to: UsableRules.csv"
