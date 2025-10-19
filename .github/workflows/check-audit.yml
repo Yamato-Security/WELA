@@ -43,7 +43,7 @@ jobs:
           $PSVersionTable.PSVersion
         shell: powershell
 
-      - name: Run congigure command(PowerShell 5.1)
+      - name: Run congiure command(PowerShell 5.1)
         run: |
           ./WELA.ps1 configure
         shell: powershell
