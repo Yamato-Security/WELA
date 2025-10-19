@@ -5417,6 +5417,121 @@ function UpdateRules {
     }
 }
 
+function ConfigureAuditSettings {
+    param (
+        [string] $Baseline = "YamatoSecurity"
+    )
+    # Requires Administrator privileges
+    if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Error "This script requires Administrator privileges"
+        exit 1
+    }
+
+    # Set Security and PowerShell-related logs' maximum file size to 1 GB
+    $oneGB = 1073741824
+    wevtutil sl Security /ms:$oneGB
+    wevtutil sl Microsoft-Windows-PowerShell/Operational /ms:$oneGB
+    wevtutil sl "Windows PowerShell" /ms:$oneGB
+    wevtutil sl PowerShellCore/Operational /ms:$oneGB
+
+    # Set all other important logs to 128 MB
+    $oneTwentyEightMB = 134217728
+    $logs = @(
+        "System",
+        "Application",
+        "Microsoft-Windows-Windows Defender/Operational",
+        "Microsoft-Windows-Bits-Client/Operational",
+        "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall",
+        "Microsoft-Windows-NTLM/Operational",
+        "Microsoft-Windows-Security-Mitigations/KernelMode",
+        "Microsoft-Windows-Security-Mitigations/UserMode",
+        "Microsoft-Windows-PrintService/Admin",
+        "Microsoft-Windows-PrintService/Operational",
+        "Microsoft-Windows-SmbClient/Security",
+        "Microsoft-Windows-AppLocker/MSI and Script",
+        "Microsoft-Windows-AppLocker/EXE and DLL",
+        "Microsoft-Windows-AppLocker/Packaged app-Deployment",
+        "Microsoft-Windows-AppLocker/Packaged app-Execution",
+        "Microsoft-Windows-CodeIntegrity/Operational",
+        "Microsoft-Windows-Diagnosis-Scripted/Operational",
+        "Microsoft-Windows-DriverFrameworks-UserMode/Operational",
+        "Microsoft-Windows-WMI-Activity/Operational",
+        "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational",
+        "Microsoft-Windows-TaskScheduler/Operational"
+    )
+
+    foreach ($log in $logs) {
+        wevtutil sl $log /ms:$oneTwentyEightMB
+    }
+
+    # Enable logs that need to be enabled
+    wevtutil sl Microsoft-Windows-TaskScheduler/Operational /e:true
+    wevtutil sl Microsoft-Windows-DriverFrameworks-UserMode/Operational /e:true
+
+    # Enable PowerShell Module logging
+    New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -Force | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -Name "EnableModuleLogging" -Value 1 -Type DWord
+    New-Item -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames" -Force | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames" -Name "*" -Value "*" -Type String
+
+    # Enable PowerShell Script Block logging
+    New-Item -Path "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -Force | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -Name "EnableScriptBlockLogging" -Value 1 -Type DWord
+
+    # Account Logon
+    auditpol /set /subcategory:{0CCE923F-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9242-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9240-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # Account Management
+    auditpol /set /subcategory:{0CCE9236-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE923A-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9237-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9235-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # Detailed Tracking
+    auditpol /set /subcategory:{0cce9248-69ae-11d9-bed3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE922B-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" -Force | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" -Name "ProcessCreationIncludeCmdLine_Enabled" -Value 1 -Type DWord
+    auditpol /set /subcategory:{0CCE922E-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # DS Access
+    auditpol /set /subcategory:{0CCE923B-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE923C-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # Logon/Logoff
+    auditpol /set /subcategory:{0CCE9217-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9216-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9215-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE921C-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE921B-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # Object Access
+    auditpol /set /subcategory:{0CCE9221-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9224-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9226-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9227-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9245-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9220-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # Policy Change
+    auditpol /set /subcategory:{0CCE922F-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9230-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9234-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # Privilege Use
+    auditpol /set /subcategory:{0CCE9228-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    # System
+    auditpol /set /subcategory:{0CCE9214-69AE-11D9-BED3-505054503030} /success:disable /failure:enable
+    auditpol /set /subcategory:{0CCE9210-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9211-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+    auditpol /set /subcategory:{0CCE9212-69AE-11D9-BED3-505054503030} /success:enable /failure:enable
+
+    Write-Host "Configuration completed successfully" -ForegroundColor Green
+}
+
 $logo = @"
 ┏┓┏┓┏┳━━━┳┓  ┏━━━┓
 ┃┃┃┃┃┃┏━━┫┃  ┃┏━┓┃
@@ -5433,6 +5548,7 @@ Usage:
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
   ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
+  ./WELA.ps1 configure -Baseline YamatoSecurity          # Configure audit settings based on the specified baseline
   ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
   ./WELA.ps1 help        # Show this help
 "@
@@ -5452,6 +5568,15 @@ switch ($Cmd.ToLower()) {
     }
     "audit-filesize" {
         AuditFileSize
+    }
+
+    "configure" {
+        $validGuides = @("YamatoSecurity", "ASD", "Microsoft_Client", "Microsoft_Server")
+        if (-not ($validGuides -contains $Baseline.ToLower())) {
+            Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
+            break
+        }
+        ConfigureAuditSettings $Baseline
     }
 
     "update-rules" {
