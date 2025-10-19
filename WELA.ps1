@@ -5175,13 +5175,21 @@ function AuditLogSetting {
         Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "gui") {
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        Write-Output "Audit check result saved to: WELA-Audit-Result.csv"
     } elseif ($outType -eq "table") {
         $auditResult | Select-Object -Property Category, SubCategory, RuleCount, DefaultSetting, CurrentSetting, RecommendedSetting, Volume | Format-Table
     }
+
     $usableRules  = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $true }
     $unUsableRules   = $auditResult | Select-Object -ExpandProperty Rules | Where-Object { $_.applicable -eq $false }
     $usableRules | Select-Object title, level, service, category, description, id | Export-Csv -Path "UsableRules.csv" -NoTypeInformation
     $unusableRules  | Select-Object title, level, service, category, description, id  | Export-Csv -Path "UnusableRules.csv" -NoTypeInformation
+
+    if ($outType -eq "gui") {
+        $usableRules | Select-Object title, level, service, category, description, id | Out-GridView -Title "Usable Detection Rules"
+        $unUsableRules  | Select-Object title, level, service, category, description, id  | Out-GridView -Title "Unusable Detection Rules"
+    }
+
     Write-Output "Usable detection rules list saved to: UsableRules.csv"
     Write-Output "Unusable detection rules list saved to: UnusableRules.csv"
 
@@ -5190,7 +5198,6 @@ function AuditLogSetting {
     Write-Output "MITRE ATT&CK Navigator data(based on current settings) saved to: mitre-ttp-navigator-current.json"
     Export-MitreHeatmap -sigmaRules $sigma_rules -OutputPath "mitre-ttp-navigator-ideal.json" -UseIdealCount $true
     Write-Output "MITRE ATT&CK Navigator data(based on ideal settings) saved to: mitre-ttp-navigator-ideal.json"
-
 
     $totalRulesCount = $auditResult | Select-Object -ExpandProperty Rules | Measure-Object | Select-Object -ExpandProperty Count
     $usableRulesCount = $usableRules | Measure-Object | Select-Object -ExpandProperty Count
@@ -5499,6 +5506,7 @@ function ConfigureAuditSettings {
     }
 
     # PowerShell ロギングの設定
+    Write-Host ""
     Write-Host "Configuring PowerShell Logging..."
     $regPaths = @(
         @{Path = "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging"; Name = "EnableModuleLogging"; Value = 1},
@@ -5528,6 +5536,7 @@ function ConfigureAuditSettings {
     }
 
     # コマンドライン監査の有効化
+    Write-Host ""
     Write-Host "Enabling Command Line Auditing..."
     $regPath = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
     $arguments = "add $regPath /v ProcessCreationIncludeCmdLine_Enabled /f /t REG_DWORD /d 1"
@@ -5541,6 +5550,7 @@ function ConfigureAuditSettings {
     }
 
     # 監査ポリシーの設定
+    Write-Host ""
     Write-Host "Configuring Audit Policies..."
     $auditPolicies = @(
         @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "{0CCE923F-69AE-11D9-BED3-505054503030}"},
@@ -5590,7 +5600,7 @@ function ConfigureAuditSettings {
     }
 
     Write-Host ""
-    Write-Host "Configuration completed successfully"
+    Write-Host "Configuration completed successfully" -ForegroundColor Green
 }
 
 $logo = @"
