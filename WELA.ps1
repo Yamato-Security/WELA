@@ -5435,6 +5435,11 @@ function ConfigureAuditSettings {
         exit 1
     }
 
+    $autidpolTxt = "./auditpol.txt"
+    if (-not $debug) {
+        Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
+    }
+
     # ログサイズ定数
     $oneGB = 1073741824
     $oneTwentyEightMB = 134217728
@@ -5619,19 +5624,26 @@ function ConfigureAuditSettings {
         if ($currentValue -eq "*") {
             Write-Host "[SKIPPED] Module logging : Already set to * (all modules)." -ForegroundColor Yellow
             Write-Host ""
-            return
-        }
-        if ($Auto) {
-            $response = "Y"
-        } else {
-            $response = Read-Host "Your current setting is $currentValue. Do you want to change it to * (all modules)? (Y/n)"
-        }
-        if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-            New-Item -Path $moduleLoggingPath -Force | Out-Null
-            Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
-            Write-Host "[OK] Module logging enabled for all modules" -ForegroundColor Green
-        } else {
-            Write-Host "[SKIPPED] Module logging" -ForegroundColor Yellow
+        } else
+        {
+            if ($Auto)
+            {
+                $response = "Y"
+            }
+            else
+            {
+                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to * (all modules)? (Y/n)"
+            }
+            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y")
+            {
+                New-Item -Path $moduleLoggingPath -Force | Out-Null
+                Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
+                Write-Host "[OK] Module logging enabled for all modules" -ForegroundColor Green
+            }
+            else
+            {
+                Write-Host "[SKIPPED] Module logging" -ForegroundColor Yellow
+            }
         }
     }
     catch {
@@ -5642,37 +5654,46 @@ function ConfigureAuditSettings {
     # コマンドライン監査の有効化
     Write-Host "Enabling Command Line Auditing..."
     Write-Host ""
-    $regPath = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
+    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
     $valueName = "ProcessCreationIncludeCmdLine_Enabled"
     try {
         $currentValue = "Not Set"
         if (Test-Path $regPath) {
             $prop = Get-ItemProperty -Path $regPath -Name $valueName -ErrorAction SilentlyContinue
-            if ($prop) {
-                $currentValue = $prop.$valueName
-            }
+            $currentValue = $prop.$valueName
         }
         Write-Host "Registry: $regPath"
         if ($currentValue -eq 1) {
             Write-Host "[SKIPPED] Command Line Auditing : Already Enabled." -ForegroundColor Yellow
             Write-Host ""
-            return
-        }
-        if ($Auto) {
-            $response = "Y"
-        } else {
-            $response = Read-Host "Your current setting is $currentValue. Do you want to change it to 1 (Enabled)? (Y/n)"
-        }
-        if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-            $arguments = "add $regPath /v $valueName /f /t REG_DWORD /d 1"
-            $process = Start-Process -FilePath "reg.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
-            if ($process.ExitCode -eq 0) {
-                Write-Host "[OK] Command line auditing enabled" -ForegroundColor Green
-            } else {
-                Write-Host "[ERROR] Command line auditing failed (ExitCode: $($process.ExitCode))" -ForegroundColor Red
+        } else
+        {
+            if ($Auto)
+            {
+                $response = "Y"
             }
-        } else {
-            Write-Host "[SKIPPED] Command line auditing" -ForegroundColor Yellow
+            else
+            {
+                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to 1 (Enabled)? (Y/n)"
+            }
+            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y")
+            {
+                $regPath = $regPath -replace "HKLM:", "HKLM"
+                $arguments = "add $regPath /v $valueName /f /t REG_DWORD /d 1"
+                $process = Start-Process -FilePath "reg.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
+                if ($process.ExitCode -eq 0)
+                {
+                    Write-Host "[OK] Command line auditing enabled" -ForegroundColor Green
+                }
+                else
+                {
+                    Write-Host "[ERROR] Command line auditing failed (ExitCode: $( $process.ExitCode ))" -ForegroundColor Red
+                }
+            }
+            else
+            {
+                Write-Host "[SKIPPED] Command line auditing" -ForegroundColor Yellow
+            }
         }
     }
     catch {
@@ -5684,54 +5705,45 @@ function ConfigureAuditSettings {
     Write-Host "Configuring Audit Policies..."
     Write-Host ""
     $auditPolicies = @(
-        @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "{0CCE923F-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "{0CCE9242-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Account Logon"; Name = "Kerberos Service Ticket Operations"; GUID = "{0CCE9240-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Account Management"; Name = "Computer Account Management"; GUID = "{0CCE9236-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Account Management"; Name = "Other Account Management Events"; GUID = "{0CCE923A-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Account Management"; Name = "Security Group Management"; GUID = "{0CCE9237-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Account Management"; Name = "User Account Management"; GUID = "{0CCE9235-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Detailed Tracking"; Name = "Plug and Play"; GUID = "{0cce9248-69ae-11d9-bed3-505054503030}"},
-        @{Category = "Detailed Tracking"; Name = "Process Creation"; GUID = "{0CCE922B-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Detailed Tracking"; Name = "RPC Events"; GUID = "{0CCE922E-69AE-11D9-BED3-505054503030}"},
-        @{Category = "DS Access"; Name = "Directory Service Access"; GUID = "{0CCE923B-69AE-11D9-BED3-505054503030}"},
-        @{Category = "DS Access"; Name = "Directory Service Changes"; GUID = "{0CCE923C-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Logon/Logoff"; Name = "Account Lockout"; GUID = "{0CCE9217-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Logon/Logoff"; Name = "Logoff"; GUID = "{0CCE9216-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Logon/Logoff"; Name = "Logon"; GUID = "{0CCE9215-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Logon/Logoff"; Name = "Other Logon/Logoff Events"; GUID = "{0CCE921C-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Logon/Logoff"; Name = "Special Logon"; GUID = "{0CCE921B-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Object Access"; Name = "Certification Services"; GUID = "{0CCE9221-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Object Access"; Name = "File Share"; GUID = "{0CCE9224-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Object Access"; Name = "Filtering Platform Connection"; GUID = "{0CCE9226-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Object Access"; Name = "Other Object Access Events"; GUID = "{0CCE9227-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Object Access"; Name = "Removable Storage"; GUID = "{0CCE9245-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Object Access"; Name = "SAM"; GUID = "{0CCE9220-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Policy Change"; Name = "Audit Policy Change"; GUID = "{0CCE922F-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Policy Change"; Name = "Authentication Policy Change"; GUID = "{0CCE9230-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Policy Change"; Name = "Other Policy Change Events"; GUID = "{0CCE9234-69AE-11D9-BED3-505054503030}"},
-        @{Category = "Privilege Use"; Name = "Sensitive Privilege Use"; GUID = "{0CCE9228-69AE-11D9-BED3-505054503030}"},
-        @{Category = "System"; Name = "Security State Change"; GUID = "{0CCE9210-69AE-11D9-BED3-505054503030}"; Success = "enable"},
-        @{Category = "System"; Name = "Security System Extension"; GUID = "{0CCE9211-69AE-11D9-BED3-505054503030}"; Success = "enable"},
-        @{Category = "System"; Name = "System Integrity"; GUID = "{0CCE9212-69AE-11D9-BED3-505054503030}"; Success = "enable"},
-        @{Category = "System"; Name = "Other System Events"; GUID = "{0CCE9214-69AE-11D9-BED3-505054503030}"; Success = "disable"}
+        @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "0CCE923F-69AE-11D9-BED3-505054503030"},
+        @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "0CCE9242-69AE-11D9-BED3-505054503030"},
+        @{Category = "Account Logon"; Name = "Kerberos Service Ticket Operations"; GUID = "0CCE9240-69AE-11D9-BED3-505054503030"},
+        @{Category = "Account Management"; Name = "Computer Account Management"; GUID = "0CCE9236-69AE-11D9-BED3-505054503030"},
+        @{Category = "Account Management"; Name = "Other Account Management Events"; GUID = "0CCE923A-69AE-11D9-BED3-505054503030"},
+        @{Category = "Account Management"; Name = "Security Group Management"; GUID = "0CCE9237-69AE-11D9-BED3-505054503030"},
+        @{Category = "Account Management"; Name = "User Account Management"; GUID = "0CCE9235-69AE-11D9-BED3-505054503030"},
+        @{Category = "Detailed Tracking"; Name = "Plug and Play"; GUID = "0cce9248-69ae-11d9-bed3-505054503030"},
+        @{Category = "Detailed Tracking"; Name = "Process Creation"; GUID = "0CCE922B-69AE-11D9-BED3-505054503030"},
+        @{Category = "Detailed Tracking"; Name = "RPC Events"; GUID = "0CCE922E-69AE-11D9-BED3-505054503030"},
+        @{Category = "DS Access"; Name = "Directory Service Access"; GUID = "0CCE923B-69AE-11D9-BED3-505054503030"},
+        @{Category = "DS Access"; Name = "Directory Service Changes"; GUID = "0CCE923C-69AE-11D9-BED3-505054503030"},
+        @{Category = "Logon/Logoff"; Name = "Account Lockout"; GUID = "0CCE9217-69AE-11D9-BED3-505054503030"},
+        @{Category = "Logon/Logoff"; Name = "Logoff"; GUID = "0CCE9216-69AE-11D9-BED3-505054503030"},
+        @{Category = "Logon/Logoff"; Name = "Logon"; GUID = "0CCE9215-69AE-11D9-BED3-505054503030"},
+        @{Category = "Logon/Logoff"; Name = "Other Logon/Logoff Events"; GUID = "0CCE921C-69AE-11D9-BED3-505054503030"},
+        @{Category = "Logon/Logoff"; Name = "Special Logon"; GUID = "0CCE921B-69AE-11D9-BED3-505054503030"},
+        @{Category = "Object Access"; Name = "Certification Services"; GUID = "0CCE9221-69AE-11D9-BED3-505054503030"},
+        @{Category = "Object Access"; Name = "File Share"; GUID = "0CCE9224-69AE-11D9-BED3-505054503030"},
+        @{Category = "Object Access"; Name = "Filtering Platform Connection"; GUID = "0CCE9226-69AE-11D9-BED3-505054503030"},
+        @{Category = "Object Access"; Name = "Other Object Access Events"; GUID = "0CCE9227-69AE-11D9-BED3-505054503030"},
+        @{Category = "Object Access"; Name = "Removable Storage"; GUID = "0CCE9245-69AE-11D9-BED3-505054503030"},
+        @{Category = "Object Access"; Name = "SAM"; GUID = "0CCE9220-69AE-11D9-BED3-505054503030"},
+        @{Category = "Policy Change"; Name = "Audit Policy Change"; GUID = "0CCE922F-69AE-11D9-BED3-505054503030"},
+        @{Category = "Policy Change"; Name = "Authentication Policy Change"; GUID = "0CCE9230-69AE-11D9-BED3-505054503030"},
+        @{Category = "Policy Change"; Name = "Other Policy Change Events"; GUID = "0CCE9234-69AE-11D9-BED3-505054503030"},
+        @{Category = "Privilege Use"; Name = "Sensitive Privilege Use"; GUID = "0CCE9228-69AE-11D9-BED3-505054503030"},
+        @{Category = "System"; Name = "Security State Change"; GUID = "0CCE9210-69AE-11D9-BED3-505054503030"},
+        @{Category = "System"; Name = "Security System Extension"; GUID = "0CCE9211-69AE-11D9-BED3-505054503030"},
+        @{Category = "System"; Name = "System Integrity"; GUID = "0CCE9212-69AE-11D9-BED3-505054503030"},
+        @{Category = "System"; Name = "Other System Events"; GUID = "0CCE9214-69AE-11D9-BED3-505054503030"}
     )
 
-    # TODO
-    $currentAuditPol = @{}
+    $currentAuditPol = GetAuditpol
 
     foreach ($policy in $auditPolicies)
     {
-        $successFlag = if ($policy.Success)
-        {
-            $policy.Success
-        }
-        else
-        {
-            "enable"
-        }
-        $newSetting = "Success: $successFlag, Failure: enable"
-        $currentSetting = if ( $currentAuditPol.ContainsKey($policy.GUID))
+        $newSetting = "Success and Failure"
+        $currentSetting = if ($currentAuditPol.ContainsKey($policy.GUID))
         {
             $currentAuditPol[$policy.GUID]
         }
@@ -5753,7 +5765,7 @@ function ConfigureAuditSettings {
             $response = Read-Host "Your current setting is $currentSetting. Do you want to change it to $newSetting? (Y/n)"
         }
         if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-            $arguments = "/set /subcategory:$($policy.GUID) /success:$successFlag /failure:enable"
+            $arguments = "/set /subcategory:{$($policy.GUID)} /success:enable /failure:enable"
             $process = Start-Process -FilePath "auditpol.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
 
             if ($process.ExitCode -eq 0) {
