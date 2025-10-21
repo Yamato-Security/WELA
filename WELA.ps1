@@ -5426,7 +5426,7 @@ function UpdateRules {
 function ConfigureAuditSettings {
     param (
         [string] $Baseline = "YamatoSecurity",
-        [switch]$Auto
+        [switch] $Auto
     )
 
     # 管理者権限の確認
@@ -5827,7 +5827,7 @@ switch ($Cmd.ToLower()) {
             Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
             break
         }
-        ConfigureAuditSettings $Baseline $Auto
+        ConfigureAuditSettings -Baseline $Baseline -Auto
     }
 
     "update-rules" {
