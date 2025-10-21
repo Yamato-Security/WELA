@@ -5425,7 +5425,8 @@ function UpdateRules {
 
 function ConfigureAuditSettings {
     param (
-        [string] $Baseline = "YamatoSecurity"
+        [string] $Baseline = "YamatoSecurity",
+        [switch]$Auto
     )
 
     # 管理者権限の確認
@@ -5449,12 +5450,31 @@ function ConfigureAuditSettings {
 
     foreach ($log in $largeLogs) {
         try {
-            wevtutil sl $log /ms:$oneGB 2>&1 | Out-Null
-            Write-Host "  [OK] $log : 1 GB"
+            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
+            $currentSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
+            $newSize = 1024
+            Write-Host "Log: $log"
+            if ($currentSize -ge $newSize) {
+                Write-Host "[SKIPPED] $log : Current size ($currentSize MB) is already greater than or equal to $newSize MB." -ForegroundColor Yellow
+                Write-Host ""
+                continue
+            }
+            if ($Auto) {
+                $response = "Y"
+            } else {
+                $response = Read-Host "Your current setting is $currentSize MB. Do you want to change it to 1024 MB? (Y/n)"
+            }
+            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+                wevtutil sl $log /ms:$oneGB 2>&1 | Out-Null
+                Write-Host "[OK] $log : 1 GB" -ForegroundColor Green
+            } else {
+                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
+            }
         }
         catch {
-            Write-Host "  [ERROR] $log : $_" -ForegroundColor Red
+            Write-Host "[ERROR] $log : $_" -ForegroundColor Red
         }
+        Write-Host ""
     }
 
     # その他の重要なログを128MBに設定
@@ -5484,29 +5504,68 @@ function ConfigureAuditSettings {
 
     foreach ($log in $mediumLogs) {
         try {
-            wevtutil sl $log /ms:$oneTwentyEightMB 2>&1 | Out-Null
-            Write-Host "  [OK] $log : 128 MB"
+            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
+            $currentSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
+            $newSize = 128
+            Write-Host "Log: $log"
+            if ($currentSize -ge $newSize) {
+                Write-Host "[SKIPPED] $log : Current size ($currentSize MB) is already greater than or equal to $newSize MB." -ForegroundColor Yellow
+                Write-Host ""
+                continue
+            }
+            if ($Auto) {
+                $response = "Y"
+            } else {
+                $response = Read-Host "Your current setting is $currentSize MB. Do you want to change it to 128 MB? (Y/n)"
+            }
+            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+                wevtutil sl $log /ms:$oneTwentyEightMB 2>&1 | Out-Null
+                Write-Host "[OK] $log : 128 MB" -ForegroundColor Green
+            } else {
+                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
+            }
         }
         catch {
-            Write-Host "  [ERROR] $log : $_" -ForegroundColor Red
+            Write-Host "[ERROR] $log : $_" -ForegroundColor Red
         }
+        Write-Host ""
     }
 
     # 特定のログの有効化
     Write-Host "Enabling Event Logs..."
+    Write-Host ""
     foreach ($log in @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational")) {
         try {
-            wevtutil sl $log /e:true 2>&1 | Out-Null
-            Write-Host "  [OK] Enabled: $log"
+            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
+            $currentState = if ($logInfo.IsEnabled) { "Enabled" } else { "Disabled" }
+            $newState = "Enabled"
+            Write-Host "Log: $log"
+            if ($currentState -eq $newState) {
+                Write-Host "[SKIPPED] $log : Already Enabled." -ForegroundColor Yellow
+                Write-Host ""
+                continue
+            }
+            if ($Auto) {
+                $response = "Y"
+            } else {
+                $response = Read-Host "Your current setting is $currentState. Do you want to change it to Enabled? (Y/n)"
+            }
+            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+                wevtutil sl $log /e:true 2>&1 | Out-Null
+                Write-Host "[OK] Enabled: $log" -ForegroundColor Green
+            } else {
+                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
+            }
         }
         catch {
-            Write-Host "  [ERROR] Failed to enable $log : $_" -ForegroundColor Red
+            Write-Host "[ERROR] Failed to enable $log : $_" -ForegroundColor Red
         }
+        Write-Host ""
     }
 
     # PowerShell ロギングの設定
-    Write-Host ""
     Write-Host "Configuring PowerShell Logging..."
+    Write-Host ""
     $regPaths = @(
         @{Path = "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging"; Name = "EnableModuleLogging"; Value = 1},
         @{Path = "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging"; Name = "EnableScriptBlockLogging"; Value = 1}
@@ -5514,43 +5573,116 @@ function ConfigureAuditSettings {
 
     foreach ($reg in $regPaths) {
         try {
-            New-Item -Path $reg.Path -Force | Out-Null
-            Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value $reg.Value -Type DWord
-            Write-Host "  [OK] Set $($reg.Name)"
+            $currentValue = "Not Set"
+            if (Test-Path $reg.Path) {
+                $prop = Get-ItemProperty -Path $reg.Path -Name $reg.Name -ErrorAction SilentlyContinue
+                if ($prop) {
+                    $currentValue = $prop.$($reg.Name)
+                }
+            }
+            Write-Host "Registry: $($reg.Path) Value: $($reg.Name)"
+            if ($currentValue -eq $reg.Value) {
+                Write-Host "[SKIPPED] $($reg.Name) : Already set to $($reg.Value)." -ForegroundColor Yellow
+                Write-Host ""
+                continue
+            }
+            if ($Auto) {
+                $response = "Y"
+            } else {
+                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to $( $reg.Value )? (Y/n)"
+            }
+            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+                New-Item -Path $reg.Path -Force | Out-Null
+                Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value $reg.Value -Type DWord
+                Write-Host "[OK] Set $($reg.Name)" -ForegroundColor Green
+            } else {
+                Write-Host "[SKIPPED] $($reg.Name)" -ForegroundColor Yellow
+            }
         }
         catch {
-            Write-Host "  [ERROR] Failed to set registry: $_" -ForegroundColor Red
+            Write-Host "[ERROR] Failed to set registry: $_" -ForegroundColor Red
         }
+        Write-Host ""
     }
 
     # モジュール名レジストリの設定
     try {
         $moduleLoggingPath = "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames"
-        New-Item -Path $moduleLoggingPath -Force | Out-Null
-        Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
-        Write-Host "  [OK] Module logging enabled for all modules"
+        $currentValue = "Not Set"
+        if (Test-Path $moduleLoggingPath) {
+            $prop = Get-ItemProperty -Path $moduleLoggingPath -Name "*" -ErrorAction SilentlyContinue
+            if ($prop) {
+                $currentValue = $prop."*"
+            }
+        }
+        Write-Host "Registry: $moduleLoggingPath"
+        if ($currentValue -eq "*") {
+            Write-Host "[SKIPPED] Module logging : Already set to * (all modules)." -ForegroundColor Yellow
+            Write-Host ""
+            return
+        }
+        if ($Auto) {
+            $response = "Y"
+        } else {
+            $response = Read-Host "Your current setting is $currentValue. Do you want to change it to * (all modules)? (Y/n)"
+        }
+        if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+            New-Item -Path $moduleLoggingPath -Force | Out-Null
+            Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
+            Write-Host "[OK] Module logging enabled for all modules" -ForegroundColor Green
+        } else {
+            Write-Host "[SKIPPED] Module logging" -ForegroundColor Yellow
+        }
     }
     catch {
-        Write-Host "  [ERROR] Failed to configure module names: $_" -ForegroundColor Red
+        Write-Host "[ERROR] Failed to configure module names: $_" -ForegroundColor Red
     }
+    Write-Host ""
 
     # コマンドライン監査の有効化
-    Write-Host ""
     Write-Host "Enabling Command Line Auditing..."
+    Write-Host ""
     $regPath = "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
-    $arguments = "add $regPath /v ProcessCreationIncludeCmdLine_Enabled /f /t REG_DWORD /d 1"
-    $process = Start-Process -FilePath "reg.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
-
-    if ($process.ExitCode -eq 0) {
-        Write-Host "  [OK] Command line auditing enabled"
+    $valueName = "ProcessCreationIncludeCmdLine_Enabled"
+    try {
+        $currentValue = "Not Set"
+        if (Test-Path $regPath) {
+            $prop = Get-ItemProperty -Path $regPath -Name $valueName -ErrorAction SilentlyContinue
+            if ($prop) {
+                $currentValue = $prop.$valueName
+            }
+        }
+        Write-Host "Registry: $regPath"
+        if ($currentValue -eq 1) {
+            Write-Host "[SKIPPED] Command Line Auditing : Already Enabled." -ForegroundColor Yellow
+            Write-Host ""
+            return
+        }
+        if ($Auto) {
+            $response = "Y"
+        } else {
+            $response = Read-Host "Your current setting is $currentValue. Do you want to change it to 1 (Enabled)? (Y/n)"
+        }
+        if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+            $arguments = "add $regPath /v $valueName /f /t REG_DWORD /d 1"
+            $process = Start-Process -FilePath "reg.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
+            if ($process.ExitCode -eq 0) {
+                Write-Host "[OK] Command line auditing enabled" -ForegroundColor Green
+            } else {
+                Write-Host "[ERROR] Command line auditing failed (ExitCode: $($process.ExitCode))" -ForegroundColor Red
+            }
+        } else {
+            Write-Host "[SKIPPED] Command line auditing" -ForegroundColor Yellow
+        }
     }
-    else {
-        Write-Host "  [ERROR] Command line auditing failed (ExitCode: $($process.ExitCode))" -ForegroundColor Red
+    catch {
+        Write-Host "[ERROR] Failed to check command line auditing: $_" -ForegroundColor Red
     }
+    Write-Host ""
 
     # 監査ポリシーの設定
-    Write-Host ""
     Write-Host "Configuring Audit Policies..."
+    Write-Host ""
     $auditPolicies = @(
         @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "{0CCE923F-69AE-11D9-BED3-505054503030}"},
         @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "{0CCE9242-69AE-11D9-BED3-505054503030}"},
@@ -5585,20 +5717,56 @@ function ConfigureAuditSettings {
         @{Category = "System"; Name = "Other System Events"; GUID = "{0CCE9214-69AE-11D9-BED3-505054503030}"; Success = "disable"}
     )
 
-    foreach ($policy in $auditPolicies) {
-        $successFlag = if ($policy.Success) { $policy.Success } else { "enable" }
-        $arguments = "/set /subcategory:$($policy.GUID) /success:$successFlag /failure:enable"
-        $process = Start-Process -FilePath "auditpol.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
+    # TODO
+    $currentAuditPol = @{}
 
-        if ($process.ExitCode -eq 0) {
-            Write-Host "  [OK] $($policy.Category) - $($policy.Name)"
+    foreach ($policy in $auditPolicies)
+    {
+        $successFlag = if ($policy.Success)
+        {
+            $policy.Success
         }
-        else {
-            Write-Host "  [ERROR] $($policy.Category) - $($policy.Name) (ExitCode: $($process.ExitCode))" -ForegroundColor Red
+        else
+        {
+            "enable"
         }
+        $newSetting = "Success: $successFlag, Failure: enable"
+        $currentSetting = if ( $currentAuditPol.ContainsKey($policy.GUID))
+        {
+            $currentAuditPol[$policy.GUID]
+        }
+        else
+        {
+            "Unknown"
+        }
+
+        Write-Host "Audit Policy: $( $policy.Category ) - $( $policy.Name )"
+        if ($currentSetting -eq $newSetting)
+        {
+            Write-Host "[SKIPPED] $( $policy.Category ) - $( $policy.Name ) : Already set to $newSetting." -ForegroundColor Yellow
+            Write-Host ""
+            continue
+        }
+        if ($Auto) {
+            $response = "Y"
+        } else {
+            $response = Read-Host "Your current setting is $currentSetting. Do you want to change it to $newSetting? (Y/n)"
+        }
+        if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+            $arguments = "/set /subcategory:$($policy.GUID) /success:$successFlag /failure:enable"
+            $process = Start-Process -FilePath "auditpol.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
+
+            if ($process.ExitCode -eq 0) {
+                Write-Host "[OK] $($policy.Category) - $($policy.Name)" -ForegroundColor Green
+            }
+            else {
+                Write-Host "[ERROR] $($policy.Category) - $($policy.Name) (ExitCode: $($process.ExitCode))" -ForegroundColor Red
+            }
+        } else {
+            Write-Host "[SKIPPED] $($policy.Category) - $($policy.Name)" -ForegroundColor Yellow
+        }
+        Write-Host ""
     }
-
-    Write-Host ""
     Write-Host "Configuration completed successfully" -ForegroundColor Green
 }
 
@@ -5619,6 +5787,7 @@ Usage:
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
   ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
   ./WELA.ps1 configure -Baseline YamatoSecurity          # Configure audit settings based on the specified baseline
+  ./WELA.ps1 configure -Baseline YamatoSecurity -Auto    # Configure audit settings automatically without prompts
   ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
   ./WELA.ps1 help        # Show this help
 "@
