@@ -5471,7 +5471,7 @@ function ConfigureAuditSettings {
             }
             if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
                 wevtutil sl $log /ms:$oneGB 2>&1 | Out-Null
-                Write-Host "[OK] $log : 1 GB" -ForegroundColor Green
+                Write-Host "[OK] $log : 1024 MB" -ForegroundColor Green
             } else {
                 Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
             }
