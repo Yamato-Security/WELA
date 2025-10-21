@@ -2,7 +2,8 @@
     [string]$Cmd,
     [string]$OutType = "std",
     [string]$Baseline = "YamatoSecurity",
-    [bool]$Debug = $false
+    [bool]$Debug = $false,
+    [switch]$Auto
 )
 
 class WELA {
@@ -5827,7 +5828,7 @@ switch ($Cmd.ToLower()) {
             Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
             break
         }
-        ConfigureAuditSettings -Baseline $Baseline -Auto
+        ConfigureAuditSettings -Baseline $Baseline -Auto:$Auto
     }
 
     "update-rules" {
