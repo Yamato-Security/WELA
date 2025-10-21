@@ -5827,7 +5827,7 @@ switch ($Cmd.ToLower()) {
             Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
             break
         }
-        ConfigureAuditSettings $Baseline
+        ConfigureAuditSettings $Baseline $Auto
     }
 
     "update-rules" {
