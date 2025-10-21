@@ -5426,7 +5426,7 @@ function UpdateRules {
 function ConfigureAuditSettings {
     param (
         [string] $Baseline = "YamatoSecurity",
-        [switch]$Auto
+        [switch]$Auto = $false
     )
 
     # 管理者権限の確認
