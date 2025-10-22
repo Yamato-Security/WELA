@@ -422,8 +422,8 @@
       "T1059.001",
       "TA0008",
       "T1021.006",
-      "T1021",
-      "T1059"
+      "T1059",
+      "T1021"
     ],
     "title": "Remote PowerShell Session (PS Classic)"
   },
@@ -1476,8 +1476,8 @@
       "T1552.001",
       "T1555",
       "T1555.003",
-      "T1548",
-      "T1552"
+      "T1552",
+      "T1548"
     ],
     "title": "HackTool - WinPwn Execution - ScriptBlock"
   },
@@ -1896,8 +1896,8 @@
       "T1059.001",
       "TA0003",
       "T1136.001",
-      "T1059",
-      "T1136"
+      "T1136",
+      "T1059"
     ],
     "title": "PowerShell Create Local User"
   },
@@ -2187,8 +2187,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1550",
-      "T1558"
+      "T1558",
+      "T1550"
     ],
     "title": "HackTool - Rubeus Execution - ScriptBlock"
   },
@@ -5520,9 +5520,9 @@
       "T1218.007",
       "TA0002",
       "T1059.001",
-      "T1059",
       "T1027",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "Obfuscated PowerShell MSI Install via WindowsInstaller COM"
   },
@@ -6499,8 +6499,8 @@
       "T1563.002",
       "T1021.001",
       "car.2013-07-002",
-      "T1563",
-      "T1021"
+      "T1021",
+      "T1563"
     ],
     "title": "Suspicious RDP Redirect Using TSCON"
   },
@@ -7462,8 +7462,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1059",
-      "T1053"
+      "T1053",
+      "T1059"
     ],
     "title": "Scheduled Task Executing Encoded Payload from Registry"
   },
@@ -7575,6 +7575,27 @@
       "T1105"
     ],
     "title": "Suspicious Curl.EXE Download"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects execution of arbitrary DLLs or unsigned code via a \".csproj\" files via Dotnet.EXE.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "7fe031ee-5c6c-0eea-fe28-fb72cbbe1aed",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "T1218"
+    ],
+    "title": "Arbitrary DLL or Csproj Code Execution Via Dotnet.EXE"
   },
   {
     "category": "process_creation",
@@ -8508,8 +8529,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Suspicious Schtasks Execution AppData Folder"
   },
@@ -9363,8 +9384,8 @@
       "T1564.004",
       "T1552.001",
       "T1105",
-      "T1552",
-      "T1564"
+      "T1564",
+      "T1552"
     ],
     "title": "Remote File Download Via Findstr.EXE"
   },
@@ -9510,28 +9531,6 @@
       "T1059"
     ],
     "title": "Malicious PowerShell Commandlets - ProcessCreation"
-  },
-  {
-    "category": "process_creation",
-    "channel": [
-      "sec"
-    ],
-    "description": "Detects the execution of whoami, which is often used by attackers after exploitation / privilege escalation",
-    "event_ids": [
-      "4688"
-    ],
-    "id": "4f66eca2-1272-c8d1-d056-e903294b1046",
-    "level": "low",
-    "service": "",
-    "subcategory_guids": [
-      "0CCE922B-69AE-11D9-BED3-505054503030"
-    ],
-    "tags": [
-      "TA0007",
-      "T1033",
-      "car.2016-03-001"
-    ],
-    "title": "Whoami Utility Execution"
   },
   {
     "category": "process_creation",
@@ -10735,8 +10734,8 @@
       "TA0005",
       "T1548.002",
       "T1218.003",
-      "T1218",
-      "T1548"
+      "T1548",
+      "T1218"
     ],
     "title": "Bypass UAC via CMSTP"
   },
@@ -11144,9 +11143,9 @@
       "TA0011",
       "T1071.004",
       "T1132.001",
-      "T1048",
+      "T1132",
       "T1071",
-      "T1132"
+      "T1048"
     ],
     "title": "DNS Exfiltration and Tunneling Tools Execution"
   },
@@ -11484,8 +11483,8 @@
       "car.2013-08-001",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "HackTool - Default PowerSploit/Empire Scheduled Task Creation"
   },
@@ -11689,8 +11688,8 @@
       "T1047",
       "T1204.002",
       "T1218.010",
-      "T1218",
-      "T1204"
+      "T1204",
+      "T1218"
     ],
     "title": "Suspicious WmiPrvSE Child Process"
   },
@@ -11758,8 +11757,8 @@
       "TA0002",
       "T1059.001",
       "T1562.001",
-      "T1562",
-      "T1059"
+      "T1059",
+      "T1562"
     ],
     "title": "Obfuscated PowerShell OneLiner Execution"
   },
@@ -13262,8 +13261,8 @@
       "T1087.002",
       "T1482",
       "T1069.002",
-      "T1087",
-      "T1069"
+      "T1069",
+      "T1087"
     ],
     "title": "Renamed AdFind Execution"
   },
@@ -13579,8 +13578,8 @@
       "T1587.001",
       "TA0002",
       "T1569.002",
-      "T1569",
-      "T1587"
+      "T1587",
+      "T1569"
     ],
     "title": "PUA - CsExec Execution"
   },
@@ -13611,7 +13610,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects possible search for JWT tokens via CLI by looking for the string \"eyJ0eX\" or \"eyJhbG\".\nThis string is used as an anchor to look for the start of the JWT token used by microsoft office and similar apps.\n",
+    "description": "Detects potentially suspicious search for JWT tokens via CLI by looking for the string \"eyJ0eX\" or \"eyJhbG\".\nJWT tokens are often used for access-tokens across various applications and services like Microsoft 365, Azure, AWS, Google Cloud, and others.\nThreat actors may search for these tokens to steal them for lateral movement or privilege escalation.\n",
     "event_ids": [
       "4688"
     ],
@@ -13623,7 +13622,9 @@
     ],
     "tags": [
       "TA0006",
-      "T1528"
+      "T1528",
+      "T1552.001",
+      "T1552"
     ],
     "title": "Potentially Suspicious JWT Token Search Via CLI"
   },
@@ -15627,8 +15628,8 @@
       "T1203",
       "T1059.003",
       "attack.g0032",
-      "T1566",
-      "T1059"
+      "T1059",
+      "T1566"
     ],
     "title": "Suspicious HWP Sub Processes"
   },
@@ -15802,31 +15803,6 @@
       "T1218"
     ],
     "title": "Potential Provlaunch.EXE Binary Proxy Execution Abuse"
-  },
-  {
-    "category": "process_creation",
-    "channel": [
-      "sec"
-    ],
-    "description": "Detects the execution of powershell, a WebClient object creation and the invocation of DownloadFile in a single command line",
-    "event_ids": [
-      "4688"
-    ],
-    "id": "c095d894-f021-b42f-054d-9727ada91e6a",
-    "level": "high",
-    "service": "",
-    "subcategory_guids": [
-      "0CCE922B-69AE-11D9-BED3-505054503030"
-    ],
-    "tags": [
-      "TA0002",
-      "T1059.001",
-      "TA0011",
-      "T1104",
-      "T1105",
-      "T1059"
-    ],
-    "title": "PowerShell DownloadFile"
   },
   {
     "category": "process_creation",
@@ -16208,8 +16184,8 @@
       "T1059.001",
       "TA0005",
       "T1027.005",
-      "T1027",
-      "T1059"
+      "T1059",
+      "T1027"
     ],
     "title": "HackTool - CrackMapExec PowerShell Obfuscation"
   },
@@ -16518,8 +16494,8 @@
       "T1087.002",
       "T1069.002",
       "T1482",
-      "T1087",
-      "T1069"
+      "T1069",
+      "T1087"
     ],
     "title": "Active Directory Database Snapshot Via ADExplorer"
   },
@@ -16673,8 +16649,8 @@
       "TA0004",
       "T1055.001",
       "T1218.013",
-      "T1055",
-      "T1218"
+      "T1218",
+      "T1055"
     ],
     "title": "Mavinject Inject DLL Into Running Process"
   },
@@ -17097,7 +17073,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects suspicious uses of the SysInternals Procdump utility by using a special command line parameter in combination with the lsass.exe process.\nThis way we are also able to catch cases in which the attacker has renamed the procdump executable.\n",
+    "description": "Detects potential credential harvesting attempts through LSASS memory dumps using ProcDump.\nThis rule identifies suspicious command-line patterns that combine memory dump flags (-ma, -mm, -mp) with LSASS-related process markers.\nLSASS (Local Security Authority Subsystem Service) contains sensitive authentication data including plaintext passwords, NTLM hashes, and Kerberos tickets in memory.\nAttackers commonly dump LSASS memory to extract credentials for lateral movement and privilege escalation.\n",
     "event_ids": [
       "4688"
     ],
@@ -17185,6 +17161,28 @@
       "T1059"
     ],
     "title": "Potentially Suspicious WebDAV LNK Execution"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects deletion of the RunMRU registry key, which stores the history of commands executed via the Run dialog.\nIn the clickfix techniques, the phishing lures instruct users to open a run dialog through (Win + R) and execute malicious commands.\nAdversaries may delete this key to cover their tracks after executing commands.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "26c06fd6-5e65-1a6d-9852-08a8ae19398f",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "T1070.003",
+      "T1070"
+    ],
+    "title": "RunMRU Registry Key Deletion"
   },
   {
     "category": "process_creation",
@@ -18619,8 +18617,8 @@
       "TA0005",
       "T1562.001",
       "T1070.001",
-      "T1562",
-      "T1070"
+      "T1070",
+      "T1562"
     ],
     "title": "Suspicious Windows Trace ETW Session Tamper Via Logman.EXE"
   },
@@ -19303,8 +19301,8 @@
       "T1059.001",
       "T1059.003",
       "T1564.003",
-      "T1059",
-      "T1564"
+      "T1564",
+      "T1059"
     ],
     "title": "Powershell Executed From Headless ConHost Process"
   },
@@ -19847,7 +19845,7 @@
     "channel": [
       "sec"
     ],
-    "description": "An adversary might use WMI to discover information about the system, such as the volume name, size,\nfree space, and other disk information. This can be done using the `wmic` command-line utility and has been\nobserved being used by threat actors such as Volt Typhoon.\n",
+    "description": "An adversary might use WMI to discover information about the system, such as the volume name, size,\nfree space, and other disk information. This can be done using the 'wmic' command-line utility and has been\nobserved being used by threat actors such as Volt Typhoon.\n",
     "event_ids": [
       "4688"
     ],
@@ -20743,9 +20741,9 @@
       "TA0005",
       "T1218.014",
       "T1036.002",
-      "T1036",
+      "T1204",
       "T1218",
-      "T1204"
+      "T1036"
     ],
     "title": "MMC Executing Files with Reversed Extensions Using RTLO Abuse"
   },
@@ -20874,8 +20872,8 @@
       "TA0005",
       "T1219.002",
       "T1036.003",
-      "T1036",
-      "T1219"
+      "T1219",
+      "T1036"
     ],
     "title": "Remote Access Tool - Renamed MeshAgent Execution - Windows"
   },
@@ -21277,12 +21275,12 @@
       "T1547.002",
       "T1557",
       "T1082",
-      "T1505",
-      "T1564",
-      "T1556",
-      "T1546",
       "T1574",
-      "T1547"
+      "T1547",
+      "T1546",
+      "T1564",
+      "T1505",
+      "T1556"
     ],
     "title": "Potential Suspicious Activity Using SeCEdit"
   },
@@ -22594,6 +22592,30 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the execution of the BitLocker Access Agent Update Utility (baaupdate.exe) which is not a common parent process for other processes.\nSuspicious child processes spawned by baaupdate.exe could indicate an attempt at lateral movement via BitLocker DCOM & COM Hijacking.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "083d9e96-f2d7-ff41-1e8c-14988603fcbe",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "T1218",
+      "TA0008",
+      "T1021.003",
+      "T1021"
+    ],
+    "title": "Suspicious BitLocker Access Agent Update Utility Execution"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the usage of \"hh.exe\" to execute/download remotely hosted \".chm\" files.",
     "event_ids": [
       "4688"
@@ -23819,8 +23841,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1550",
-      "T1558"
+      "T1558",
+      "T1550"
     ],
     "title": "HackTool - KrbRelayUp Execution"
   },
@@ -24353,8 +24375,8 @@
       "T1133",
       "T1136.001",
       "T1021.001",
-      "T1021",
-      "T1136"
+      "T1136",
+      "T1021"
     ],
     "title": "User Added to Remote Desktop Users Group"
   },
@@ -25215,7 +25237,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects a suspicious winrar execution in a folder which is not the default installation folder",
+    "description": "Detects a suspicious WinRAR execution in a folder which is not the default installation folder",
     "event_ids": [
       "4688"
     ],
@@ -25230,7 +25252,7 @@
       "T1560.001",
       "T1560"
     ],
-    "title": "Winrar Execution in Non-Standard Folder"
+    "title": "WinRAR Execution in Non-Standard Folder"
   },
   {
     "category": "process_creation",
@@ -25932,8 +25954,8 @@
       "T1069.002",
       "TA0002",
       "T1059.001",
-      "T1087",
       "T1059",
+      "T1087",
       "T1069"
     ],
     "title": "HackTool - Bloodhound/Sharphound Execution"
@@ -26306,6 +26328,30 @@
       "T1053"
     ],
     "title": "Potential Persistence Via Microsoft Compatibility Appraiser"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects execution of TruffleHog, a tool used to search for secrets in different platforms like Git, Jira, Slack, SharePoint, etc. that could be used maliciously.\nWhile it is a legitimate tool, intended for use in CI pipelines and security assessments,\nIt was observed in the Shai-Hulud malware campaign targeting npm packages to steal sensitive information.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "026e49e9-46d7-d52b-a096-24d8122cf42b",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0007",
+      "TA0006",
+      "T1083",
+      "T1552.001",
+      "T1552"
+    ],
+    "title": "PUA - TruffleHog Execution"
   },
   {
     "category": "process_creation",
@@ -26810,8 +26856,8 @@
       "T1070.001",
       "T1562.002",
       "car.2016-04-002",
-      "T1562",
-      "T1070"
+      "T1070",
+      "T1562"
     ],
     "title": "Suspicious Eventlog Clearing or Configuration Change Activity"
   },
@@ -27060,6 +27106,28 @@
       "T1562"
     ],
     "title": "Suspicious Windows Defender Registry Key Tampering Via Reg.EXE"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects execution of EDR-Freeze, a tool that exploits the MiniDumpWriteDump function and WerFaultSecure.exe to suspend EDR and Antivirus processes on Windows.\nEDR-Freeze leverages a race-condition attack to put security processes into a dormant state by suspending WerFaultSecure at the moment it freezes the target process.\nThis technique does not require kernel-level exploits or BYOVD, but instead abuses user-mode functionality to temporarily disable monitoring by EDR or Antimalware solutions.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "4f30677f-0ac0-d659-b950-25eb414a322b",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "T1562.001",
+      "T1562"
+    ],
+    "title": "Hacktool - EDR-Freeze Execution"
   },
   {
     "category": "process_creation",
@@ -27336,8 +27404,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1558",
-      "T1550"
+      "T1550",
+      "T1558"
     ],
     "title": "HackTool - Rubeus Execution"
   },
@@ -29784,8 +29852,8 @@
       "T1559.001",
       "TA0005",
       "T1218.010",
-      "T1559",
-      "T1218"
+      "T1218",
+      "T1559"
     ],
     "title": "Network Connection Initiated By Regsvr32.EXE"
   },
@@ -30376,6 +30444,28 @@
       "T1518"
     ],
     "title": "Local Firewall Rules Enumeration Via NetFirewallRule Cmdlet"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the execution of Winscp from an a non standard folder. This could indicate the execution of Winscp portable.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "c589fd3e-8572-cdd5-70cd-08a23ea19794",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0010",
+      "T1048",
+      "detection.threat-hunting"
+    ],
+    "title": "Winscp Execution From Non Standard Folder"
   },
   {
     "category": "process_creation",
@@ -31085,9 +31175,9 @@
       "T1021.002",
       "attack.s0039",
       "detection.threat-hunting",
-      "T1069",
       "T1087",
-      "T1021"
+      "T1021",
+      "T1069"
     ],
     "title": "Net.EXE Execution"
   },
@@ -31274,6 +31364,28 @@
       "T1027"
     ],
     "title": "Dynamic .NET Compilation Via Csc.EXE - Hunting"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the execution of Winscp with the \"-command\" and the \"open\" flags in order to open an FTP connection. Akira ransomware was seen using this technique in order to exfiltrate data.",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "633c4a15-175a-66fd-ebc0-538863c2adcf",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0010",
+      "T1048",
+      "detection.threat-hunting"
+    ],
+    "title": "FTP Connection Open Attempt Via Winscp CLI"
   },
   {
     "category": "process_creation",
@@ -31815,9 +31927,9 @@
       "T1027.010",
       "T1547.001",
       "detection.threat-hunting",
-      "T1027",
       "T1547",
-      "T1059"
+      "T1059",
+      "T1027"
     ],
     "title": "Registry Set With Crypto-Classes From The \"Cryptography\" PowerShell Namespace"
   },
@@ -32334,8 +32446,8 @@
       "TA0004",
       "T1548.002",
       "T1546.001",
-      "T1548",
-      "T1546"
+      "T1546",
+      "T1548"
     ],
     "title": "Shell Open Registry Keys Manipulation"
   },
@@ -36097,9 +36209,9 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
-      "T1543",
       "T1569",
-      "T1021"
+      "T1021",
+      "T1543"
     ],
     "title": "Potential CobaltStrike Service Installations - Registry"
   },
@@ -37601,8 +37713,8 @@
       "T1566.001",
       "cve.2017-0261",
       "detection.emerging-threats",
-      "T1204",
-      "T1566"
+      "T1566",
+      "T1204"
     ],
     "title": "Exploit for CVE-2017-0261"
   },
@@ -37685,8 +37797,8 @@
       "T1543.003",
       "T1569.002",
       "detection.emerging-threats",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "CosmicDuke Service Installation"
   },
@@ -37954,8 +38066,8 @@
       "T1071.004",
       "detection.emerging-threats",
       "T1053",
-      "T1543",
-      "T1071"
+      "T1071",
+      "T1543"
     ],
     "title": "OilRig APT Schedule Task Persistence - Security"
   },
@@ -37985,9 +38097,9 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
+      "T1543",
       "T1053",
-      "T1071",
-      "T1543"
+      "T1071"
     ],
     "title": "OilRig APT Registry Persistence"
   },
@@ -38017,9 +38129,9 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
+      "T1543",
       "T1071",
-      "T1053",
-      "T1543"
+      "T1053"
     ],
     "title": "OilRig APT Activity"
   },
@@ -38047,9 +38159,9 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
+      "T1543",
       "T1071",
-      "T1053",
-      "T1543"
+      "T1053"
     ],
     "title": "OilRig APT Schedule Task Persistence - System"
   },
@@ -38170,8 +38282,8 @@
       "T1218.011",
       "car.2013-10-002",
       "detection.emerging-threats",
-      "T1059",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "Sofacy Trojan Loader Activity"
   },
@@ -40363,8 +40475,8 @@
       "T1552.001",
       "T1003.003",
       "detection.emerging-threats",
-      "T1003",
-      "T1552"
+      "T1552",
+      "T1003"
     ],
     "title": "Potential Russian APT Credential Theft Activity"
   },
@@ -40451,9 +40563,9 @@
       "T1053.005",
       "T1059.001",
       "detection.emerging-threats",
-      "T1053",
       "T1059",
-      "T1036"
+      "T1036",
+      "T1053"
     ],
     "title": "Operation Wocao Activity - Security"
   },
@@ -40479,6 +40591,53 @@
       "T1218"
     ],
     "title": "Potential APT-C-12 BlueMushroom DLL Load Activity Via Regsvr32"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the use of qoperation.exe with the -file argument to write a JSP file to the webroot, indicating a webshell drop.\nThis is a post-authentication step corresponding to CVE-2025-57790.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "fbb1d319-e5da-b2dc-c422-63c2cc6eb1e2",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0003",
+      "T1505.003",
+      "detection.emerging-threats",
+      "cve.2025-57790",
+      "T1505"
+    ],
+    "title": "Commvault QOperation Path Traversal Webshell Drop (CVE-2025-57790)"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the use of argument injection in the Commvault qlogin command - potential exploitation for CVE-2025-57791.\nAn attacker can inject the `-localadmin` parameter via the password field to bypass authentication and gain a privileged token.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "7d3ba87a-9d7b-ff71-06a5-44faf62e1464",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0001",
+      "T1190",
+      "detection.emerging-threats",
+      "cve.2025-57791"
+    ],
+    "title": "Commvault QLogin Argument Injection Authentication Bypass (CVE-2025-57791)"
   },
   {
     "category": "process_creation",
@@ -40614,6 +40773,58 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects suspicious command execution by child processes of the GoAnywhere Managed File Transfer (MFT) application, which may indicate exploitation such as CVE-2025-10035.\nThis behavior is indicative of post-exploitation activity related to CVE-2025-10035, as observed in campaigns by the threat actor Storm-1175.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "0e43ac6e-2ec6-bfd2-6821-ebaa244692cb",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0001",
+      "T1190",
+      "TA0002",
+      "T1059.001",
+      "TA0003",
+      "T1133",
+      "detection.emerging-threats",
+      "cve.2025-10035",
+      "T1059"
+    ],
+    "title": "Potential Exploitation of GoAnywhere MFT Vulnerability"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects a qlogin.exe command attempting to authenticate as the internal `_+_PublicSharingUser_` using a GUID as the password.\nThis could be an indicator of an attacker exploiting CVE-2025-57788 to gain initial access using leaked credentials.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "1ebc60e4-712a-f776-9f31-209948f97a00",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0001",
+      "T1078.001",
+      "detection.emerging-threats",
+      "cve.2025-57788",
+      "T1078"
+    ],
+    "title": "Commvault QLogin with PublicSharingUser and GUID Password (CVE-2025-57788)"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the execution of the \"curl.exe\" command, referencing \"SOCKS\" and \".onion\" domains, which could be indicative of Kalambur backdoor activity.",
     "event_ids": [
       "4688"
@@ -40632,8 +40843,8 @@
       "T1059.001",
       "attack.s0183",
       "detection.emerging-threats",
-      "T1059",
-      "T1071"
+      "T1071",
+      "T1059"
     ],
     "title": "Kalambur Backdoor Curl TOR SOCKS Proxy Execution"
   },
@@ -43672,8 +43883,8 @@
       "TA0002",
       "T1543.003",
       "T1569.002",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "Remote Access Tool Services Have Been Installed - Security"
   },
@@ -43839,9 +44050,9 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
+      "T1543",
       "T1569",
-      "T1021",
-      "T1543"
+      "T1021"
     ],
     "title": "CobaltStrike Service Installations - Security"
   },
@@ -44339,8 +44550,8 @@
       "T1570",
       "TA0002",
       "T1569.002",
-      "T1569",
-      "T1021"
+      "T1021",
+      "T1569"
     ],
     "title": "Metasploit Or Impacket Service Installation Via SMB PsExec"
   },
@@ -44391,8 +44602,8 @@
       "T1090.002",
       "T1021.001",
       "car.2013-07-002",
-      "T1090",
-      "T1021"
+      "T1021",
+      "T1090"
     ],
     "title": "RDP over Reverse SSH Tunnel WFP"
   },
@@ -44469,8 +44680,8 @@
       "T1003.006",
       "T1569.002",
       "attack.s0005",
-      "T1569",
-      "T1003"
+      "T1003",
+      "T1569"
     ],
     "title": "Credential Dumping Tools Service Execution - Security"
   },
@@ -45495,9 +45706,9 @@
       "T1485",
       "T1553.002",
       "attack.s0195",
+      "T1553",
       "T1070",
-      "T1027",
-      "T1553"
+      "T1027"
     ],
     "title": "Potential Secure Deletion with SDelete"
   },
@@ -45543,8 +45754,8 @@
       "T1087.002",
       "T1069.002",
       "attack.s0039",
-      "T1069",
-      "T1087"
+      "T1087",
+      "T1069"
     ],
     "title": "Reconnaissance Activity"
   },
@@ -46269,6 +46480,28 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects the execution of whoami, which is often used by attackers after exploitation / privilege escalation",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "4f66eca2-1272-c8d1-d056-e903294b1046",
+    "level": "low",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0007",
+      "T1033",
+      "car.2016-03-001"
+    ],
+    "title": "Whoami Utility Execution"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Adversaries may abuse Visual Basic (VB) for execution",
     "event_ids": [
       "4688"
@@ -46426,8 +46659,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1218",
-      "T1204"
+      "T1204",
+      "T1218"
     ],
     "title": "Excel Proxy Executing Regsvr32 With Payload Alternate"
   },
@@ -46586,8 +46819,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "Office Applications Spawning Wmi Cli Alternate"
   },
@@ -46879,6 +47112,31 @@
       "T1218"
     ],
     "title": "Suspicious Rundll32 Script in CommandLine"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects the execution of powershell, a WebClient object creation and the invocation of DownloadFile in a single command line",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "c095d894-f021-b42f-054d-9727ada91e6a",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0002",
+      "T1059.001",
+      "TA0011",
+      "T1104",
+      "T1105",
+      "T1059"
+    ],
+    "title": "PowerShell DownloadFile"
   },
   {
     "category": "process_creation",
@@ -48661,8 +48919,8 @@
       "TA0004",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "Sliver C2 Default Service Installation"
   },
@@ -48948,8 +49206,8 @@
       "TA0002",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "Remote Access Tool Services Have Been Installed - System"
   },
@@ -49163,8 +49421,8 @@
       "T1003.006",
       "T1569.002",
       "attack.s0005",
-      "T1003",
-      "T1569"
+      "T1569",
+      "T1003"
     ],
     "title": "Credential Dumping Tools Service Execution - System"
   },
@@ -49227,9 +49485,9 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
-      "T1569",
       "T1021",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "CobaltStrike Service Installations - System"
   },
@@ -49313,8 +49571,8 @@
       "TA0004",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "ProcessHacker Privilege Elevation"
   },
@@ -49396,8 +49654,8 @@
       "TA0002",
       "T1021.002",
       "T1569.002",
-      "T1569",
-      "T1021"
+      "T1021",
+      "T1569"
     ],
     "title": "smbexec.py Service Installation"
   },
@@ -49665,6 +49923,29 @@
       "T1070"
     ],
     "title": "Eventlog Cleared"
+  },
+  {
+    "category": "",
+    "channel": [
+      "System"
+    ],
+    "description": "Detects the configuration of a new ISATAP router on a Windows host. While ISATAP is a legitimate Microsoft technology for IPv6 transition, unexpected or unauthorized ISATAP router configurations could indicate a potential IPv6 DNS Takeover attack using tools like mitm6.\nIn such attacks, adversaries advertise themselves as DHCPv6 servers and set malicious ISATAP routers to intercept traffic.\nThis detection should be correlated with network baselines and known legitimate ISATAP deployments in your environment.\n",
+    "event_ids": [
+      "4100"
+    ],
+    "id": "fecb8f7f-ab95-3d55-be6b-a2f4796a6ae9",
+    "level": "medium",
+    "service": "system",
+    "subcategory_guids": [],
+    "tags": [
+      "TA0001",
+      "TA0004",
+      "TA0002",
+      "T1557",
+      "T1565.002",
+      "T1565"
+    ],
+    "title": "ISATAP Router Address Was Set"
   },
   {
     "category": "",
@@ -50226,8 +50507,8 @@
       "car.2013-09-005",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "Malicious Service Installations"
   },
@@ -52615,10 +52896,10 @@
       "T1570",
       "T1021.002",
       "T1569.002",
-      "T1021",
+      "T1569",
       "T1543",
       "T1136",
-      "T1569"
+      "T1021"
     ],
     "title": "PSExec Lateral Movement"
   },
