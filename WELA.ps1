@@ -1,7 +1,6 @@
 ﻿param (
     [string]$Cmd,
     [string]$OutType = "std",
-    [string]$Baseline = "YamatoSecurity",
     [bool]$Debug = $false,
     [switch]$Auto
 )
@@ -5436,6 +5435,8 @@ function ConfigureAuditSettings {
         exit 1
     }
 
+
+
     $autidpolTxt = "./auditpol.txt"
     if (-not $debug) {
         Start-Process -FilePath "cmd.exe" -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" -NoNewWindow -Wait -RedirectStandardOutput $autidpolTxt
@@ -5811,6 +5812,9 @@ Write-Host $logo -ForegroundColor Green
 
 switch ($Cmd.ToLower()) {
     "audit-settings"  {
+        if ([string]::IsNullOrEmpty($Baseline)) {
+            $Baseline = "YamatoSecurity"
+        }
         $validGuides = @("YamatoSecurity", "ASD", "Microsoft_Client", "Microsoft_Server")
         if (-not ($validGuides -contains $Baseline.ToLower())) {
             Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
@@ -5823,9 +5827,13 @@ switch ($Cmd.ToLower()) {
     }
 
     "configure" {
-        $validGuides = @("YamatoSecurity", "ASD", "Microsoft_Client", "Microsoft_Server")
-        if (-not ($validGuides -contains $Baseline.ToLower())) {
-            Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
+        if ([string]::IsNullOrEmpty($Baseline)) {
+            Write-Host "You need to specify a baseline. The following baselines are available:"
+            Write-Host "  * YamatoSecurity"
+            Write-Host ""
+            Write-Host "Examples: "
+            Write-Host "./WELA.ps1 configure -Baseline YamatoSecurity"
+            Write-Host "./WELA.ps1 configure -Baseline YamatoSecurity -Auto"
             break
         }
         ConfigureAuditSettings -Baseline $Baseline -Auto:$Auto
