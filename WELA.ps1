@@ -2,6 +2,7 @@
     [string]$Cmd,
     [string]$OutType = "std",
     [bool]$Debug = $false,
+    [string]$Baseline,
     [switch]$Auto
 )
 
