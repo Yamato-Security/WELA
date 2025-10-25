@@ -5315,6 +5315,10 @@ function Export-MitreHeatmap {
 
 
 function AuditFileSize {
+    param (
+        [string] $Baseline = "YamatoSecurity"
+    )
+
     # 対象のイベントログ名をハッシュテーブル化
     $logNames = @{
         "Application" = @("20 MB", "128 MB+")
@@ -5436,8 +5440,6 @@ function ConfigureAuditSettings {
         Write-Error "This script requires Administrator privileges"
         exit 1
     }
-
-
 
     $autidpolTxt = "./auditpol.txt"
     if (-not $debug) {
@@ -5814,7 +5816,7 @@ Write-Host $logo -ForegroundColor Green
 
 switch ($Cmd.ToLower()) {
     "audit-settings"  {
-        if ($Help) {
+        if ($Help -or [string]::IsNullOrEmpty($Baseline)){
             Write-Host "Audit current Windows Event Log settings and compare with baseline"
             Write-Host ""
             Write-Host "Usage: ./WELA.ps1 audit-settings -Baseline <YamatoSecurity|ASD|Microsoft_Client|Microsoft_Server> [-OutType <std|gui|table>]"
@@ -5825,9 +5827,6 @@ switch ($Cmd.ToLower()) {
             Write-Host ""
             return
         }
-        if ([string]::IsNullOrEmpty($Baseline)) {
-            $Baseline = "YamatoSecurity"
-        }
         $validGuides = @("YamatoSecurity", "ASD", "Microsoft_Client", "Microsoft_Server")
         if (-not ($validGuides -contains $Baseline.ToLower())) {
             Write-Host "Invalid Guide specified. Valid options are: YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server."
@@ -5836,7 +5835,7 @@ switch ($Cmd.ToLower()) {
         AuditLogSetting $OutType $Baseline $Debug
     }
     "audit-filesize" {
-        if ($Help) {
+        if ($Help -or [string]::IsNullOrEmpty($Baseline)){
             Write-Host "Audit current Windows Event Log file sizes"
             Write-Host ""
             Write-Host "Usage: ./WELA.ps1 audit-filesize -Baseline <YamatoSecurity>"
@@ -5846,11 +5845,11 @@ switch ($Cmd.ToLower()) {
             Write-Host ""
             return
         }
-        AuditFileSize
+        AuditFileSize $Baseline
     }
 
     "configure" {
-        if ($Help) {
+        if ($Help -or [string]::IsNullOrEmpty($Baseline)){
             Write-Host "Configure Windows Event Log audit settings based on specified baseline"
             Write-Host ""
             Write-Host "Usage: ./WELA.ps1 configure -Baseline <YamatoSecurity> [-Auto]"
