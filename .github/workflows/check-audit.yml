@@ -20,12 +20,12 @@ jobs:
 
       - name: Run WELA.ps1 audit-settings(PowerShell core)
         run: |
-          ./WELA.ps1 audit-settings
+          ./WELA.ps1 audit-settings -Baseline YamatoSecurity
         shell: pwsh
 
       - name: Run WELA.ps1 audit-filesize(PowerShell core)
         run: |
-          ./WELA.ps1 audit-filesize
+          ./WELA.ps1 audit-filesize -Baseline YamatoSecurity
         shell: pwsh
 
       - name: Output UsableRules.csv(PowerShell core)
@@ -50,12 +50,12 @@ jobs:
 
       - name: Run WELA.ps1 audit-settings(PowerShell 5.1)
         run: |
-          ./WELA.ps1 audit-settings
+          ./WELA.ps1 audit-settings -Baseline YamatoSecurity
         shell: powershell
 
       - name: Run WELA.ps1 audit-filesize(PowerShell 5.1)
         run: |
-          ./WELA.ps1 audit-filesize
+          ./WELA.ps1 audit-filesize -Baseline YamatoSecurity
         shell: powershell
 
       - name: Output UsableRules.csv(PowerShell 5.1)
