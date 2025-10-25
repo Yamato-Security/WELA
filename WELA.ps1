@@ -3,7 +3,8 @@
     [string]$OutType = "std",
     [bool]$Debug = $false,
     [string]$Baseline,
-    [switch]$Auto
+    [switch]$Auto,
+    [switch]$Help
 )
 
 class WELA {
@@ -5314,6 +5315,10 @@ function Export-MitreHeatmap {
 
 
 function AuditFileSize {
+    param (
+        [string] $Baseline = "YamatoSecurity"
+    )
+
     # 対象のイベントログ名をハッシュテーブル化
     $logNames = @{
         "Application" = @("20 MB", "128 MB+")
@@ -5435,8 +5440,6 @@ function ConfigureAuditSettings {
         Write-Error "This script requires Administrator privileges"
         exit 1
     }
-
-
 
     $autidpolTxt = "./auditpol.txt"
     if (-not $debug) {
@@ -5796,7 +5799,7 @@ $logo = @"
 
 "@
 
-$help = @"
+$usage = @"
 Usage:
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
@@ -5813,8 +5816,16 @@ Write-Host $logo -ForegroundColor Green
 
 switch ($Cmd.ToLower()) {
     "audit-settings"  {
-        if ([string]::IsNullOrEmpty($Baseline)) {
-            $Baseline = "YamatoSecurity"
+        if ($Help -or [string]::IsNullOrEmpty($Baseline)){
+            Write-Host "Audit current Windows Event Log settings and compare with baseline"
+            Write-Host ""
+            Write-Host "Usage: ./WELA.ps1 audit-settings -Baseline <YamatoSecurity|ASD|Microsoft_Client|Microsoft_Server> [-OutType <std|gui|table>]"
+            Write-Host ""
+            Write-Host "Options:"
+            Write-Host "  -Baseline    Specify the baseline (YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server)"
+            Write-Host "  -OutType     Output type: std (default) or gui or table"
+            Write-Host ""
+            return
         }
         $validGuides = @("YamatoSecurity", "ASD", "Microsoft_Client", "Microsoft_Server")
         if (-not ($validGuides -contains $Baseline.ToLower())) {
@@ -5824,10 +5835,31 @@ switch ($Cmd.ToLower()) {
         AuditLogSetting $OutType $Baseline $Debug
     }
     "audit-filesize" {
-        AuditFileSize
+        if ($Help -or [string]::IsNullOrEmpty($Baseline)){
+            Write-Host "Audit current Windows Event Log file sizes"
+            Write-Host ""
+            Write-Host "Usage: ./WELA.ps1 audit-filesize -Baseline <YamatoSecurity>"
+            Write-Host ""
+            Write-Host "Options:"
+            Write-Host "  -Baseline    Specify the baseline (YamatoSecurity)"
+            Write-Host ""
+            return
+        }
+        AuditFileSize $Baseline
     }
 
     "configure" {
+        if ($Help -or [string]::IsNullOrEmpty($Baseline)){
+            Write-Host "Configure Windows Event Log audit settings based on specified baseline"
+            Write-Host ""
+            Write-Host "Usage: ./WELA.ps1 configure -Baseline <YamatoSecurity> [-Auto]"
+            Write-Host ""
+            Write-Host "Options:"
+            Write-Host "  -Baseline    Specify the baseline (YamatoSecurity)"
+            Write-Host "  -Auto        Automatically configure without prompts"
+            Write-Host ""
+            return
+        }
         if ([string]::IsNullOrEmpty($Baseline)) {
             Write-Host "You need to specify a baseline. The following baselines are available:"
             Write-Host "  * YamatoSecurity"
@@ -5835,19 +5867,29 @@ switch ($Cmd.ToLower()) {
             Write-Host "Examples: "
             Write-Host "./WELA.ps1 configure -Baseline YamatoSecurity"
             Write-Host "./WELA.ps1 configure -Baseline YamatoSecurity -Auto"
+            Write-Host ""
             break
         }
         ConfigureAuditSettings -Baseline $Baseline -Auto:$Auto
     }
 
     "update-rules" {
+        if ($Help) {
+            Write-Host "Update detection rule configuration files from GitHub repository"
+            Write-Host ""
+            Write-Host "Usage: ./WELA.ps1 update-rules"
+            Write-Host ""
+            Write-Host "Download and update rule configuration files from GitHub repository"
+            Write-Host ""
+            return
+        }
         UpdateRules
     }
     "help" {
-        Write-Host $help
+        Write-Host $usage
     }
     default {
         Write-Host "Invalid command. Use 'help' to see available commands."
-        Write-Host $help
+        Write-Host $usage
     }
 }
