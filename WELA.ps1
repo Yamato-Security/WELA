@@ -61,7 +61,7 @@ class WELA {
     [void] CountByLevel() {
         $this.RulesCount = @{}
         foreach ($level in [WELA]::Levels) {
-            $this.RulesCount[$level] = ($this.Rules | Where-Object { $_.level -eq $level }).Count
+            $this.RulesCount[$level] = @($this.Rules | Where-Object { $_.level -eq $level }).Count
         }
     }
 
@@ -71,7 +71,7 @@ class WELA {
                 $color = if ($this.CurrentSetting -eq "Enabled" -or $this.CurrentSetting -contains "Success" -or $this.CurrentSetting -contains "Failure") { "Green" } else { "Red" }
                 $ruleCounts = ""
                 $logEnabled = $this.CurrentSetting
-                $allZero = $this.RulesCount.Values | Where-Object { $_ -ne 0 } | Measure-Object | Select-Object -ExpandProperty Count
+                $allZero = ($this.RulesCount.Values | Where-Object { $_ -ne 0 }).Count
                 if ($allZero -eq 0) {
                     $ruleCounts = "(no rules)"
                     $color = "DarkYellow"
