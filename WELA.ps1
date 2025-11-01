@@ -277,6 +277,26 @@ function GuideYamatoSecurity
             ""
     )
 
+    # Crypto-DPAPI Debug
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Crypto-DPAPI/Debug")
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Crypto-DPAPI/Debug" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $true }
+    $auditResult += [WELA]::New(
+            "Crypto-DPAPI Debug",
+            "",
+            $current,
+            [array]$rules,
+            "Disabled",
+            "Enabled",
+            "",
+            ""
+    )
+
     # CodeIntegrity Operational
     $guid    = ""
     $eids     = @()
@@ -1513,6 +1533,26 @@ function GuideASD {
             ""
     )
 
+    # Crypto-DPAPI Debug
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Crypto-DPAPI/Debug")
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Crypto-DPAPI/Debug" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $false }
+    $auditResult += [WELA]::New(
+            "Crypto-DPAPI Debug",
+            "",
+            $current,
+            [array]$rules,
+            "Disabled",
+            "",
+            "",
+            ""
+    )
+
     # Diagnosis-Scripted Operational
     $guid    = ""
     $eids     = @()
@@ -2730,6 +2770,26 @@ function GuideMSC {
             ""
     )
 
+    # Crypto-DPAPI Debug
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Crypto-DPAPI/Debug")
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Crypto-DPAPI/Debug" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $false }
+    $auditResult += [WELA]::New(
+            "Crypto-DPAPI Debug",
+            "",
+            $current,
+            [array]$rules,
+            "Disabled",
+            "",
+            "",
+            ""
+    )
+
     # Diagnosis-Scripted Operational
     $guid    = ""
     $eids     = @()
@@ -3942,6 +4002,26 @@ function GuideMSS {
             "Enabled",
             [array]$rules,
             "Enabled",
+            "",
+            "",
+            ""
+    )
+
+    # Crypto-DPAPI Debug
+    $guid    = ""
+    $eids     = @()
+    $channels = @("Microsoft-Windows-Crypto-DPAPI/Debug")
+    $enabled  = CheckRegistryValue -registryPath "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WINEVT\Channels\Microsoft-Windows-Crypto-DPAPI/Debug" -valueName "Enabled" -expectedValue 1
+    $current  = if ($enabled) { "Enabled" } else { "Disabled" }
+    $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+    $rules    | ForEach-Object { $_.applicable = $enabled }
+    $rules    | ForEach-Object { $_.ideal = $false }
+    $auditResult += [WELA]::New(
+            "Crypto-DPAPI Debug",
+            "",
+            $current,
+            [array]$rules,
+            "Disabled",
             "",
             "",
             ""
@@ -5506,6 +5586,7 @@ function ConfigureAuditSettings {
         "Microsoft-Windows-AppLocker/Packaged app-Deployment",
         "Microsoft-Windows-AppLocker/Packaged app-Execution",
         "Microsoft-Windows-CodeIntegrity/Operational",
+        "Microsoft-Windows-Crypto-DPAPI/Debug",
         "Microsoft-Windows-Diagnosis-Scripted/Operational",
         "Microsoft-Windows-DriverFrameworks-UserMode/Operational",
         "Microsoft-Windows-WMI-Activity/Operational",
@@ -5545,7 +5626,7 @@ function ConfigureAuditSettings {
     # 特定のログの有効化
     Write-Host "Enabling Event Logs..."
     Write-Host ""
-    foreach ($log in @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational")) {
+    foreach ($log in @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational", "Microsoft-Windows-Crypto-DPAPI/Debug")) {
         try {
             $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
             $currentState = if ($logInfo.IsEnabled) { "Enabled" } else { "Disabled" }
