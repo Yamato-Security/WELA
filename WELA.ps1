@@ -5409,6 +5409,7 @@ function AuditFileSize {
         "Microsoft-Windows-Bits-Client/Analytic" = @("1 MB", "128 MB+")
         "Microsoft-Windows-Bits-Client/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-CodeIntegrity/Operational" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-Crypto-DPAPI/Debug" = @("1 MB", "128 MB+")
         "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-NTLM/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-PowerShell/Operational" = @("20 MB", "256 MB+")
