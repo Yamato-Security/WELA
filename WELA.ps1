@@ -5510,6 +5510,51 @@ function UpdateRules {
     }
 }
 
+function Set-RegistryConfig {
+    param (
+        [Parameter(Mandatory = $true)]
+        [array]$RegPaths,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$Auto
+    )
+
+    foreach ($reg in $RegPaths) {
+        try {
+            $currentValue = "Not Set"
+            if (Test-Path $reg.Path) {
+                $prop = Get-ItemProperty -Path $reg.Path -Name $reg.Name -ErrorAction SilentlyContinue
+                if ($prop) {
+                    $currentValue = $prop.$($reg.Name)
+                }
+            }
+            Write-Host "Registry: $($reg.Path) Value: $($reg.Name)"
+            if ($currentValue -eq $reg.Value) {
+                Write-Host "[SKIPPED] $($reg.Name) : Already set to $($reg.Value)." -ForegroundColor Yellow
+                Write-Host ""
+                continue
+            }
+            if ($Auto) {
+                $response = "Y"
+            } else {
+                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to $( $reg.Value )? (Y/n)"
+            }
+            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
+                New-Item -Path $reg.Path -Force | Out-Null
+                Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value $reg.Value -Type DWord
+                Write-Host "[OK] Set $($reg.Name)" -ForegroundColor Green
+            } else {
+                Write-Host "[SKIPPED] $($reg.Name)" -ForegroundColor Yellow
+            }
+        }
+        catch {
+            Write-Host "[ERROR] Failed to set registry: $_" -ForegroundColor Red
+        }
+        Write-Host ""
+    }
+}
+
+
 function ConfigureAuditSettings {
     param (
         [string] $Baseline = "YamatoSecurity",
@@ -5663,40 +5708,7 @@ function ConfigureAuditSettings {
         @{Path = "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging"; Name = "EnableModuleLogging"; Value = 1},
         @{Path = "HKLM:\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging"; Name = "EnableScriptBlockLogging"; Value = 1}
     )
-
-    foreach ($reg in $regPaths) {
-        try {
-            $currentValue = "Not Set"
-            if (Test-Path $reg.Path) {
-                $prop = Get-ItemProperty -Path $reg.Path -Name $reg.Name -ErrorAction SilentlyContinue
-                if ($prop) {
-                    $currentValue = $prop.$($reg.Name)
-                }
-            }
-            Write-Host "Registry: $($reg.Path) Value: $($reg.Name)"
-            if ($currentValue -eq $reg.Value) {
-                Write-Host "[SKIPPED] $($reg.Name) : Already set to $($reg.Value)." -ForegroundColor Yellow
-                Write-Host ""
-                continue
-            }
-            if ($Auto) {
-                $response = "Y"
-            } else {
-                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to $( $reg.Value )? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                New-Item -Path $reg.Path -Force | Out-Null
-                Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value $reg.Value -Type DWord
-                Write-Host "[OK] Set $($reg.Name)" -ForegroundColor Green
-            } else {
-                Write-Host "[SKIPPED] $($reg.Name)" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "[ERROR] Failed to set registry: $_" -ForegroundColor Red
-        }
-        Write-Host ""
-    }
+    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
 
     # モジュール名レジストリの設定
     try {
@@ -5789,6 +5801,16 @@ function ConfigureAuditSettings {
     }
     Write-Host ""
 
+    # NTLM認証の監査設定
+    Write-Host "Configuring NTLM Audit Settings..."
+    Write-Host ""
+    $regPaths = @(
+        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "RestrictSendingNTLMTraffic"; Value = 2},
+        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "AuditReceivingNTLMTraffic"; Value = 2},
+        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters"; Name = "AuditNTLMInDomain"; Value = 2}
+    )
+    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
+
     # 監査ポリシーの設定
     Write-Host "Configuring Audit Policies..."
     Write-Host ""
@@ -5797,6 +5819,7 @@ function ConfigureAuditSettings {
         @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "0CCE9242-69AE-11D9-BED3-505054503030"},
         @{Category = "Account Logon"; Name = "Kerberos Service Ticket Operations"; GUID = "0CCE9240-69AE-11D9-BED3-505054503030"},
         @{Category = "Account Management"; Name = "Computer Account Management"; GUID = "0CCE9236-69AE-11D9-BED3-505054503030"},
+        @{Category = "Account Management"; Name = "Distribution Group Management"; GUID = "0CCE9238-69AE-11D9-BED3-505054503030"},
         @{Category = "Account Management"; Name = "Other Account Management Events"; GUID = "0CCE923A-69AE-11D9-BED3-505054503030"},
         @{Category = "Account Management"; Name = "Security Group Management"; GUID = "0CCE9237-69AE-11D9-BED3-505054503030"},
         @{Category = "Account Management"; Name = "User Account Management"; GUID = "0CCE9235-69AE-11D9-BED3-505054503030"},
