@@ -6,6 +6,7 @@
 
 - MITRE ATT&CK Navigatorヒートマップに対応した。 (#11) (@fukusuket)
 - Windows設定を様々なベースラインに構成するための`configure`コマンドを追加した。 (#12) (@fukusuket)
+- Defender for Identityの必要なログに対応した。 (#114) (@fukusuket)
 
 **バグ修正:**
 

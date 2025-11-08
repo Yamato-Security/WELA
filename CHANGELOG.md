@@ -6,6 +6,7 @@
 
 - Support for MITRE ATT&CK Navigator heatmaps. (#11) (@fukusuket)
 - Added a `configure` command to configure Windows settings to various baselines. (#12) (@fukusuket)
+- Support for Defender for Identity required logs. (#114) (@fukusuket)
 
 **Bug Fixes:**
 
