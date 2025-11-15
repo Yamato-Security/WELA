@@ -5965,7 +5965,6 @@ $logo = @"
 ┗┓┏┓┏┫┗━━┫┗━┛┃┏━┓┃
  ┗┛┗┛┗━━━┻━━━┻┛ ┗┛
   by Yamato Security
-WELA v2.0.0 - CODE BLUE Release
 "@
 
 $usage = @"
@@ -5982,6 +5981,9 @@ Usage:
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Host $logo -ForegroundColor Green
+Write-Host ""
+Write-Host "WELA v2.0.0 - CODE BLUE Release"
+Write-Host ""
 
 switch ($Cmd.ToLower()) {
     "audit-settings"  {
