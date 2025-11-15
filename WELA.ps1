@@ -5367,8 +5367,8 @@ function Export-MitreHeatmap {
     $heatmap = @{
         "name" = "WELA detection heatmap"
         "versions" = @{
-            "attack" = "17"
-            "navigator" = "5.1.0"
+            "attack" = "18"
+            "navigator" = "5.2.0"
             "layer" = "4.5"
         }
         "domain" = "enterprise-attack"
