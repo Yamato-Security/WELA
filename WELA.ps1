@@ -5922,7 +5922,7 @@ function ConfigureAuditSettings {
                 if ($proceed) {
                     try {
                         # AuditFilter の設定
-                        & certutil.exe -setreg "CA\AuditFilter" 127 >$null 2>&1; Restart-Service -Name 'CertSvc' -Force -ErrorAction Stop
+                        & certutil.exe -setreg "CA\AuditFilter" 127 >$null 2>&1
                         # 証明書サービスの再起動
                         Restart-Service -Name "CertSvc" -Force -ErrorAction Stop
                         # 反映確認
