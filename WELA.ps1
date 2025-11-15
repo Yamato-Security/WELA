@@ -5965,7 +5965,7 @@ $logo = @"
 ┗┓┏┓┏┫┗━━┫┗━┛┃┏━┓┃
  ┗┛┗┛┗━━━┻━━━┻┛ ┗┛
   by Yamato Security
-
+WELA v2.0.0 - CODE BLUE Release
 "@
 
 $usage = @"
