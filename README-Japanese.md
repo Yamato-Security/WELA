@@ -15,6 +15,7 @@
 <p align="center">
     <a href="https://conference.auscert.org.au/speaker/fukusuke-takahashi/"><img src="https://img.shields.io/badge/AUSCERT-2025-blue"></a>
     <a href="https://www.infosec-city.com/sin-25"><img src="https://img.shields.io/badge/SINCON-2025-blue"></a>
+    <a href="https://codeblue.jp/program/time-table/day2-t3-02/"><img src="https://img.shields.io/badge/CODE%20BLUE-2025-blue"></a>
     <a href="https://github.com/Yamato-Security/wela/commits/main/"><img src="https://img.shields.io/github/commit-activity/t/Yamato-Security/wela/main" /></a>
     <a href="https://twitter.com/SecurityYamato"><img src="https://img.shields.io/twitter/follow/SecurityYamato?style=social"/></a>
 </p>
@@ -57,8 +58,8 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
       - [`audit-settings` command examples](#audit-settings-command-examples)
   - [audit-filesize](#audit-filesize-1)
       - [`audit-filesize` command examples](#audit-filesize-command-examples)
-  - [configure](#configure)
-       - [`configure` command examples](#configure-command-examples)
+  - [configure](#configure-1)
+      - [`configure` command examples](#configure-command-examples)
   - [update-rules](#update-rules)
       - [`update-rules` command examples](#update-rules-command-examples)
 - [Windowsイベントログの監査設定に関するその他の参考資料](#windowsイベントログの監査設定に関するその他の参考資料)
