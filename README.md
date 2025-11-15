@@ -45,6 +45,7 @@ WELA also assesses log configurations **based on real-world Sigma rule coverage*
   - [audit-settings (GUI)](#audit-settings-gui)
   - [audit-settings (table)](#audit-settings-table)
   - [audit-filesize](#audit-filesize)
+  - [configure](#configure)
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Downloads](#downloads)
@@ -55,6 +56,8 @@ WELA also assesses log configurations **based on real-world Sigma rule coverage*
     - [`audit-settings` command examples](#audit-settings-command-examples)
   - [audit-filesize](#audit-filesize-1)
     - [`audit-filesize` command examples](#audit-filesize-command-examples)
+  - [configure](#configure)
+    - [`configure` command examples](#configure-command-examples)
   - [update-rules](#update-rules)
       - [`update-rules` command examples](#update-rules-command-examples)
 - [Other Windows Event Log Audit Settings Related Resources](#other-windows-event-log-audit-settings-related-resources)
@@ -81,11 +84,15 @@ WELA also assesses log configurations **based on real-world Sigma rule coverage*
 ## audit-filesize
 ![WELA FileSize](screenshots/filesize.png)
 
+## configure
+![WELA Configure](screenshots/configure.png)
+
 # Features
 - Auditing Windows event log audit policy settings.
 - Checking **based on the major Windows event log audit configuration guidelines**.
 - Checking Windows event log audit settings based on **real-world Sigma rule detectability**.
 - Auditing of Windows event log file sizes and suggestions for the recommended size.
+- Setting recommended Windows event log audit policy and file sizes.
 
 # Prerequisites
 * Windows PowerShell 5.1 or PowerShell Core
@@ -103,6 +110,7 @@ Please download the latest stable version of WELA from the [Releases](https://gi
 # Command List
 - `audit-settings`: Check Windows event log audit policy settings.
 - `audit-filesize`: Check Windows event log file size.
+- `configure`: Configure recommended Windows event log audit policy and file size.
 - `update-rules`: Update WELA's Sigma rules config files.
 
 # Command Usage
@@ -113,7 +121,7 @@ The `audit-settings` command checks the Windows event log audit policy settings 
 ### `audit-settings` command examples
 Check with the default Yamato Security's recommended settings and save results to CSV:  
 ```
-./WELA.ps1 audit-settings
+./WELA.ps1 audit-settings -BaseLine YamatoSecurity
 ```
 
 Check with the Australian Signals Directorate's recommended settings and save results to CSV:  
@@ -137,8 +145,23 @@ The `audit-filesize` command checks the Windows event logs' file size and compar
 ### `audit-filesize` command examples
 Check the Windows event log file size with Yamato Security's recommendations and save results to CSV:  
 ```
-./WELA.ps1 audit-filesize
+./WELA.ps1 audit-filesize -BaseLine YamatoSecurity
 ```
+
+## configure
+The `configure` command sets the recommended Windows event log audit policy and file size.
+
+#### `configure` command examples
+Apply Yamato Security's recommended settings (with confirmation prompt before changing settings):
+```
+./WELA.ps1 configure --BaseLine YamatoSecurity
+```
+
+Apply Australian Signals Directorate's recommended settings without confirmation prompt:
+```
+./WELA.ps1 configure --BaseLine ASD -auto
+```
+
 
 ## update-rules
 #### `update-rules` command examples
