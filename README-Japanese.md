@@ -44,6 +44,7 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
   - [audit-settings (stdout)](#audit-settings-stdout)
   - [audit-settings (gui)](#audit-settings-gui)
   - [audit-settings (table)](#audit-settings-table)
+  - [audit-settings (mitre-attack-navigator)](#audit-settings-mitre-attack-navigator)
   - [audit-filesize](#audit-filesize)
   - [configure](#configure)
 - [機能](#機能)
@@ -80,6 +81,9 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 
 ## audit-settings (table)
 ![WELA Table](screenshots/table.png)
+
+## audit-settings (mitre-attack-navigator)
+![WELA Mitre Attack Navigator](screenshots/mitre.png)
 
 ## audit-filesize
 ![WELA FileSize](screenshots/filesize.png)

@@ -44,6 +44,7 @@ WELA also assesses log configurations **based on real-world Sigma rule coverage*
   - [audit-settings (terminal output)](#audit-settings-terminal-output)
   - [audit-settings (GUI)](#audit-settings-gui)
   - [audit-settings (table)](#audit-settings-table)
+  - [audit-setting (mitre-attack-navigator)](#audit-settings-table)
   - [audit-filesize](#audit-filesize)
   - [configure](#configure)
 - [Features](#features)
@@ -80,6 +81,9 @@ WELA also assesses log configurations **based on real-world Sigma rule coverage*
 
 ## audit-settings (table)
 ![WELA Table](screenshots/table.png)
+
+## audit-settings (mitre-attack-navigator)
+![WELA Mitre Attack Navigator](screenshots/mitre.png)
 
 ## audit-filesize
 ![WELA FileSize](screenshots/filesize.png)
@@ -161,7 +165,6 @@ Apply Australian Signals Directorate's recommended settings without confirmation
 ```
 ./WELA.ps1 configure --BaseLine ASD -auto
 ```
-
 
 ## update-rules
 #### `update-rules` command examples
