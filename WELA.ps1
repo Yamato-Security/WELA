@@ -5910,8 +5910,6 @@ function ConfigureAuditSettings {
                 Write-Host "[OK] AuditFilter is already 127" -ForegroundColor Green
             }
             else {
-                Write-Host ("[SET] AuditFilter: {0} -> 127" -f $currentValue) -ForegroundColor Yellow
-
                 $proceed = $false
                 if ($Auto) {
                     $proceed = $true
