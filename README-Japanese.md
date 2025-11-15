@@ -44,7 +44,9 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
   - [audit-settings (stdout)](#audit-settings-stdout)
   - [audit-settings (gui)](#audit-settings-gui)
   - [audit-settings (table)](#audit-settings-table)
+  - [audit-settings (mitre-attack-navigator)](#audit-settings-mitre-attack-navigator)
   - [audit-filesize](#audit-filesize)
+  - [configure](#configure)
 - [機能](#機能)
 - [前提要件](#前提要件)
 - [ダウンロード](#ダウンロード)
@@ -55,6 +57,8 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
       - [`audit-settings` command examples](#audit-settings-command-examples)
   - [audit-filesize](#audit-filesize-1)
       - [`audit-filesize` command examples](#audit-filesize-command-examples)
+  - [configure](#configure)
+       - [`configure` command examples](#configure-command-examples)
   - [update-rules](#update-rules)
       - [`update-rules` command examples](#update-rules-command-examples)
 - [Windowsイベントログの監査設定に関するその他の参考資料](#windowsイベントログの監査設定に関するその他の参考資料)
@@ -78,14 +82,21 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 ## audit-settings (table)
 ![WELA Table](screenshots/table.png)
 
+## audit-settings (mitre-attack-navigator)
+![WELA Mitre Attack Navigator](screenshots/mitre.png)
+
 ## audit-filesize
 ![WELA FileSize](screenshots/filesize.png)
+
+## configure
+![WELA Configure](screenshots/configure.png)
 
 # 機能
 - Windows Event Log Audit policyに対する評価
 - 主要なWindowsイベントログ監査設定ガイドに基づくチェック
 - Windows Event Logの監査設定を、実際のSigmaルールの検知範囲に基づいて評価
 - Windows Event Logのファイルサイズを監査し、推奨サイズを提案
+- 推奨されるWindowsイベントログ監査ポリシーとファイルサイズの設定
 
 # 前提要件
 * PowerShell 5.1+
@@ -103,6 +114,7 @@ WELAはこうした課題を洗い出し、Windowsイベントログ設定改善
 # コマンド一覧
 - `audit-settings`: Windowsイベントログ監査ポリシー設定を評価する
 - `audit-filesize`: Windowsイベントログファイルサイズを評価する
+- `configure`: 推奨のWindowsイベントログ監査ポリシーとファイズサイズを設定する
 - `update-rules`: WELAのSigmaルール設定ファイルを更新する
 
 # コマンド使用例
@@ -113,7 +125,7 @@ RuleCountは、そのカテゴリ内のイベントを検出できる[Sigmaル�
 #### `audit-settings` command examples
 YamatoSecurityの推奨設定でチェックし、CSV形式で保存する:
 ```
-./WELA.ps1 audit-settings
+./WELA.ps1 audit-settings -BaseLine YamatoSecurity
 ```
 
 Australian Signals Directorateの推奨設定でチェックし、CSV形式で保存する:
@@ -132,12 +144,26 @@ Microsoftの推奨設定(Client)でチェックし、Table形式で表示する:
 ```
 
 ## audit-filesize
-`audit-filesize`コマンドは、Windowsイベントログファイルサイズを評価し、**Yamato Security**の推奨設定と比較します。
+`audit-filesize`コマンドは、Windowsイベントログファイルサイズを評価し、Yamato Securityの推奨設定と比較します。
 
 #### `audit-filesize` command examples
 WindowsイベントログファイルサイズをYamatoSecurityの推奨設定でチェックし、CSV形式で保存する:
 ```
-./WELA.ps1 audit-filesize
+./WELA.ps1 audit-filesize --BaseLine YamatoSecurity
+```
+
+## configure 
+`configure`コマンドは、推奨のWindowsイベントログ監査ポリシーとファイルサイズを設定します。
+
+#### `configure` command examples
+Yamato Securityの推奨設定を適用する（設定変更時に確認プロンプトを表示）:
+```
+./WELA.ps1 configure --BaseLine YamatoSecurity
+```
+
+Australian Signals Directorateの推奨設定を自動で適用する:
+```
+./WELA.ps1 configure --BaseLine ASD -auto
 ```
 
 ## update-rules

@@ -5367,8 +5367,8 @@ function Export-MitreHeatmap {
     $heatmap = @{
         "name" = "WELA detection heatmap"
         "versions" = @{
-            "attack" = "17"
-            "navigator" = "5.1.0"
+            "attack" = "18"
+            "navigator" = "5.2.0"
             "layer" = "4.5"
         }
         "domain" = "enterprise-attack"
@@ -5890,6 +5890,70 @@ function ConfigureAuditSettings {
         }
         Write-Host ""
     }
+
+    # AD CS AuditFilter の設定
+    Write-Host "Configuring AD CS Audit Settings..."
+    try {
+        $installed = (Get-WindowsFeature -Name AD-Certificate).InstallState -eq "Installed"
+    } catch {
+        $installed = $false
+    }
+
+    if ($installed) {
+        try {
+            $csRootKey = "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\"
+            $caName = (Get-ItemProperty $csRootKey -ErrorAction Stop).Active
+            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\$caName"
+            $prop = Get-ItemProperty -Path $regPath -Name "AuditFilter" -ErrorAction SilentlyContinue
+            $currentValue = if ($null -ne $prop) { [int]$prop.AuditFilter } else { "Not Set" }
+            if ($currentValue -eq 127) {
+                Write-Host "[OK] AuditFilter is already 127" -ForegroundColor Green
+            }
+            else {
+                $proceed = $false
+                if ($Auto) {
+                    $proceed = $true
+                }
+                else {
+                    $response = Read-Host "Do you want to set AuditFilter to 127 and restart Certificate Services? (Y/n)"
+                    $proceed = ($response -eq "" -or $response -match "^[Yy]$")
+                }
+
+                if ($proceed) {
+                    try {
+                        # AuditFilter の設定
+                        & certutil.exe -setreg "CA\AuditFilter" 127 >$null 2>&1
+                        # 証明書サービスの再起動
+                        Restart-Service -Name "CertSvc" -Force -ErrorAction Stop
+                        # 反映確認
+                        $propAfter = Get-ItemProperty -Path $regPath -Name "AuditFilter" -ErrorAction SilentlyContinue
+                        $newValue = if ($null -ne $propAfter) { [int]$propAfter.AuditFilter } else { $null }
+
+                        if ($newValue -eq 127) {
+                            Write-Host "[OK] AuditFilter set to 127 and CertSvc restarted" -ForegroundColor Green
+                        }
+                        else {
+                            Write-Host "[ERROR] AuditFilter did not apply as expected (current: $newValue)" -ForegroundColor Red
+                        }
+                    }
+                    catch {
+                        Write-Host "[ERROR] Failed to set AuditFilter or restart CertSvc: $_" -ForegroundColor Red
+                    }
+                }
+                else {
+                    Write-Host "[SKIP] No changes applied to AuditFilter"
+                }
+            }
+        }
+        catch {
+            Write-Host "[ERROR] Failed to process AD CS audit settings: $_" -ForegroundColor Red
+        }
+    }
+    else {
+        Write-Host "[INFO] AD Certificate Services is not installed. Skipping." -ForegroundColor Yellow
+    }
+    Write-Host ""
+
     Write-Host "Configuration completed successfully" -ForegroundColor Green
 }
 
@@ -5901,7 +5965,6 @@ $logo = @"
 ┗┓┏┓┏┫┗━━┫┗━┛┃┏━┓┃
  ┗┛┗┛┗━━━┻━━━┻┛ ┗┛
   by Yamato Security
-
 "@
 
 $usage = @"
@@ -5918,6 +5981,9 @@ Usage:
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Host $logo -ForegroundColor Green
+Write-Host ""
+Write-Host "WELA v2.0.0 - CODE BLUE Release"
+Write-Host ""
 
 switch ($Cmd.ToLower()) {
     "audit-settings"  {
