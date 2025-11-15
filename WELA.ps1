@@ -5893,8 +5893,6 @@ function ConfigureAuditSettings {
 
     # AD CS AuditFilter の設定
     Write-Host "Configuring AD CS Audit Settings..."
-    Write-Host ""
-
     try {
         $installed = (Get-WindowsFeature -Name AD-Certificate).InstallState -eq "Installed"
     } catch {
