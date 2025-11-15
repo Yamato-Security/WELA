@@ -5929,7 +5929,7 @@ function ConfigureAuditSettings {
                 if ($proceed) {
                     try {
                         # AuditFilter の設定
-                        Start-Process -FilePath "certutil.exe" -ArgumentList "-setreg","CA\AuditFilter","127" -NoNewWindow -Wait -RedirectStandardOutput 'NUL' -RedirectStandardError 'NUL'
+                        & certutil.exe -setreg "CA\AuditFilter" 127 >$null 2>&1; Restart-Service -Name 'CertSvc' -Force -ErrorAction Stop
                         # 証明書サービスの再起動
                         Restart-Service -Name "CertSvc" -Force -ErrorAction Stop
                         # 反映確認
