@@ -5907,10 +5907,7 @@ function ConfigureAuditSettings {
             $caName = (Get-ItemProperty $csRootKey -ErrorAction Stop).Active
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\$caName"
             $prop = Get-ItemProperty -Path $regPath -Name "AuditFilter" -ErrorAction SilentlyContinue
-
             $currentValue = if ($null -ne $prop) { [int]$prop.AuditFilter } else { "Not Set" }
-
-            Write-Host "Registry: $regPath"
             if ($currentValue -eq 127) {
                 Write-Host "[OK] AuditFilter is already 127" -ForegroundColor Green
             }
