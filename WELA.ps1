@@ -578,7 +578,7 @@ function GuideYamatoSecurity
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "Low",
             ""
@@ -596,7 +596,7 @@ function GuideYamatoSecurity
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "Low",
             ""
@@ -1384,7 +1384,7 @@ function GuideYamatoSecurity
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "Enabled",
             "",
             ""
@@ -1815,7 +1815,7 @@ function GuideASD {
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -1833,7 +1833,7 @@ function GuideASD {
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -2621,7 +2621,7 @@ function GuideASD {
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "",
             "",
             ""
@@ -3052,7 +3052,7 @@ function GuideMSC {
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -3070,7 +3070,7 @@ function GuideMSC {
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -3858,7 +3858,7 @@ function GuideMSC {
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "",
             "",
             ""
@@ -4289,7 +4289,7 @@ function GuideMSS {
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -4307,7 +4307,7 @@ function GuideMSS {
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -5095,7 +5095,7 @@ function GuideMSS {
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "",
             "",
             ""
