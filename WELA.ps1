@@ -578,7 +578,7 @@ function GuideYamatoSecurity
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "Success",
+            "No Auditing",
             "Success and Failure",
             "Low",
             ""
@@ -614,7 +614,7 @@ function GuideYamatoSecurity
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "Low",
             ""
@@ -1815,7 +1815,7 @@ function GuideASD {
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "Success",
+            "No Auditing",
             "Success and Failure",
             "",
             ""
@@ -1851,7 +1851,7 @@ function GuideASD {
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -3052,7 +3052,7 @@ function GuideMSC {
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "Success",
+            "No Auditing",
             "Success",
             "",
             ""
@@ -3088,7 +3088,7 @@ function GuideMSC {
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -4289,7 +4289,7 @@ function GuideMSS {
             "Other Account Management Events",
             $auditpol[$guid],
             [array]$rules,
-            "Success",
+            "No Auditing",
             "Success and Failure",
             "",
             ""
@@ -4325,7 +4325,7 @@ function GuideMSS {
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
