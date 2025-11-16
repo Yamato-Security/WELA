@@ -5412,7 +5412,7 @@ function AuditFileSize {
         "Microsoft-Windows-Crypto-DPAPI/Debug" = @("1 MB", "128 MB+")
         "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-NTLM/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-PowerShell/Operational" = @("20 MB", "256 MB+")
+        "Microsoft-Windows-PowerShell/Operational" = @("15 MB", "256 MB+")
         "Microsoft-Windows-PrintService/Admin" = @("1 MB", "128 MB+")
         "Microsoft-Windows-PrintService/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-Security-Mitigations/KernelMode" = @("1 MB", "128 MB+")
