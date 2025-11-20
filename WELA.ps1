@@ -596,7 +596,7 @@ function GuideYamatoSecurity
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "Low",
             ""
@@ -614,7 +614,7 @@ function GuideYamatoSecurity
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "Low",
             ""
@@ -1384,7 +1384,7 @@ function GuideYamatoSecurity
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "Enabled",
             "",
             ""
@@ -1833,7 +1833,7 @@ function GuideASD {
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -1851,7 +1851,7 @@ function GuideASD {
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -2621,7 +2621,7 @@ function GuideASD {
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "",
             "",
             ""
@@ -3070,7 +3070,7 @@ function GuideMSC {
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -3088,7 +3088,7 @@ function GuideMSC {
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success",
             "",
             ""
@@ -3858,7 +3858,7 @@ function GuideMSC {
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "",
             "",
             ""
@@ -4307,7 +4307,7 @@ function GuideMSS {
             "Security Group Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -4325,7 +4325,7 @@ function GuideMSS {
             "User Account Management",
             $auditpol[$guid],
             [array]$rules,
-            "No Auditing",
+            "Success",
             "Success and Failure",
             "",
             ""
@@ -5095,7 +5095,7 @@ function GuideMSS {
             "",
             $current,
             [array]$rules,
-            "Enabled",
+            "Disabled",
             "",
             "",
             ""
@@ -5412,7 +5412,7 @@ function AuditFileSize {
         "Microsoft-Windows-Crypto-DPAPI/Debug" = @("1 MB", "128 MB+")
         "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-NTLM/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-PowerShell/Operational" = @("20 MB", "256 MB+")
+        "Microsoft-Windows-PowerShell/Operational" = @("15 MB", "256 MB+")
         "Microsoft-Windows-PrintService/Admin" = @("1 MB", "128 MB+")
         "Microsoft-Windows-PrintService/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-Security-Mitigations/KernelMode" = @("1 MB", "128 MB+")
