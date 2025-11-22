@@ -7,6 +7,13 @@
     [switch]$Help
 )
 
+trap [System.Management.Automation.ParameterBindingException] {
+    Write-Host "Error: Invalid parameter specification."
+    Write-Host "Please check your arguments."
+    Write-Host "For more information, run './WELA.ps1 help'"
+    exit 1
+}
+
 class WELA {
     static [array] $Levels = @('critical', 'high', 'medium', 'low', 'informational')
     [string] $Category
