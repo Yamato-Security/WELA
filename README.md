@@ -126,22 +126,22 @@ The `audit-settings` command checks the Windows event log audit policy settings 
 ### `audit-settings` command examples
 Check with the default Yamato Security's recommended settings and save results to CSV:  
 ```
-./WELA.ps1 audit-settings -BaseLine YamatoSecurity
+./WELA.ps1 audit-settings -Baseline YamatoSecurity
 ```
 
 Check with the Australian Signals Directorate's recommended settings and save results to CSV:  
 ```
-./WELA.ps1 audit-settings -BaseLine ASD
+./WELA.ps1 audit-settings -Baseline ASD
 ```
 
 Check with Microsoft's recommended Server OS settings and display results in a GUI:  
 ```
-./WELA.ps1 audit-settings -BaseLine Microsoft_Server -OutType gui
+./WELA.ps1 audit-settings -Baseline Microsoft_Server -OutType gui
 ```
 
 Check with Microsoft's recommended Client OS settings and display results in table format:  
 ```
-./WELA.ps1 audit-settings -BaseLine Microsoft_Client -OutType table
+./WELA.ps1 audit-settings -Baseline Microsoft_Client -OutType table
 ```
 
 ## audit-filesize
@@ -150,7 +150,7 @@ The `audit-filesize` command checks the Windows event logs' file size and compar
 ### `audit-filesize` command examples
 Check the Windows event log file size with Yamato Security's recommendations and save results to CSV:  
 ```
-./WELA.ps1 audit-filesize -BaseLine YamatoSecurity
+./WELA.ps1 audit-filesize -Baseline YamatoSecurity
 ```
 
 ## configure
@@ -159,12 +159,12 @@ The `configure` command sets the recommended Windows event log audit policy and 
 #### `configure` command examples
 Apply Yamato Security's recommended settings (with confirmation prompt before changing settings):
 ```
-./WELA.ps1 configure --BaseLine YamatoSecurity
+./WELA.ps1 configure --Baseline YamatoSecurity
 ```
 
 Apply Australian Signals Directorate's recommended settings without confirmation prompt:
 ```
-./WELA.ps1 configure --BaseLine ASD -auto
+./WELA.ps1 configure --Baseline ASD -auto
 ```
 
 ## update-rules
