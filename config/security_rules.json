@@ -344,8 +344,8 @@
       "T1059.001",
       "TA0008",
       "T1021.003",
-      "T1021",
-      "T1059"
+      "T1059",
+      "T1021"
     ],
     "title": "Suspicious Non PowerShell WSMAN COM Provider"
   },
@@ -737,6 +737,30 @@
       "T1070"
     ],
     "title": "Disable Powershell Command History"
+  },
+  {
+    "category": "ps_script",
+    "channel": [
+      "pwsh",
+      "pwsh"
+    ],
+    "description": "Detects attempts to modify the registry using VBScript's CreateObject(\"Wscript.shell\") and RegWrite methods embedded within PowerShell scripts or commands.\nThreat actors commonly embed VBScript code within PowerShell to perform registry modifications, attempting to evade detection that monitors for direct registry access through traditional tools.\nThis technique can be used for persistence, defense evasion, and privilege escalation by modifying registry keys without using regedit.exe, reg.exe, or PowerShell's native registry cmdlets.\n",
+    "event_ids": [
+      "4104"
+    ],
+    "id": "992df49c-712c-8f93-819d-74df9b59fe7d",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [],
+    "tags": [
+      "TA0005",
+      "TA0003",
+      "TA0002",
+      "T1112",
+      "T1059.005",
+      "T1059"
+    ],
+    "title": "Registry Modification Attempt Via VBScript - PowerShell"
   },
   {
     "category": "ps_script",
@@ -1149,8 +1173,8 @@
       "T1529",
       "attack.g0091",
       "attack.s0363",
-      "T1059",
-      "T1071"
+      "T1071",
+      "T1059"
     ],
     "title": "Silence.EDA Detection"
   },
@@ -1479,8 +1503,8 @@
       "T1552.001",
       "T1555",
       "T1555.003",
-      "T1552",
-      "T1548"
+      "T1548",
+      "T1552"
     ],
     "title": "HackTool - WinPwn Execution - ScriptBlock"
   },
@@ -1902,8 +1926,8 @@
       "T1059.001",
       "TA0003",
       "T1136.001",
-      "T1059",
-      "T1136"
+      "T1136",
+      "T1059"
     ],
     "title": "PowerShell Create Local User"
   },
@@ -4350,8 +4374,8 @@
       "T1059.001",
       "TA0008",
       "T1021.006",
-      "T1021",
-      "T1059"
+      "T1059",
+      "T1021"
     ],
     "title": "Remote PowerShell Session (PS Module)"
   },
@@ -4962,8 +4986,8 @@
       "T1552.001",
       "T1555",
       "T1555.003",
-      "T1548",
-      "T1552"
+      "T1552",
+      "T1548"
     ],
     "title": "HackTool - WinPwn Execution"
   },
@@ -4991,8 +5015,8 @@
       "T1615",
       "T1569.002",
       "T1574.005",
-      "T1574",
-      "T1569"
+      "T1569",
+      "T1574"
     ],
     "title": "HackTool - SharpUp PrivEsc Tool Execution"
   },
@@ -5532,8 +5556,8 @@
       "TA0002",
       "T1059.001",
       "T1027",
-      "T1059",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "Obfuscated PowerShell MSI Install via WindowsInstaller COM"
   },
@@ -6514,8 +6538,8 @@
       "T1563.002",
       "T1021.001",
       "car.2013-07-002",
-      "T1021",
-      "T1563"
+      "T1563",
+      "T1021"
     ],
     "title": "Suspicious RDP Redirect Using TSCON"
   },
@@ -7856,8 +7880,8 @@
       "TA0005",
       "T1036.004",
       "T1036.005",
-      "T1053",
-      "T1036"
+      "T1036",
+      "T1053"
     ],
     "title": "Scheduled Task Creation Masquerading as System Processes"
   },
@@ -8558,8 +8582,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Suspicious Schtasks Execution AppData Folder"
   },
@@ -10033,8 +10057,8 @@
       "T1087.002",
       "T1069.002",
       "T1482",
-      "T1087",
-      "T1069"
+      "T1069",
+      "T1087"
     ],
     "title": "Suspicious Active Directory Database Snapshot Via ADExplorer"
   },
@@ -10741,6 +10765,30 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects enabling or disabling of Remote Desktop Protocol (RDP) using alternate methods such as WMIC or PowerShell.\nIn PowerShell one-liner commands, the \"SetAllowTSConnections\" method of the \"Win32_TerminalServiceSetting\" class may be used to enable or disable RDP.\nIn WMIC, the \"rdtoggle\" alias or \"Win32_TerminalServiceSetting\" class may be used for the same purpose.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "1e281ff6-9a96-3c81-f50d-f71f6b994c13",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0008",
+      "T1021.001",
+      "TA0002",
+      "T1047",
+      "T1021"
+    ],
+    "title": "RDP Enable or Disable via Win32_TerminalServiceSetting WMI Class"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the stopping of a Windows service via the \"net\" utility.",
     "event_ids": [
       "4688"
@@ -10996,8 +11044,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "Suspicious WMIC Execution Via Office Process"
   },
@@ -11189,9 +11237,9 @@
       "TA0011",
       "T1071.004",
       "T1132.001",
-      "T1048",
+      "T1132",
       "T1071",
-      "T1132"
+      "T1048"
     ],
     "title": "DNS Exfiltration and Tunneling Tools Execution"
   },
@@ -11532,8 +11580,8 @@
       "car.2013-08-001",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "HackTool - Default PowerSploit/Empire Scheduled Task Creation"
   },
@@ -12201,8 +12249,8 @@
       "TA0005",
       "T1059.001",
       "T1564.003",
-      "T1059",
-      "T1564"
+      "T1564",
+      "T1059"
     ],
     "title": "HackTool - Covenant PowerShell Launcher"
   },
@@ -13505,6 +13553,31 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects attempts to modify the registry using VBScript's CreateObject(\"Wscript.shell\") and RegWrite methods via common LOLBINs.\nIt could be an attempt to modify the registry for persistence without using straightforward methods like regedit.exe, reg.exe, or PowerShell.\nThreat Actors may use this technique to evade detection by security solutions that monitor for direct registry modifications through traditional tools.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "e16092bc-e95b-89de-eed5-19e63c1cb26f",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "TA0003",
+      "TA0002",
+      "T1112",
+      "T1059.005",
+      "T1059"
+    ],
+    "title": "Registry Modification Attempt Via VBScript"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects when a user downloads a file from an IP based URL using CertOC.exe",
     "event_ids": [
       "4688"
@@ -13657,8 +13730,8 @@
       "T1587.001",
       "TA0002",
       "T1569.002",
-      "T1587",
-      "T1569"
+      "T1569",
+      "T1587"
     ],
     "title": "PUA - CsExec Execution"
   },
@@ -15406,6 +15479,29 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects suspicious execution patterns where users are tricked into running malicious commands via clipboard manipulation, either through the Windows Run dialog (ClickFix) or File Explorer address bar (FileFix).\nAttackers leverage social engineering campaigns—such as fake CAPTCHA challenges or urgent alerts—encouraging victims to paste clipboard contents, often executing mshta.exe, powershell.exe, or similar commands to infect systems.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "5bf555d0-5572-b3b8-5af3-115d8e7bdfb8",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0002",
+      "T1204.001",
+      "T1204.004",
+      "T1204"
+    ],
+    "title": "Suspicious ClickFix/FileFix Execution Pattern"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the execution of the SharpDPAPI tool based on CommandLine flags and PE metadata.\nSharpDPAPI is a C# port of some DPAPI functionality from the Mimikatz project.\n",
     "event_ids": [
       "4688"
@@ -16300,8 +16396,8 @@
       "T1059.001",
       "TA0005",
       "T1027.005",
-      "T1059",
-      "T1027"
+      "T1027",
+      "T1059"
     ],
     "title": "HackTool - CrackMapExec PowerShell Obfuscation"
   },
@@ -16590,8 +16686,8 @@
       "T1087.002",
       "T1069.002",
       "T1482",
-      "T1069",
-      "T1087"
+      "T1087",
+      "T1069"
     ],
     "title": "Active Directory Database Snapshot Via ADExplorer"
   },
@@ -17963,8 +18059,8 @@
       "TA0002",
       "T1552.004",
       "T1059.001",
-      "T1552",
-      "T1059"
+      "T1059",
+      "T1552"
     ],
     "title": "Certificate Exported Via PowerShell"
   },
@@ -18031,8 +18127,8 @@
       "T1218.011",
       "TA0006",
       "T1003.001",
-      "T1003",
-      "T1218"
+      "T1218",
+      "T1003"
     ],
     "title": "Process Access via TrolleyExpress Exclusion"
   },
@@ -19431,8 +19527,8 @@
       "T1059.001",
       "T1059.003",
       "T1564.003",
-      "T1564",
-      "T1059"
+      "T1059",
+      "T1564"
     ],
     "title": "Powershell Executed From Headless ConHost Process"
   },
@@ -19857,8 +19953,8 @@
       "TA0008",
       "T1021.002",
       "T1218.011",
-      "T1218",
-      "T1021"
+      "T1021",
+      "T1218"
     ],
     "title": "Rundll32 UNC Path Execution"
   },
@@ -20860,9 +20956,9 @@
       "TA0005",
       "T1218.014",
       "T1036.002",
-      "T1218",
       "T1036",
-      "T1204"
+      "T1204",
+      "T1218"
     ],
     "title": "MMC Executing Files with Reversed Extensions Using RTLO Abuse"
   },
@@ -20991,8 +21087,8 @@
       "TA0005",
       "T1219.002",
       "T1036.003",
-      "T1219",
-      "T1036"
+      "T1036",
+      "T1219"
     ],
     "title": "Remote Access Tool - Renamed MeshAgent Execution - Windows"
   },
@@ -21417,12 +21513,12 @@
       "T1547.002",
       "T1557",
       "T1082",
-      "T1505",
-      "T1556",
-      "T1546",
       "T1547",
+      "T1564",
+      "T1556",
       "T1574",
-      "T1564"
+      "T1546",
+      "T1505"
     ],
     "title": "Potential Suspicious Activity Using SeCEdit"
   },
@@ -22551,9 +22647,9 @@
       "TA0005",
       "T1218.005",
       "T1027.004",
-      "T1027",
       "T1059",
-      "T1218"
+      "T1218",
+      "T1027"
     ],
     "title": "Csc.EXE Execution Form Potentially Suspicious Parent"
   },
@@ -22915,6 +23011,31 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects suspicious usage of the cmd.exe 'for /f' loop combined with the 'tokens=' parameter and a recursive directory listing.\nThis pattern may indicate an attempt to discover and execute system binaries dynamically, for example powershell, a technique sometimes used by attackers to evade detection.\nThis behavior has been observed in various malicious lnk files.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "64212d14-add9-d75f-cf98-c4f14460e8e8",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0002",
+      "T1059.003",
+      "TA0005",
+      "T1027.010",
+      "T1059",
+      "T1027"
+    ],
+    "title": "Suspicious Usage of For Loop with Recursive Directory Search in CMD"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects when a program changes the default file association of any extension to an executable.\nWhen a file is opened, the default program used to open the file (also called the file association or handler) is checked. File association selections are stored in the Windows Registry and can be edited by users, administrators, or programs that have Registry access or by administrators using the built-in assoc utility. Applications can modify the file association for a given file extension to call an arbitrary program when a file with the given extension is opened.\n",
     "event_ids": [
       "4688"
@@ -23166,6 +23287,31 @@
       "TA0005"
     ],
     "title": "Start of NT Virtual DOS Machine"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects instances of svchost.exe running with an unusual or uncommon command line parameter by excluding known legitimate or common patterns.\nThis could point at a file masquerading as svchost, a process injection, or hollowing of a legitimate svchost instance.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "59a6acf8-6a2e-3b12-d962-e991de4770a6",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "TA0004",
+      "T1036.005",
+      "T1055",
+      "T1055.012",
+      "T1036"
+    ],
+    "title": "Uncommon Svchost Command Line Parameter"
   },
   {
     "category": "process_creation",
@@ -24186,8 +24332,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Scheduled Task Executing Payload from Registry"
   },
@@ -25202,8 +25348,8 @@
       "T1564.004",
       "T1552.001",
       "T1105",
-      "T1564",
-      "T1552"
+      "T1552",
+      "T1564"
     ],
     "title": "Insensitive Subfolder Search Via Findstr.EXE"
   },
@@ -26175,8 +26321,8 @@
       "TA0002",
       "T1059.001",
       "T1087",
-      "T1069",
-      "T1059"
+      "T1059",
+      "T1069"
     ],
     "title": "HackTool - Bloodhound/Sharphound Execution"
   },
@@ -27263,8 +27409,8 @@
       "T1106",
       "T1059.003",
       "T1218.011",
-      "T1059",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "HackTool - RedMimicry Winnti Playbook Execution"
   },
@@ -27655,8 +27801,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1550",
-      "T1558"
+      "T1558",
+      "T1550"
     ],
     "title": "HackTool - Rubeus Execution"
   },
@@ -30162,8 +30308,8 @@
       "T1559.001",
       "TA0005",
       "T1218.010",
-      "T1218",
-      "T1559"
+      "T1559",
+      "T1218"
     ],
     "title": "Network Connection Initiated By Regsvr32.EXE"
   },
@@ -31520,8 +31666,8 @@
       "attack.s0039",
       "detection.threat-hunting",
       "T1069",
-      "T1021",
-      "T1087"
+      "T1087",
+      "T1021"
     ],
     "title": "Net.EXE Execution"
   },
@@ -32301,8 +32447,8 @@
       "T1027.010",
       "T1547.001",
       "detection.threat-hunting",
-      "T1547",
       "T1027",
+      "T1547",
       "T1059"
     ],
     "title": "Registry Set With Crypto-Classes From The \"Cryptography\" PowerShell Namespace"
@@ -32808,10 +32954,35 @@
       "TA0004",
       "T1548.002",
       "T1546.001",
-      "T1548",
-      "T1546"
+      "T1546",
+      "T1548"
     ],
     "title": "Shell Open Registry Keys Manipulation"
+  },
+  {
+    "category": "registry_event",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects suspicious registry modifications made by suspicious processes such as script engine processes such as WScript, or CScript etc.\nThese processes are rarely used for legitimate registry modifications, and their activity may indicate an attempt to modify the registry\nwithout using standard tools like regedit.exe or reg.exe, potentially for evasion and persistence.\n",
+    "event_ids": [
+      "4657"
+    ],
+    "id": "fe1d6535-15bf-3cb1-49ea-116bb1326b6a",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "TA0003",
+      "TA0002",
+      "T1112",
+      "T1059.005",
+      "T1059"
+    ],
+    "title": "Registry Tampering by Potentially Suspicious Processes"
   },
   {
     "category": "registry_event",
@@ -36681,8 +36852,8 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
-      "T1543",
       "T1021",
+      "T1543",
       "T1569"
     ],
     "title": "Potential CobaltStrike Service Installations - Registry"
@@ -37258,8 +37429,8 @@
       "TA0003",
       "T1547.001",
       "T1546.009",
-      "T1547",
-      "T1546"
+      "T1546",
+      "T1547"
     ],
     "title": "Session Manager Autorun Keys Modification"
   },
@@ -38141,8 +38312,8 @@
       "T1566.001",
       "cve.2017-11882",
       "detection.emerging-threats",
-      "T1566",
-      "T1204"
+      "T1204",
+      "T1566"
     ],
     "title": "Droppers Exploiting CVE-2017-11882"
   },
@@ -38227,9 +38398,9 @@
       "T1003.001",
       "car.2016-04-002",
       "detection.emerging-threats",
-      "T1003",
       "T1070",
-      "T1218"
+      "T1218",
+      "T1003"
     ],
     "title": "NotPetya Ransomware Activity"
   },
@@ -38620,8 +38791,8 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
-      "T1071",
       "T1053",
+      "T1071",
       "T1543"
     ],
     "title": "OilRig APT Activity"
@@ -38652,8 +38823,8 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
-      "T1071",
       "T1543",
+      "T1071",
       "T1053"
     ],
     "title": "OilRig APT Schedule Task Persistence - System"
@@ -39694,8 +39865,8 @@
       "T1053.005",
       "T1059.006",
       "detection.emerging-threats",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Serpent Backdoor Payload Execution Via Scheduled Task"
   },
@@ -39841,8 +40012,8 @@
       "T1053.005",
       "T1027",
       "detection.emerging-threats",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Turla Group Commands May 2020"
   },
@@ -39898,8 +40069,8 @@
       "attack.s0412",
       "attack.g0001",
       "detection.emerging-threats",
-      "T1218",
-      "T1059"
+      "T1059",
+      "T1218"
     ],
     "title": "ZxShell Malware"
   },
@@ -40912,8 +41083,8 @@
       "T1059.001",
       "T1218.005",
       "detection.emerging-threats",
-      "T1059",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "Potential Baby Shark Malware Activity"
   },
@@ -41278,8 +41449,8 @@
       "T1053.005",
       "T1059.001",
       "detection.emerging-threats",
-      "T1053",
       "T1059",
+      "T1053",
       "T1036"
     ],
     "title": "Operation Wocao Activity"
@@ -44903,8 +45074,8 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
-      "T1543",
       "T1021",
+      "T1543",
       "T1569"
     ],
     "title": "CobaltStrike Service Installations - Security"
@@ -45409,8 +45580,8 @@
       "T1570",
       "TA0002",
       "T1569.002",
-      "T1021",
-      "T1569"
+      "T1569",
+      "T1021"
     ],
     "title": "Metasploit Or Impacket Service Installation Via SMB PsExec"
   },
@@ -45461,8 +45632,8 @@
       "T1090.002",
       "T1021.001",
       "car.2013-07-002",
-      "T1090",
-      "T1021"
+      "T1021",
+      "T1090"
     ],
     "title": "RDP over Reverse SSH Tunnel WFP"
   },
@@ -46565,8 +46736,8 @@
       "T1485",
       "T1553.002",
       "attack.s0195",
-      "T1553",
       "T1070",
+      "T1553",
       "T1027"
     ],
     "title": "Potential Secure Deletion with SDelete"
@@ -46615,8 +46786,8 @@
       "T1087.002",
       "T1069.002",
       "attack.s0039",
-      "T1069",
-      "T1087"
+      "T1087",
+      "T1069"
     ],
     "title": "Reconnaissance Activity"
   },
@@ -47683,8 +47854,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "Office Applications Spawning Wmi Cli Alternate"
   },
@@ -47867,8 +48038,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "New Lolbin Process by Office Applications"
   },
@@ -48087,8 +48258,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "WMI Execution Via Office Process"
   },
@@ -49767,8 +49938,8 @@
       "TA0004",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "Sliver C2 Default Service Installation"
   },
@@ -50056,8 +50227,8 @@
       "TA0002",
       "T1543.003",
       "T1569.002",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "Remote Access Tool Services Have Been Installed - System"
   },
@@ -50337,8 +50508,8 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
-      "T1543",
       "T1021",
+      "T1543",
       "T1569"
     ],
     "title": "CobaltStrike Service Installations - System"
@@ -50424,8 +50595,8 @@
       "TA0004",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "ProcessHacker Privilege Elevation"
   },
@@ -50508,8 +50679,8 @@
       "TA0002",
       "T1021.002",
       "T1569.002",
-      "T1021",
-      "T1569"
+      "T1569",
+      "T1021"
     ],
     "title": "smbexec.py Service Installation"
   },
@@ -53703,10 +53874,10 @@
       "T1570",
       "T1021.002",
       "T1569.002",
-      "T1569",
+      "T1543",
       "T1136",
       "T1021",
-      "T1543"
+      "T1569"
     ],
     "title": "PSExec Lateral Movement"
   },
