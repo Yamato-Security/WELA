@@ -159,12 +159,12 @@ The `configure` command sets the recommended Windows event log audit policy and 
 #### `configure` command examples
 Apply Yamato Security's recommended settings (with confirmation prompt before changing settings):
 ```
-./WELA.ps1 configure --Baseline YamatoSecurity
+./WELA.ps1 configure -Baseline YamatoSecurity
 ```
 
 Apply Australian Signals Directorate's recommended settings without confirmation prompt:
 ```
-./WELA.ps1 configure --Baseline ASD -auto
+./WELA.ps1 configure -Baseline ASD -auto
 ```
 
 ## update-rules

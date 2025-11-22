@@ -150,7 +150,7 @@ Microsoftの推奨設定(Client)でチェックし、Table形式で表示する:
 #### `audit-filesize` command examples
 WindowsイベントログファイルサイズをYamatoSecurityの推奨設定でチェックし、CSV形式で保存する:
 ```
-./WELA.ps1 audit-filesize --Baseline YamatoSecurity
+./WELA.ps1 audit-filesize -Baseline YamatoSecurity
 ```
 
 ## configure 
@@ -159,12 +159,12 @@ WindowsイベントログファイルサイズをYamatoSecurityの推奨設定�
 #### `configure` command examples
 Yamato Securityの推奨設定を適用する（設定変更時に確認プロンプトを表示）:
 ```
-./WELA.ps1 configure --Baseline YamatoSecurity
+./WELA.ps1 configure -Baseline YamatoSecurity
 ```
 
 Australian Signals Directorateの推奨設定を自動で適用する:
 ```
-./WELA.ps1 configure --Baseline ASD -auto
+./WELA.ps1 configure -Baseline ASD -auto
 ```
 
 ## update-rules
