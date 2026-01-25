@@ -2661,8 +2661,8 @@
       "T1564.004",
       "TA0002",
       "T1059.001",
-      "T1564",
-      "T1059"
+      "T1059",
+      "T1564"
     ],
     "title": "NTFS Alternate Data Stream"
   },
@@ -4862,8 +4862,8 @@
       "T1059.005",
       "T1059.006",
       "T1059.007",
-      "T1204",
-      "T1059"
+      "T1059",
+      "T1204"
     ],
     "title": "AppLocker Prevented Application or Script from Running"
   },
@@ -4941,27 +4941,6 @@
     "channel": [
       "sec"
     ],
-    "description": "Threat actors performed dumping of SAM, SECURITY and SYSTEM registry hives using DelegateExecute key",
-    "event_ids": [
-      "4688"
-    ],
-    "id": "bfa46528-db30-f4b6-d9b2-afca48a92538",
-    "level": "medium",
-    "service": "",
-    "subcategory_guids": [
-      "0CCE922B-69AE-11D9-BED3-505054503030"
-    ],
-    "tags": [
-      "TA0006",
-      "T1003"
-    ],
-    "title": "Suspicious Reg Add Open Command"
-  },
-  {
-    "category": "process_creation",
-    "channel": [
-      "sec"
-    ],
     "description": "Detects commandline keywords indicative of potential usge of the tool WinPwn. A tool for Windows and Active Directory reconnaissance and exploitation.\n",
     "event_ids": [
       "4688"
@@ -4986,8 +4965,8 @@
       "T1552.001",
       "T1555",
       "T1555.003",
-      "T1552",
-      "T1548"
+      "T1548",
+      "T1552"
     ],
     "title": "HackTool - WinPwn Execution"
   },
@@ -5555,9 +5534,9 @@
       "T1218.007",
       "TA0002",
       "T1059.001",
-      "T1059",
       "T1218",
-      "T1027"
+      "T1027",
+      "T1059"
     ],
     "title": "Obfuscated PowerShell MSI Install via WindowsInstaller COM"
   },
@@ -5715,6 +5694,29 @@
       "T1036"
     ],
     "title": "Suspicious Windows Update Agent Empty Cmdline"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects execution of the Kernel Driver Utility (KDU) tool.\nKDU can be used to bypass driver signature enforcement and load unsigned or malicious drivers into the Windows kernel.\nPotentially allowing for privilege escalation, persistence, or evasion of security controls.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "f185644d-efcc-77e1-e32d-2b11ea12c7cb",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0003",
+      "TA0004",
+      "T1543.003",
+      "T1543"
+    ],
+    "title": "PUA - Kernel Driver Utility (KDU) Execution"
   },
   {
     "category": "process_creation",
@@ -5937,6 +5939,32 @@
       "T1003"
     ],
     "title": "Procdump Execution"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
+    "description": "Detects execution of devcon.exe with commands that disable the VMware Virtual Machine Communication Interface (VMCI) device.\nThis can be legitimate during VMware Tools troubleshooting or driver conflicts, but may also indicate malware attempting to hijack communication with the hardware via the VMCI device.\nThis has been used to facilitate VMware ESXi vulnerability exploits to escape VMs and execute code on the ESXi host.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "8e6af6ef-9875-7c76-5e93-2a8f619e828d",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "TA0003",
+      "TA0004",
+      "T1543.003",
+      "T1562.001",
+      "T1543",
+      "T1562"
+    ],
+    "title": "Devcon Execution Disabling VMware VMCI Device"
   },
   {
     "category": "process_creation",
@@ -6538,8 +6566,8 @@
       "T1563.002",
       "T1021.001",
       "car.2013-07-002",
-      "T1563",
-      "T1021"
+      "T1021",
+      "T1563"
     ],
     "title": "Suspicious RDP Redirect Using TSCON"
   },
@@ -7280,12 +7308,12 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects potential SquiblyTwo attack technique with possible renamed WMIC via Imphash and OriginalFileName fields",
+    "description": "Detects potential execution of the SquiblyTwo technique that leverages Windows Management Instrumentation (WMI)\nto execute malicious code remotely. This technique bypasses application whitelisting by using wmic.exe to process\nmalicious XSL (eXtensible Stylesheet Language) scripts that can contain embedded JScript or VBScript.\nThe attack typically works by fetching XSL content from a remote source (using HTTP/HTTPS) and executing it\nwith full trust privileges directly in memory, avoiding disk-based detection mechanisms. This is a common\nLOLBin (Living Off The Land Binary) technique used for defense evasion and code execution.\n",
     "event_ids": [
       "4688"
     ],
     "id": "b9b053da-68a6-d372-9780-828406597122",
-    "level": "medium",
+    "level": "high",
     "service": "",
     "subcategory_guids": [
       "0CCE922B-69AE-11D9-BED3-505054503030"
@@ -7299,7 +7327,7 @@
       "T1059.007",
       "T1059"
     ],
-    "title": "Potential SquiblyTwo Technique Execution"
+    "title": "Potential Remote SquiblyTwo Technique Execution"
   },
   {
     "category": "process_creation",
@@ -7344,8 +7372,8 @@
       "T1482",
       "T1069.002",
       "stp.1u",
-      "T1087",
-      "T1069"
+      "T1069",
+      "T1087"
     ],
     "title": "PUA - AdFind Suspicious Execution"
   },
@@ -8065,6 +8093,33 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects registry modifications to the 'ms-settings' protocol handler, which is frequently targeted for UAC bypass or persistence.\nAttackers can modify this registry to execute malicious code with elevated privileges by hijacking the command execution path.\n",
+    "event_ids": [
+      "4688"
+    ],
+    "id": "bfa46528-db30-f4b6-d9b2-afca48a92538",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE922B-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "TA0004",
+      "TA0003",
+      "T1548.002",
+      "T1546.001",
+      "T1112",
+      "T1546",
+      "T1548"
+    ],
+    "title": "Registry Modification of MS-settings Protocol Handler"
+  },
+  {
+    "category": "process_creation",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the removal of Sysmon, which could be a potential attempt at defense evasion",
     "event_ids": [
       "4688"
@@ -8580,8 +8635,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Suspicious Schtasks Execution AppData Folder"
   },
@@ -10850,8 +10905,8 @@
       "TA0005",
       "T1548.002",
       "T1218.003",
-      "T1218",
-      "T1548"
+      "T1548",
+      "T1218"
     ],
     "title": "Bypass UAC via CMSTP"
   },
@@ -10881,7 +10936,7 @@
     "channel": [
       "sec"
     ],
-    "description": "Detects the execution of WMIC with the \"format\" flag to potentially load XSL files.\nAdversaries abuse this functionality to execute arbitrary files while potentially bypassing application whitelisting defenses.\nExtensible Stylesheet Language (XSL) files are commonly used to describe the processing and rendering of data within XML files.\n",
+    "description": "Detects the execution of WMIC with the \"format\" flag to potentially load local XSL files.\nAdversaries abuse this functionality to execute arbitrary files while potentially bypassing application whitelisting defenses.\nExtensible Stylesheet Language (XSL) files are commonly used to describe the processing and rendering of data within XML files.\n",
     "event_ids": [
       "4688"
     ],
@@ -10893,7 +10948,12 @@
     ],
     "tags": [
       "TA0005",
-      "T1220"
+      "T1047",
+      "T1220",
+      "TA0002",
+      "T1059.005",
+      "T1059.007",
+      "T1059"
     ],
     "title": "XSL Script Execution Via WMIC.EXE"
   },
@@ -11262,9 +11322,9 @@
       "TA0011",
       "T1071.004",
       "T1132.001",
-      "T1132",
       "T1048",
-      "T1071"
+      "T1071",
+      "T1132"
     ],
     "title": "DNS Exfiltration and Tunneling Tools Execution"
   },
@@ -11605,8 +11665,8 @@
       "car.2013-08-001",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "HackTool - Default PowerSploit/Empire Scheduled Task Creation"
   },
@@ -13413,8 +13473,8 @@
       "T1087.002",
       "T1482",
       "T1069.002",
-      "T1087",
-      "T1069"
+      "T1069",
+      "T1087"
     ],
     "title": "Renamed AdFind Execution"
   },
@@ -13711,8 +13771,8 @@
       "T1570",
       "TA0002",
       "T1569.002",
-      "T1569",
-      "T1021"
+      "T1021",
+      "T1569"
     ],
     "title": "Rundll32 Execution Without Parameters"
   },
@@ -15908,8 +15968,8 @@
       "T1203",
       "T1059.003",
       "attack.g0032",
-      "T1059",
-      "T1566"
+      "T1566",
+      "T1059"
     ],
     "title": "Suspicious HWP Sub Processes"
   },
@@ -16466,8 +16526,8 @@
       "T1059.001",
       "TA0005",
       "T1027.005",
-      "T1059",
-      "T1027"
+      "T1027",
+      "T1059"
     ],
     "title": "HackTool - CrackMapExec PowerShell Obfuscation"
   },
@@ -16914,8 +16974,8 @@
       "TA0004",
       "T1055.001",
       "T1218.013",
-      "T1055",
-      "T1218"
+      "T1218",
+      "T1055"
     ],
     "title": "Mavinject Inject DLL Into Running Process"
   },
@@ -18406,8 +18466,8 @@
       "TA0003",
       "T1543.003",
       "T1574.011",
-      "T1543",
-      "T1574"
+      "T1574",
+      "T1543"
     ],
     "title": "Potential Persistence Attempt Via Existing Service Tampering"
   },
@@ -21053,9 +21113,9 @@
       "TA0005",
       "T1218.014",
       "T1036.002",
+      "T1204",
       "T1036",
-      "T1218",
-      "T1204"
+      "T1218"
     ],
     "title": "MMC Executing Files with Reversed Extensions Using RTLO Abuse"
   },
@@ -21184,8 +21244,8 @@
       "TA0005",
       "T1219.002",
       "T1036.003",
-      "T1219",
-      "T1036"
+      "T1036",
+      "T1219"
     ],
     "title": "Remote Access Tool - Renamed MeshAgent Execution - Windows"
   },
@@ -21527,8 +21587,8 @@
       "T1047",
       "T1204.002",
       "T1218.010",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "Suspicious Microsoft Office Child Process"
   },
@@ -21610,12 +21670,12 @@
       "T1547.002",
       "T1557",
       "T1082",
-      "T1564",
-      "T1546",
-      "T1547",
-      "T1574",
+      "T1556",
       "T1505",
-      "T1556"
+      "T1574",
+      "T1546",
+      "T1564",
+      "T1547"
     ],
     "title": "Potential Suspicious Activity Using SeCEdit"
   },
@@ -22426,8 +22486,8 @@
       "TA0008",
       "T1059.001",
       "T1021.006",
-      "T1059",
-      "T1021"
+      "T1021",
+      "T1059"
     ],
     "title": "Remote PowerShell Session Host Process (WinRM)"
   },
@@ -22724,9 +22784,9 @@
       "TA0005",
       "T1218.005",
       "T1027.004",
+      "T1059",
       "T1218",
-      "T1027",
-      "T1059"
+      "T1027"
     ],
     "title": "Csc.EXE Execution Form Potentially Suspicious Parent"
   },
@@ -24248,8 +24308,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1550",
-      "T1558"
+      "T1558",
+      "T1550"
     ],
     "title": "HackTool - KrbRelayUp Execution"
   },
@@ -24409,8 +24469,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Scheduled Task Executing Payload from Registry"
   },
@@ -24789,8 +24849,8 @@
       "T1133",
       "T1136.001",
       "T1021.001",
-      "T1021",
-      "T1136"
+      "T1136",
+      "T1021"
     ],
     "title": "User Added to Remote Desktop Users Group"
   },
@@ -25425,8 +25485,8 @@
       "T1564.004",
       "T1552.001",
       "T1105",
-      "T1564",
-      "T1552"
+      "T1552",
+      "T1564"
     ],
     "title": "Insensitive Subfolder Search Via Findstr.EXE"
   },
@@ -27901,8 +27961,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1550",
-      "T1558"
+      "T1558",
+      "T1550"
     ],
     "title": "HackTool - Rubeus Execution"
   },
@@ -30457,8 +30517,8 @@
       "T1559.001",
       "TA0005",
       "T1218.010",
-      "T1218",
-      "T1559"
+      "T1559",
+      "T1218"
     ],
     "title": "Network Connection Initiated By Regsvr32.EXE"
   },
@@ -31306,8 +31366,8 @@
       "T1059.001",
       "T1027.010",
       "detection.threat-hunting",
-      "T1059",
-      "T1027"
+      "T1027",
+      "T1059"
     ],
     "title": "Invocation Of Crypto-Classes From The \"Cryptography\" PowerShell Namespace"
   },
@@ -31865,8 +31925,8 @@
       "T1021.002",
       "attack.s0039",
       "detection.threat-hunting",
-      "T1021",
       "T1087",
+      "T1021",
       "T1069"
     ],
     "title": "Net.EXE Execution"
@@ -32647,9 +32707,9 @@
       "T1027.010",
       "T1547.001",
       "detection.threat-hunting",
-      "T1059",
+      "T1027",
       "T1547",
-      "T1027"
+      "T1059"
     ],
     "title": "Registry Set With Crypto-Classes From The \"Cryptography\" PowerShell Namespace"
   },
@@ -32673,6 +32733,27 @@
       "detection.threat-hunting"
     ],
     "title": "Shell Context Menu Command Tampering"
+  },
+  {
+    "category": "",
+    "channel": [
+      "Microsoft-Windows-AppXDeploymentServer/Operational"
+    ],
+    "description": "Detects successful MSIX/AppX package installations on Windows systems by monitoring EventID 854 in the Microsoft-Windows-AppXDeployment-Server/Operational log.\nWhile most installations are legitimate, this can help identify unauthorized or suspicious package installations.\nIt is crucial to monitor such events as threat actors may exploit MSIX/AppX packages to deliver and execute malicious payloads.\n",
+    "event_ids": [
+      "854"
+    ],
+    "id": "b9ec68fe-f656-4c32-62da-1ece594d2708",
+    "level": "low",
+    "service": "appxdeployment-server",
+    "subcategory_guids": [],
+    "tags": [
+      "TA0002",
+      "T1204.002",
+      "detection.threat-hunting",
+      "T1204"
+    ],
+    "title": "Successful MSIX/AppX Package Installation"
   },
   {
     "category": "",
@@ -33154,8 +33235,8 @@
       "TA0004",
       "T1548.002",
       "T1546.001",
-      "T1546",
-      "T1548"
+      "T1548",
+      "T1546"
     ],
     "title": "Shell Open Registry Keys Manipulation"
   },
@@ -34180,8 +34261,8 @@
       "T1204.004",
       "TA0005",
       "T1027.010",
-      "T1204",
-      "T1027"
+      "T1027",
+      "T1204"
     ],
     "title": "Suspicious Space Characters in RunMRU Registry Path - ClickFix"
   },
@@ -36009,8 +36090,8 @@
       "T1204.004",
       "TA0005",
       "T1027.010",
-      "T1027",
-      "T1204"
+      "T1204",
+      "T1027"
     ],
     "title": "Suspicious Space Characters in TypedPaths Registry Path - FileFix"
   },
@@ -37082,6 +37163,31 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects registry modifications related to 'OracleOciLib' and 'OracleOciLibPath' under 'MSDTC' settings.\nThreat actors may modify these registry keys to redirect the loading of 'oci.dll' to a malicious DLL, facilitating phantom DLL hijacking via the MSDTC service.\n",
+    "event_ids": [
+      "4657"
+    ],
+    "id": "0a08ca66-94db-9391-8eb0-82e91312a056",
+    "level": "high",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0003",
+      "TA0004",
+      "TA0005",
+      "T1112",
+      "T1574.001",
+      "T1574"
+    ],
+    "title": "Registry Modification for OCI DLL Redirection"
+  },
+  {
+    "category": "registry_set",
+    "channel": [
+      "sec"
+    ],
     "description": "Adversaries may establish persistence and/or elevate privileges by executing malicious content triggered by application shims.\nThe Microsoft Windows Application Compatibility Infrastructure/Framework (Application Shim) was created to allow for backward compatibility of software as the operating system codebase changes over time\n",
     "event_ids": [
       "4657"
@@ -37145,8 +37251,8 @@
       "T1543.003",
       "T1569.002",
       "T1021",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "Potential CobaltStrike Service Installations - Registry"
   },
@@ -37639,6 +37745,32 @@
     "channel": [
       "sec"
     ],
+    "description": "Detects modifications to shell open registry keys that point to suspicious locations typically used by malware for persistence.\nGenerally, modifications to the `*\\shell\\open\\command` registry key can indicate an attempt to change the default action for opening files,\nand various UAC bypass or persistence techniques involve modifying these keys to execute malicious scripts or binaries.\n",
+    "event_ids": [
+      "4657"
+    ],
+    "id": "bb8867cb-c272-14c8-80ff-bcc3a5c502eb",
+    "level": "medium",
+    "service": "",
+    "subcategory_guids": [
+      "0CCE921E-69AE-11D9-BED3-505054503030"
+    ],
+    "tags": [
+      "TA0005",
+      "TA0004",
+      "TA0003",
+      "T1548.002",
+      "T1546.001",
+      "T1546",
+      "T1548"
+    ],
+    "title": "Suspicious Shell Open Command Registry Modification"
+  },
+  {
+    "category": "registry_set",
+    "channel": [
+      "sec"
+    ],
     "description": "Detects the enabling of the Windows Recall feature via registry manipulation. Windows Recall can be enabled by setting the value of \"DisableAIDataAnalysis\" to \"0\".\nAdversaries may enable Windows Recall as part of post-exploitation discovery and collection activities.\nThis rule assumes that Recall is already explicitly disabled on the host, and subsequently enabled by the adversary.\n",
     "event_ids": [
       "4657"
@@ -37741,8 +37873,8 @@
       "TA0003",
       "T1547.001",
       "T1546.009",
-      "T1547",
-      "T1546"
+      "T1546",
+      "T1547"
     ],
     "title": "Session Manager Autorun Keys Modification"
   },
@@ -38486,8 +38618,8 @@
       "T1566.001",
       "cve.2017-8759",
       "detection.emerging-threats",
-      "T1204",
-      "T1566"
+      "T1566",
+      "T1204"
     ],
     "title": "Exploit for CVE-2017-8759"
   },
@@ -38514,8 +38646,8 @@
       "T1566.001",
       "cve.2017-11882",
       "detection.emerging-threats",
-      "T1566",
-      "T1204"
+      "T1204",
+      "T1566"
     ],
     "title": "Droppers Exploiting CVE-2017-11882"
   },
@@ -38542,8 +38674,8 @@
       "T1566.001",
       "cve.2017-0261",
       "detection.emerging-threats",
-      "T1566",
-      "T1204"
+      "T1204",
+      "T1566"
     ],
     "title": "Exploit for CVE-2017-0261"
   },
@@ -38600,9 +38732,9 @@
       "T1003.001",
       "car.2016-04-002",
       "detection.emerging-threats",
-      "T1070",
+      "T1218",
       "T1003",
-      "T1218"
+      "T1070"
     ],
     "title": "NotPetya Ransomware Activity"
   },
@@ -38628,8 +38760,8 @@
       "T1543.003",
       "T1569.002",
       "detection.emerging-threats",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "CosmicDuke Service Installation"
   },
@@ -38926,8 +39058,8 @@
       "T1071.004",
       "detection.emerging-threats",
       "T1053",
-      "T1543",
-      "T1071"
+      "T1071",
+      "T1543"
     ],
     "title": "OilRig APT Schedule Task Persistence - Security"
   },
@@ -38959,9 +39091,9 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
-      "T1071",
+      "T1543",
       "T1053",
-      "T1543"
+      "T1071"
     ],
     "title": "OilRig APT Registry Persistence"
   },
@@ -38993,8 +39125,8 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
-      "T1053",
       "T1543",
+      "T1053",
       "T1071"
     ],
     "title": "OilRig APT Activity"
@@ -40067,8 +40199,8 @@
       "T1053.005",
       "T1059.006",
       "detection.emerging-threats",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Serpent Backdoor Payload Execution Via Scheduled Task"
   },
@@ -40271,8 +40403,8 @@
       "attack.s0412",
       "attack.g0001",
       "detection.emerging-threats",
-      "T1218",
-      "T1059"
+      "T1059",
+      "T1218"
     ],
     "title": "ZxShell Malware"
   },
@@ -41651,9 +41783,9 @@
       "T1053.005",
       "T1059.001",
       "detection.emerging-threats",
-      "T1053",
       "T1059",
-      "T1036"
+      "T1036",
+      "T1053"
     ],
     "title": "Operation Wocao Activity"
   },
@@ -42044,8 +42176,8 @@
       "T1059.001",
       "attack.s0183",
       "detection.emerging-threats",
-      "T1059",
-      "T1071"
+      "T1071",
+      "T1059"
     ],
     "title": "Kalambur Backdoor Curl TOR SOCKS Proxy Execution"
   },
@@ -43746,6 +43878,29 @@
     "channel": [
       "Microsoft-Windows-AppXDeploymentServer/Operational"
     ],
+    "description": "Detects the installation of MSIX/AppX packages with full trust privileges which run with elevated privileges outside normal AppX container restrictions",
+    "event_ids": [
+      "400"
+    ],
+    "id": "04a566d1-0df3-90bd-15c9-6c23688e9380",
+    "level": "medium",
+    "service": "appxdeployment-server",
+    "subcategory_guids": [],
+    "tags": [
+      "TA0005",
+      "TA0002",
+      "T1204.002",
+      "T1553.005",
+      "T1553",
+      "T1204"
+    ],
+    "title": "Windows AppX Deployment Full Trust Package Installation"
+  },
+  {
+    "category": "",
+    "channel": [
+      "Microsoft-Windows-AppXDeploymentServer/Operational"
+    ],
     "description": "Detects an appx package that was added to the pipeline of the \"to be processed\" packages that is located in a known folder often used as a staging directory.\n",
     "event_ids": [
       "854"
@@ -43815,6 +43970,29 @@
       "TA0005"
     ],
     "title": "AppX Located in Uncommon Directory Added to Deployment Pipeline"
+  },
+  {
+    "category": "",
+    "channel": [
+      "Microsoft-Windows-AppXDeploymentServer/Operational"
+    ],
+    "description": "Detects attempts to install unsigned MSIX/AppX packages using the -AllowUnsigned parameter via AppXDeployment-Server events",
+    "event_ids": [
+      "603"
+    ],
+    "id": "73007262-0bee-b885-c2ec-0d42700ea430",
+    "level": "medium",
+    "service": "appxdeployment-server",
+    "subcategory_guids": [],
+    "tags": [
+      "TA0005",
+      "TA0002",
+      "T1204.002",
+      "T1553.005",
+      "T1204",
+      "T1553"
+    ],
+    "title": "Windows AppX Deployment Unsigned Package Installation"
   },
   {
     "category": "",
@@ -45157,8 +45335,8 @@
       "TA0002",
       "T1543.003",
       "T1569.002",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "Remote Access Tool Services Have Been Installed - Security"
   },
@@ -45326,9 +45504,9 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
-      "T1543",
+      "T1021",
       "T1569",
-      "T1021"
+      "T1543"
     ],
     "title": "CobaltStrike Service Installations - Security"
   },
@@ -45985,8 +46163,8 @@
       "T1003.006",
       "T1569.002",
       "attack.s0005",
-      "T1569",
-      "T1003"
+      "T1003",
+      "T1569"
     ],
     "title": "Credential Dumping Tools Service Execution - Security"
   },
@@ -47011,9 +47189,9 @@
       "T1485",
       "T1553.002",
       "attack.s0195",
-      "T1553",
       "T1070",
-      "T1027"
+      "T1027",
+      "T1553"
     ],
     "title": "Potential Secure Deletion with SDelete"
   },
@@ -47061,8 +47239,8 @@
       "T1087.002",
       "T1069.002",
       "attack.s0039",
-      "T1069",
-      "T1087"
+      "T1087",
+      "T1069"
     ],
     "title": "Reconnaissance Activity"
   },
@@ -47556,8 +47734,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1218",
-      "T1204"
+      "T1204",
+      "T1218"
     ],
     "title": "Excel Proxy Executing Regsvr32 With Payload"
   },
@@ -48151,8 +48329,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "Office Applications Spawning Wmi Cli Alternate"
   },
@@ -48555,8 +48733,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "WMI Execution Via Office Process"
   },
@@ -50235,8 +50413,8 @@
       "TA0004",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "Sliver C2 Default Service Installation"
   },
@@ -50805,9 +50983,9 @@
       "T1021.002",
       "T1543.003",
       "T1569.002",
-      "T1021",
+      "T1543",
       "T1569",
-      "T1543"
+      "T1021"
     ],
     "title": "CobaltStrike Service Installations - System"
   },
@@ -50976,8 +51154,8 @@
       "TA0002",
       "T1021.002",
       "T1569.002",
-      "T1569",
-      "T1021"
+      "T1021",
+      "T1569"
     ],
     "title": "smbexec.py Service Installation"
   },
@@ -51894,8 +52072,8 @@
       "T1570",
       "TA0002",
       "T1569.002",
-      "T1021",
-      "T1569"
+      "T1569",
+      "T1021"
     ],
     "title": "Metasploit Or Impacket Service Installation Via SMB PsExec"
   },
@@ -54171,10 +54349,10 @@
       "T1570",
       "T1021.002",
       "T1569.002",
-      "T1136",
-      "T1543",
+      "T1569",
       "T1021",
-      "T1569"
+      "T1136",
+      "T1543"
     ],
     "title": "PSExec Lateral Movement"
   },
