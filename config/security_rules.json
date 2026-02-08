@@ -287,8 +287,8 @@
       "TA0005",
       "T1059.001",
       "T1036.003",
-      "T1059",
-      "T1036"
+      "T1036",
+      "T1059"
     ],
     "title": "Renamed Powershell Under Powershell Channel"
   },
@@ -344,8 +344,8 @@
       "T1059.001",
       "TA0008",
       "T1021.003",
-      "T1059",
-      "T1021"
+      "T1021",
+      "T1059"
     ],
     "title": "Suspicious Non PowerShell WSMAN COM Provider"
   },
@@ -424,8 +424,8 @@
       "T1059.001",
       "TA0008",
       "T1021.006",
-      "T1021",
-      "T1059"
+      "T1059",
+      "T1021"
     ],
     "title": "Remote PowerShell Session (PS Classic)"
   },
@@ -1173,8 +1173,8 @@
       "T1529",
       "attack.g0091",
       "attack.s0363",
-      "T1059",
-      "T1071"
+      "T1071",
+      "T1059"
     ],
     "title": "Silence.EDA Detection"
   },
@@ -1503,8 +1503,8 @@
       "T1552.001",
       "T1555",
       "T1555.003",
-      "T1548",
-      "T1552"
+      "T1552",
+      "T1548"
     ],
     "title": "HackTool - WinPwn Execution - ScriptBlock"
   },
@@ -1926,8 +1926,8 @@
       "T1059.001",
       "TA0003",
       "T1136.001",
-      "T1059",
-      "T1136"
+      "T1136",
+      "T1059"
     ],
     "title": "PowerShell Create Local User"
   },
@@ -2661,8 +2661,8 @@
       "T1564.004",
       "TA0002",
       "T1059.001",
-      "T1059",
-      "T1564"
+      "T1564",
+      "T1059"
     ],
     "title": "NTFS Alternate Data Stream"
   },
@@ -4374,8 +4374,8 @@
       "T1059.001",
       "TA0008",
       "T1021.006",
-      "T1059",
-      "T1021"
+      "T1021",
+      "T1059"
     ],
     "title": "Remote PowerShell Session (PS Module)"
   },
@@ -4965,8 +4965,8 @@
       "T1552.001",
       "T1555",
       "T1555.003",
-      "T1552",
-      "T1548"
+      "T1548",
+      "T1552"
     ],
     "title": "HackTool - WinPwn Execution"
   },
@@ -4994,8 +4994,8 @@
       "T1615",
       "T1569.002",
       "T1574.005",
-      "T1574",
-      "T1569"
+      "T1569",
+      "T1574"
     ],
     "title": "HackTool - SharpUp PrivEsc Tool Execution"
   },
@@ -5535,8 +5535,8 @@
       "TA0002",
       "T1059.001",
       "T1027",
-      "T1059",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "Obfuscated PowerShell MSI Install via WindowsInstaller COM"
   },
@@ -5961,8 +5961,8 @@
       "TA0004",
       "T1543.003",
       "T1562.001",
-      "T1543",
-      "T1562"
+      "T1562",
+      "T1543"
     ],
     "title": "Devcon Execution Disabling VMware VMCI Device"
   },
@@ -6231,8 +6231,8 @@
       "TA0002",
       "T1059.007",
       "cve.2020-1599",
-      "T1218",
-      "T1059"
+      "T1059",
+      "T1218"
     ],
     "title": "MSHTA Execution with Suspicious File Extensions"
   },
@@ -6568,8 +6568,8 @@
       "T1563.002",
       "T1021.001",
       "car.2013-07-002",
-      "T1563",
-      "T1021"
+      "T1021",
+      "T1563"
     ],
     "title": "Suspicious RDP Redirect Using TSCON"
   },
@@ -7374,8 +7374,8 @@
       "T1482",
       "T1069.002",
       "stp.1u",
-      "T1069",
-      "T1087"
+      "T1087",
+      "T1069"
     ],
     "title": "PUA - AdFind Suspicious Execution"
   },
@@ -7537,8 +7537,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Scheduled Task Executing Encoded Payload from Registry"
   },
@@ -7908,8 +7908,8 @@
       "TA0005",
       "T1036.004",
       "T1036.005",
-      "T1036",
-      "T1053"
+      "T1053",
+      "T1036"
     ],
     "title": "Scheduled Task Creation Masquerading as System Processes"
   },
@@ -8639,8 +8639,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Suspicious Schtasks Execution AppData Folder"
   },
@@ -10136,8 +10136,8 @@
       "T1087.002",
       "T1069.002",
       "T1482",
-      "T1069",
-      "T1087"
+      "T1087",
+      "T1069"
     ],
     "title": "Suspicious Active Directory Database Snapshot Via ADExplorer"
   },
@@ -10251,8 +10251,8 @@
       "T1562.001",
       "TA0006",
       "T1003.001",
-      "T1562",
-      "T1003"
+      "T1003",
+      "T1562"
     ],
     "title": "PPL Tampering Via WerFaultSecure"
   },
@@ -11155,8 +11155,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1218",
-      "T1204"
+      "T1204",
+      "T1218"
     ],
     "title": "Suspicious WMIC Execution Via Office Process"
   },
@@ -11349,8 +11349,8 @@
       "T1071.004",
       "T1132.001",
       "T1048",
-      "T1071",
-      "T1132"
+      "T1132",
+      "T1071"
     ],
     "title": "DNS Exfiltration and Tunneling Tools Execution"
   },
@@ -11714,8 +11714,8 @@
       "car.2013-08-001",
       "T1053.005",
       "T1059.001",
-      "T1059",
-      "T1053"
+      "T1053",
+      "T1059"
     ],
     "title": "HackTool - Default PowerSploit/Empire Scheduled Task Creation"
   },
@@ -11919,8 +11919,8 @@
       "T1047",
       "T1204.002",
       "T1218.010",
-      "T1218",
-      "T1204"
+      "T1204",
+      "T1218"
     ],
     "title": "Suspicious WmiPrvSE Child Process"
   },
@@ -11989,8 +11989,8 @@
       "TA0002",
       "T1059.001",
       "T1562.001",
-      "T1059",
-      "T1562"
+      "T1562",
+      "T1059"
     ],
     "title": "Obfuscated PowerShell OneLiner Execution"
   },
@@ -12384,8 +12384,8 @@
       "TA0005",
       "T1059.001",
       "T1564.003",
-      "T1059",
-      "T1564"
+      "T1564",
+      "T1059"
     ],
     "title": "HackTool - Covenant PowerShell Launcher"
   },
@@ -13820,8 +13820,8 @@
       "T1570",
       "TA0002",
       "T1569.002",
-      "T1569",
-      "T1021"
+      "T1021",
+      "T1569"
     ],
     "title": "Rundll32 Execution Without Parameters"
   },
@@ -13865,8 +13865,8 @@
       "T1587.001",
       "TA0002",
       "T1569.002",
-      "T1569",
-      "T1587"
+      "T1587",
+      "T1569"
     ],
     "title": "PUA - CsExec Execution"
   },
@@ -18539,8 +18539,8 @@
       "TA0003",
       "T1543.003",
       "T1574.011",
-      "T1543",
-      "T1574"
+      "T1574",
+      "T1543"
     ],
     "title": "Potential Persistence Attempt Via Existing Service Tampering"
   },
@@ -21183,8 +21183,8 @@
       "TA0005",
       "T1218.014",
       "T1036.002",
-      "T1204",
       "T1218",
+      "T1204",
       "T1036"
     ],
     "title": "MMC Executing Files with Reversed Extensions Using RTLO Abuse"
@@ -21314,8 +21314,8 @@
       "TA0005",
       "T1219.002",
       "T1036.003",
-      "T1036",
-      "T1219"
+      "T1219",
+      "T1036"
     ],
     "title": "Remote Access Tool - Renamed MeshAgent Execution - Windows"
   },
@@ -21740,12 +21740,12 @@
       "T1547.002",
       "T1557",
       "T1082",
-      "T1556",
-      "T1505",
-      "T1547",
       "T1564",
+      "T1547",
+      "T1546",
       "T1574",
-      "T1546"
+      "T1505",
+      "T1556"
     ],
     "title": "Potential Suspicious Activity Using SeCEdit"
   },
@@ -22854,9 +22854,9 @@
       "TA0005",
       "T1218.005",
       "T1027.004",
-      "T1027",
+      "T1059",
       "T1218",
-      "T1059"
+      "T1027"
     ],
     "title": "Csc.EXE Execution Form Potentially Suspicious Parent"
   },
@@ -24043,8 +24043,8 @@
       "T1204.004",
       "TA0005",
       "T1027.010",
-      "T1204",
-      "T1027"
+      "T1027",
+      "T1204"
     ],
     "title": "Suspicious Explorer Process with Whitespace Padding - ClickFix/FileFix"
   },
@@ -24403,8 +24403,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1550",
-      "T1558"
+      "T1558",
+      "T1550"
     ],
     "title": "HackTool - KrbRelayUp Execution"
   },
@@ -24564,8 +24564,8 @@
       "TA0003",
       "T1053.005",
       "T1059.001",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Scheduled Task Executing Payload from Registry"
   },
@@ -25580,8 +25580,8 @@
       "T1564.004",
       "T1552.001",
       "T1105",
-      "T1552",
-      "T1564"
+      "T1564",
+      "T1552"
     ],
     "title": "Insensitive Subfolder Search Via Findstr.EXE"
   },
@@ -26575,9 +26575,9 @@
       "T1069.002",
       "TA0002",
       "T1059.001",
-      "T1087",
+      "T1059",
       "T1069",
-      "T1059"
+      "T1087"
     ],
     "title": "HackTool - Bloodhound/Sharphound Execution"
   },
@@ -27552,8 +27552,8 @@
       "T1070.001",
       "T1562.002",
       "car.2016-04-002",
-      "T1070",
-      "T1562"
+      "T1562",
+      "T1070"
     ],
     "title": "Suspicious Eventlog Clearing or Configuration Change Activity"
   },
@@ -28103,8 +28103,8 @@
       "T1558.003",
       "TA0008",
       "T1550.003",
-      "T1550",
-      "T1558"
+      "T1558",
+      "T1550"
     ],
     "title": "HackTool - Rubeus Execution"
   },
@@ -28566,8 +28566,8 @@
       "TA0003",
       "T1036.005",
       "T1053.005",
-      "T1053",
-      "T1036"
+      "T1036",
+      "T1053"
     ],
     "title": "Suspicious Scheduled Task Creation via Masqueraded XML File"
   },
@@ -31510,8 +31510,8 @@
       "T1059.001",
       "T1027.010",
       "detection.threat-hunting",
-      "T1027",
-      "T1059"
+      "T1059",
+      "T1027"
     ],
     "title": "Invocation Of Crypto-Classes From The \"Cryptography\" PowerShell Namespace"
   },
@@ -32069,9 +32069,9 @@
       "T1021.002",
       "attack.s0039",
       "detection.threat-hunting",
-      "T1087",
       "T1021",
-      "T1069"
+      "T1069",
+      "T1087"
     ],
     "title": "Net.EXE Execution"
   },
@@ -32851,8 +32851,8 @@
       "T1027.010",
       "T1547.001",
       "detection.threat-hunting",
-      "T1027",
       "T1059",
+      "T1027",
       "T1547"
     ],
     "title": "Registry Set With Crypto-Classes From The \"Cryptography\" PowerShell Namespace"
@@ -33379,8 +33379,8 @@
       "TA0004",
       "T1548.002",
       "T1546.001",
-      "T1546",
-      "T1548"
+      "T1548",
+      "T1546"
     ],
     "title": "Shell Open Registry Keys Manipulation"
   },
@@ -36279,8 +36279,8 @@
       "T1204.004",
       "TA0005",
       "T1027.010",
-      "T1204",
-      "T1027"
+      "T1027",
+      "T1204"
     ],
     "title": "Suspicious Space Characters in TypedPaths Registry Path - FileFix"
   },
@@ -37950,8 +37950,8 @@
       "TA0003",
       "T1548.002",
       "T1546.001",
-      "T1546",
-      "T1548"
+      "T1548",
+      "T1546"
     ],
     "title": "Suspicious Shell Open Command Registry Modification"
   },
@@ -38062,8 +38062,8 @@
       "TA0003",
       "T1547.001",
       "T1546.009",
-      "T1546",
-      "T1547"
+      "T1547",
+      "T1546"
     ],
     "title": "Session Manager Autorun Keys Modification"
   },
@@ -38829,8 +38829,8 @@
       "T1566.001",
       "cve.2017-8759",
       "detection.emerging-threats",
-      "T1566",
-      "T1204"
+      "T1204",
+      "T1566"
     ],
     "title": "Exploit for CVE-2017-8759"
   },
@@ -38857,8 +38857,8 @@
       "T1566.001",
       "cve.2017-11882",
       "detection.emerging-threats",
-      "T1566",
-      "T1204"
+      "T1204",
+      "T1566"
     ],
     "title": "Droppers Exploiting CVE-2017-11882"
   },
@@ -38885,8 +38885,8 @@
       "T1566.001",
       "cve.2017-0261",
       "detection.emerging-threats",
-      "T1566",
-      "T1204"
+      "T1204",
+      "T1566"
     ],
     "title": "Exploit for CVE-2017-0261"
   },
@@ -38943,9 +38943,9 @@
       "T1003.001",
       "car.2016-04-002",
       "detection.emerging-threats",
-      "T1003",
       "T1218",
-      "T1070"
+      "T1070",
+      "T1003"
     ],
     "title": "NotPetya Ransomware Activity"
   },
@@ -38971,8 +38971,8 @@
       "T1543.003",
       "T1569.002",
       "detection.emerging-threats",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "CosmicDuke Service Installation"
   },
@@ -39268,9 +39268,9 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
-      "T1071",
+      "T1543",
       "T1053",
-      "T1543"
+      "T1071"
     ],
     "title": "OilRig APT Schedule Task Persistence - Security"
   },
@@ -39303,8 +39303,8 @@
       "T1071.004",
       "detection.emerging-threats",
       "T1543",
-      "T1071",
-      "T1053"
+      "T1053",
+      "T1071"
     ],
     "title": "OilRig APT Registry Persistence"
   },
@@ -39368,9 +39368,9 @@
       "TA0011",
       "T1071.004",
       "detection.emerging-threats",
-      "T1543",
       "T1071",
-      "T1053"
+      "T1053",
+      "T1543"
     ],
     "title": "OilRig APT Schedule Task Persistence - System"
   },
@@ -39496,8 +39496,8 @@
       "T1218.011",
       "car.2013-10-002",
       "detection.emerging-threats",
-      "T1059",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "Sofacy Trojan Loader Activity"
   },
@@ -40410,8 +40410,8 @@
       "T1053.005",
       "T1059.006",
       "detection.emerging-threats",
-      "T1053",
-      "T1059"
+      "T1059",
+      "T1053"
     ],
     "title": "Serpent Backdoor Payload Execution Via Scheduled Task"
   },
@@ -40557,8 +40557,8 @@
       "T1053.005",
       "T1027",
       "detection.emerging-threats",
-      "T1059",
-      "T1053"
+      "T1053",
+      "T1059"
     ],
     "title": "Turla Group Commands May 2020"
   },
@@ -40614,8 +40614,8 @@
       "attack.s0412",
       "attack.g0001",
       "detection.emerging-threats",
-      "T1218",
-      "T1059"
+      "T1059",
+      "T1218"
     ],
     "title": "ZxShell Malware"
   },
@@ -41628,8 +41628,8 @@
       "T1059.001",
       "T1218.005",
       "detection.emerging-threats",
-      "T1059",
-      "T1218"
+      "T1218",
+      "T1059"
     ],
     "title": "Potential Baby Shark Malware Activity"
   },
@@ -41934,8 +41934,8 @@
       "T1552.001",
       "T1003.003",
       "detection.emerging-threats",
-      "T1552",
-      "T1003"
+      "T1003",
+      "T1552"
     ],
     "title": "Potential Russian APT Credential Theft Activity"
   },
@@ -42027,9 +42027,9 @@
       "T1053.005",
       "T1059.001",
       "detection.emerging-threats",
+      "T1036",
       "T1053",
-      "T1059",
-      "T1036"
+      "T1059"
     ],
     "title": "Operation Wocao Activity - Security"
   },
@@ -44102,8 +44102,8 @@
       "TA0002",
       "T1204.002",
       "T1553.005",
-      "T1204",
-      "T1553"
+      "T1553",
+      "T1204"
     ],
     "title": "Windows AppX Deployment Full Trust Package Installation"
   },
@@ -45546,8 +45546,8 @@
       "TA0002",
       "T1543.003",
       "T1569.002",
-      "T1543",
-      "T1569"
+      "T1569",
+      "T1543"
     ],
     "title": "Remote Access Tool Services Have Been Installed - Security"
   },
@@ -46244,8 +46244,8 @@
       "T1570",
       "TA0002",
       "T1569.002",
-      "T1021",
-      "T1569"
+      "T1569",
+      "T1021"
     ],
     "title": "Metasploit Or Impacket Service Installation Via SMB PsExec"
   },
@@ -46296,8 +46296,8 @@
       "T1090.002",
       "T1021.001",
       "car.2013-07-002",
-      "T1021",
-      "T1090"
+      "T1090",
+      "T1021"
     ],
     "title": "RDP over Reverse SSH Tunnel WFP"
   },
@@ -46374,8 +46374,8 @@
       "T1003.006",
       "T1569.002",
       "attack.s0005",
-      "T1569",
-      "T1003"
+      "T1003",
+      "T1569"
     ],
     "title": "Credential Dumping Tools Service Execution - Security"
   },
@@ -47945,8 +47945,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1218",
-      "T1204"
+      "T1204",
+      "T1218"
     ],
     "title": "Excel Proxy Executing Regsvr32 With Payload"
   },
@@ -48380,8 +48380,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "Excel Proxy Executing Regsvr32 With Payload Alternate"
   },
@@ -48540,8 +48540,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "Office Applications Spawning Wmi Cli Alternate"
   },
@@ -48724,8 +48724,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "New Lolbin Process by Office Applications"
   },
@@ -48944,8 +48944,8 @@
       "T1218.010",
       "TA0002",
       "TA0005",
-      "T1204",
-      "T1218"
+      "T1218",
+      "T1204"
     ],
     "title": "WMI Execution Via Office Process"
   },
@@ -50649,8 +50649,8 @@
       "TA0004",
       "T1543.003",
       "T1569.002",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "Sliver C2 Default Service Installation"
   },
@@ -51154,8 +51154,8 @@
       "T1003.006",
       "T1569.002",
       "attack.s0005",
-      "T1003",
-      "T1569"
+      "T1569",
+      "T1003"
     ],
     "title": "Credential Dumping Tools Service Execution - System"
   },
@@ -51306,8 +51306,8 @@
       "TA0004",
       "T1543.003",
       "T1569.002",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "ProcessHacker Privilege Elevation"
   },
@@ -51390,8 +51390,8 @@
       "TA0002",
       "T1021.002",
       "T1569.002",
-      "T1569",
-      "T1021"
+      "T1021",
+      "T1569"
     ],
     "title": "smbexec.py Service Installation"
   },
@@ -52196,8 +52196,8 @@
       "car.2013-09-005",
       "T1543.003",
       "T1569.002",
-      "T1569",
-      "T1543"
+      "T1543",
+      "T1569"
     ],
     "title": "Malicious Service Installations"
   },
@@ -52308,8 +52308,8 @@
       "T1570",
       "TA0002",
       "T1569.002",
-      "T1569",
-      "T1021"
+      "T1021",
+      "T1569"
     ],
     "title": "Metasploit Or Impacket Service Installation Via SMB PsExec"
   },
@@ -54586,9 +54586,9 @@
       "T1021.002",
       "T1569.002",
       "T1136",
+      "T1543",
       "T1021",
-      "T1569",
-      "T1543"
+      "T1569"
     ],
     "title": "PSExec Lateral Movement"
   },
