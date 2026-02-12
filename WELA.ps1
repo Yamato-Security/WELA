@@ -5717,7 +5717,8 @@ function ConfigureAuditSettings {
     try {
         $moduleLoggingPath = "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames"
         $currentValue = "Not Set"
-        if (Test-Path $moduleLoggingPath) {
+        $pathExists = Test-Path $moduleLoggingPath
+        if ($pathExists) {
             $prop = Get-ItemProperty -Path $moduleLoggingPath -Name "*" -ErrorAction SilentlyContinue
             if ($prop) {
                 $currentValue = $prop."*"
@@ -5739,7 +5740,10 @@ function ConfigureAuditSettings {
             }
             if ($response -eq "" -or $response -eq "Y" -or $response -eq "y")
             {
-                New-Item -Path $moduleLoggingPath -Force | Out-Null
+                if (-not $pathExists)
+                {
+                    New-Item -Path $moduleLoggingPath -Force | Out-Null
+                }
                 Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
                 Write-Host "[OK] Module logging enabled for all modules" -ForegroundColor Green
             }
