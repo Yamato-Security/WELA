@@ -5522,7 +5522,8 @@ function Set-RegistryConfig {
     foreach ($reg in $RegPaths) {
         try {
             $currentValue = "Not Set"
-            if (Test-Path $reg.Path) {
+            $pathExists = Test-Path $reg.Path
+            if ($pathExists) {
                 $prop = Get-ItemProperty -Path $reg.Path -Name $reg.Name -ErrorAction SilentlyContinue
                 if ($prop) {
                     $currentValue = $prop.$($reg.Name)
@@ -5540,7 +5541,9 @@ function Set-RegistryConfig {
                 $response = Read-Host "Your current setting is $currentValue. Do you want to change it to $( $reg.Value )? (Y/n)"
             }
             if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                New-Item -Path $reg.Path -Force | Out-Null
+                if (-not $pathExists) {
+                    New-Item -Path $reg.Path -Force | Out-Null
+                }
                 Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value $reg.Value -Type DWord
                 Write-Host "[OK] Set $($reg.Name)" -ForegroundColor Green
             } else {
