@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.1.0 [2026/02/13] - Winter Release
+
+**Bug Fixes:**
+
+- Configuration might break Netlogon on Domain Controllers. (#243) (@fukusuket) (Thanks to @feiglein74 for reporting this!)
+
 ## 2.0.0 [2025/11/16] - CODE BLUE Release
 
 **New Features:**
