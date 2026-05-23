@@ -1,7 +1,7 @@
 name: create security_rules.json
 on:
   schedule:
-    - cron: '0 20 * * *'
+    - cron: '0 20 1 * *'
   workflow_dispatch:
 
 permissions:
