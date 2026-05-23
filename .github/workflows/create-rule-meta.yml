@@ -1,27 +1,31 @@
 name: create security_rules.json
 on:
   schedule:
-    - cron: '0 20 * * *'
+    - cron: '0 20 1 * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout self repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: WELA
 
       - name: Checkout wela-extractor
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: Yamato-Security/WELA-RulesGenerator
           path: wela-extractor
 
       - name: Checkout hayabusa-rules
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: Yamato-Security/hayabusa-rules
           path: hayabusa-rules
@@ -57,7 +61,7 @@ jobs:
       - name: Create Pull Request
         if: env.change_exist == 'true'
         id: cpr
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@38e0b6e68b4c852a5500a94740f0e535e0d7ba54 # v4.2.4
         with:
           path: WELA
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -71,7 +75,7 @@ jobs:
 
       - name: Enable Pull Request Automerge
         if: steps.cpr.outputs.pull-request-operation == 'created' # This only runs if there were sigma rules updates and a new PR was created.
-        uses: peter-evans/enable-pull-request-automerge@v2
+        uses: peter-evans/enable-pull-request-automerge@684fed02ccc9b5eefcf7d40b65b3cd44255bd5bc # v2.5.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
@@ -79,7 +83,7 @@ jobs:
 
       - name: upload change log
         if: env.change_exist == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: changed_rule_log
           path: ${{ github.workspace }}/changed_rule.logs
