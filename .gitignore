@@ -6,3 +6,5 @@ Cargo.lock
 .idea/
 *.csv
 .DS_Store
+# MkDocs documentation site build output
+/website/site/

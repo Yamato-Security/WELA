@@ -1,0 +1,31 @@
+# 変更履歴
+
+!!! info "情報"
+    このページはプロジェクトの [`CHANGELOG.md`](https://github.com/Yamato-Security/WELA/blob/main/CHANGELOG-Japanese.md) を反映したものです。ダウンロードは [リリースページ](https://github.com/Yamato-Security/WELA/releases) をご覧ください。
+
+## 2.1.0 [2026/02/13] - Winter Release
+
+**バグ修正:**
+
+- 設定によりドメインコントローラのNetlogonが破損する可能性があった。 (#243) (@fukusuket) (この件を報告してくれた@feiglein74に感謝!)
+
+## 2.0.0 [2025/11/16] - CODE BLUE リリース
+
+**新機能:**
+
+- MITRE ATT&CK Navigatorヒートマップに対応した。 (#11) (@fukusuket)
+- Windows設定を様々なベースラインに構成するための`configure`コマンドを追加した。 (#12) (@fukusuket)
+- Defender for Identityの必要なログに対応した。 (#114) (@fukusuket)
+
+**バグ修正:**
+
+- ルールカウントの一部が正確ではなかった。 (#99) (@fukusuket)
+- タスクスケジューラのログ設定が正確に報告されていなかった。 (#100 (@fukusuket))
+
+## 1.0.0 [2025/05/20] - AUSCERT/SINCON リリース
+
+**新機能:**
+
+- `audit-settings`: Windows Event Log audit policy settingsをチェックする
+- `audit-filesize`: Windows Event Logファイルサイズをチェックする
+- `update-rules`: WELAのSigmaルール設定ファイルを更新する
