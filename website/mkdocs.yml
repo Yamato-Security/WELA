@@ -135,42 +135,237 @@ plugins:
         - locale: zh-TW
           name: 繁體中文
           build: true
+          nav_translations:
+            "Home": "首頁"
+            "Overview": "概觀"
+            "About WELA": "關於 WELA"
+            "Features": "功能特色"
+            "Screenshots": "螢幕截圖"
+            "Getting Started": "快速入門"
+            "Commands": "命令"
+            "Command List": "命令清單"
+            "Command Usage": "命令用法"
+            "Resources": "資源"
+            "Companion Projects": "相關專案"
+            "Other Resources": "其他資源"
+            "Changelog": "變更紀錄"
+            "Contributing & Support": "貢獻與支援"
         - locale: ko
           name: 한국어
           build: true
+          nav_translations:
+            "Home": "홈"
+            "Overview": "개요"
+            "About WELA": "WELA 소개"
+            "Features": "기능"
+            "Screenshots": "스크린샷"
+            "Getting Started": "시작하기"
+            "Commands": "명령어"
+            "Command List": "명령어 목록"
+            "Command Usage": "명령어 사용법"
+            "Resources": "리소스"
+            "Companion Projects": "관련 프로젝트"
+            "Other Resources": "기타 리소스"
+            "Changelog": "변경 이력"
+            "Contributing & Support": "기여 및 지원"
         - locale: de
           name: Deutsch
           build: true
+          nav_translations:
+            "Home": "Startseite"
+            "Overview": "Übersicht"
+            "About WELA": "Über WELA"
+            "Features": "Funktionen"
+            "Screenshots": "Screenshots"
+            "Getting Started": "Erste Schritte"
+            "Commands": "Befehle"
+            "Command List": "Befehlsliste"
+            "Command Usage": "Befehlsverwendung"
+            "Resources": "Ressourcen"
+            "Companion Projects": "Begleitprojekte"
+            "Other Resources": "Weitere Ressourcen"
+            "Changelog": "Änderungsprotokoll"
+            "Contributing & Support": "Mitwirken & Support"
         - locale: tr
           name: Türkçe
           build: true
+          nav_translations:
+            "Home": "Ana Sayfa"
+            "Overview": "Genel Bakış"
+            "About WELA": "WELA Hakkında"
+            "Features": "Özellikler"
+            "Screenshots": "Ekran Görüntüleri"
+            "Getting Started": "Başlarken"
+            "Commands": "Komutlar"
+            "Command List": "Komut Listesi"
+            "Command Usage": "Komut Kullanımı"
+            "Resources": "Kaynaklar"
+            "Companion Projects": "Tamamlayıcı Projeler"
+            "Other Resources": "Diğer Kaynaklar"
+            "Changelog": "Değişiklik Günlüğü"
+            "Contributing & Support": "Katkıda Bulunma ve Destek"
         - locale: fr
           name: Français
           build: true
+          nav_translations:
+            "Home": "Accueil"
+            "Overview": "Aperçu"
+            "About WELA": "À propos de WELA"
+            "Features": "Fonctionnalités"
+            "Screenshots": "Captures d'écran"
+            "Getting Started": "Premiers pas"
+            "Commands": "Commandes"
+            "Command List": "Liste des commandes"
+            "Command Usage": "Utilisation des commandes"
+            "Resources": "Ressources"
+            "Companion Projects": "Projets associés"
+            "Other Resources": "Autres ressources"
+            "Changelog": "Journal des modifications"
+            "Contributing & Support": "Contribution et support"
         - locale: es
           name: Español
           build: true
+          nav_translations:
+            "Home": "Inicio"
+            "Overview": "Visión general"
+            "About WELA": "Acerca de WELA"
+            "Features": "Características"
+            "Screenshots": "Capturas de pantalla"
+            "Getting Started": "Primeros pasos"
+            "Commands": "Comandos"
+            "Command List": "Lista de comandos"
+            "Command Usage": "Uso de comandos"
+            "Resources": "Recursos"
+            "Companion Projects": "Proyectos complementarios"
+            "Other Resources": "Otros recursos"
+            "Changelog": "Registro de cambios"
+            "Contributing & Support": "Contribución y soporte"
         - locale: pt-BR
           name: Português (Brasil)
           build: true
+          nav_translations:
+            "Home": "Início"
+            "Overview": "Visão Geral"
+            "About WELA": "Sobre o WELA"
+            "Features": "Recursos"
+            "Screenshots": "Capturas de Tela"
+            "Getting Started": "Primeiros Passos"
+            "Commands": "Comandos"
+            "Command List": "Lista de Comandos"
+            "Command Usage": "Uso dos Comandos"
+            "Resources": "Recursos"
+            "Companion Projects": "Projetos Complementares"
+            "Other Resources": "Outros Recursos"
+            "Changelog": "Registro de Alterações"
+            "Contributing & Support": "Contribuição e Suporte"
         - locale: uk
           name: Українська
           build: true
+          nav_translations:
+            "Home": "Головна"
+            "Overview": "Огляд"
+            "About WELA": "Про WELA"
+            "Features": "Можливості"
+            "Screenshots": "Знімки екрана"
+            "Getting Started": "Початок роботи"
+            "Commands": "Команди"
+            "Command List": "Список команд"
+            "Command Usage": "Використання команд"
+            "Resources": "Ресурси"
+            "Companion Projects": "Супутні проєкти"
+            "Other Resources": "Інші ресурси"
+            "Changelog": "Журнал змін"
+            "Contributing & Support": "Внесок і підтримка"
         - locale: hi
           name: हिन्दी
           build: true
+          nav_translations:
+            "Home": "मुख्य पृष्ठ"
+            "Overview": "अवलोकन"
+            "About WELA": "WELA के बारे में"
+            "Features": "विशेषताएँ"
+            "Screenshots": "स्क्रीनशॉट"
+            "Getting Started": "शुरुआत करना"
+            "Commands": "कमांड"
+            "Command List": "कमांड सूची"
+            "Command Usage": "कमांड उपयोग"
+            "Resources": "संसाधन"
+            "Companion Projects": "सहयोगी परियोजनाएँ"
+            "Other Resources": "अन्य संसाधन"
+            "Changelog": "परिवर्तन सूची"
+            "Contributing & Support": "योगदान और सहायता"
         - locale: id
           name: Bahasa Indonesia
           build: true
+          nav_translations:
+            "Home": "Beranda"
+            "Overview": "Ikhtisar"
+            "About WELA": "Tentang WELA"
+            "Features": "Fitur"
+            "Screenshots": "Tangkapan Layar"
+            "Getting Started": "Memulai"
+            "Commands": "Perintah"
+            "Command List": "Daftar Perintah"
+            "Command Usage": "Penggunaan Perintah"
+            "Resources": "Sumber Daya"
+            "Companion Projects": "Proyek Pendamping"
+            "Other Resources": "Sumber Daya Lainnya"
+            "Changelog": "Catatan Perubahan"
+            "Contributing & Support": "Kontribusi & Dukungan"
         - locale: my
           name: မြန်မာဘာသာ
           build: true
+          nav_translations:
+            "Home": "ပင်မစာမျက်နှာ"
+            "Overview": "ခြုံငုံသုံးသပ်ချက်"
+            "About WELA": "WELA အကြောင်း"
+            "Features": "လုပ်ဆောင်ချက်များ"
+            "Screenshots": "မျက်နှာပြင်ဓာတ်ပုံများ"
+            "Getting Started": "စတင်အသုံးပြုခြင်း"
+            "Commands": "ညွှန်ကြားချက်များ"
+            "Command List": "ညွှန်ကြားချက်စာရင်း"
+            "Command Usage": "ညွှန်ကြားချက်အသုံးပြုပုံ"
+            "Resources": "အရင်းအမြစ်များ"
+            "Companion Projects": "ဆက်စပ်ပရောဂျက်များ"
+            "Other Resources": "အခြားအရင်းအမြစ်များ"
+            "Changelog": "ပြောင်းလဲမှုမှတ်တမ်း"
+            "Contributing & Support": "ပါဝင်ကူညီခြင်းနှင့် ပံ့ပိုးမှု"
         - locale: th
           name: ไทย
           build: true
+          nav_translations:
+            "Home": "หน้าแรก"
+            "Overview": "ภาพรวม"
+            "About WELA": "เกี่ยวกับ WELA"
+            "Features": "คุณสมบัติ"
+            "Screenshots": "ภาพหน้าจอ"
+            "Getting Started": "เริ่มต้นใช้งาน"
+            "Commands": "คำสั่ง"
+            "Command List": "รายการคำสั่ง"
+            "Command Usage": "การใช้งานคำสั่ง"
+            "Resources": "แหล่งข้อมูล"
+            "Companion Projects": "โครงการที่เกี่ยวข้อง"
+            "Other Resources": "แหล่งข้อมูลอื่น ๆ"
+            "Changelog": "บันทึกการเปลี่ยนแปลง"
+            "Contributing & Support": "การมีส่วนร่วมและการสนับสนุน"
         - locale: ar
           name: العربية
           build: true
+          nav_translations:
+            "Home": "الرئيسية"
+            "Overview": "نظرة عامة"
+            "About WELA": "حول WELA"
+            "Features": "الميزات"
+            "Screenshots": "لقطات الشاشة"
+            "Getting Started": "البدء"
+            "Commands": "الأوامر"
+            "Command List": "قائمة الأوامر"
+            "Command Usage": "استخدام الأوامر"
+            "Resources": "الموارد"
+            "Companion Projects": "المشاريع المصاحبة"
+            "Other Resources": "موارد أخرى"
+            "Changelog": "سجل التغييرات"
+            "Contributing & Support": "المساهمة والدعم"
 
 extra:
   social:
