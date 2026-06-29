@@ -5,7 +5,7 @@
    WELA (Windows Event Log Auditor) ゑ羅
   </h1>
 <div align="center">
- [ <a href="README">English</a> ] | [<b>日本語</b>]
+ [ <a href="OLD-README.md">English</a> ] | [<b>日本語</b>]
 </div>
  </p>
 </div>
