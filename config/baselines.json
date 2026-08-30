@@ -1647,7 +1647,7 @@
         "defaultSetting": "No Auditing",
         "recommendedSetting": "No Auditing",
         "volume": "",
-        "note": "Enabling this setting is not recommended due to the high noise level)"
+        "note": "Enabling this setting is not recommended due to the high noise level"
       },
       "security-advanced-object-access-file-share": {
         "ideal": true,
