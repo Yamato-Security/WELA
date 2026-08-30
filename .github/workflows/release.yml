@@ -63,9 +63,9 @@ jobs:
         if: matrix.info.os == 'macos-latest'
         run: |
           npm i -g md-to-pdf
-          md-to-pdf ./*.md --md-file-encoding utf-8
-          mv ./README.pdf ./README-${{ github.event.inputs.release_ver }}-English.pdf
-          mv ./README-Japanese.pdf ./README-${{ github.event.inputs.release_ver }}-Japanese.pdf
+          md-to-pdf ./OLD-README.md ./OLD-README-Japanese.md --md-file-encoding utf-8
+          mv ./OLD-README.pdf ./README-${{ github.event.inputs.release_ver }}-English.pdf
+          mv ./OLD-README-Japanese.pdf ./README-${{ github.event.inputs.release_ver }}-Japanese.pdf
 
       - name: Upload Document Artifacts
         if: matrix.info.os == 'macos-latest'

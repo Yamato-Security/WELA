@@ -1,0 +1,2792 @@
+{
+  "version": 1,
+  "catalog": [
+    {
+      "id": "application",
+      "category": "Application",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Application"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "applocker",
+      "category": "Applocker",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-AppLocker/MSI and Script",
+          "Microsoft-Windows-AppLocker/EXE and DLL",
+          "Microsoft-Windows-AppLocker/Packaged app-Deployment",
+          "Microsoft-Windows-AppLocker/Packaged app-Execution"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "bits-client-operational",
+      "category": "Bits-Client Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-Bits-Client/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "codeintegrity-operational",
+      "category": "CodeIntegrity Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-CodeIntegrity/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "crypto-dpapi-debug",
+      "category": "Crypto-DPAPI Debug",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-Crypto-DPAPI/Debug"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "registry",
+        "paths": [
+          "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WINEVT\\Channels\\Microsoft-Windows-Crypto-DPAPI/Debug"
+        ],
+        "name": "Enabled",
+        "value": 1
+      }
+    },
+    {
+      "id": "diagnosis-scripted-operational",
+      "category": "Diagnosis-Scripted Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-Diagnosis-Scripted/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "driverframeworks-usermode-operational",
+      "category": "DriverFrameworks-UserMode Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-DriverFrameworks-UserMode/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "firewall",
+      "category": "Firewall",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "microsoft-windows-ntlm-operational",
+      "category": "Microsoft-Windows-NTLM/Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-NTLM/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "powershell-classic",
+      "category": "PowerShell",
+      "subCategory": "Classic",
+      "select": {
+        "type": "filter",
+        "eventIds": [
+          "400"
+        ],
+        "channels": [
+          "pwsh"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "powershell-module",
+      "category": "PowerShell",
+      "subCategory": "Module",
+      "select": {
+        "type": "filter",
+        "eventIds": [
+          "4103"
+        ],
+        "channels": [
+          "pwsh"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "registry",
+        "paths": [
+          "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging",
+          "HKLM:\\SOFTWARE\\Wow6432Node\\Policies\\Microsoft\\Windows\\PowerShell\\ModuleLogging"
+        ],
+        "name": "EnableModuleLogging",
+        "value": 1
+      }
+    },
+    {
+      "id": "powershell-scriptblock",
+      "category": "PowerShell",
+      "subCategory": "ScriptBlock",
+      "select": {
+        "type": "filter",
+        "eventIds": [
+          "4104"
+        ],
+        "channels": [
+          "pwsh"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "registry",
+        "paths": [
+          "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging",
+          "HKLM:\\SOFTWARE\\Wow6432Node\\Policies\\Microsoft\\Windows\\PowerShell\\ScriptBlockLogging"
+        ],
+        "name": "EnableScriptBlockLogging",
+        "value": 1
+      }
+    },
+    {
+      "id": "printservice-printservice-admin",
+      "category": "PrintService",
+      "subCategory": "PrintService Admin",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-PrintService/Admin"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "printservice-printservice-operational",
+      "category": "PrintService",
+      "subCategory": "PrintService Operational",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-PrintService/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "security-advanced-account-logon-credential-validation",
+      "category": "Security Advanced (Account Logon)",
+      "subCategory": "Credential Validation",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE923F-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-account-logon-kerberos-authentication-service",
+      "category": "Security Advanced (Account Logon)",
+      "subCategory": "Kerberos Authentication Service",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9242-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-account-logon-kerberos-service-ticket-operations",
+      "category": "Security Advanced (Account Logon)",
+      "subCategory": "Kerberos Service Ticket Operations",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9240-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-account-management-computer-account-management",
+      "category": "Security Advanced (Account Management)",
+      "subCategory": "Computer Account Management",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9236-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-account-management-other-account-management-events",
+      "category": "Security Advanced (Account Management)",
+      "subCategory": "Other Account Management Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE923A-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-account-management-security-group-management",
+      "category": "Security Advanced (Account Management)",
+      "subCategory": "Security Group Management",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9237-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-account-management-user-account-management",
+      "category": "Security Advanced (Account Management)",
+      "subCategory": "User Account Management",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9235-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-detailed-tracking-plug-and-play-events",
+      "category": "Security Advanced (Detailed Tracking)",
+      "subCategory": "Plug and Play Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9248-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-detailed-tracking-process-creation",
+      "category": "Security Advanced (Detailed Tracking)",
+      "subCategory": "Process Creation",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE922B-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-detailed-tracking-process-termination",
+      "category": "Security Advanced (Detailed Tracking)",
+      "subCategory": "Process Termination",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE922C-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-detailed-tracking-rpc-events",
+      "category": "Security Advanced (Detailed Tracking)",
+      "subCategory": "RPC Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE922E-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-detailed-tracking-token-right-adjusted-events",
+      "category": "Security Advanced (Detailed Tracking)",
+      "subCategory": "Token Right Adjusted Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE922E-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-ds-access-directory-service-access",
+      "category": "Security Advanced (DS Access)",
+      "subCategory": "Directory Service Access",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE923B-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-ds-access-directory-service-changes",
+      "category": "Security Advanced (DS Access)",
+      "subCategory": "Directory Service Changes",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE923C-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-logon-logoff-account-lockout",
+      "category": "Security Advanced (Logon/Logoff)",
+      "subCategory": "Account Lockout",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9217-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-logon-logoff-group-membership",
+      "category": "Security Advanced (Logon/Logoff)",
+      "subCategory": "Group Membership",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9249-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-logon-logoff-logoff",
+      "category": "Security Advanced (Logon/Logoff)",
+      "subCategory": "Logoff",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9216-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-logon-logoff-logon",
+      "category": "Security Advanced (Logon/Logoff)",
+      "subCategory": "Logon",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9215-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-logon-logoff-other-logon-logoff-events",
+      "category": "Security Advanced (Logon/Logoff)",
+      "subCategory": "Other Logon/Logoff Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE921C-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-logon-logoff-special-logon",
+      "category": "Security Advanced (Logon/Logoff)",
+      "subCategory": "Special Logon",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE921B-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-certification-services",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Certification Services",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9221-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-detailed-file-share",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Detailed File Share",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9244-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-file-share",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "File Share",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9224-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-file-system",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "File System",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE921D-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-filtering-platform-connection",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Filtering Platform Connection",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9226-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-filtering-platform-packet-drop",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Filtering Platform Packet Drop",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9225-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-kernel-object",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Kernel Object",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE921F-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-handle-manipulation",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Handle Manipulation",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9223-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-other-object-access-events",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Other Object Access Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9227-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-registry",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Registry",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE921E-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-removable-storage",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "Removable Storage",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9245-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-object-access-sam",
+      "category": "Security Advanced (Object Access)",
+      "subCategory": "SAM",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9220-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-policy-change-audit-policy-change",
+      "category": "Security Advanced (Policy Change)",
+      "subCategory": "Audit Policy Change",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE922F-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-policy-change-authentication-policy-change",
+      "category": "Security Advanced (Policy Change)",
+      "subCategory": "Authentication Policy Change",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9230-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-policy-change-authorization-policy-change",
+      "category": "Security Advanced (Policy Change)",
+      "subCategory": "Authorization Policy Change",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9231-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-policy-change-filtering-platform-policy-change",
+      "category": "Security Advanced (Policy Change)",
+      "subCategory": "Filtering Platform Policy Change",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9233-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-policy-change-mpssvc-rule-level-policy-change",
+      "category": "Security Advanced (Policy Change)",
+      "subCategory": "MPSSVC Rule-Level Policy Change",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9232-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-policy-change-other-policy-change-events",
+      "category": "Security Advanced (Policy Change)",
+      "subCategory": "Other Policy Change Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9234-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-privilege-use-non-sensitive-privilege-use",
+      "category": "Security Advanced (Privilege Use)",
+      "subCategory": "Non-Sensitive Privilege Use",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9229-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-privilege-use-sensitive-privilege-use",
+      "category": "Security Advanced (Privilege Use)",
+      "subCategory": "Sensitive Privilege Use",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9228-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-system-other-system-events",
+      "category": "Security Advanced (System)",
+      "subCategory": "Other System Events",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9214-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-system-security-state-change",
+      "category": "Security Advanced (System)",
+      "subCategory": "Security State Change",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9210-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-system-security-system-extension",
+      "category": "Security Advanced (System)",
+      "subCategory": "Security System Extension",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9211-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-advanced-system-system-integrity",
+      "category": "Security Advanced (System)",
+      "subCategory": "System Integrity",
+      "select": {
+        "type": "guid",
+        "guid": "0CCE9212-69AE-11D9-BED3-505054503030"
+      },
+      "currentSetting": {
+        "type": "auditpol"
+      }
+    },
+    {
+      "id": "security-mitigations-kernelmode",
+      "category": "Security-Mitigations KernelMode",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-Security-Mitigations*"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "security-mitigations-usermode",
+      "category": "Security-Mitigations UserMode",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-Security-Mitigations*"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "smbclient-security",
+      "category": "SMBClient Security",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-SmbClient/Security"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "system",
+      "category": "System",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "System"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "taskscheduler-operational",
+      "category": "TaskScheduler Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-TaskScheduler/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "registry",
+        "paths": [
+          "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WINEVT\\Channels\\Microsoft-Windows-TaskScheduler/Operational"
+        ],
+        "name": "Enabled",
+        "value": 1
+      }
+    },
+    {
+      "id": "terminalservices-localsessionmanager-operational",
+      "category": "TerminalServices-LocalSessionManager Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "wmi-activity-operational",
+      "category": "WMI-Activity Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-WMI-Activity/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
+      "id": "windows-defender-operational",
+      "category": "Windows Defender Operational",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-Windows Defender/Operational"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    }
+  ],
+  "baselines": {
+    "YamatoSecurity": {
+      "application": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "applocker": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": "Enabled if AppLocker is enabled?"
+      },
+      "bits-client-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "codeintegrity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "crypto-dpapi-debug": {
+        "ideal": true,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "diagnosis-scripted-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "driverframeworks-usermode-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "firewall": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "microsoft-windows-ntlm-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": "This log is recommended to enable if you want to disable NTLM authentication"
+      },
+      "powershell-classic": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-module": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Enabled",
+        "volume": "High",
+        "note": ""
+      },
+      "powershell-scriptblock": {
+        "ideal": true,
+        "defaultSetting": "Partially Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "High",
+        "note": "On Win 10/2016+, if a PowerShell script is flagged as suspicious by AMSI, it will be logged with a level of Warning in default setting"
+      },
+      "printservice-printservice-admin": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "printservice-printservice-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-credential-validation": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Client and Server OSes: Success and Failure",
+        "volume": "Depends on NTLM usage. Could be high on DCs and low on clients and servers.",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-authentication-service": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Client OS: No Auditing | Server OS: Success and Failure",
+        "volume": "High",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-service-ticket-operations": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Domain Controllers: Success and Failure",
+        "volume": "High",
+        "note": ""
+      },
+      "security-advanced-account-management-computer-account-management": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Domain Controllers: Success and Failure",
+        "volume": "High",
+        "note": ""
+      },
+      "security-advanced-account-management-other-account-management-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-account-management-security-group-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-account-management-user-account-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-plug-and-play-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-process-creation": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "High",
+        "note": "if sysmon is not configured"
+      },
+      "security-advanced-detailed-tracking-process-termination": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "High",
+        "note": "unless you want to track the lifespan of processes"
+      },
+      "security-advanced-detailed-tracking-rpc-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "High on RPC servers (According to Microsoft)",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-token-right-adjusted-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-access": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Client OS: No Auditing | ADDS Server: Success and Failure",
+        "volume": "High",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-changes": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Client OS: No Auditing | ADDS Server: Success and Failure",
+        "volume": "High",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-account-lockout": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-group-membership": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "Adds an extra 4627 event to every logon",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logoff": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logon": {
+        "ideal": true,
+        "defaultSetting": "Client OS: Success | Server OS: Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low on clients, medium on DCs or network servers",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-other-logon-logoff-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-special-logon": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low on clients. Medium on DC or network servers",
+        "note": ""
+      },
+      "security-advanced-object-access-certification-services": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure for AD CS role servers",
+        "volume": "Low to medium",
+        "note": ""
+      },
+      "security-advanced-object-access-detailed-file-share": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "Very high for file servers and DCs, however, may be necessary if you want to track who is accessing what files as well as detect various lateral movement",
+        "note": "Due to the high noise level. Enable if you can though"
+      },
+      "security-advanced-object-access-file-share": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "High for file servers and DCs",
+        "note": ""
+      },
+      "security-advanced-object-access-file-system": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Enable",
+        "volume": "Depends on SACL rules",
+        "note": "Enable SACLs just for sensitive files"
+      },
+      "security-advanced-object-access-filtering-platform-connection": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "High",
+        "note": "Success and Failure if you have enough space and are not monitoring network connections with sysmon. This should cause a high amount of events though"
+      },
+      "security-advanced-object-access-filtering-platform-packet-drop": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "High",
+        "note": "for AD CS role servers"
+      },
+      "security-advanced-object-access-kernel-object": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "High if auditing access of global object access is enabled",
+        "note": "Success and Failure but do not enable Audit the access of global system objects as you will generate too many 4663: Object Access events"
+      },
+      "security-advanced-object-access-handle-manipulation": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "High",
+        "note": ""
+      },
+      "security-advanced-object-access-other-object-access-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-object-access-registry": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Depends on SACLs",
+        "note": "Set SACLs for only the registry keys that you want to monitor"
+      },
+      "security-advanced-object-access-removable-storage": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Depends on how much removable storage is used",
+        "note": "if you want to monitor external device usage"
+      },
+      "security-advanced-object-access-sam": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Success and Failure if you can but may cause too high volume of noise so should be tested beforehand",
+        "note": "for AD CS role servers"
+      },
+      "security-advanced-policy-change-audit-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-policy-change-authentication-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-policy-change-authorization-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "Medium to High",
+        "note": ""
+      },
+      "security-advanced-policy-change-filtering-platform-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-policy-change-mpssvc-rule-level-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-policy-change-other-policy-change-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing ",
+        "volume": "Low",
+        "note": "ACSC recommends Success and Failure, however, this results in a lot of noise of 5447 (A Windows Filtering Platform filter has been changed) events being generated"
+      },
+      "security-advanced-privilege-use-non-sensitive-privilege-use": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "Very high",
+        "note": ""
+      },
+      "security-advanced-privilege-use-sensitive-privilege-use": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "High",
+        "note": "However, this may be too noisy"
+      },
+      "security-advanced-system-other-system-events": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-system-security-state-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-advanced-system-security-system-extension": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low, but more on DCs",
+        "note": ""
+      },
+      "security-advanced-system-system-integrity": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "Low",
+        "note": ""
+      },
+      "security-mitigations-kernelmode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "security-mitigations-usermode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "smbclient-security": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "system": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "taskscheduler-operational": {
+        "ideal": true,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "terminalservices-localsessionmanager-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "wmi-activity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "windows-defender-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      }
+    },
+    "ASD": {
+      "application": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "applocker": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "bits-client-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "codeintegrity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "crypto-dpapi-debug": {
+        "ideal": false,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "diagnosis-scripted-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "driverframeworks-usermode-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "firewall": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "microsoft-windows-ntlm-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-classic": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-module": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-scriptblock": {
+        "ideal": true,
+        "defaultSetting": "Patially",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": ""
+      },
+      "printservice-printservice-admin": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "printservice-printservice-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-credential-validation": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-authentication-service": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-service-ticket-operations": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-computer-account-management": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-other-account-management-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-security-group-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-user-account-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-plug-and-play-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-process-creation": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": "Include command line in process creation events"
+      },
+      "security-advanced-detailed-tracking-process-termination": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-rpc-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-token-right-adjusted-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-access": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-changes": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-account-lockout": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-group-membership": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logoff": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logon": {
+        "ideal": true,
+        "defaultSetting": "Client OS: Success | Server OS: Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-other-logon-logoff-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-special-logon": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-certification-services": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-detailed-file-share": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "No Auditing",
+        "volume": "",
+        "note": "Enabling this setting is not recommended due to the high noise level)"
+      },
+      "security-advanced-object-access-file-share": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-file-system": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-filtering-platform-connection": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-filtering-platform-packet-drop": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-kernel-object": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-handle-manipulation": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-other-object-access-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-registry": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-removable-storage": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-sam": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-audit-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-authentication-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-authorization-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-filtering-platform-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-mpssvc-rule-level-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-other-policy-change-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-privilege-use-non-sensitive-privilege-use": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-privilege-use-sensitive-privilege-use": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-other-system-events": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-security-state-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-security-system-extension": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-system-integrity": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-mitigations-kernelmode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-mitigations-usermode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "smbclient-security": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "system": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "taskscheduler-operational": {
+        "ideal": true,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "terminalservices-localsessionmanager-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "wmi-activity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "windows-defender-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      }
+    },
+    "Microsoft_Client": {
+      "application": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "applocker": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "bits-client-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "codeintegrity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "crypto-dpapi-debug": {
+        "ideal": false,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "diagnosis-scripted-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "driverframeworks-usermode-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "firewall": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "microsoft-windows-ntlm-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-classic": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-module": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-scriptblock": {
+        "ideal": true,
+        "defaultSetting": "Patially",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "printservice-printservice-admin": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "printservice-printservice-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-credential-validation": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-authentication-service": {
+        "ideal": false,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-service-ticket-operations": {
+        "ideal": false,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-computer-account-management": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-other-account-management-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-security-group-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-user-account-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-plug-and-play-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-process-creation": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": "Include command line in process creation events"
+      },
+      "security-advanced-detailed-tracking-process-termination": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-rpc-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-token-right-adjusted-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-access": {
+        "ideal": false,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-changes": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-account-lockout": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-group-membership": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logoff": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logon": {
+        "ideal": true,
+        "defaultSetting": "Client OS: Success | Server OS: Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-other-logon-logoff-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-special-logon": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-certification-services": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-detailed-file-share": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": "Enabling this setting is not recommended due to the high noise level)"
+      },
+      "security-advanced-object-access-file-share": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-file-system": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-filtering-platform-connection": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-filtering-platform-packet-drop": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-kernel-object": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-handle-manipulation": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-other-object-access-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-registry": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-removable-storage": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-sam": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-audit-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-authentication-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-authorization-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-filtering-platform-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-mpssvc-rule-level-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-other-policy-change-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-privilege-use-non-sensitive-privilege-use": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-privilege-use-sensitive-privilege-use": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-other-system-events": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-security-state-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-security-system-extension": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-system-integrity": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-mitigations-kernelmode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-mitigations-usermode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "smbclient-security": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "system": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "taskscheduler-operational": {
+        "ideal": true,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "terminalservices-localsessionmanager-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "wmi-activity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "windows-defender-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      }
+    },
+    "Microsoft_Server": {
+      "application": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "applocker": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "bits-client-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "codeintegrity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "crypto-dpapi-debug": {
+        "ideal": false,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "diagnosis-scripted-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "driverframeworks-usermode-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "firewall": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "microsoft-windows-ntlm-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-classic": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-module": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "powershell-scriptblock": {
+        "ideal": true,
+        "defaultSetting": "Patially",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "printservice-printservice-admin": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "printservice-printservice-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-credential-validation": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-authentication-service": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-logon-kerberos-service-ticket-operations": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-computer-account-management": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-other-account-management-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-security-group-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-account-management-user-account-management": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-plug-and-play-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-process-creation": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": "Include command line in process creation events"
+      },
+      "security-advanced-detailed-tracking-process-termination": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-rpc-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-detailed-tracking-token-right-adjusted-events": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-access": {
+        "ideal": true,
+        "defaultSetting": "Client OS: No Auditing | Server OS: Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-ds-access-directory-service-changes": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-account-lockout": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-group-membership": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logoff": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-logon": {
+        "ideal": true,
+        "defaultSetting": "Client OS: Success | Server OS: Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-other-logon-logoff-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-logon-logoff-special-logon": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-certification-services": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-detailed-file-share": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": "Enabling this setting is not recommended due to the high noise level)"
+      },
+      "security-advanced-object-access-file-share": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-file-system": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-filtering-platform-connection": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-filtering-platform-packet-drop": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-kernel-object": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-handle-manipulation": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-other-object-access-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-registry": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-removable-storage": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-object-access-sam": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-audit-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-authentication-policy-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-authorization-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-filtering-platform-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-mpssvc-rule-level-policy-change": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-policy-change-other-policy-change-events": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-privilege-use-non-sensitive-privilege-use": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-privilege-use-sensitive-privilege-use": {
+        "ideal": false,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-other-system-events": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-security-state-change": {
+        "ideal": true,
+        "defaultSetting": "Success",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-security-system-extension": {
+        "ideal": true,
+        "defaultSetting": "No Auditing",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-advanced-system-system-integrity": {
+        "ideal": true,
+        "defaultSetting": "Success and Failure",
+        "recommendedSetting": "Success and Failure",
+        "volume": "",
+        "note": ""
+      },
+      "security-mitigations-kernelmode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "security-mitigations-usermode": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "smbclient-security": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "system": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "taskscheduler-operational": {
+        "ideal": true,
+        "defaultSetting": "Disabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "terminalservices-localsessionmanager-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "wmi-activity-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      },
+      "windows-defender-operational": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": ""
+      }
+    }
+  }
+}
