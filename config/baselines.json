@@ -1195,7 +1195,7 @@
       "security-advanced-object-access-file-system": {
         "ideal": true,
         "defaultSetting": "No Auditing",
-        "recommendedSetting": "Enable",
+        "recommendedSetting": "Enabled",
         "volume": "Depends on SACL rules",
         "note": "Enable SACLs just for sensitive files"
       },
@@ -1293,7 +1293,7 @@
       "security-advanced-policy-change-other-policy-change-events": {
         "ideal": false,
         "defaultSetting": "No Auditing",
-        "recommendedSetting": "No Auditing ",
+        "recommendedSetting": "No Auditing",
         "volume": "Low",
         "note": "ACSC recommends Success and Failure, however, this results in a lot of noise of 5447 (A Windows Filtering Platform filter has been changed) events being generated"
       },
@@ -1476,7 +1476,7 @@
       },
       "powershell-scriptblock": {
         "ideal": true,
-        "defaultSetting": "Patially",
+        "defaultSetting": "Partially",
         "recommendedSetting": "Enabled",
         "volume": "",
         "note": ""
@@ -1940,7 +1940,7 @@
       },
       "powershell-scriptblock": {
         "ideal": true,
-        "defaultSetting": "Patially",
+        "defaultSetting": "Partially",
         "recommendedSetting": "",
         "volume": "",
         "note": ""
@@ -2404,7 +2404,7 @@
       },
       "powershell-scriptblock": {
         "ideal": true,
-        "defaultSetting": "Patially",
+        "defaultSetting": "Partially",
         "recommendedSetting": "",
         "volume": "",
         "note": ""
