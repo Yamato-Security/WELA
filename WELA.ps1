@@ -7,6 +7,9 @@
     [switch]$Help
 )
 
+$WELAVersion     = "2.2.0"
+$WELAReleaseName = "Dev Release"
+
 # 実行時のカレントディレクトリに依存しないよう、すべてスクリプトの場所を基準にする
 $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 $BaselineConfigPath = Join-Path $ScriptRoot "config/baselines.json"
@@ -1270,6 +1273,7 @@ Usage:
   ./WELA.ps1 configure -Baseline YamatoSecurity          # Configure audit settings based on the specified baseline
   ./WELA.ps1 configure -Baseline YamatoSecurity -Auto    # Configure audit settings automatically without prompts
   ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
+  ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
 "@
 
@@ -1277,7 +1281,7 @@ Usage:
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Host $logo -ForegroundColor Green
 Write-Host ""
-Write-Host "WELA v2.1.0 - Winter Release"
+Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 switch ($Cmd.ToLower()) {
@@ -1349,6 +1353,9 @@ switch ($Cmd.ToLower()) {
             return
         }
         UpdateRules
+    }
+    "version" {
+        # バージョンはバナーで表示済みなので、ここでは何もしない
     }
     "help" {
         Write-Host $usage
