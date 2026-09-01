@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-2019, windows-2022, windows-2025]
+        os: [windows-2022, windows-2025]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -49,8 +49,11 @@ jobs:
 
       - name: Commit changes
         run: |
-          git add *.csv
-          if (git diff-index --quiet HEAD) {
+          # 生成先は config/ 配下なので、ルート直下の *.csv では拾えない
+          git add config/*.csv
+          # git diff-index の終了コードを見る($? を使わないと出力の真偽値判定になってしまう)
+          git diff-index --quiet HEAD
+          if ($LASTEXITCODE -eq 0) {
             echo "No changes to commit"
           } else {
             git commit -m "Automated update"

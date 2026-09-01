@@ -8,3 +8,8 @@ Cargo.lock
 .DS_Store
 # MkDocs documentation site build output
 /website/site/
+
+# WELA が実行時に生成する出力ファイル
+/auditpol.txt
+/mitre-ttp-navigator-current.json
+/mitre-ttp-navigator-ideal.json
