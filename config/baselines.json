@@ -106,8 +106,8 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "channel",
+        "channel": "Microsoft-Windows-DFSN-Server/Admin"
       }
     },
     {
