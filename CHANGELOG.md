@@ -5,6 +5,7 @@
 **Improvements:**
 
 - Baseline definitions were moved out of `WELA.ps1` into a `config/baselines.json` config file, so adding or changing a baseline is now a JSON-only edit. (#358) (@fukusuket)
+- The `Microsoft-Windows-DFSN-Server/Admin` channel is now checked by `audit-settings` and `audit-filesize`. (#358) (@fukusuket)
 
 **Bug Fixes:**
 

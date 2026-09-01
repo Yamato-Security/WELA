@@ -309,6 +309,26 @@ function BuildAuditResult {
                 $enabled = $enabledguid -contains $item.select.guid
                 $current = $auditpol[$item.select.guid]
             }
+            "channel" {
+                # レジストリの Enabled 値はマニフェストの既定値のままだと存在しないことがあり、
+                # 「値が無い」を無効と解釈すると既定で有効なチャネルを誤判定する。
+                # また役割未導入でチャネル自体が無い場合と無効化されている場合も区別できないため、
+                # 実際のチャネル状態を Get-WinEvent から取得する。
+                $logInfo = $null
+                try {
+                    # Windows 以外や役割未導入の環境では取得できないので、その場合は判定不能とする
+                    $logInfo = Get-WinEvent -ListLog $item.currentSetting.channel -ErrorAction Stop
+                } catch {
+                    $logInfo = $null
+                }
+                if ($null -eq $logInfo) {
+                    $enabled = $false
+                    $current = "Unknown"
+                } else {
+                    $enabled = [bool]$logInfo.IsEnabled
+                    $current = if ($enabled) { "Enabled" } else { "Disabled" }
+                }
+            }
             "registry" {
                 # 64bit/32bit でレジストリビューが分かれる設定があるため、いずれかで有効なら有効とみなす
                 $enabled = $false
@@ -656,6 +676,7 @@ function AuditFileSize {
         "Microsoft-Windows-Bits-Client/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-CodeIntegrity/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-Crypto-DPAPI/Debug" = @("1 MB", "128 MB+")
+        "Microsoft-Windows-DFSN-Server/Admin" = @("1 MB", "128 MB+")
         "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-NTLM/Operational" = @("1 MB", "128 MB+")
         "Microsoft-Windows-PowerShell/Operational" = @("15 MB", "256 MB+")

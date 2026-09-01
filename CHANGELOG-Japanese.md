@@ -5,6 +5,7 @@
 **改善:**
 
 - ベースライン定義を`WELA.ps1`から`config/baselines.json`に外部化し、ベースラインの追加・変更をJSONの編集のみで行えるようにした。 (#358) (@fukusuket)
+- `Microsoft-Windows-DFSN-Server/Admin`チャネルを`audit-settings`と`audit-filesize`の確認対象に追加した。 (#358) (@fukusuket)
 
 **バグ修正:**
 

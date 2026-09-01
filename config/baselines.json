@@ -94,6 +94,23 @@
       }
     },
     {
+      "id": "dfsn-server-admin",
+      "category": "DFSN-Server Admin",
+      "subCategory": "",
+      "select": {
+        "type": "filter",
+        "eventIds": [],
+        "channels": [
+          "Microsoft-Windows-DFSN-Server/Admin"
+        ],
+        "guid": ""
+      },
+      "currentSetting": {
+        "type": "static",
+        "value": "Enabled"
+      }
+    },
+    {
       "id": "diagnosis-scripted-operational",
       "category": "Diagnosis-Scripted Operational",
       "subCategory": "",
@@ -968,6 +985,13 @@
         "volume": "",
         "note": ""
       },
+      "dfsn-server-admin": {
+        "ideal": true,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "Enabled",
+        "volume": "",
+        "note": "Only exists on servers with the DFS Namespaces role installed."
+      },
       "diagnosis-scripted-operational": {
         "ideal": true,
         "defaultSetting": "Enabled",
@@ -1431,6 +1455,13 @@
         "recommendedSetting": "",
         "volume": "",
         "note": ""
+      },
+      "dfsn-server-admin": {
+        "ideal": false,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": "Only exists on servers with the DFS Namespaces role installed."
       },
       "diagnosis-scripted-operational": {
         "ideal": true,
@@ -1896,6 +1927,13 @@
         "volume": "",
         "note": ""
       },
+      "dfsn-server-admin": {
+        "ideal": false,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": "Only exists on servers with the DFS Namespaces role installed."
+      },
       "diagnosis-scripted-operational": {
         "ideal": true,
         "defaultSetting": "Enabled",
@@ -2359,6 +2397,13 @@
         "recommendedSetting": "",
         "volume": "",
         "note": ""
+      },
+      "dfsn-server-admin": {
+        "ideal": false,
+        "defaultSetting": "Enabled",
+        "recommendedSetting": "",
+        "volume": "",
+        "note": "Only exists on servers with the DFS Namespaces role installed."
       },
       "diagnosis-scripted-operational": {
         "ideal": true,
