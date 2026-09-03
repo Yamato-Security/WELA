@@ -3,11 +3,12 @@
 !!! info
     This page mirrors the project [`CHANGELOG.md`](https://github.com/Yamato-Security/WELA/blob/main/CHANGELOG.md). See the [Releases page](https://github.com/Yamato-Security/WELA/releases) for downloads.
 
-## 2.2.0 [2026/08/31] - Dev Release
+## 2.2.0 [2026/xx/xx] - Dev Release
 
 **Improvements:**
 
 - Baseline definitions were moved out of `WELA.ps1` into a `config/baselines.json` config file, so adding or changing a baseline is now a JSON-only edit. (#358) (@fukusuket)
+- MITRE ATT&CK Navigator heatmaps are now generated for ATT&CK v19, and technique IDs that ATT&CK has revoked are rewritten to their replacements (for example `T1562` and `T1562.001`, which v19 folded into `T1685`). Navigator silently discards revoked entries, so that coverage used to disappear from the heatmap. (@fukusuket)
 
 **Bug Fixes:**
 
