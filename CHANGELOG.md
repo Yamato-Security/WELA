@@ -6,6 +6,7 @@
 
 - Baseline definitions were moved out of `WELA.ps1` into a `config/baselines.json` config file, so adding or changing a baseline is now a JSON-only edit. (#358) (@fukusuket)
 - The `Microsoft-Windows-DFSN-Server/Admin` channel is now checked by `audit-settings` and `audit-filesize`. (#358) (@fukusuket)
+- MITRE ATT&CK Navigator heatmaps are now generated for ATT&CK v19, and technique IDs that ATT&CK has revoked are rewritten to their replacements (for example `T1562` and `T1562.001`, which v19 folded into `T1685`). Navigator silently discards revoked entries, so that coverage used to disappear from the heatmap. (@fukusuket)
 
 **Bug Fixes:**
 
