@@ -3,11 +3,12 @@
 !!! info "情報"
     このページはプロジェクトの [`CHANGELOG.md`](https://github.com/Yamato-Security/WELA/blob/main/CHANGELOG-Japanese.md) を反映したものです。ダウンロードは [リリースページ](https://github.com/Yamato-Security/WELA/releases) をご覧ください。
 
-## 2.2.0 [2026/08/31] - Dev Release
+## 2.2.0 [2026/xx/xx] - Dev Release
 
 **改善:**
 
 - ベースライン定義を`WELA.ps1`から`config/baselines.json`に外部化し、ベースラインの追加・変更をJSONの編集のみで行えるようにした。 (#358) (@fukusuket)
+- MITRE ATT&CK Navigatorのヒートマップを ATT&CK v19 に対応させ、ATT&CK側でrevokedとなった技術IDを置換先に書き換えるようにした(例: v19で`T1685`に統合された`T1562`と`T1562.001`)。Navigatorはrevokedのエントリを黙って破棄するため、従来はその分のカバレッジがヒートマップから欠落していた。 (@fukusuket)
 
 **バグ修正:**
 

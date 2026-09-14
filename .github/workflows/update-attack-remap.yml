@@ -1,0 +1,67 @@
+name: update MITRE ATT&CK remap table
+
+on:
+  schedule:
+    # ATT&CK ships twice a year plus occasional Agile releases, so check monthly.
+    - cron: '0 21 2 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout self repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+
+      - name: Regenerate the remap block in WELA.ps1
+        run: python3 tools/update_attack_remap.py WELA.ps1
+
+      - name: Verify WELA.ps1 still parses
+        shell: pwsh
+        run: |
+          $errors = $null
+          $tokens = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path ./WELA.ps1), [ref]$tokens, [ref]$errors)
+          if ($errors) {
+            $errors | ForEach-Object { Write-Host $_.Message }
+            exit 1
+          }
+          Write-Host 'WELA.ps1 parsed successfully'
+
+      - name: Check for changes
+        id: check
+        run: |
+          if [ -n "$(git status --porcelain WELA.ps1)" ]; then
+            echo "change_exist=true" >> $GITHUB_ENV
+            echo "action_date=$(date '+%Y-%m-%d  %H:%M:%S')" >> $GITHUB_ENV
+          else
+            echo "change_exist=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create Pull Request
+        if: env.change_exist == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Update MITRE ATT&CK remap table (${{ env.action_date }})
+          branch: attack/auto-remap-update
+          delete-branch: true
+          title: '[Auto] MITRE ATT&CK remap table update (${{ env.action_date }})'
+          branch-suffix: timestamp
+          body: |
+            Regenerated `$script:AttackTechniqueRemap` / `$script:AttackVersion` in `WELA.ps1`
+            from the latest Enterprise ATT&CK release.
+
+            If `$script:AttackVersion` changed, the ATT&CK major version has moved. Re-check the
+            heatmap in ATT&CK Navigator and refresh `screenshots/mitre.png` before merging.
