@@ -1,61 +1,480 @@
 {
   "description": "Targeted System Access Control Lists (SACLs) that make Object Access File System (4663), Registry (4657) and Handle Manipulation (4656/4658) auditing produce the events the Hayabusa/Sigma Security-channel rules rely on - WITHOUT enabling global file/registry auditing (which would flood). Only the specific autostart/persistence registry keys (ASEPs) and sensitive files referenced by the ruleset are audited. Principal is 'Everyone'. Registry keys use ContainerInherit so subkeys are covered. Objects that are absent on a given host (e.g. Wow6432Node on 32-bit, NTDS on non-DCs) are skipped. Per-user objects are handled via 'user_registry' and 'user_files': WELA enumerates every profile from ProfileList (plus C:\\Users\\Default so future users inherit the SACL), sets file SACLs under each profile, and sets registry SACLs on each user hive (loaded hives directly via HKU:\\<SID>, offline/Default hives by reg-load/unload of NTUSER.DAT). 'user_registry' keys are relative to the user hive root; 'user_files' paths are relative to the profile directory. Remaining edge cases (folder-redirected AppData on network shares, mandatory profiles) are not covered.",
   "registry": [
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP Run (T1547.001)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP RunOnce"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP RunOnceEx"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServices", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP RunServices"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP RunServicesOnce"},
-    {"path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP Run (WOW64)"},
-    {"path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP RunOnce (WOW64)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "ASEP Policies Explorer Run"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "Winlogon Shell/Userinit/Notify (T1547.004)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "IFEO debugger/GlobalFlag (T1546.012)"},
-    {"path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "IFEO (WOW64)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows", "inherit": false, "rights": ["SetValue"], "note": "AppInit_DLLs / Load / Run (T1546.010)"},
-    {"path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows", "inherit": false, "rights": ["SetValue"], "note": "AppInit_DLLs (WOW64)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellServiceObjectDelayLoad", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "SSODL (T1547.005)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\SharedTaskScheduler", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "SharedTaskScheduler"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers", "inherit": true, "rights": ["CreateSubKey","Delete"], "note": "ShellIconOverlayIdentifiers"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Browser Helper Objects", "inherit": true, "rights": ["CreateSubKey","Delete"], "note": "BHO (T1176)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "Active Setup (T1547.014)"},
-    {"path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Active Setup\\Installed Components", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "Active Setup (WOW64)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Command Processor", "inherit": false, "rights": ["SetValue"], "note": "cmd AutoRun (T1546.011)"},
-    {"path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Command Processor", "inherit": false, "rights": ["SetValue"], "note": "cmd AutoRun (WOW64)"},
-    {"path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager", "inherit": false, "rights": ["SetValue"], "note": "BootExecute/AppCertDlls/SubSystems (T1546.009)"},
-    {"path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa", "inherit": false, "rights": ["SetValue"], "note": "LSA Security/Authentication/Notification Packages - SSP (T1547.005/T1556)"},
-    {"path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\WinSock2\\Parameters", "inherit": true, "rights": ["SetValue","CreateSubKey"], "note": "Winsock LSP (T1546.015)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Ctf\\LangBarAddin", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "LangBarAddin"},
-    {"path": "HKLM:\\SOFTWARE\\Classes\\Protocols\\Handler", "inherit": true, "rights": ["CreateSubKey","Delete"], "note": "Protocol handler hijack"},
-    {"path": "HKLM:\\SOFTWARE\\Classes\\Protocols\\Filter", "inherit": true, "rights": ["CreateSubKey","Delete"], "note": "Protocol filter hijack"},
-    {"path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System\\Scripts", "inherit": true, "rights": ["SetValue","CreateSubKey"], "note": "Logon/Logoff/Startup scripts (T1037)"},
-    {"path": "HKLM:\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions", "inherit": true, "rights": ["SetValue","CreateSubKey"], "note": "Defender exclusion tampering (T1562.001)"},
-    {"path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services", "inherit": false, "rights": ["CreateSubKey","Delete"], "note": "Service create/delete (T1543.003). Subkey add/remove only, to limit noise - service value edits are captured by 4697/7045."}
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP Run (T1547.001)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP RunOnce"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP RunOnceEx"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServices",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP RunServices"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunServicesOnce",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP RunServicesOnce"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP Run (WOW64)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP RunOnce (WOW64)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ASEP Policies Explorer Run"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "Winlogon Shell/Userinit/Notify (T1547.004)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "IFEO debugger/GlobalFlag (T1546.012)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "IFEO (WOW64)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "AppInit_DLLs / Load / Run (T1546.010)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "AppInit_DLLs (WOW64)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellServiceObjectDelayLoad",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "SSODL (T1547.005)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\SharedTaskScheduler",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "SharedTaskScheduler"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ShellIconOverlayIdentifiers",
+      "inherit": true,
+      "rights": [
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "ShellIconOverlayIdentifiers"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Browser Helper Objects",
+      "inherit": true,
+      "rights": [
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "BHO (T1176)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "Active Setup (T1547.014)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Active Setup\\Installed Components",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "Active Setup (WOW64)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Command Processor",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "cmd AutoRun (T1546.011)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\Command Processor",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "cmd AutoRun (WOW64)"
+    },
+    {
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "BootExecute/AppCertDlls/SubSystems (T1546.009)"
+    },
+    {
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "LSA Security/Authentication/Notification Packages - SSP (T1547.005/T1556)"
+    },
+    {
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\WinSock2\\Parameters",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey"
+      ],
+      "note": "Winsock LSP (T1546.015)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Ctf\\LangBarAddin",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "LangBarAddin"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Classes\\Protocols\\Handler",
+      "inherit": true,
+      "rights": [
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "Protocol handler hijack"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Classes\\Protocols\\Filter",
+      "inherit": true,
+      "rights": [
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "Protocol filter hijack"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System\\Scripts",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey"
+      ],
+      "note": "Logon/Logoff/Startup scripts (T1037)"
+    },
+    {
+      "path": "HKLM:\\SOFTWARE\\Microsoft\\Windows Defender\\Exclusions",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey"
+      ],
+      "note": "Defender exclusion tampering (T1562.001)"
+    },
+    {
+      "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "Service create/delete + ImagePath/ServiceDLL/Start edits on child keys (T1543.003). Inherited so 4657 on service value changes is captured (4697/7045 cover install only)."
+    }
   ],
   "user_registry": [
-    {"key": "Software\\Microsoft\\Windows\\CurrentVersion\\Run", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "HKCU ASEP Run (T1547.001)"},
-    {"key": "Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "HKCU ASEP RunOnce"},
-    {"key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "HKCU Policies Explorer Run"},
-    {"key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders", "inherit": false, "rights": ["SetValue"], "note": "Startup folder redirection (T1547.001)"},
-    {"key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run", "inherit": false, "rights": ["SetValue","Delete"], "note": "StartupApproved (enable/disable autorun)"},
-    {"key": "Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows", "inherit": false, "rights": ["SetValue"], "note": "HKCU Load/Run (T1546.010)"},
-    {"key": "Software\\Microsoft\\Command Processor", "inherit": false, "rights": ["SetValue"], "note": "HKCU cmd AutoRun (T1546.011)"},
-    {"key": "Control Panel\\Desktop", "inherit": false, "rights": ["SetValue"], "note": "Scrnsave.exe screensaver hijack (T1546.002)"},
-    {"key": "Environment", "inherit": false, "rights": ["SetValue"], "note": "UserInitMprLogonScript logon-script persistence (T1037.001)"},
-    {"key": "Software\\Microsoft\\Ctf\\LangBarAddin", "inherit": true, "rights": ["SetValue","CreateSubKey","Delete"], "note": "HKCU LangBarAddin"},
-    {"key": "Software\\Microsoft\\Office\\Outlook\\Addins", "inherit": true, "rights": ["CreateSubKey","Delete","SetValue"], "note": "Outlook add-in persistence (T1137.006)"}
+    {
+      "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "HKCU ASEP Run (T1547.001)"
+    },
+    {
+      "key": "Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "HKCU ASEP RunOnce"
+    },
+    {
+      "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "HKCU Policies Explorer Run"
+    },
+    {
+      "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "Startup folder redirection (T1547.001)"
+    },
+    {
+      "key": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run",
+      "inherit": false,
+      "rights": [
+        "SetValue",
+        "Delete"
+      ],
+      "note": "StartupApproved (enable/disable autorun)"
+    },
+    {
+      "key": "Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "HKCU Load/Run (T1546.010)"
+    },
+    {
+      "key": "Software\\Microsoft\\Command Processor",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "HKCU cmd AutoRun (T1546.011)"
+    },
+    {
+      "key": "Control Panel\\Desktop",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "Scrnsave.exe screensaver hijack (T1546.002)"
+    },
+    {
+      "key": "Environment",
+      "inherit": false,
+      "rights": [
+        "SetValue"
+      ],
+      "note": "UserInitMprLogonScript logon-script persistence (T1037.001)"
+    },
+    {
+      "key": "Software\\Microsoft\\Ctf\\LangBarAddin",
+      "inherit": true,
+      "rights": [
+        "SetValue",
+        "CreateSubKey",
+        "Delete"
+      ],
+      "note": "HKCU LangBarAddin"
+    },
+    {
+      "key": "Software\\Microsoft\\Office\\Outlook\\Addins",
+      "inherit": true,
+      "rights": [
+        "CreateSubKey",
+        "Delete",
+        "SetValue"
+      ],
+      "note": "Outlook add-in persistence (T1137.006)"
+    }
   ],
   "user_files": [
-    {"relpath": "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup", "inherit": true, "rights": ["WriteData","CreateFiles","Delete"], "note": "Startup folder persistence (T1547.001)"},
-    {"relpath": "AppData\\Roaming\\Signal", "inherit": true, "rights": ["ReadData"], "note": "Signal Desktop sensitive data access (T1005)"}
+    {
+      "relpath": "AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
+      "inherit": true,
+      "rights": [
+        "WriteData",
+        "CreateFiles",
+        "Delete"
+      ],
+      "note": "Startup folder persistence (T1547.001)"
+    },
+    {
+      "relpath": "AppData\\Roaming\\Signal",
+      "inherit": true,
+      "rights": [
+        "ReadData"
+      ],
+      "note": "Signal Desktop sensitive data access (T1005)"
+    }
   ],
   "files": [
-    {"path": "C:\\Windows\\NTDS", "inherit": true, "rights": ["ReadData","WriteData","Delete","ChangePermissions","TakeOwnership"], "note": "AD database dir - ntds.dit theft (T1003.003)"},
-    {"path": "C:\\Windows\\System32\\config\\SAM", "inherit": false, "rights": ["ReadData","WriteData","Delete","TakeOwnership"], "note": "SAM hive theft (T1003.002)"},
-    {"path": "C:\\Windows\\System32\\config\\SECURITY", "inherit": false, "rights": ["ReadData","WriteData","Delete","TakeOwnership"], "note": "SECURITY hive (T1003.004 LSA secrets)"},
-    {"path": "C:\\Windows\\System32\\config\\SYSTEM", "inherit": false, "rights": ["ReadData","WriteData","Delete","TakeOwnership"], "note": "SYSTEM hive (boot key for offline SAM)"},
-    {"path": "C:\\Windows\\System32\\lsass.exe", "inherit": false, "rights": ["ReadData","WriteData","TakeOwnership"], "note": "LSASS binary read/replace. NOTE: live LSASS memory/handle access (credential dumping) is better detected via Sysmon EID 10, not a file SACL."},
-    {"path": "C:\\Windows\\System32\\ntdsutil.exe", "inherit": false, "rights": ["ExecuteFile"], "note": "ntdsutil execution (IFM/ntds.dit dump)"},
-    {"path": "C:\\Windows\\System32\\vssadmin.exe", "inherit": false, "rights": ["ExecuteFile"], "note": "Shadow copy tooling"}
+    {
+      "path": "C:\\Windows\\NTDS",
+      "inherit": true,
+      "rights": [
+        "ReadData",
+        "WriteData",
+        "Delete",
+        "ChangePermissions",
+        "TakeOwnership"
+      ],
+      "note": "AD database dir - ntds.dit theft (T1003.003)"
+    },
+    {
+      "path": "C:\\Windows\\System32\\config\\SAM",
+      "inherit": false,
+      "rights": [
+        "ReadData",
+        "WriteData",
+        "Delete",
+        "TakeOwnership"
+      ],
+      "note": "SAM hive theft (T1003.002)"
+    },
+    {
+      "path": "C:\\Windows\\System32\\config\\SECURITY",
+      "inherit": false,
+      "rights": [
+        "ReadData",
+        "WriteData",
+        "Delete",
+        "TakeOwnership"
+      ],
+      "note": "SECURITY hive (T1003.004 LSA secrets)"
+    },
+    {
+      "path": "C:\\Windows\\System32\\config\\SYSTEM",
+      "inherit": false,
+      "rights": [
+        "ReadData",
+        "WriteData",
+        "Delete",
+        "TakeOwnership"
+      ],
+      "note": "SYSTEM hive (boot key for offline SAM)"
+    },
+    {
+      "path": "C:\\Windows\\System32\\lsass.exe",
+      "inherit": false,
+      "rights": [
+        "ReadData",
+        "WriteData",
+        "TakeOwnership"
+      ],
+      "note": "LSASS binary read/replace. NOTE: live LSASS memory/handle access (credential dumping) is better detected via Sysmon EID 10, not a file SACL."
+    },
+    {
+      "path": "C:\\Windows\\System32\\ntdsutil.exe",
+      "inherit": false,
+      "rights": [
+        "ExecuteFile"
+      ],
+      "note": "ntdsutil execution (IFM/ntds.dit dump)"
+    },
+    {
+      "path": "C:\\Windows\\System32\\vssadmin.exe",
+      "inherit": false,
+      "rights": [
+        "ExecuteFile"
+      ],
+      "note": "Shadow copy tooling"
+    }
   ]
 }
