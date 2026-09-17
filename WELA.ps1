@@ -1388,8 +1388,106 @@ function Set-AuditSacl {
         } catch { Write-Host "[ERROR] $($t.path) : $_" -ForegroundColor Red }
     }
     Write-Host ""
+
+    # 4) Per-user objects: enumerate every profile (+ Default, for future users) and apply SACLs.
+    $hasUserTargets = ($targets.PSObject.Properties.Name -contains 'user_files' -and $targets.user_files) -or `
+                      ($targets.PSObject.Properties.Name -contains 'user_registry' -and $targets.user_registry)
+    if ($hasUserTargets) {
+        Write-Host "Enumerating user profiles for per-user SACLs..."
+        $profiles = Get-WelaUserProfiles
+        Write-Host "Found $($profiles.Count) profile(s) (incl. Default template)."
+        Write-Host ""
+
+        # 4a) Per-user FILE SACLs (each existing profile + Default)
+        if ($targets.user_files) {
+            foreach ($prof in $profiles) {
+                foreach ($t in $targets.user_files) {
+                    $path = Join-Path $prof.Path $t.relpath
+                    try {
+                        if (-not (Test-Path -LiteralPath $path)) { continue }  # not installed for this user
+                        $isDir = (Get-Item -LiteralPath $path -Force).PSIsContainer
+                        $rights = [System.Security.AccessControl.FileSystemRights]($t.rights -join ",")
+                        $inh = if ($isDir -and $t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
+                        $acl = Get-Acl -LiteralPath $path -Audit
+                        $already = $acl.Audit | Where-Object { $_.IdentityReference.Value -eq $everyone.Value -and (($_.FileSystemRights -band $rights) -eq $rights) -and ($_.AuditFlags -eq $auditFlags) }
+                        if ($already) { continue }
+                        if ($Auto -or $PSCmdlet.ShouldProcess("$path [$($prof.Sid)]", "add audit SACL")) {
+                            $rule = New-Object System.Security.AccessControl.FileSystemAuditRule($everyone, $rights, $inh, "None", $auditFlags)
+                            $acl.AddAuditRule($rule); Set-Acl -LiteralPath $path -AclObject $acl
+                            Write-Host "[OK] $path  ($($t.note))" -ForegroundColor Green
+                        }
+                    } catch { Write-Host "[ERROR] $path : $_" -ForegroundColor Red }
+                }
+            }
+        }
+
+        # 4b) Per-user REGISTRY SACLs. Loaded hives -> HKEY_USERS\<SID> directly;
+        #     offline / Default hives -> reg load NTUSER.DAT, apply, reg unload.
+        if ($targets.user_registry) {
+            foreach ($prof in $profiles) {
+                $loadedHere = $false
+                if ($prof.Loaded) {
+                    $base = "Microsoft.PowerShell.Core\Registry::HKEY_USERS\$($prof.Sid)"
+                } else {
+                    $hive = Join-Path $prof.Path "NTUSER.DAT"
+                    if (-not (Test-Path -LiteralPath $hive)) { continue }
+                    $mount = "WELA_$($prof.Sid)"
+                    $out = reg load "HKU\$mount" "$hive" 2>&1
+                    if ($LASTEXITCODE -ne 0) { Write-Host "[SKIPPED] hive $($prof.Sid) : cannot load ($out)" -ForegroundColor DarkYellow; continue }
+                    $loadedHere = $true
+                    $base = "Microsoft.PowerShell.Core\Registry::HKEY_USERS\$mount"
+                }
+                try {
+                    foreach ($t in $targets.user_registry) {
+                        $key = "$base\$($t.key)"
+                        try {
+                            if (-not (Test-Path -LiteralPath $key)) { continue }
+                            $rights = [System.Security.AccessControl.RegistryRights]($t.rights -join ",")
+                            $inh = if ($t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
+                            $acl = Get-Acl -LiteralPath $key -Audit
+                            $already = $acl.Audit | Where-Object { $_.IdentityReference.Value -eq $everyone.Value -and (($_.RegistryRights -band $rights) -eq $rights) -and ($_.AuditFlags -eq $auditFlags) }
+                            if ($already) { continue }
+                            if ($Auto -or $PSCmdlet.ShouldProcess("$($t.key) [$($prof.Sid)]", "add audit SACL")) {
+                                $rule = New-Object System.Security.AccessControl.RegistryAuditRule($everyone, $rights, $inh, "None", $auditFlags)
+                                $acl.AddAuditRule($rule); Set-Acl -LiteralPath $key -AclObject $acl
+                                Write-Host "[OK] HKU\$($prof.Sid)\$($t.key)  ($($t.note))" -ForegroundColor Green
+                            }
+                        } catch { Write-Host "[ERROR] $($t.key) [$($prof.Sid)] : $_" -ForegroundColor Red }
+                    }
+                }
+                finally {
+                    if ($loadedHere) {
+                        # release handles before unloading, or 'reg unload' fails
+                        [gc]::Collect(); [gc]::WaitForPendingFinalizers()
+                        reg unload "HKU\$mount" 2>&1 | Out-Null
+                    }
+                }
+            }
+        }
+        Write-Host ""
+    }
+
     Write-Host "Done. Targeted object-access auditing is enabled without global file/registry auditing." -ForegroundColor Cyan
-    Write-Host "Note: per-user (HKCU / profile AppData) objects are out of scope for a machine-wide SACL policy." -ForegroundColor DarkCyan
+    Write-Host "Per-user objects were applied to existing profiles and the Default profile (future users)." -ForegroundColor DarkCyan
+    Write-Host "Not covered: folder-redirected AppData on network shares, and mandatory profiles." -ForegroundColor DarkCyan
+}
+
+function Get-WelaUserProfiles {
+    # Enumerate real user profiles from ProfileList (SID + path + whether the hive is loaded),
+    # plus the Default profile template so SACLs propagate to future users.
+    $result = @()
+    $pl = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
+    foreach ($k in (Get-ChildItem -LiteralPath $pl -ErrorAction SilentlyContinue)) {
+        $sid = $k.PSChildName
+        if ($sid -notmatch '^S-1-5-21-') { continue }   # skip system/service SIDs (S-1-5-18/19/20)
+        $p = (Get-ItemProperty -LiteralPath $k.PSPath -Name ProfileImagePath -ErrorAction SilentlyContinue).ProfileImagePath
+        if (-not $p -or -not (Test-Path -LiteralPath $p)) { continue }
+        $loaded = Test-Path -LiteralPath "Microsoft.PowerShell.Core\Registry::HKEY_USERS\$sid"
+        $result += [pscustomobject]@{ Sid = $sid; Path = $p; Loaded = $loaded }
+    }
+    $def = Join-Path $env:SystemDrive "Users\Default"
+    if (Test-Path -LiteralPath $def) { $result += [pscustomobject]@{ Sid = "DEFAULT"; Path = $def; Loaded = $false } }
+    return $result
 }
 
 $usage = @"
