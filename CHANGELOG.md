@@ -5,6 +5,7 @@
 **Improvements:**
 
 - Added a `configure-sacl` command that sets targeted audit SACLs on the autostart/persistence registry keys and sensitive files the detection rules watch, so File System (4663), Registry (4657) and Handle Manipulation (4656) auditing produce useful events without enabling global object auditing. It covers machine-wide objects plus per-user HKCU keys and profile AppData across all user profiles and the Default profile (so future users inherit the SACL). Targets live in `config/audit_sacl_targets.json`. (#361) (@YamatoSecurity)
+- `configure` now also enables Detailed Tracking > Process Termination (4689), Object Access > Detailed File Share (5145), and (on domain controllers) LDAP query logging (Directory Service 1644 via NTDS `15 Field Engineering`), so a full detection baseline is applied without any manual `auditpol`/registry steps. (#361) (@YamatoSecurity)
 - Baseline definitions were moved out of `WELA.ps1` into a `config/baselines.json` config file, so adding or changing a baseline is now a JSON-only edit. (#358) (@fukusuket)
 - The `Microsoft-Windows-DFSN-Server/Admin` channel is now checked by `audit-settings` and `audit-filesize`. (#358) (@fukusuket)
 
