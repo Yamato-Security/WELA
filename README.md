@@ -51,7 +51,7 @@ All documentation now lives on a dedicated, searchable, multi-language site:
 | Section | |
 | --- | --- |
 | 🚀 [Getting Started](https://yamato-security.github.io/WELA/getting-started/) | Prerequisites, downloads and running WELA |
-| ⌨️ [Command Reference](https://yamato-security.github.io/WELA/commands/) | `audit-settings`, `audit-filesize`, `configure`, `update-rules` |
+| ⌨️ [Command Reference](https://yamato-security.github.io/WELA/commands/) | `audit-settings`, `audit-filesize`, `configure`, `configure-sacl`, `update-rules` |
 | ✨ [Features](https://yamato-security.github.io/WELA/overview/features/) | What WELA can do |
 | 📦 [Resources](https://yamato-security.github.io/WELA/resources/companion-projects/) | Companion projects, changelog, contributing |
 

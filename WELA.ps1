@@ -16,6 +16,7 @@ $BaselineConfigPath = Join-Path $ScriptRoot "config/baselines.json"
 $SecurityRulesPath  = Join-Path $ScriptRoot "config/security_rules.json"
 $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
+$SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -1286,6 +1287,111 @@ $logo = @"
   by Yamato Security
 "@
 
+function Enable-WelaPrivilege {
+    # Enable SeSecurityPrivilege (required to read/write SACLs) + backup/restore, in the current token.
+    param([string[]] $Privileges = @("SeSecurityPrivilege","SeBackupPrivilege","SeRestorePrivilege"))
+    if (-not ("WELA.PrivHelper" -as [type])) {
+        Add-Type -Namespace WELA -Name PrivHelper -MemberDefinition @"
+[DllImport("advapi32.dll", SetLastError=true)] public static extern bool OpenProcessToken(IntPtr h, uint acc, out IntPtr tok);
+[DllImport("advapi32.dll", SetLastError=true)] public static extern bool LookupPrivilegeValue(string host, string name, out long luid);
+[DllImport("advapi32.dll", SetLastError=true)] public static extern bool AdjustTokenPrivileges(IntPtr tok, bool dis, ref TOKEN_PRIVILEGES np, uint len, IntPtr prev, IntPtr rl);
+[DllImport("kernel32.dll")] public static extern IntPtr GetCurrentProcess();
+[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+public struct TOKEN_PRIVILEGES { public uint Count; public long Luid; public uint Attr; }
+public static bool Enable(string priv) {
+    IntPtr tok; if(!OpenProcessToken(GetCurrentProcess(), 0x20, out tok)) return false;
+    long luid; if(!LookupPrivilegeValue(null, priv, out luid)) return false;
+    TOKEN_PRIVILEGES tp = new TOKEN_PRIVILEGES(); tp.Count=1; tp.Luid=luid; tp.Attr=0x2;
+    return AdjustTokenPrivileges(tok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+}
+"@
+    }
+    foreach ($p in $Privileges) { [void][WELA.PrivHelper]::Enable($p) }
+}
+
+function Set-AuditSacl {
+    # Apply TARGETED audit SACLs (from config/audit_sacl_targets.json) so that File System (4663),
+    # Registry (4657) and Handle Manipulation (4656) auditing fires only on the specific ASEP keys
+    # and sensitive files the detection rules watch - never globally.
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+    param([switch] $Auto)
+
+    if (-not (TestWindows)) {
+        Write-Host "[ERROR] 'configure-sacl' changes Windows settings and can only run on Windows." -ForegroundColor Red; return
+    }
+    if (-not (TestAdministrator)) { Write-Error "This command requires Administrator privileges"; return }
+    if (-not (Test-Path $script:SaclTargetsPath)) {
+        Write-Host "[ERROR] Missing config: $script:SaclTargetsPath (run 'update-rules' or reinstall WELA)." -ForegroundColor Red; return
+    }
+    Enable-WelaPrivilege
+    $targets = Get-Content -Path $script:SaclTargetsPath -Raw | ConvertFrom-Json
+
+    # 1) Enable ONLY the object-access subcategories these SACLs need (by GUID, locale-independent).
+    #    With no SACLs beyond the targeted ones below, these subcategories stay effectively silent.
+    Write-Host "Enabling Object Access subcategories (File System, Registry, Handle Manipulation)..."
+    $subs = @(
+        @{Name="File System";         GUID="0CCE921D-69AE-11D9-BED3-505054503030"},
+        @{Name="Registry";            GUID="0CCE921E-69AE-11D9-BED3-505054503030"},
+        @{Name="Handle Manipulation"; GUID="0CCE9223-69AE-11D9-BED3-505054503030"}
+    )
+    foreach ($s in $subs) {
+        if ($Auto -or $PSCmdlet.ShouldProcess($s.Name, "auditpol enable Success+Failure")) {
+            $p = Start-Process -FilePath "auditpol.exe" -ArgumentList "/set /subcategory:{$($s.GUID)} /success:enable /failure:enable" -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
+            if ($p.ExitCode -eq 0) { Write-Host "[OK] subcategory: $($s.Name)" -ForegroundColor Green }
+            else { Write-Host "[ERROR] subcategory: $($s.Name) (ExitCode $($p.ExitCode))" -ForegroundColor Red }
+        }
+    }
+    Write-Host ""
+
+    $everyone = New-Object System.Security.Principal.SecurityIdentifier("S-1-1-0")
+    $auditFlags = [System.Security.AccessControl.AuditFlags]"Success,Failure"
+
+    # 2) Registry SACLs
+    Write-Host "Applying targeted REGISTRY audit SACLs..."
+    foreach ($t in $targets.registry) {
+        try {
+            if (-not (Test-Path -LiteralPath $t.path)) {
+                Write-Host "[SKIPPED] $($t.path) : key not present on this host" -ForegroundColor DarkYellow; continue
+            }
+            $rights = [System.Security.AccessControl.RegistryRights]($t.rights -join ",")
+            $inh = if ($t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
+            $acl = Get-Acl -LiteralPath $t.path -Audit
+            $already = $acl.Audit | Where-Object { $_.IdentityReference.Value -eq $everyone.Value -and (($_.RegistryRights -band $rights) -eq $rights) -and ($_.AuditFlags -eq $auditFlags) }
+            if ($already) { Write-Host "[SKIPPED] $($t.path) : SACL already present ($($t.note))" -ForegroundColor Yellow; continue }
+            if ($Auto -or $PSCmdlet.ShouldProcess($t.path, "add audit SACL [$($t.rights -join ',')] Everyone Success+Failure")) {
+                $rule = New-Object System.Security.AccessControl.RegistryAuditRule($everyone, $rights, $inh, "None", $auditFlags)
+                $acl.AddAuditRule($rule); Set-Acl -LiteralPath $t.path -AclObject $acl
+                Write-Host "[OK] $($t.path)  ($($t.note))" -ForegroundColor Green
+            }
+        } catch { Write-Host "[ERROR] $($t.path) : $_" -ForegroundColor Red }
+    }
+    Write-Host ""
+
+    # 3) File / directory SACLs
+    Write-Host "Applying targeted FILE audit SACLs..."
+    foreach ($t in $targets.files) {
+        try {
+            if (-not (Test-Path -LiteralPath $t.path)) {
+                Write-Host "[SKIPPED] $($t.path) : path not present on this host" -ForegroundColor DarkYellow; continue
+            }
+            $isDir = (Get-Item -LiteralPath $t.path -Force).PSIsContainer
+            $rights = [System.Security.AccessControl.FileSystemRights]($t.rights -join ",")
+            $inh = if ($isDir -and $t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
+            $acl = Get-Acl -LiteralPath $t.path -Audit
+            $already = $acl.Audit | Where-Object { $_.IdentityReference.Value -eq $everyone.Value -and (($_.FileSystemRights -band $rights) -eq $rights) -and ($_.AuditFlags -eq $auditFlags) }
+            if ($already) { Write-Host "[SKIPPED] $($t.path) : SACL already present ($($t.note))" -ForegroundColor Yellow; continue }
+            if ($Auto -or $PSCmdlet.ShouldProcess($t.path, "add audit SACL [$($t.rights -join ',')] Everyone Success+Failure")) {
+                $rule = New-Object System.Security.AccessControl.FileSystemAuditRule($everyone, $rights, $inh, "None", $auditFlags)
+                $acl.AddAuditRule($rule); Set-Acl -LiteralPath $t.path -AclObject $acl
+                Write-Host "[OK] $($t.path)  ($($t.note))" -ForegroundColor Green
+            }
+        } catch { Write-Host "[ERROR] $($t.path) : $_" -ForegroundColor Red }
+    }
+    Write-Host ""
+    Write-Host "Done. Targeted object-access auditing is enabled without global file/registry auditing." -ForegroundColor Cyan
+    Write-Host "Note: per-user (HKCU / profile AppData) objects are out of scope for a machine-wide SACL policy." -ForegroundColor DarkCyan
+}
+
 $usage = @"
 Usage:
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
@@ -1293,6 +1399,8 @@ Usage:
   ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
   ./WELA.ps1 configure -Baseline YamatoSecurity          # Configure audit settings based on the specified baseline
   ./WELA.ps1 configure -Baseline YamatoSecurity -Auto    # Configure audit settings automatically without prompts
+  ./WELA.ps1 configure-sacl                              # Add targeted File System/Registry audit SACLs (ASEP keys + sensitive files) needed by the rules, without global auditing
+  ./WELA.ps1 configure-sacl -Auto                        # ...automatically without prompts
   ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
@@ -1361,6 +1469,25 @@ switch ($Cmd.ToLower()) {
             break
         }
         ConfigureAuditSettings -Auto:$Auto -Debug:$Debug
+    }
+
+    "configure-sacl" {
+        if ($Help){
+            Write-Host "Add TARGETED object-access audit SACLs so File System (4663) / Registry (4657) /"
+            Write-Host "Handle Manipulation (4656) auditing fires only on the specific autostart/persistence"
+            Write-Host "registry keys and sensitive files the Hayabusa/Sigma rules watch - never globally."
+            Write-Host ""
+            Write-Host "Usage: ./WELA.ps1 configure-sacl [-Auto]"
+            Write-Host ""
+            Write-Host "Options:"
+            Write-Host "  -Auto        Apply without per-object prompts"
+            Write-Host ""
+            Write-Host "Targets are defined in config/audit_sacl_targets.json (edit to customize)."
+            Write-Host "Objects absent on the host are skipped; per-user HKCU/AppData objects are out of scope."
+            Write-Host ""
+            return
+        }
+        Set-AuditSacl -Auto:$Auto
     }
 
     "update-rules" {
