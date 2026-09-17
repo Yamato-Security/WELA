@@ -1417,16 +1417,18 @@ function Set-AuditSacl {
         @{Name="Registry";            GUID="0CCE921E-69AE-11D9-BED3-505054503030"},
         @{Name="Handle Manipulation"; GUID="0CCE9223-69AE-11D9-BED3-505054503030"}
     )
+    $subFailed = $false
     foreach ($s in $subs) {
         $p = Start-Process -FilePath "auditpol.exe" -ArgumentList "/set /subcategory:{$($s.GUID)} /success:enable /failure:enable" -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
         if ($p.ExitCode -eq 0) { Write-Host "[OK] subcategory: $($s.Name)" -ForegroundColor Green }
-        else { Write-Host "[ERROR] subcategory: $($s.Name) (ExitCode $($p.ExitCode))" -ForegroundColor Red }
+        else { $subFailed = $true; Write-Host "[ERROR] subcategory: $($s.Name) (ExitCode $($p.ExitCode)) -- its SACLs will NOT produce events" -ForegroundColor Red }
     }
     Write-Host ""
 
     # 2) Machine registry SACLs (absent keys are provisioned so future writes are audited)
     Write-Host "Applying targeted machine REGISTRY audit SACLs..."
     foreach ($t in $targets.registry) {
+        if ($t.path -match 'Wow6432Node' -and -not [System.Environment]::Is64BitOperatingSystem) { continue }  # WOW64 view absent on 32-bit
         $rights = [System.Security.AccessControl.RegistryRights]($t.rights -join ",")
         $inh = if ($t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
         $sub = $t.path -replace '^HKLM:\\', ''
@@ -1437,17 +1439,18 @@ function Set-AuditSacl {
     # 3) Machine file / directory SACLs (absent sensitive files are skipped, never created)
     Write-Host "Applying targeted machine FILE audit SACLs..."
     foreach ($t in $targets.files) {
+        $path = [System.Environment]::ExpandEnvironmentVariables($t.path)   # e.g. %SystemRoot% -> the real system drive
         try {
-            if (-not (Test-Path -LiteralPath $t.path)) { Write-Host "[SKIPPED] $($t.path) : not present on this host" -ForegroundColor DarkYellow; continue }
-            $isDir = (Get-Item -LiteralPath $t.path -Force).PSIsContainer
+            if (-not (Test-Path -LiteralPath $path)) { Write-Host "[SKIPPED] $path : not present on this host" -ForegroundColor DarkYellow; continue }
+            $isDir = (Get-Item -LiteralPath $path -Force).PSIsContainer
             $rights = [System.Security.AccessControl.FileSystemRights]($t.rights -join ",")
             $inh = if ($isDir -and $t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
-            $acl = Get-Acl -LiteralPath $t.path -Audit
-            if (Test-WelaAuditRulePresent $acl.Audit $everyone.Value ([int]$rights) 'FileSystemRights' $inh $auditFlags) { Write-Host "[SKIPPED] $($t.path) : SACL already present ($($t.note))" -ForegroundColor Yellow; continue }
+            $acl = Get-Acl -LiteralPath $path -Audit
+            if (Test-WelaAuditRulePresent $acl.Audit $everyone.Value ([int]$rights) 'FileSystemRights' $inh $auditFlags) { Write-Host "[SKIPPED] $path : SACL already present ($($t.note))" -ForegroundColor Yellow; continue }
             $rule = New-Object System.Security.AccessControl.FileSystemAuditRule($everyone, $rights, $inh, "None", $auditFlags)
-            $acl.AddAuditRule($rule); Set-Acl -LiteralPath $t.path -AclObject $acl
-            Write-Host "[OK] $($t.path)  ($($t.note))" -ForegroundColor Green
-        } catch { Write-Host "[ERROR] $($t.path) : $_" -ForegroundColor Red }
+            $acl.AddAuditRule($rule); Set-Acl -LiteralPath $path -AclObject $acl
+            Write-Host "[OK] $path  ($($t.note))" -ForegroundColor Green
+        } catch { Write-Host "[ERROR] $path : $_" -ForegroundColor Red }
     }
     Write-Host ""
 
@@ -1500,8 +1503,14 @@ function Set-AuditSacl {
                 }
                 finally {
                     if ($loadedHere) {
+                        # release .NET handles before unloading, or 'reg unload' fails and the hive stays mounted
                         [gc]::Collect(); [gc]::WaitForPendingFinalizers()
-                        reg unload "HKU\$mount" 2>&1 | Out-Null
+                        $u = reg unload "HKU\$mount" 2>&1
+                        if ($LASTEXITCODE -ne 0) {
+                            Start-Sleep -Milliseconds 500; [gc]::Collect(); [gc]::WaitForPendingFinalizers()
+                            $u = reg unload "HKU\$mount" 2>&1
+                            if ($LASTEXITCODE -ne 0) { Write-Host "[ERROR] could not unload hive HKU\$mount (it remains mounted!): $u" -ForegroundColor Red }
+                        }
                     }
                 }
             }
@@ -1509,7 +1518,11 @@ function Set-AuditSacl {
         Write-Host ""
     }
 
-    Write-Host "Done. Targeted object-access auditing is enabled without global file/registry auditing." -ForegroundColor Cyan
+    if ($subFailed) {
+        Write-Host "WARNING: one or more Object Access subcategories failed to enable -- SACLs on the affected class will NOT produce events. Fix the auditpol error above and re-run." -ForegroundColor Red
+    } else {
+        Write-Host "Done. Targeted object-access auditing is enabled without global file/registry auditing." -ForegroundColor Cyan
+    }
     Write-Host "Per-user objects were applied to existing profiles and the Default profile (future users)." -ForegroundColor DarkCyan
     Write-Host "Not covered: folder-redirected AppData on network shares, and mandatory profiles." -ForegroundColor DarkCyan
 }
@@ -1521,7 +1534,7 @@ function Get-WelaUserProfiles {
     $pl = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
     foreach ($k in (Get-ChildItem -LiteralPath $pl -ErrorAction SilentlyContinue)) {
         $sid = $k.PSChildName
-        if ($sid -notmatch '^S-1-5-21-') { continue }
+        if ($sid -notmatch '^S-1-(5-21|12-1)-') { continue }   # local/domain (S-1-5-21) + Entra/Azure AD (S-1-12-1) users; skip system SIDs
         $p = (Get-ItemProperty -LiteralPath $k.PSPath -Name ProfileImagePath -ErrorAction SilentlyContinue).ProfileImagePath
         if (-not $p -or -not (Test-Path -LiteralPath $p)) { continue }
         $loaded = Test-Path -LiteralPath "Microsoft.PowerShell.Core\Registry::HKEY_USERS\$sid"
@@ -1623,7 +1636,9 @@ switch ($Cmd.ToLower()) {
             Write-Host "  -Auto        Apply without the confirmation prompt"
             Write-Host ""
             Write-Host "Targets are defined in config/audit_sacl_targets.json (edit to customize; 'update-rules' refreshes it)."
-            Write-Host "Objects absent on the host are skipped; per-user HKCU/AppData objects are out of scope."
+            Write-Host "Per-user HKCU keys and profile AppData ARE covered: applied across every user profile and the"
+            Write-Host "Default profile (so future users inherit). Absent registry ASEP keys are provisioned; absent files"
+            Write-Host "are skipped. Not covered: folder-redirected AppData on network shares, and mandatory profiles."
             Write-Host ""
             return
         }

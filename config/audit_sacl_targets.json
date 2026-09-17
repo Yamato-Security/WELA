@@ -406,7 +406,7 @@
   ],
   "files": [
     {
-      "path": "C:\\Windows\\NTDS",
+      "path": "%SystemRoot%\\NTDS",
       "inherit": true,
       "rights": [
         "ReadData",
@@ -418,7 +418,7 @@
       "note": "AD database dir - ntds.dit theft (T1003.003)"
     },
     {
-      "path": "C:\\Windows\\System32\\config\\SAM",
+      "path": "%SystemRoot%\\System32\\config\\SAM",
       "inherit": false,
       "rights": [
         "ReadData",
@@ -429,7 +429,7 @@
       "note": "SAM hive theft (T1003.002)"
     },
     {
-      "path": "C:\\Windows\\System32\\config\\SECURITY",
+      "path": "%SystemRoot%\\System32\\config\\SECURITY",
       "inherit": false,
       "rights": [
         "ReadData",
@@ -440,7 +440,7 @@
       "note": "SECURITY hive (T1003.004 LSA secrets)"
     },
     {
-      "path": "C:\\Windows\\System32\\config\\SYSTEM",
+      "path": "%SystemRoot%\\System32\\config\\SYSTEM",
       "inherit": false,
       "rights": [
         "ReadData",
@@ -451,7 +451,7 @@
       "note": "SYSTEM hive (boot key for offline SAM)"
     },
     {
-      "path": "C:\\Windows\\System32\\lsass.exe",
+      "path": "%SystemRoot%\\System32\\lsass.exe",
       "inherit": false,
       "rights": [
         "ReadData",
@@ -461,7 +461,7 @@
       "note": "LSASS binary read/replace. NOTE: live LSASS memory/handle access (credential dumping) is better detected via Sysmon EID 10, not a file SACL."
     },
     {
-      "path": "C:\\Windows\\System32\\ntdsutil.exe",
+      "path": "%SystemRoot%\\System32\\ntdsutil.exe",
       "inherit": false,
       "rights": [
         "ExecuteFile"
@@ -469,7 +469,7 @@
       "note": "ntdsutil execution (IFM/ntds.dit dump)"
     },
     {
-      "path": "C:\\Windows\\System32\\vssadmin.exe",
+      "path": "%SystemRoot%\\System32\\vssadmin.exe",
       "inherit": false,
       "rights": [
         "ExecuteFile"
