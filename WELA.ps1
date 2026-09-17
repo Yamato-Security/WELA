@@ -1132,6 +1132,17 @@ function ConfigureAuditSettings {
     )
     Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
 
+    # LDAP query logging (Directory Service EventID 1644) - domain controllers only.
+    # "15 Field Engineering" = 5 makes expensive / inefficient LDAP searches log as 1644, which surfaces
+    # BloodHound / SharpHound-style directory reconnaissance. Only applied where the NTDS role is present.
+    if (Test-Path "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters") {
+        Write-Host "Configuring LDAP query logging (1644) on this domain controller..."
+        Write-Host ""
+        Set-RegistryConfig -RegPaths @(
+            @{Path = "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Diagnostics"; Name = "15 Field Engineering"; Value = 5}
+        ) -Auto:$Auto
+    }
+
     # 監査ポリシーの設定
     Write-Host "Configuring Audit Policies..."
     Write-Host ""
@@ -1146,6 +1157,7 @@ function ConfigureAuditSettings {
         @{Category = "Account Management"; Name = "User Account Management"; GUID = "0CCE9235-69AE-11D9-BED3-505054503030"},
         @{Category = "Detailed Tracking"; Name = "Plug and Play"; GUID = "0cce9248-69ae-11d9-bed3-505054503030"},
         @{Category = "Detailed Tracking"; Name = "Process Creation"; GUID = "0CCE922B-69AE-11D9-BED3-505054503030"},
+        @{Category = "Detailed Tracking"; Name = "Process Termination"; GUID = "0CCE922C-69AE-11D9-BED3-505054503030"},
         @{Category = "Detailed Tracking"; Name = "RPC Events"; GUID = "0CCE922E-69AE-11D9-BED3-505054503030"},
         @{Category = "DS Access"; Name = "Directory Service Access"; GUID = "0CCE923B-69AE-11D9-BED3-505054503030"},
         @{Category = "DS Access"; Name = "Directory Service Changes"; GUID = "0CCE923C-69AE-11D9-BED3-505054503030"},
@@ -1156,6 +1168,7 @@ function ConfigureAuditSettings {
         @{Category = "Logon/Logoff"; Name = "Special Logon"; GUID = "0CCE921B-69AE-11D9-BED3-505054503030"},
         @{Category = "Object Access"; Name = "Certification Services"; GUID = "0CCE9221-69AE-11D9-BED3-505054503030"},
         @{Category = "Object Access"; Name = "File Share"; GUID = "0CCE9224-69AE-11D9-BED3-505054503030"},
+        @{Category = "Object Access"; Name = "Detailed File Share"; GUID = "0CCE9244-69AE-11D9-BED3-505054503030"},
         @{Category = "Object Access"; Name = "Filtering Platform Connection"; GUID = "0CCE9226-69AE-11D9-BED3-505054503030"},
         @{Category = "Object Access"; Name = "Other Object Access Events"; GUID = "0CCE9227-69AE-11D9-BED3-505054503030"},
         @{Category = "Object Access"; Name = "Removable Storage"; GUID = "0CCE9245-69AE-11D9-BED3-505054503030"},
