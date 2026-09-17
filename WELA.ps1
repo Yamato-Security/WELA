@@ -1299,12 +1299,15 @@ function Enable-WelaPrivilege {
 [DllImport("advapi32.dll", SetLastError=true)] public static extern bool LookupPrivilegeValue(string host, string name, out long luid);
 [DllImport("advapi32.dll", SetLastError=true)] public static extern bool AdjustTokenPrivileges(IntPtr tok, bool dis, ref TOKEN_PRIVILEGES np, uint len, IntPtr prev, IntPtr rl);
 [DllImport("kernel32.dll")] public static extern IntPtr GetCurrentProcess();
+// Layout must match native TOKEN_PRIVILEGES exactly: DWORD Count; LUID(LowPart DWORD, HighPart LONG); DWORD Attr.
+// (A single 8-byte 'long' Luid would be 8-byte aligned on x64 and insert padding, misaligning the struct.)
 [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-public struct TOKEN_PRIVILEGES { public uint Count; public long Luid; public uint Attr; }
+public struct TOKEN_PRIVILEGES { public uint Count; public uint LuidLow; public int LuidHigh; public uint Attr; }
 public static bool Enable(string priv) {
     IntPtr tok; if(!OpenProcessToken(GetCurrentProcess(), 0x28, out tok)) return false;
     long luid; if(!LookupPrivilegeValue(null, priv, out luid)) return false;
-    TOKEN_PRIVILEGES tp = new TOKEN_PRIVILEGES(); tp.Count=1; tp.Luid=luid; tp.Attr=0x2;
+    TOKEN_PRIVILEGES tp = new TOKEN_PRIVILEGES();
+    tp.Count=1; tp.LuidLow=(uint)(luid & 0xFFFFFFFF); tp.LuidHigh=(int)(luid >> 32); tp.Attr=0x2;
     bool ok = AdjustTokenPrivileges(tok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
     return ok && System.Runtime.InteropServices.Marshal.GetLastWin32Error() == 0;
 }
@@ -1329,20 +1332,37 @@ function Test-WelaAuditRulePresent {
 }
 
 function Set-RegistryAuditSacl {
-    # Provision the key if absent (ASEPs are often created only when first used - a missing key must
-    # still carry an inheritable SACL so a later attacker write is audited), then add the audit ACE.
-    param([string]$Path, $Rights, $Inh, $Sid, $AuditFlags, [string]$Note)
-    if (-not (Test-Path -LiteralPath $Path)) {
-        New-Item -Path $Path -Force | Out-Null
-        Write-Host "[NEW] provisioned absent key $Path" -ForegroundColor DarkGreen
+    # Add an audit SACL to a registry key using the .NET RegistryKey API. Get-Acl/Set-Acl -Audit is
+    # unreliable on the registry provider, so we open the key with the .NET API (which honors the
+    # enabled SeSecurityPrivilege for SACL read/write). CreateSubKey is idempotent - it opens the key
+    # if it exists and provisions it if absent, so an ASEP created later still inherits the audit ACE.
+    param($BaseKey, [string]$SubPath, $Rights, $Inh, [string]$Sid, $AuditFlags, [string]$Label, [string]$Note)
+    $rk = $null
+    try {
+        # OpenSubKey has the RegistryRights overload (CreateSubKey does not); provision absent keys first.
+        $rights2 = [System.Security.AccessControl.RegistryRights]"ReadPermissions,ChangePermissions"
+        $rk = $BaseKey.OpenSubKey($SubPath, [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree, $rights2)
+        if (-not $rk) {
+            $created = $BaseKey.CreateSubKey($SubPath)   # provision absent ASEP so a later write inherits the SACL
+            if ($created) { $created.Close() }
+            $rk = $BaseKey.OpenSubKey($SubPath, [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree, $rights2)
+        }
+        if (-not $rk) { Write-Host "[ERROR] $Label : cannot open/create key" -ForegroundColor Red; return }
+        $sec = $rk.GetAccessControl([System.Security.AccessControl.AccessControlSections]::Audit)
+        $existing = $sec.GetAuditRules($true, $true, [System.Security.Principal.SecurityIdentifier]) | Where-Object {
+            $_.IdentityReference.Value -eq $Sid -and (([int]$_.RegistryRights -band [int]$Rights) -eq [int]$Rights) -and ($_.InheritanceFlags -eq $Inh) -and (($_.AuditFlags -band $AuditFlags) -eq $AuditFlags) }
+        if ($existing) { Write-Host "[SKIPPED] $Label : SACL already present ($Note)" -ForegroundColor Yellow; return }
+        $rule = New-Object System.Security.AccessControl.RegistryAuditRule((New-Object System.Security.Principal.SecurityIdentifier($Sid)), $Rights, $Inh, "None", $AuditFlags)
+        $sec.AddAuditRule($rule)
+        $rk.SetAccessControl($sec)
+        Write-Host "[OK] $Label  ($Note)" -ForegroundColor Green
     }
-    $acl = Get-Acl -LiteralPath $Path -Audit
-    if (Test-WelaAuditRulePresent $acl.Audit $Sid ([int]$Rights) 'RegistryRights' $Inh $AuditFlags) {
-        Write-Host "[SKIPPED] $Path : SACL already present ($Note)" -ForegroundColor Yellow; return
+    catch {
+        if ("$_" -match 'access is not allowed|Requested registry access') {
+            Write-Host "[SKIPPED] $Label : access denied (tamper-protected key, e.g. Defender Exclusions)" -ForegroundColor DarkYellow
+        } else { Write-Host "[ERROR] $Label : $_" -ForegroundColor Red }
     }
-    $rule = New-Object System.Security.AccessControl.RegistryAuditRule((New-Object System.Security.Principal.SecurityIdentifier($Sid)), $Rights, $Inh, "None", $AuditFlags)
-    $acl.AddAuditRule($rule); Set-Acl -LiteralPath $Path -AclObject $acl
-    Write-Host "[OK] $Path  ($Note)" -ForegroundColor Green
+    finally { if ($rk) { $rk.Close() } }
 }
 
 function Set-AuditSacl {
@@ -1394,11 +1414,10 @@ function Set-AuditSacl {
     # 2) Machine registry SACLs (absent keys are provisioned so future writes are audited)
     Write-Host "Applying targeted machine REGISTRY audit SACLs..."
     foreach ($t in $targets.registry) {
-        try {
-            $rights = [System.Security.AccessControl.RegistryRights]($t.rights -join ",")
-            $inh = if ($t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
-            Set-RegistryAuditSacl -Path $t.path -Rights $rights -Inh $inh -Sid $everyone.Value -AuditFlags $auditFlags -Note $t.note
-        } catch { Write-Host "[ERROR] $($t.path) : $_" -ForegroundColor Red }
+        $rights = [System.Security.AccessControl.RegistryRights]($t.rights -join ",")
+        $inh = if ($t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
+        $sub = $t.path -replace '^HKLM:\\', ''
+        Set-RegistryAuditSacl -BaseKey ([Microsoft.Win32.Registry]::LocalMachine) -SubPath $sub -Rights $rights -Inh $inh -Sid $everyone.Value -AuditFlags $auditFlags -Label $t.path -Note $t.note
     }
     Write-Host ""
 
@@ -1449,7 +1468,7 @@ function Set-AuditSacl {
             foreach ($prof in $profiles) {
                 $loadedHere = $false; $mount = $null
                 if ($prof.Loaded) {
-                    $base = "Microsoft.PowerShell.Core\Registry::HKEY_USERS\$($prof.Sid)"
+                    $userRoot = $prof.Sid
                 } else {
                     $hive = Join-Path $prof.Path "NTUSER.DAT"
                     if (-not (Test-Path -LiteralPath $hive)) { continue }
@@ -1457,16 +1476,13 @@ function Set-AuditSacl {
                     $out = reg load "HKU\$mount" "$hive" 2>&1
                     if ($LASTEXITCODE -ne 0) { Write-Host "[SKIPPED] hive $($prof.Sid) : cannot load ($out)" -ForegroundColor DarkYellow; continue }
                     $loadedHere = $true
-                    $base = "Microsoft.PowerShell.Core\Registry::HKEY_USERS\$mount"
+                    $userRoot = $mount
                 }
                 try {
                     foreach ($t in $targets.user_registry) {
-                        $key = "$base\$($t.key)"
-                        try {
-                            $rights = [System.Security.AccessControl.RegistryRights]($t.rights -join ",")
-                            $inh = if ($t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
-                            Set-RegistryAuditSacl -Path $key -Rights $rights -Inh $inh -Sid $everyone.Value -AuditFlags $auditFlags -Note "$($t.note) [$($prof.Sid)]"
-                        } catch { Write-Host "[ERROR] $($t.key) [$($prof.Sid)] : $_" -ForegroundColor Red }
+                        $rights = [System.Security.AccessControl.RegistryRights]($t.rights -join ",")
+                        $inh = if ($t.inherit) { [System.Security.AccessControl.InheritanceFlags]"ContainerInherit" } else { [System.Security.AccessControl.InheritanceFlags]"None" }
+                        Set-RegistryAuditSacl -BaseKey ([Microsoft.Win32.Registry]::Users) -SubPath "$userRoot\$($t.key)" -Rights $rights -Inh $inh -Sid $everyone.Value -AuditFlags $auditFlags -Label "HKU\$userRoot\$($t.key)" -Note "$($t.note) [$($prof.Sid)]"
                     }
                 }
                 finally {
