@@ -58,6 +58,9 @@ $writer = { param($Guid, $Mask) $script:Writes += $Guid; $script:State[$Guid] = 
 $context = { [pscustomobject]@{ Role = 'Client'; Build = 26100 } }
 $applied = Invoke-WelaAuditProfilePlan -Plan $wela -ReadPolicy $reader -WritePolicy $writer -ReadContext $context -Confirm:$false
 Assert $applied.success 'apply succeeds after verified effective reads'
+$processResult = $applied.results | Where-Object { $_.id -eq 'Process Creation' }
+Assert ($processResult.prerequisites -match 'Command-line' -and $processResult.sourceIds -contains 'wela') 'apply results retain source and event-generation prerequisites'
+Assert ($applied.version -eq $wela.version) 'apply result includes selected source version'
 Assert ($script:Writes.Count -gt 0) 'selected exact policies were applied'
 Assert (@($applied.results | Where-Object { $_.status -eq 'Applied' -and $_.effectiveMask -ne $_.targetMask }).Count -eq 0) 'applied always means verified'
 $count = $script:Writes.Count
@@ -72,6 +75,8 @@ $failed = Invoke-WelaAuditProfilePlan -Plan $wela -ReadPolicy $reader -WritePoli
 Assert (-not $failed.success -and @($failed.results | Where-Object { $_.status -eq 'Failed' }).Count -gt 0) 'native failure is machine-readable'
 $mismatch = Invoke-WelaAuditProfilePlan -Plan $wela -ReadPolicy $reader -WritePolicy { param($Guid, $Mask) } -ReadContext $context -Confirm:$false
 Assert (-not $mismatch.success) 'zero exit without effective change does not count as success'
+$failedProcess = $mismatch.results | Where-Object { $_.id -eq 'Process Creation' }
+Assert ($failedProcess.status -eq 'Failed' -and $null -eq $failedProcess.effectiveMask -and $failedProcess.prerequisites -match 'Command-line') 'failed/unknown effective state still retains prerequisites'
 $script:Writes = @()
 $whatIf = Invoke-WelaAuditProfilePlan -Plan $wela -ReadPolicy $reader -WritePolicy $writer -ReadContext $context -WhatIf
 Assert ($script:Writes.Count -eq 0) 'WhatIf never invokes native writer'

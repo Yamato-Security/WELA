@@ -289,6 +289,15 @@ function Get-WelaSelectedContext {
     Get-WelaHostContext
 }
 
+function Show-WelaAuditProfilePrerequisites {
+    param($Plan)
+    foreach ($policy in $Plan.policies) {
+        if ($policy.prerequisites -and ($policy.mode -in @('exact', 'minimum') -or ($policy.mode -eq 'optional' -and $Plan.includeOptional))) {
+            Write-Host "Prerequisite - $($policy.id): $($policy.prerequisites)" -ForegroundColor DarkYellow
+        }
+    }
+}
+
 function Invoke-WelaProfileCommand {
     param([string]$Command)
     if ($script:Baseline) { throw "Use -Profile or -Baseline, not both. Versioned profiles cover advanced audit policy only." }
@@ -305,6 +314,7 @@ function Invoke-WelaProfileCommand {
     $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional
     Write-Host "Profile: $($plan.profile); role: $($plan.role); build: $($plan.build)"
     Write-Host "Scope: advanced audit policy only. Channels, command-line capture, PowerShell, NTLM, SACLs, CA AuditFilter and forwarding are separate."
+    Show-WelaAuditProfilePrerequisites -Plan $plan
     $result = $plan
     if ($Command -eq 'configure') {
         if (-not (TestAdministrator)) { throw "Configuring advanced audit policy requires Administrator privileges." }
@@ -1393,6 +1403,7 @@ function ConfigureAuditSettings {
 
     # Audit and configure consume the same versioned policy definition.
     Write-Host "Configuring advanced audit policy from wela-2.2.0..."
+    Show-WelaAuditProfilePrerequisites -Plan $profilePlan
     $profileResult = Invoke-WelaAuditProfilePlan -Plan $profilePlan -Confirm:(-not $Auto)
     $profileResult.results | Format-Table id, beforeMask, targetMask, effectiveMask, status -AutoSize
     if (-not $profileResult.success) { throw "Advanced audit-policy configuration failed. Review effective-state results above." }
