@@ -53,7 +53,7 @@ was already written.
 
 Each line of `before.jsonl` records the computer, timestamp, control identity,
 requested setting and exact pre-change state. Registry entries include whether the
-key/value existed and the previous registry type. Event-log entries capture size or
+key/value existed and the previous registry type. Event-log entries capture size, mode or
 enabled state; audit policies capture the numeric mask; CA entries also capture
 service state. A journal write failure prevents that control's mutation. The
 journal is per control, not a full system backup, and can contain records for failed
@@ -70,7 +70,10 @@ GPO change and could interrupt certificate services. Before recovery:
    Do not blindly replay a journal or restore an entire audit policy backup.
 3. Restore only the intended controls, normally in reverse application order:
    - **EventLog:** `wevtutil sl <log> /ms:<previous-bytes>` or `/e:<previous-bool>`.
-     Review shrinking buffers or disabling a channel before proceeding.
+     Profile size/mode entries include a complete state object; see
+     [event-log recovery](eventlog-settings.md#recovery) for mode flags and the
+     fresh `ImmediatePreWrite` journal record. Review shrinking buffers, changing
+     retention or disabling a channel before proceeding.
    - **AuditPolicy:** `auditpol /set /subcategory:{<guid>} /success:<enable|disable>
      /failure:<enable|disable>`. Previous mask bit 1 means success, bit 2 means
      failure. Restore that subcategory, not unrelated policy.
@@ -146,8 +149,8 @@ selection behavior while adding shared execution and recovery reporting.
 paths without touching Windows policy, including exact/minimum behavior, concurrent
 flags, unknown-state preflight, reference-only defaults, metadata and dry runs.
 
-`-DryRun` is supported only by `configure`, including its `-Profile` form. Other
-commands reject the flag before dispatch, so `configure-sacl -DryRun` and
+`-DryRun` is supported by `configure`, including its `-Profile` form, and by
+`configure-eventlogs`. Other commands reject the flag before dispatch, so `configure-sacl -DryRun` and
 `update-rules -DryRun` cannot silently perform their normal mutations.
 
 Outgoing `PreserveOrAudit` checks the shared runner's fresh registry snapshot and

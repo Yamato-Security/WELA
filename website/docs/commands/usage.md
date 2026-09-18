@@ -24,14 +24,24 @@ Check with Microsoft's recommended Client OS settings and display results in tab
 ./WELA.ps1 audit-settings -Baseline Microsoft_Client -OutType table
 ```
 
-## audit-filesize
-The `audit-filesize` command checks the Windows event logs' file size and compares them with the recommended settings from Yamato Security's recommendations.
+## audit-filesize and configure-eventlogs
 
-### `audit-filesize` command examples
-Check the Windows event log file size with Yamato Security's recommendations and save results to CSV:  
+`audit-filesize` reads live event-log sizes and retention modes using the same
+profile as configuration, preserving exact byte counts in its CSV output.
+Use `eventlog-profiles` to list the separate `-LogProfile` choices. The existing
+`-Profile` option selects advanced audit policy only.
+
+```powershell
+./WELA.ps1 audit-filesize -LogProfile wela-source-2.2.0
+./WELA.ps1 configure-eventlogs -LogProfile asd-source-2021-10 -DryRun
+./WELA.ps1 configure-eventlogs -LogProfile asd-collector-archive-2021-10 -ApplyLogMode
 ```
-./WELA.ps1 audit-filesize -Baseline YamatoSecurity
-```
+
+`configure-eventlogs` preserves larger buffers and current modes by default.
+`-ResizeLogs` explicitly permits shrinking; `-ApplyLogMode` explicitly applies
+source circular or collector archive behavior. Retention days remain unknown
+until event volume and archive retention are measured. See the
+[event-log profiles and recovery guide](https://github.com/Yamato-Security/WELA/blob/dev/docs/eventlog-settings.md).
 
 ## configure
 The `configure` command sets the recommended Windows event log audit policy and file size.
