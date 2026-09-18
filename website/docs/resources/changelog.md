@@ -7,6 +7,7 @@
 
 **Improvements:**
 
+- Added six native Windows audit subcategories to WELA's profile: Group Membership and Authorization Policy Change (Success), plus Application Group Management, MPSSVC Rule-Level Policy Change, IPsec Driver and Kernel Object (Success and Failure). Source-specific profiles retain their own audit settings and prerequisites; Kernel Object events require matching object SACLs, which this change does not create. (#391) (@Shirofune-Security)
 - Added `-DryRun` and `-ResultsPath` to `configure` and `configure -Profile` to preview changes without modifying Windows settings and export per-control results as JSON. Commands that do not support `-DryRun` reject it before running. (#392) (@Shirofune-Security)
 - Added `-BackupPath` and a recovery journal that records each control's previous state before making changes, with a documented manual recovery procedure. (#392) (@Shirofune-Security)
 - Added a `configure-sacl` command that sets targeted audit SACLs on the autostart/persistence registry keys and sensitive files the detection rules watch, so File System (4663), Registry (4657) and Handle Manipulation (4656) auditing produce useful events without enabling global object auditing. It covers machine-wide objects plus per-user HKCU keys and profile AppData across all user profiles and the Default profile (so future users inherit the SACL). Targets live in `config/audit_sacl_targets.json`. (#361) (@YamatoSecurity)
