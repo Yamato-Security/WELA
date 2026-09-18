@@ -57,7 +57,7 @@
 
 **New Features:**
 
-- Profile plan/audit/configure now include read-only targeted SACL prerequisites with object policy masks, per-user hive and redirected-folder gaps, exact WEF Run/RunOnce audit entries, and an explicit `-SaclMode Skip`. No SACL writes or unverified detection uplift are implied. (issue #373) (@Shirofune-Security)
+- Profile plan/audit/configure now include read-only targeted SACL prerequisites with object policy masks, per-user hive and redirected-folder gaps, exact WEF Run/RunOnce audit entries, and an explicit `-SaclMode Skip`. No SACL writes or unverified detection uplift are implied. (#398) (@Shirofune-Security)
 
 
 - Support for MITRE ATT&CK Navigator heatmaps. (#11) (@fukusuket)
