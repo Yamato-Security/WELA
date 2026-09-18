@@ -145,3 +145,14 @@ selection behavior while adding shared execution and recovery reporting.
 `tests/IntegrationProfileConfiguration.Tests.ps1` tests the composed command
 paths without touching Windows policy, including exact/minimum behavior, concurrent
 flags, unknown-state preflight, reference-only defaults, metadata and dry runs.
+
+`-DryRun` is supported only by `configure`, including its `-Profile` form. Other
+commands reject the flag before dispatch, so `configure-sacl -DryRun` and
+`update-rules -DryRun` cannot silently perform their normal mutations.
+
+Outgoing `PreserveOrAudit` checks the shared runner's fresh registry snapshot and
+checks again after prompting and journaling, immediately before the value write.
+Newly observed deny or unknown states are preserved or refused with an explicit
+result; changing them requires an explicit `Audit` or `Deny` choice. Windows does
+not provide an atomic compare-and-set through this registry provider, so a
+concurrent writer after the final check remains outside this guarantee.
