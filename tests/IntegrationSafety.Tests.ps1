@@ -1,6 +1,8 @@
 # Safety regressions use extracted dispatcher statements with stub mutators and mocked registry APIs.
 # Never dot-source WELA or invoke configure-sacl/update-rules implementations from this test.
 $ErrorActionPreference = 'Stop'
+# Keep mocks in the same script scope as dot-sourced helpers/imported commands;
+# Windows PowerShell 5.1 resolves script-local originals ahead of global mocks.
 $repo = Split-Path $PSScriptRoot -Parent
 $tokens = $null; $errors = $null
 $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'WELA.ps1'), [ref]$tokens, [ref]$errors)
@@ -54,26 +56,26 @@ function New-RaceContext([switch]$Prompt) {
     $script:cleanup.Add($path)
     New-WelaConfigurationContext -Auto:(-not $Prompt) -BackupPath $path
 }
-function global:Get-WelaOutgoingNtlmState {
+function Get-WelaOutgoingNtlmState {
     # The first display is deliberately stale; the shared runner must trust its own fresh read.
     [pscustomobject]@{ Readable = $true; Value = 0; Description = 'Allow all (initial read)'; PolicySource = 'mock' }
 }
-function global:Get-WelaRegistryState {
+function Get-WelaRegistryState {
     param($Path, $Name)
     if ($script:journalWritten -and $script:prewriteReadFails) { throw 'Mock prewrite read failure' }
     [pscustomobject]@{ KeyExists = $true; ValueExists = $true; Value = $script:value; Type = $script:type }
 }
-function global:New-WelaRegistryKey { param($Path) }
-function global:Set-ItemProperty {
+function New-WelaRegistryKey { param($Path) }
+function Set-ItemProperty {
     param($LiteralPath, $Name, $Value, $Type, $ErrorAction)
     $script:value = $Value; $script:type = $Type; $script:writes++
 }
-function global:Read-Host {
+function Read-Host {
     param($Prompt)
     if ($null -ne $script:changeOnPrompt) { $script:value = $script:changeOnPrompt }
     return 'Y'
 }
-function global:Add-Content {
+function Add-Content {
     param($LiteralPath, $Value, $Encoding, $ErrorAction)
     process {
         # Preserve real temporary recovery files; only the mocked policy state changes.

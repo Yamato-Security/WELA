@@ -1,5 +1,7 @@
 # Composed #362/#363/#365 behavior, using mock registry/CIM and temporary journals only.
 $ErrorActionPreference = 'Stop'
+# Keep mocks in the same script scope as dot-sourced helpers/imported commands;
+# Windows PowerShell 5.1 resolves script-local originals ahead of global mocks.
 $repo = Split-Path $PSScriptRoot -Parent
 $script:ScriptRoot = $repo
 . (Join-Path $repo 'scripts/Configuration.ps1')
@@ -29,30 +31,30 @@ function Reset-Mocks($Outgoing = 0, $Domain = 2, $ProductType = 2) {
     $script:writes = 0; $script:readFails = $false; $script:writeFails = ''
     $script:roleFails = $false
 }
-function global:Get-CimInstance {
+function Get-CimInstance {
     param($ClassName, $Property, $Namespace, $ErrorAction)
     if ($ClassName -eq 'Win32_OperatingSystem') {
         if ($script:roleFails) { throw 'Mock role query failure' }
         return [pscustomobject]@{ ProductType = $script:productType }
     }
 }
-function global:Test-Path {
+function Test-Path {
     param($LiteralPath, $Path, $ErrorAction)
     $target = if ($LiteralPath) { $LiteralPath } else { $Path }
     if ($target -like 'HKLM:*') { return $true }
     Microsoft.PowerShell.Management\Test-Path -LiteralPath $target
 }
-function global:Get-ItemProperty {
+function Get-ItemProperty {
     param($LiteralPath, $ErrorAction)
     if ($script:readFails) { throw 'Mock registry read failure' }
     return [pscustomobject]$script:registry
 }
-function global:Get-WelaRegistryState {
+function Get-WelaRegistryState {
     param($Path, $Name)
     if ($script:readFails) { throw 'Mock registry read failure' }
     [pscustomobject]@{ KeyExists = $true; ValueExists = ($null -ne $script:registry[$Name]); Value = $script:registry[$Name]; Type = 'DWord' }
 }
-function global:Set-ItemProperty {
+function Set-ItemProperty {
     param($LiteralPath, $Name, $Value, $Type, $ErrorAction)
     # Assert the actual mutation cannot run before its matching journal entry.
     $journal = Join-Path $script:currentContext.BackupPath 'before.jsonl'

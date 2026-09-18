@@ -1,5 +1,7 @@
 # Profile command + verified configuration integration. No Windows policy is touched.
 $ErrorActionPreference = 'Stop'
+# Keep mocks in the same script scope as dot-sourced helpers/imported commands;
+# Windows PowerShell 5.1 resolves script-local originals ahead of global mocks.
 $repo = Split-Path $PSScriptRoot -Parent
 $script:ScriptRoot = $repo
 Import-Module (Join-Path $repo 'modules/AuditProfiles.psm1') -Force
@@ -44,16 +46,16 @@ function Reset-Run([string]$Profile = 'cis-win11-v4-l1', [switch]$DryRun) {
     $script:cleanup.Add($script:BackupPath)
     $script:cleanup.Add($script:ResultsPath)
 }
-function global:TestWindows { return $true }
-function global:TestAdministrator { return $true }
-function global:Get-WelaHostContext { [pscustomobject]@{ Role = 'Client'; Build = $script:hostBuild } }
-function global:Get-WelaEffectiveAuditPolicy { return $script:state.Clone() }
-function global:Get-WelaNativeAuditPolicy {
+function TestWindows { return $true }
+function TestAdministrator { return $true }
+function Get-WelaHostContext { [pscustomobject]@{ Role = 'Client'; Build = $script:hostBuild } }
+function Get-WelaEffectiveAuditPolicy { return $script:state.Clone() }
+function Get-WelaNativeAuditPolicy {
     param($Guid)
     if (-not $script:state.ContainsKey($Guid)) { throw "Mock missing policy: $Guid" }
     return $script:state[$Guid]
 }
-function global:Invoke-WelaNative {
+function Invoke-WelaNative {
     param($FilePath, $Arguments)
     if ($FilePath -ne 'auditpol.exe' -or $Arguments[0] -ne '/set') { throw 'Unexpected native mutation' }
     $guid = ($Arguments | Where-Object { $_ -like '/subcategory:*' }) -replace '^/subcategory:\{([^}]+)\}$', '$1'
