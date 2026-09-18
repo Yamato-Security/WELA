@@ -9,11 +9,11 @@ permissions:
 jobs:
   test:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        shell: [powershell, pwsh]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Test outgoing NTLM policy without changing host settings
-        shell: ${{ matrix.shell }}
+      - name: Test outgoing NTLM policy in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/OutgoingNtlm.Tests.ps1
+      - name: Test outgoing NTLM policy in PowerShell 7
+        shell: pwsh
         run: ./tests/OutgoingNtlm.Tests.ps1
