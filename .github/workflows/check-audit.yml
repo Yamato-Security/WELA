@@ -46,7 +46,23 @@ jobs:
           $PSVersionTable.PSVersion
         shell: powershell
 
-      - name: Run congiure command(PowerShell 5.1)
+      - name: Install the DFS Namespace role for the full configuration smoke test
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # The full profile includes DFSN/Admin; hosted images differ in role availability.
+          # https://learn.microsoft.com/en-us/windows-server/storage/dfs-namespaces/dfs-overview
+          $feature = Get-WindowsFeature -Name FS-DFS-Namespace -ErrorAction Stop
+          if (-not $feature) { throw 'The DFS Namespace role is unavailable on this test host.' }
+          if (-not $feature.Installed) {
+            $result = Install-WindowsFeature -Name FS-DFS-Namespace -ErrorAction Stop
+            if (-not $result.Success -or $result.RestartNeeded -ne 'No') {
+              throw 'DFS Namespace setup failed or requires a restart; the smoke-test fixture is not ready.'
+            }
+          }
+          Get-WinEvent -ListLog 'Microsoft-Windows-DFSN-Server/Admin' -ErrorAction Stop | Out-Host
+
+      - name: Run configure command(PowerShell 5.1)
         run: |
           ./WELA.ps1 configure -Baseline YamatoSecurity -Auto
         shell: powershell
