@@ -65,7 +65,9 @@ function Get-WelaChannelAccessPlan {
         if ($unknownAce) { throw 'An unknown ACE requires manual review; the descriptor is preserved without mutation.' }
         if ($deny) { throw 'A read-deny ACE may affect the forwarding token; the descriptor is preserved for manual review.' }
         if ($grant) { $result.State = 'GrantPresent'; return [pscustomobject]$result }
-        $copy = [System.Security.AccessControl.RawSecurityDescriptor]::new((Get-WelaDescriptorBytes $original), 0)
+        # Bind the binary overload explicitly on Windows PowerShell 5.1.
+        [byte[]]$originalBytes = Get-WelaDescriptorBytes $original
+        $copy = [System.Security.AccessControl.RawSecurityDescriptor]::new($originalBytes, 0)
         $newAce = [System.Security.AccessControl.CommonAce]::new(
             [System.Security.AccessControl.AceFlags]::None,
             [System.Security.AccessControl.AceQualifier]::AccessAllowed, 1,
@@ -84,7 +86,7 @@ function Get-WelaChannelAccessPlan {
         }
         $result.State = 'GrantRequired'; $result.ProposedDescriptor = $sddl; $result.AddedAceIndex = $index
     } catch {
-        $result.State = 'ManualReview'; $result.Diagnostic = $_.Exception.Message
+        $result.State = 'ManualReview'; $result.Diagnostic = $_.Exception.Message + ' [' + $_.InvocationInfo.ScriptLineNumber + ']'
     }
     [pscustomobject]$result
 }
