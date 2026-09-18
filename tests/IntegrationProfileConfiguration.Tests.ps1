@@ -1,3 +1,5 @@
+. (Join-Path $PSScriptRoot '../scripts/TargetedSaclPlanning.ps1')
+$script:SaclMode = 'Skip'
 # Profile command + verified configuration integration. No Windows policy is touched.
 $ErrorActionPreference = 'Stop'
 # Keep mocks in the same script scope as dot-sourced helpers/imported commands;

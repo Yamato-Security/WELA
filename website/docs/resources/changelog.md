@@ -59,6 +59,9 @@
 
 **New Features:**
 
+- Profile plan/audit/configure now include read-only targeted SACL prerequisites with object policy masks, per-user hive and redirected-folder gaps, exact WEF Run/RunOnce audit entries, and an explicit `-SaclMode Skip`. User-file targets retain their configured suffix under the user's AppData or Startup known folder; unsupported or ambiguous paths remain unresolved. No SACL writes or unverified detection uplift are implied. (#398) (@Shirofune-Security)
+
+
 - Support for MITRE ATT&CK Navigator heatmaps. (#11) (@fukusuket)
 - Added a `configure` command to configure Windows settings to various baselines. (#12) (@fukusuket)
 - Support for Defender for Identity required logs. (#114) (@fukusuket)
