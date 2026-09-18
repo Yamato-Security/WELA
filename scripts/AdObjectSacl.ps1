@@ -223,6 +223,21 @@ function Write-WelaAdSacl {
     $null = $Session.Connection.SendRequest($request)
 }
 
+function Test-WelaAdPkiContainer {
+    param($Session, $Snapshot, [string]$ContainerDn)
+    # A one-level GUID lookup proves parent membership without interpreting DN
+    # text (escaped commas can otherwise impersonate an approved suffix).
+    $escapedGuid = (([guid]$Snapshot.ObjectGuid).ToByteArray() | ForEach-Object { '\{0:X2}' -f $_ }) -join ''
+    $rows = @(Search-WelaAdDirectory -Session $Session -Dn $ContainerDn -Scope OneLevel `
+        -Filter "(objectGUID=$escapedGuid)" -Attributes @('objectGUID'))
+    if ($rows.Count -eq 0) { return $false }
+    if ($rows.Count -ne 1 -or $rows[0].Dn -ine $Snapshot.Dn -or
+        ([guid]::new([byte[]](Get-WelaAdSingleValue $rows[0] 'objectGUID'))).ToString() -ne $Snapshot.ObjectGuid) {
+        throw 'PKI container membership lookup returned an unexpected object identity.'
+    }
+    return $true
+}
+
 function Get-WelaAdSaclPlan {
     param($Session, [string[]]$Profiles, [string[]]$ObjectDn)
     $requests = @()
@@ -250,9 +265,11 @@ function Get-WelaAdSaclPlan {
             } else {
                 $before = Get-WelaAdObjectState $Session $request.Dn
                 $class = $null; $guid = $null
-                if ($before.Classes -contains 'pKICertificateTemplate' -and $before.Dn.EndsWith(",CN=Certificate Templates,CN=Public Key Services,CN=Services,$($Session.ConfigurationDn)", [StringComparison]::OrdinalIgnoreCase)) {
+                if ($before.Classes -contains 'pKICertificateTemplate' -and
+                    (Test-WelaAdPkiContainer $Session $before "CN=Certificate Templates,CN=Public Key Services,CN=Services,$($Session.ConfigurationDn)")) {
                     $class = 'pKICertificateTemplate'; $guid = 'e5209ca2-3bba-11d2-90cc-00c04fd91ab1'
-                } elseif ($before.Classes -contains 'pKIEnrollmentService' -and $before.Dn.EndsWith(",CN=Enrollment Services,CN=Public Key Services,CN=Services,$($Session.ConfigurationDn)", [StringComparison]::OrdinalIgnoreCase)) {
+                } elseif ($before.Classes -contains 'pKIEnrollmentService' -and
+                    (Test-WelaAdPkiContainer $Session $before "CN=Enrollment Services,CN=Public Key Services,CN=Services,$($Session.ConfigurationDn)")) {
                     $class = 'pKIEnrollmentService'; $guid = 'ee4aa692-3bba-11d2-90cc-00c04fd91ab1'
                 } else { throw 'PkiObjects accepts only existing certificate template/enrollment service objects under the selected forest PKI containers.' }
                 if (-not (Test-WelaAdSchemaClass $Session $class $guid)) { throw "PKI schema class missing: $class." }
@@ -295,17 +312,30 @@ function Set-WelaAdSaclControls {
             param($state)
             $before = $state.Observed
             $addition = New-WelaAdSaclAddition $before $state.Entry.Definitions
-            $receipt = [ordered]@{ Version = 1; Kind = 'WelaAdSaclAddition'; Server = $state.Session.Server; Dn = $before.Dn;
-                ObjectGuid = $before.ObjectGuid; Before = $before; AddedAces = $addition.AddedAces; ExpectedBinary = $addition.Binary }
-            # A durable receipt precedes the write, including exact additions for
-            # conservative rollback even if the process stops after LDAP success.
+            $receipt = [ordered]@{ Version = 1; Kind = 'WelaAdSaclAddition'; ReceiptStatus = 'Pending'; Server = $state.Session.Server; Dn = $before.Dn;
+                ObjectGuid = $before.ObjectGuid; Before = $before; AddedAces = $addition.AddedAces; ExpectedBinary = $addition.Binary;
+                ConfirmedUtc = $null; ConfirmedAfter = $null }
+            # Durable intent precedes mutation, but cannot authorize rollback.
+            # A failed/stale request may never have written its intended ACEs.
             $receiptPath = Join-Path $state.Context.BackupPath ('ad-sacl-' + [guid]::NewGuid().ToString('N') + '.json')
             $receipt | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $receiptPath -Encoding UTF8 -ErrorAction Stop
             $fresh = Get-WelaAdObjectState $state.Session $state.Entry.Dn
             if ($fresh.ObjectGuid -ne $before.ObjectGuid -or $fresh.UsnChanged -ne $before.UsnChanged -or $fresh.Descriptor.Binary -ne $before.Descriptor.Binary) { throw 'AD object changed after journaling; no write was sent. Re-audit and retry.' }
             $state.Baseline = $before
             Write-WelaAdSacl $state.Session $before.Dn $addition.Binary
-            "SACL-only write sent; recovery receipt: $receiptPath. Event generation and inheritance propagation remain unverified."
+            $verified = Get-WelaAdObjectState $state.Session $before.Dn
+            if (-not (Test-WelaAdPreserved $before $verified)) { throw 'Existing owner, group, DACL or SACL ACE changed after writing; receipt remains Pending and requires manual recovery review.' }
+            foreach ($definition in $state.Entry.Definitions) {
+                if (-not (Test-WelaAdAcePresent $verified.Descriptor $definition)) { throw 'Requested SACL did not verify after writing; receipt remains Pending and requires manual recovery review.' }
+            }
+            $receipt.ReceiptStatus = 'Confirmed'
+            $receipt.ConfirmedUtc = [DateTime]::UtcNow.ToString('o')
+            $receipt.ConfirmedAfter = $verified
+            $confirmedPath = $receiptPath + '.tmp'
+            $receipt | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $confirmedPath -Encoding UTF8 -ErrorAction Stop
+            # Preserve the complete Pending receipt if confirmation cannot persist.
+            [IO.File]::Replace($confirmedPath, $receiptPath, ($receiptPath + '.pending'))
+            "SACL-only write and read-back verified; confirmed recovery receipt: $receiptPath. Event generation and inheritance propagation remain unverified."
         }
         Invoke-WelaConfigurationControl -Context $Context -Id $id -Kind AdObjectSacl -Target @{ Server = $Session.Server; Dn = $entry.Dn } `
             -Desired $entry.Definitions -Read $read -Compliant $test -Apply $apply -CallbackState $state `
@@ -318,6 +348,9 @@ function Invoke-WelaAdSaclRollback {
     $receipt = Get-Content -LiteralPath $ReceiptPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if ($receipt.Version -ne 1 -or $receipt.Kind -ne 'WelaAdSaclAddition' -or $receipt.Server -ine $Session.Server -or
         -not $receipt.AddedAces.Count -or $receipt.ObjectGuid -ne $receipt.Before.ObjectGuid -or $receipt.Dn -ine $receipt.Before.Dn) { throw 'Invalid receipt, empty additions, or a different DC target.' }
+    if ($receipt.ReceiptStatus -ne 'Confirmed' -or -not $receipt.ConfirmedUtc -or
+        $receipt.ConfirmedAfter.ObjectGuid -ne $receipt.ObjectGuid -or $receipt.ConfirmedAfter.Server -ine $Session.Server -or
+        $receipt.ConfirmedAfter.Dn -ine $receipt.Dn) { throw 'Unconfirmed receipt: automatic rollback cannot establish ACE ownership. Review Pending/failed/interrupted changes manually.' }
     $expected = Get-WelaAdDescriptorInfo $receipt.ExpectedBinary
     # Receipts are recovery evidence, not a general descriptor-restore mechanism.
     $remaining = New-Object 'System.Collections.Generic.List[string]'

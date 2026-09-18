@@ -66,13 +66,15 @@ try {
 
     # Mock the state/transport boundary, retain real ACL transformations and runner.
     $script:state = $after; $script:writes = 0
-    function Get-WelaAdObjectState { param($Session, $Dn) return $script:state }
+    function Get-WelaAdObjectState { param($Session, $Dn) return ($script:state | ConvertTo-Json -Depth 12 | ConvertFrom-Json) }
     function Write-WelaAdSacl { param($Session, $Dn, $Binary)
         $script:writes++; $script:state.Descriptor = Get-WelaAdDescriptorInfo $Binary; $script:state.UsnChanged = '101'
+        if ($script:corruptRollback) { $script:state.Descriptor.Owner = 'S-1-5-19' }
     }
     $session.Writable = $true
     $receiptPath = Join-Path $root 'receipt.json'
-    [pscustomobject]@{ Version = 1; Kind = 'WelaAdSaclAddition'; Server = $before.Server; Dn = $before.Dn; ObjectGuid = $before.ObjectGuid;
+    [pscustomobject]@{ Version = 1; Kind = 'WelaAdSaclAddition'; ReceiptStatus = 'Confirmed'; ConfirmedUtc = [DateTime]::UtcNow.ToString('o');
+        ConfirmedAfter = $after; Server = $before.Server; Dn = $before.Dn; ObjectGuid = $before.ObjectGuid;
         Before = $before; AddedAces = $addition.AddedAces; ExpectedBinary = $addition.Binary } | ConvertTo-Json -Depth 12 | Set-Content $receiptPath -Encoding UTF8
     $ctx = New-WelaConfigurationContext -Auto -BackupPath (Join-Path $root 'rollback')
     Invoke-WelaAdSaclRollback $session $ctx $receiptPath
@@ -89,5 +91,10 @@ try {
     $ctx = New-WelaConfigurationContext -Auto -BackupPath (Join-Path $root 'rollback-drift')
     Invoke-WelaAdSaclRollback $session $ctx $receiptPath
     Assert ($ctx.Results[0].Status -eq 'Failed' -and $script:writes -eq 1) 'rollback refuses ambiguous intervening SACL changes'
+    $script:state.Descriptor = Get-WelaAdDescriptorInfo $addition.Binary
+    $script:corruptRollback = $true
+    $ctx = New-WelaConfigurationContext -Auto -BackupPath (Join-Path $root 'rollback-corruption')
+    Invoke-WelaAdSaclRollback $session $ctx $receiptPath
+    Assert ($ctx.Results[0].Status -eq 'Failed' -and $ctx.Results[0].Diagnostic -like '*Owner/group/DACL*') 'independent rollback snapshot detects owner corruption'
     Write-Host "Passed $script:checks native Windows AD descriptor/LDAP tests. No AD bind or live mutation occurred."
 } finally { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }

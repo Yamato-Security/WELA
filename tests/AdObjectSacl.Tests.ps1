@@ -20,7 +20,7 @@ $script:originalInfo = ${function:Get-WelaAdDescriptorInfo}
 function Reset-Mocks {
     $script:writes = 0; $script:reads = 0; $script:readError = $false; $script:writeError = $false
     $script:race = $false; $script:finalDrift = $false; $script:badReadback = $false; $script:removeExisting = $false
-    $script:absentClass = ''; $script:dmsa = $true; $script:exchange = $true; $script:onPrompt = $null
+    $script:absentClass = ''; $script:dmsa = $true; $script:exchange = $true; $script:onPrompt = $null; $script:pkiMember = $true; $script:pkiRequest = $null
     $script:state = [pscustomobject]@{ Server = $session.Server; Dn = $session.DomainDn; ObjectGuid = '01234567-89ab-cdef-0123-456789abcdef'; UsnChanged = '17'; Classes = @('top', 'domainDNS');
         Descriptor = [pscustomobject]@{ Binary = 'before'; Sddl = 'O:SYG:SYD:(A;;GA;;;SY)S:(AU;SA;WP;;;BA)'; Owner = 'S-1-5-18'; Group = 'S-1-5-18'; Dacl = 'unchanged-dacl'; ControlFlags = 32788; Sacl = @('unrelated') } }
     $session.Writable = $true
@@ -30,6 +30,10 @@ function Test-WelaAdDmsaDomain { param($Session) return $script:dmsa }
 function Search-WelaAdDirectory {
     param($Session, $Dn, $Filter, $Scope, $Attributes, [switch]$SecurityDescriptor)
     if ($Filter -eq '(objectClass=msExchOrganizationContainer)' -and $script:exchange) { [pscustomobject]@{ Dn = 'CN=Exchange'; Values = @{} } }
+    if ($Filter -like '(objectGUID=*') {
+        $script:pkiRequest = @{ Dn = $Dn; Scope = $Scope; Filter = $Filter }
+        if ($script:pkiMember) { [pscustomobject]@{ Dn = $script:state.Dn; Values = @{ objectGUID = @(,([guid]$script:state.ObjectGuid).ToByteArray()) } } }
+    }
 }
 function Get-WelaAdObjectState {
     param($Session, $Dn)
@@ -37,7 +41,7 @@ function Get-WelaAdObjectState {
     if ($script:readError) { throw 'LDAP access denied' }
     $snapshot = $script:state | ConvertTo-Json -Depth 10 | ConvertFrom-Json
     if ($script:race -and $script:reads -ge 3) { $snapshot.UsnChanged = '99' }
-    if ($script:finalDrift -and $script:reads -ge 5) { $snapshot.Descriptor.Sacl = @('unrelated'); $snapshot.Descriptor.Binary = 'drift' }
+    if ($script:finalDrift -and $script:reads -ge 6) { $snapshot.Descriptor.Sacl = @('unrelated'); $snapshot.Descriptor.Binary = 'drift' }
     return $snapshot
 }
 function Test-WelaAdAcePresent { param($Descriptor, $Definition) return $Descriptor.Sacl -contains ('added-' + $Definition.Class) }
@@ -90,8 +94,13 @@ try {
     $script:state.Classes = @('top', 'pKICertificateTemplate')
     $plan = @(Get-WelaAdSaclPlan $session @('PkiObjects') @($script:state.Dn))
     Assert ($plan[0].Status -eq 'ChangeRequired' -and $plan[0].Definitions[0].AccessMask -eq 852000 -and $plan[0].Definitions[0].AceFlags -eq 64) 'PKI direct-object write/delete/ACL audit only'
+    Assert ($script:pkiRequest.Scope -eq 'OneLevel' -and $script:pkiRequest.Dn -eq "CN=Certificate Templates,CN=Public Key Services,CN=Services,$($session.ConfigurationDn)" -and
+        $script:pkiRequest.Filter -eq '(objectGUID=\67\45\23\01\AB\89\EF\CD\01\23\45\67\89\AB\CD\EF)') 'PKI membership uses exact parent and byte-escaped object GUID'
+    $script:pkiMember = $false
     $script:state.Dn = "CN=Test,$($session.DomainDn)"
     Assert ((@(Get-WelaAdSaclPlan $session @('PkiObjects') @($script:state.Dn)))[0].Status -eq 'Unknown') 'PKI class outside trusted forest containers refused'
+    $script:state.Dn = "CN=Foo\,CN=Certificate Templates,CN=Public Key Services,CN=Services,$($session.ConfigurationDn)"
+    Assert ((@(Get-WelaAdSaclPlan $session @('PkiObjects') @($script:state.Dn)))[0].Status -eq 'Unknown') 'escaped RDN suffix cannot impersonate approved PKI parent'
     Reset-Mocks; $session.Writable = $false
     Assert ((@(Get-WelaAdSaclPlan $session @('MdiDomain') @()))[0].Status -eq 'Blocked') 'RODC plan explicitly blocked'
     Reset-Mocks; $script:readError = $true
@@ -108,13 +117,26 @@ try {
     $receipts = @(Get-ChildItem $ctx.BackupPath -Filter 'ad-sacl-*.json')
     $receipt = Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
     Assert ($receipt.AddedAces.Count -eq 6 -and $receipt.Before.Descriptor.Binary -eq 'before') 'receipt stores only intended additions and before binary'
+    Assert ($receipt.ReceiptStatus -eq 'Confirmed' -and $receipt.ConfirmedAfter.Descriptor.Binary -eq 'after' -and $receipt.ConfirmedUtc) 'successful write and readback confirm rollback ownership'
     $ctx2 = Get-Context; $report2 = Invoke-TestConfigure $ctx2
     Assert ($script:writes -eq 1 -and $report2.Results[0].Status -eq 'AlreadyCompliant') 'repeat run is idempotent'
     Reset-Mocks; $script:race = $true; $ctx = Get-Context
     $report = Invoke-TestConfigure $ctx
     Assert ($report.ExitCode -eq 1 -and $script:writes -eq 0 -and $report.Results[0].Diagnostic -like '*changed after journaling*') 'USN race fails closed before write'
+    $pendingPath = @(Get-ChildItem $ctx.BackupPath -Filter 'ad-sacl-*.json')[0].FullName
+    Assert ((Get-Content $pendingPath -Raw | ConvertFrom-Json).ReceiptStatus -eq 'Pending') 'stale pre-write receipt remains pending'
+    $script:state.Descriptor.Sacl = @('unrelated') + @(Get-WelaAdAuditDefinitions | ForEach-Object { 'added-' + $_.Class })
+    $script:state.Descriptor.Binary = 'after'
+    Assert-Throws { Invoke-WelaAdSaclRollback $session (Get-Context $true) $pendingPath } 'pending intent cannot authorize rollback of another writers matching ACEs'
+    Reset-Mocks; $script:writeError = $true; $ctx = Get-Context
+    $report = Invoke-TestConfigure $ctx
+    $pendingPath = @(Get-ChildItem $ctx.BackupPath -Filter 'ad-sacl-*.json')[0].FullName
+    Assert ($report.ExitCode -eq 1 -and (Get-Content $pendingPath -Raw | ConvertFrom-Json).ReceiptStatus -eq 'Pending') 'failed LDAP write cannot confirm receipt'
+    Assert-Throws { Invoke-WelaAdSaclRollback $session (Get-Context $true) $pendingPath } 'failed-write receipt cannot authorize automatic rollback'
     Reset-Mocks; $script:badReadback = $true; $ctx = Get-Context
     Assert ((Invoke-TestConfigure $ctx).ExitCode -eq 1) 'missing audit ACE readback fails'
+    $pendingPath = @(Get-ChildItem $ctx.BackupPath -Filter 'ad-sacl-*.json')[0].FullName
+    Assert ((Get-Content $pendingPath -Raw | ConvertFrom-Json).ReceiptStatus -eq 'Pending') 'failed readback leaves receipt pending'
     Reset-Mocks; $script:removeExisting = $true; $ctx = Get-Context
     $report = Invoke-TestConfigure $ctx
     Assert ($report.ExitCode -eq 1 -and $report.Results[0].Diagnostic -like '*Existing owner*') 'loss of pre-existing audit ACE fails verification'
