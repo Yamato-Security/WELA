@@ -15,7 +15,7 @@ $clientBefore = Get-SmbClientConfiguration | Select-Object RequireSecuritySignat
 $plan = @(Get-WelaSmbAuditPlan)
 if ($plan.Count -ne 6) { throw 'Expected all six SMB audit controls.' }
 foreach ($entry in $plan) {
-    if ($entry.Status -notin @('NotApplicable', 'Unknown', 'ChangeRequired', 'Compliant')) { throw 'Unexpected assessment status.' }
+    if ($entry.Status -notin @('NotApplicable', 'Unknown', 'ChangeRequired', 'PolicyConfigured')) { throw 'Unexpected assessment status.' }
     Write-Host "$($entry.Definition.Component)/$($entry.Definition.Name): $($entry.Status); $($entry.Diagnostic)"
     if ($entry.Before.Runtime) { Write-Host "Runtime: $($entry.Before.Runtime.Status) / $($entry.Before.Runtime.Value)" }
 }

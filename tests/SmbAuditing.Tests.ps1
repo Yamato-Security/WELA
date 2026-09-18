@@ -121,8 +121,34 @@ try {
     $script:runtimeFollows = $false
     $context = New-TestContext
     Set-WelaSmbAuditControls $context @(Get-WelaSmbAuditPlan)
-    Assert ($script:writes -eq 6 -and (Complete-WelaConfiguration $context).Failed -eq 6) 'Policy DWORD alone cannot claim effective success when runtime is observably false'
-    Assert ($context.Results[0].After.Policy.Value -eq 1 -and $context.Results[0].After.Runtime.Value -eq $false) 'Failed effective read-back keeps policy and runtime separate'
+    $result = Complete-WelaConfiguration $context
+    Assert ($script:writes -eq 6 -and $result.Failed -eq 0 -and $result.ExitCode -eq 0) 'Correct policy writes succeed independently of synchronous runtime activation'
+    Assert ($context.Results[0].After.Policy.Value -eq 1 -and $context.Results[0].After.Runtime.Value -eq $false) 'Successful policy read-back retains the actual false runtime observation'
+    Assert ($context.Results[0].After.PolicyRegistryConfigured -and $context.Results[0].After.RuntimeState -eq 'PendingVerification') 'Policy configuration and pending runtime verification are distinct'
+    Assert ($context.Results[0].After.Runtime.Diagnostic -match 'cause and activation timing are unknown') 'False runtime state does not assume a refresh will resolve it'
+    $plan = @(Get-WelaSmbAuditPlan)
+    Assert (@($plan | Where-Object Status -eq PolicyConfigured).Count -eq 6) 'Audit/plan reports configured policy despite pending runtime'
+    $context = New-TestContext
+    Set-WelaSmbAuditControls $context $plan
+    Assert ($script:writes -eq 6 -and @($context.Results | Where-Object Status -eq AlreadyCompliant).Count -eq 6) 'Pending runtime alone never causes redundant DWORD writes'
+    $env:OS = 'Windows_NT'
+    $pendingJson = Join-Path $root 'pending-runtime.json'
+    $pendingReport = Invoke-WelaSmbAuditCommand -Action Configure -Auto -BackupPath (Join-Path $root 'pending-runtime-backup') -ResultsPath $pendingJson
+    $savedPending = Get-Content $pendingJson -Raw | ConvertFrom-Json
+    Assert ($pendingReport.ExitCode -eq 0 -and $savedPending.RuntimeVerification.PendingVerification -eq 6 -and $savedPending.RuntimeVerification.Active -eq 0) 'Public JSON explicitly summarizes pending runtime without a policy failure'
+    Assert ($savedPending.VerificationScope -match 'Policy registry.*runtime activation.*separate') 'Public result success is explicitly scoped to the policy registry'
+    foreach ($id in @($script:runtime.Keys)) { $script:runtime[$id] = $true }
+    $later = @(Get-WelaSmbAuditPlan)
+    Assert (@($later | Where-Object { $_.Status -eq 'PolicyConfigured' -and $_.Before.RuntimeState -eq 'Active' }).Count -eq 6) 'A later independent audit observes runtime activation without rewriting policy'
+    $result = Complete-WelaConfiguration $context
+    Assert ($result.ExitCode -eq 0 -and $script:writes -eq 6 -and @($result.Results | Where-Object { $_.After.RuntimeState -eq 'Active' }).Count -eq 6) 'Final recheck records later activation independently of write success'
+    $script:runtime['LanmanServer/AuditClientDoesNotSupportEncryption'] = $false
+    $result = Complete-WelaConfiguration $context
+    Assert ($result.ExitCode -eq 0 -and $result.Results[0].After.RuntimeState -eq 'PendingVerification') 'Runtime returning false remains visible without relabeling an unchanged policy as overridden'
+    $script:runtimeFails = $true
+    Assert ((Complete-WelaConfiguration $context).Failed -eq 6) 'An actual runtime read error still fails the final verification instead of being treated as pending False'
+    $unknownReport = Invoke-WelaSmbAuditCommand -Action Configure -Auto -BackupPath (Join-Path $root 'unknown-runtime-backup')
+    Assert ($unknownReport.ExitCode -eq 1 -and $unknownReport.RuntimeVerification.Unknown -eq 6 -and $unknownReport.RuntimeVerification.Active -eq 0) 'Failed observations summarize as unknown and never reuse an older active runtime snapshot'
 
     Reset-Mocks
     $script:runtimeMissing = $true
@@ -130,6 +156,7 @@ try {
     Set-WelaSmbAuditControls $context @(Get-WelaSmbAuditPlan)
     Assert ((Complete-WelaConfiguration $context).ExitCode -eq 0) 'Exact ADMX permits registry-only configuration when runtime property is absent'
     Assert ($context.Results[0].After.Runtime.Status -eq 'NotExposed' -and $context.Results[0].After.VerificationScope -like '*effective auditing not established*') 'Registry-only outcome never claims runtime confirmation'
+    Assert ($context.Results[0].After.RuntimeState -eq 'Unknown') 'An unavailable runtime property is Unknown rather than Active or pending False'
 
     Reset-Mocks
     $script:wrongTypeWrite = $true

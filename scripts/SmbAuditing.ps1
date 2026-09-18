@@ -77,7 +77,11 @@ function Get-WelaSmbAuditRuntime {
         }
         if ($property.Value -isnot [bool]) { throw 'Runtime audit property is not a Boolean.' }
         $result.Status = 'Observed'; $result.Value = $property.Value
-        $result.Diagnostic = 'Observed runtime configuration, not proof of generated or collected events.'
+        $result.Diagnostic = if ($property.Value) {
+            'Runtime audit Boolean is True; generated or collected events have not been verified.'
+        } else {
+            'Runtime audit Boolean is False; enabled auditing is not currently observed. The cause and activation timing are unknown; a policy refresh or restart is not assumed to resolve this.'
+        }
     } catch { $result.Status = 'Unknown'; $result.Diagnostic = $_.Exception.Message }
     return $result
 }
@@ -90,14 +94,27 @@ function Get-WelaSmbAuditState {
         $policy = Get-WelaRegistryState -Path $Definition.Path -Name $Definition.Name
         $runtime = Get-WelaSmbAuditRuntime -Definition $Definition
     }
-    [pscustomobject]@{ Capability = $capability; Policy = $policy; Runtime = $runtime; VerificationScope = $(if ($runtime -and $runtime.Status -eq 'Observed') { 'Policy registry and observed runtime' } else { 'Policy registry only; effective auditing not established' }) }
+    $policyConfigured = $capability.Status -eq 'Supported' -and $policy.ValueExists -and $policy.Type -eq 'DWord' -and $policy.Value -eq 1
+    $runtimeState = if ($capability.Status -eq 'NotApplicable') { 'NotApplicable' }
+        elseif ($runtime -and $runtime.Status -eq 'Observed' -and $runtime.Value) { 'Active' }
+        elseif ($runtime -and $runtime.Status -eq 'Observed' -and $policyConfigured) { 'PendingVerification' }
+        elseif ($runtime -and $runtime.Status -eq 'Observed') { 'NotActive' }
+        else { 'Unknown' }
+    [pscustomobject]@{
+        Capability = $capability; Policy = $policy; Runtime = $runtime
+        PolicyRegistryConfigured = [bool]$policyConfigured; RuntimeState = $runtimeState
+        VerificationScope = $(if ($runtimeState -eq 'Active') { 'Policy registry and runtime audit flag observed separately; event generation not established' }
+            elseif ($runtimeState -eq 'PendingVerification') { 'Policy registry configured; runtime verification pending (observed False)' }
+            else { 'Policy registry only; effective auditing not established' })
+    }
 }
 
 function Test-WelaSmbAuditCompliance {
     param($Snapshot)
+    # The mutation requests a policy DWORD, not synchronous runtime activation.
+    # Runtime evidence stays separate; read errors still fail in the read callback.
     return $Snapshot.Capability.Status -eq 'Supported' -and $Snapshot.Policy.ValueExists -and
-        $Snapshot.Policy.Type -eq 'DWord' -and $Snapshot.Policy.Value -eq 1 -and
-        ($Snapshot.Runtime.Status -eq 'NotExposed' -or ($Snapshot.Runtime.Status -eq 'Observed' -and $Snapshot.Runtime.Value))
+        $Snapshot.Policy.Type -eq 'DWord' -and $Snapshot.Policy.Value -eq 1
 }
 
 function Get-WelaSmbAuditPlan {
@@ -107,7 +124,7 @@ function Get-WelaSmbAuditPlan {
             $state = Get-WelaSmbAuditState -Definition $definition
             $status = if ($state.Capability.Status -ne 'Supported') { $state.Capability.Status }
                 elseif ($state.Runtime.Status -eq 'Unknown') { 'Unknown' }
-                elseif (Test-WelaSmbAuditCompliance $state) { 'Compliant' } else { 'ChangeRequired' }
+                elseif (Test-WelaSmbAuditCompliance $state) { 'PolicyConfigured' } else { 'ChangeRequired' }
             $diagnostic = if ($state.Capability.Status -ne 'Supported') { $state.Capability.Diagnostic } else { $state.Runtime.Diagnostic }
             [pscustomobject]@{ Definition = $definition; Status = $status; Before = $state; Diagnostic = $diagnostic }
         } catch { [pscustomobject]@{ Definition = $definition; Status = 'Unknown'; Before = $state; Diagnostic = $_.Exception.Message } }
@@ -142,7 +159,7 @@ function Set-WelaSmbAuditControls {
             }
             New-WelaRegistryKey -Path $state.Definition.Path
             Set-ItemProperty -LiteralPath $state.Definition.Path -Name $state.Definition.Name -Type DWord -Value 1 -ErrorAction Stop
-            'Audit policy DWORD written. Runtime may require policy refresh; event generation/collection and policy persistence remain unverified.'
+            'Audit policy DWORD written. Runtime activation is observed separately; its cause/timing, event generation/collection and policy persistence remain unverified.'
         }
         Invoke-WelaConfigurationControl -Context $Context -Id $id -Kind SmbAudit -Target @{ Path = $definition.Path; Name = $definition.Name } `
             -Desired @{ Value = 1; Type = 'DWord' } -Read $read -Compliant $test -Apply $apply -CallbackState $callback `
@@ -158,8 +175,24 @@ function Invoke-WelaSmbAuditCommand {
     if ($Action -eq 'Configure') {
         $context = New-WelaConfigurationContext -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath
         Set-WelaSmbAuditControls -Context $context -Plan $plan
-        Write-Host 'SMB verification covers the policy registry and available runtime properties only. Event generation, collection and persistence after policy refresh are not established.' -ForegroundColor Yellow
-        return Complete-WelaConfiguration -Context $context -ResultsPath $ResultsPath -Scope 'smb-audit-policies-only'
+        $report = Complete-WelaConfiguration -Context $context -Scope 'smb-audit-policies-only' `
+            -SuccessMessage 'SMB policy registry values verified. Runtime activation and event generation are reported separately.'
+        $runtimeSummary = [ordered]@{ Active = 0; PendingVerification = 0; NotActive = 0; Unknown = 0; NotApplicable = 0 }
+        foreach ($row in $report.Results) {
+            # A failed final read can leave an earlier snapshot in After. Do not
+            # promote that stale observation to a successful runtime summary.
+            $snapshot = if ($row.Status -eq 'Failed') { $null } elseif ($row.After) { $row.After } else { $row.Before }
+            $runtimeState = if ($snapshot -and $snapshot.RuntimeState) { $snapshot.RuntimeState } else { 'Unknown' }
+            $runtimeSummary[$runtimeState]++
+        }
+        $report | Add-Member NoteProperty VerificationScope 'Policy registry write/read-back verification; runtime activation and event generation are separate observations.'
+        $report | Add-Member NoteProperty RuntimeVerification ([pscustomobject]$runtimeSummary)
+        Write-Host "SMB runtime observations: $($runtimeSummary.Active) active, $($runtimeSummary.PendingVerification) pending verification, $($runtimeSummary.NotActive) not active, $($runtimeSummary.Unknown) unknown, $($runtimeSummary.NotApplicable) not applicable. Pending means observed False despite policy DWORD 1; the cause and activation timing are unknown. No refresh or restart was performed." -ForegroundColor Yellow
+        if ($ResultsPath) {
+            try { $report | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
+            catch { $report.ExitCode = 1; Write-Host "[Failed] Writing SMB results: $_" -ForegroundColor Red }
+        }
+        return $report
     }
     $report = [pscustomobject]@{ Scope = 'smb-audit-policies-only'; Action = $Action; Controls = $plan; ExitCode = $(if (@($plan | Where-Object Status -eq Unknown).Count) { 1 } else { 0 }) }
     if ($ResultsPath) { $report | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
