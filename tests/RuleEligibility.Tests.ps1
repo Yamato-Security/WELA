@@ -53,6 +53,13 @@ function Reset-Evidence {
 }
 function Assert-NotReady($Message) { Save-Bundle; $r=Report -Evidence; Assert ($r.Summary.Ready -eq 0 -and $r.Results[0].Reasons.Count -gt 0) $Message }
 try {
+    # Construct Unicode explicitly so the test source also loads correctly in
+    # Windows PowerShell 5.1 without relying on a UTF-8 BOM.
+    $hashVector=Fixture-Rule 'hash-vector'
+    $hashVector.title='Apostrophe' + [char]0x27 + 's <node> & "quoted" \ path ' + [char]0x65e5 + [char]0x672c + [char]0x8a9e + [char]::ConvertFromUtf32(0x1f600)
+    $hashVector.description="line`nnext`ttab"
+    $actualMetadataHash=& (Get-Module RuleEligibility) { param($rule) Get-WelaEligibilityRuleHash $rule } $hashVector
+    Assert ($actualMetadataHash -eq '8d81c215ae99b303fd30e346613a35b83a1949d7cfa4f436952ef3079b8d0ded') ("Metadata hash is independent of PowerShell JSON escaping: " + $actualMetadataHash)
     Save-Corpus @(Fixture-Rule)
     $r=Report
     Assert ($r.Summary.Ready -eq 0 -and $r.Results[0].State -eq 'Conditional') 'Lossy metadata cannot demonstrate usable rules.'
@@ -158,7 +165,8 @@ try {
     & $exercise -Cmd rule-eligibility -RuleEvidencePath 'operator.json'
 
     $timer=[Diagnostics.Stopwatch]::StartNew();$full=Get-WelaRuleEligibility
-    Assert ($full.Corpus.Pinned -and $full.Summary.UniqueRules -eq $full.Corpus.Manifest.uniqueRuleCount) 'Full shipped corpus and mapping match the manifest.'
+    $pinDiagnostic='Full shipped corpus/manifest mismatch. Corpus SHA256 actual={0}, expected={1}; mapping SHA256 actual={2}, expected={3}; input count actual={4}, expected={5}; unique count actual={6}, expected={7}.' -f $full.Corpus.Sha256,$full.Corpus.Manifest.corpusSha256,$full.Corpus.MappingSha256,$full.Corpus.Manifest.mappingSha256,$full.Summary.InputRecords,$full.Corpus.Manifest.recordCount,$full.Summary.UniqueRules,$full.Corpus.Manifest.uniqueRuleCount
+    Assert ($full.Corpus.Pinned -and $full.Summary.InputRecords -eq $full.Corpus.Manifest.recordCount -and $full.Summary.UniqueRules -eq $full.Corpus.Manifest.uniqueRuleCount) $pinDiagnostic
     Assert ($full.Summary.Ready -eq 0 -and ($full.Summary.NativeCandidates+$full.Summary.Excluded) -eq $full.Summary.UniqueRules) 'Full corpus is partitioned without unverified detection credit.'
     $json=Join-Path $root 'full.json';$html=Join-Path $root 'full.html'
     Export-WelaRuleEligibility -Report $full -ResultsPath $json -HtmlPath $html

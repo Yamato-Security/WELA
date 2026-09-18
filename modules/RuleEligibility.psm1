@@ -57,7 +57,11 @@ function Get-WelaEligibilityRuleHash {
     foreach ($name in @('id', 'title', 'level', 'category', 'service', 'channel', 'event_ids', 'subcategory_guids', 'description', 'tags')) {
         $ordered[$name] = $Rule.$name
     }
-    Get-WelaEligibilityTextHash (ConvertTo-Json -InputObject $ordered -Depth 12 -Compress)
+    # Windows PowerShell 5.1 uses HTML escaping by default. Require the same
+    # spelling on newer editions so identical metadata has one stable digest.
+    $arguments = @{InputObject=$ordered;Depth=12;Compress=$true}
+    if ((Get-Command ConvertTo-Json).Parameters.ContainsKey('EscapeHandling')) { $arguments.EscapeHandling = 'EscapeHtml' }
+    Get-WelaEligibilityTextHash (ConvertTo-Json @arguments)
 }
 
 function Get-WelaEligibilityArtifact {
@@ -362,7 +366,7 @@ function Get-WelaRuleEligibility {
     [pscustomobject][ordered]@{
         SchemaVersion = 1; GeneratedAtUtc = $Now.ToString('o'); Scope = 'native-windows-rule-eligibility'
         AssessmentBasis = $(if ($EvidencePath) { 'Imported lab artifacts; Ready applies only to the recorded context/time and is not a current-host or universal guarantee.' } else { 'Metadata/configuration assessment only; no event-generation, ingestion or query evidence imported.' })
-        Corpus = [pscustomobject]@{ Sha256 = $corpusHash; MappingSha256 = $mappingHash; Pinned = [bool]$pinned; Manifest = $manifest; Kind = 'WELA extracted Hayabusa rule metadata; not the complete upstream Sigma corpus' }
+        Corpus = [pscustomobject]@{ Sha256 = $corpusHash; MappingSha256 = $mappingHash; Pinned = [bool]$pinned; Manifest = $manifest; MetadataHashAlgorithm = 'ordered-json-html-escaped-utf8-sha256-v1'; Kind = 'WELA extracted Hayabusa rule metadata; not the complete upstream Sigma corpus' }
         RequestedContext = [pscustomobject]@{ Role = $Role; Build = $(if ($Build) { $Build } else { $null }) }
         Summary = [pscustomobject]@{
             InputRecords = $raw.Count; UniqueRules = $rows.Count; DuplicateRecords = $duplicateCount
