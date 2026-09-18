@@ -60,7 +60,9 @@ namespace Wela {
    try {
     if (changed) {
      TokenPrivileges ignored; uint required;
-     if (!AdjustTokenPrivileges(token, false, ref previous, (uint)Marshal.SizeOf(typeof(TokenPrivileges)), out ignored, out required)) throw new Win32Exception(Marshal.GetLastWin32Error());
+     bool ok = AdjustTokenPrivileges(token, false, ref previous, (uint)Marshal.SizeOf(typeof(TokenPrivileges)), out ignored, out required);
+     int error = Marshal.GetLastWin32Error();
+     if (!ok || error != 0) throw new Win32Exception(error, "Restoring SeSecurityPrivilege failed; the previous token state could not be verified.");
     }
    } finally { CloseHandle(token); token=IntPtr.Zero; }
   }
@@ -155,7 +157,10 @@ function Get-WelaWmiNamespaceSnapshot {
         # Strings prevent JSON journal depth truncation of nested, unfamiliar ACEs.
         [pscustomobject]@{ Namespace = $Namespace; DescriptorJson = ConvertTo-WelaWmiJson $data
             DescriptorMof = $descriptor.GetText([System.Management.TextFormat]::Mof); SaclReadPrivilege = 'SeSecurityPrivilege enabled' }
-    } finally { if ($connection) { $connection.Dispose() }; $privilege.Dispose() }
+    } finally {
+        try { if ($connection) { $connection.Dispose() } }
+        finally { $privilege.Dispose() }
+    }
 }
 
 function Set-WelaWmiNamespaceDescriptor {
@@ -188,14 +193,21 @@ function Set-WelaWmiNamespaceDescriptor {
             } finally { $aceClass.Dispose(); $trusteeClass.Dispose() }
         }
         $updated.SACL = [System.Management.ManagementBaseObject[]]$aces
-        # Only SE_SACL_PRESENT is added when absent. Every other control bit stays.
-        $updated.ControlFlags = [uint32]$descriptor.ControlFlags -bor [uint32]16
+        # SetSecurityDescriptor treats SE_DACL_PRESENT and non-null Owner/Group
+        # as requests to rewrite access permissions. Omit those fields explicitly
+        # so the provider preserves them, even if another writer races this call.
+        # Complete original fields remain in the journal and read-back comparison.
+        $updated.DACL = $null; $updated.Owner = $null; $updated.Group = $null
+        $updated.ControlFlags = ([uint32]$descriptor.ControlFlags -band [uint32]4294967291) -bor [uint32]16
         $parameters = $connection.GetMethodParameters('SetSecurityDescriptor')
         $parameters.Descriptor = $updated
         $response = $connection.InvokeMethod('SetSecurityDescriptor', $parameters, $null)
         Assert-WelaWmiReturnCode $response 'SetSecurityDescriptor'
         'SACL update accepted; full descriptor preservation and audit entries require read-back verification. Event generation is unverified.'
-    } finally { if ($connection) { $connection.Dispose() }; $privilege.Dispose() }
+    } finally {
+        try { if ($connection) { $connection.Dispose() } }
+        finally { $privilege.Dispose() }
+    }
 }
 
 function Test-WelaWmiDescriptorPreserved {

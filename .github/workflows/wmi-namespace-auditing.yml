@@ -24,9 +24,15 @@ jobs:
       - name: Native read-only and in-memory writer adapter (Windows PowerShell 5.1)
         shell: powershell
         run: ./tests/WmiNamespaceAuditing.Windows.Tests.ps1
+      - name: In-memory privilege restoration failure paths (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/WmiNamespaceAuditing.Privilege.Tests.ps1
       - name: Mocked namespace SACL regression tests (PowerShell 7)
         shell: pwsh
         run: ./tests/WmiNamespaceAuditing.Tests.ps1
       - name: Native read-only and in-memory writer adapter (PowerShell 7)
         shell: pwsh
         run: ./tests/WmiNamespaceAuditing.Windows.Tests.ps1
+      - name: In-memory privilege restoration failure paths (PowerShell 7)
+        shell: pwsh
+        run: ./tests/WmiNamespaceAuditing.Privilege.Tests.ps1

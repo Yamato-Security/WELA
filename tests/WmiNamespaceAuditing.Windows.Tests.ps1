@@ -48,7 +48,15 @@ Set-WelaWmiNamespaceDescriptor -Namespace 'root\cimv2' -ExpectedJson $expected -
 Assert ($script:setCalls -eq 1 -and $script:captured -is [System.Management.ManagementBaseObject]) 'Production writer builds typed descriptor against fake provider only'
 $original = $expected | ConvertFrom-Json
 $captured = ConvertTo-WelaWmiData $script:captured
-Assert (Test-WelaWmiDescriptorPreserved $original $captured) 'Typed descriptor clone preserves DACL owner group and control flags'
+Assert ($null -eq $captured.DACL -and $null -eq $captured.Owner -and $null -eq $captured.Group) 'Native request omits access-permission fields instead of requesting that they be rewritten'
+Assert (([uint32]$captured.ControlFlags -band 4) -eq 0 -and ([uint32]$captured.ControlFlags -band 16) -eq 16) 'Native request uses only SACL-present mutation semantics, with DACL-present cleared'
+Assert ((ConvertTo-WelaWmiJson (ConvertTo-WelaWmiData $script:fixtureDescriptor)) -ceq $expected) 'Building the SACL-only request leaves the complete original descriptor unchanged'
+# Simulate the documented provider contract in memory: absent access fields and
+# SE_DACL_PRESENT preserve the current access permissions.
+$effective = $expected | ConvertFrom-Json
+$effective.SACL = $captured.SACL
+$effective.ControlFlags = [uint32]$effective.ControlFlags -bor 16
+Assert (Test-WelaWmiDescriptorPreserved $original $effective) 'SACL-only provider semantics retain every original non-SACL field'
 Assert (@(Get-WelaWmiMissingAces $captured $definitions).Count -eq 0 -and @($captured.SACL).Count -eq 4) 'Actual Win32_ACE/Trustee objects carry all four exact masks and binary SIDs'
 $script:returnCode = [uint32]9
 $failed = $false
