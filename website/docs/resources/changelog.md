@@ -7,11 +7,15 @@
 
 **Improvements:**
 
+- Added a `configure-sacl` command that sets targeted audit SACLs on the autostart/persistence registry keys and sensitive files the detection rules watch, so File System (4663), Registry (4657) and Handle Manipulation (4656) auditing produce useful events without enabling global object auditing. It covers machine-wide objects plus per-user HKCU keys and profile AppData across all user profiles and the Default profile (so future users inherit the SACL). Targets live in `config/audit_sacl_targets.json`. (#361) (@YamatoSecurity)
+- `configure` now also enables Detailed Tracking > Process Termination (4689), Object Access > Detailed File Share (5145), and (on domain controllers) LDAP query logging (Directory Service 1644 via NTDS `15 Field Engineering`), so a full detection baseline is applied without any manual `auditpol`/registry steps. (#361) (@YamatoSecurity)
 - Baseline definitions were moved out of `WELA.ps1` into a `config/baselines.json` config file, so adding or changing a baseline is now a JSON-only edit. (#358) (@fukusuket)
+- The `Microsoft-Windows-DFSN-Server/Admin` channel is now checked by `audit-settings` and `audit-filesize`. (#358) (@fukusuket)
 - MITRE ATT&CK Navigator heatmaps are now generated for ATT&CK v19, and technique IDs that ATT&CK has revoked are rewritten to their replacements (for example `T1562` and `T1562.001`, which v19 folded into `T1685`). Navigator silently discards revoked entries, so that coverage used to disappear from the heatmap. (@fukusuket)
 
 **Bug Fixes:**
 
+- Fixed domain NTLM auditing: `configure` now sets `AuditNTLMInDomain=7` (Enable all) only on confirmed domain controllers, instead of writing `2` on every host. This setting is left unchanged on other hosts and hosts whose role cannot be determined. Audit output reports the domain NTLM setting, and configuration verifies registry writes and reports failures. (#389) (@Shirofune-Security)
 - Rule filtering applied only the last criterion instead of all of them, so rule counts were inaccurate. (#358) (@fukusuket)
 - Rules were reported as usable even when the logs they depend on were disabled. (#358) (@fukusuket)
 - Rules that belong to multiple categories were counted and written to the CSV files multiple times. (#358) (@fukusuket)
