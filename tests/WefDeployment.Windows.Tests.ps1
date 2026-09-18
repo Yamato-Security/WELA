@@ -30,3 +30,6 @@ try {
     Assert (($before | ConvertTo-Json -Compress) -ceq ($after | ConvertTo-Json -Compress)) 'Read-only audit leaves both service start modes and states unchanged'
     Write-Host 'WEF Windows read-only smoke passed; no subscription deployment or event delivery is claimed.'
 } finally { Remove-Item -LiteralPath $temp -Recurse -Force }
+# The report retains handled native-read failures (for example a stopped Wecsvc).
+# Successful smoke assertions must not inherit that command's exit status.
+$global:LASTEXITCODE = 0
