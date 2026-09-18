@@ -248,14 +248,32 @@ function Get-WelaAdSaclPlan {
         foreach ($dn in @($ObjectDn | Select-Object -Unique)) { $requests += [pscustomobject]@{ Profile = 'PkiObjects'; Dn = $dn } }
     } elseif ($ObjectDn.Count) { throw '-AdObjectDn is valid only with the PkiObjects profile.' }
     foreach ($request in $requests) {
-        $definitions = @(); $before = $null; $notes = @(); $status = 'Unknown'
+        $definitions = @(); $skippedDefinitions = @(); $before = $null; $notes = @(); $status = 'Unknown'
         try {
             if ($request.Profile -eq 'MdiDomain') {
                 foreach ($definition in Get-WelaAdAuditDefinitions) {
-                    $exists = Test-WelaAdSchemaClass $Session $definition.Class $definition.InheritedObjectType
                     if ($definition.Class -eq 'msDS-DelegatedManagedServiceAccount') {
-                        if (-not $exists -or -not (Test-WelaAdDmsaDomain $Session)) { $notes += 'dMSA skipped: schema class and a domain DC version >= 10.0 (26100) are required.'; continue }
-                    } elseif (-not $exists) { throw "Required MDI schema class is absent: $($definition.Class)." }
+                        # dMSA is conditional. Its unknown schema/DC prerequisites
+                        # must not prevent the five independent class ACEs.
+                        $prerequisiteStatus = 'Applicable'; $diagnostic = ''
+                        try {
+                            $exists = Test-WelaAdSchemaClass $Session $definition.Class $definition.InheritedObjectType
+                            if (-not $exists -or -not (Test-WelaAdDmsaDomain $Session)) {
+                                $prerequisiteStatus = 'NotApplicable'
+                                $diagnostic = 'dMSA skipped: schema class and a domain DC version >= 10.0 (26100) are required.'
+                            }
+                        } catch {
+                            $prerequisiteStatus = 'Unknown'
+                            $diagnostic = "dMSA skipped: prerequisite Unknown ($($_.Exception.Message)). dMSA auditing is not established; the other five class ACEs remain independent."
+                        }
+                        if ($prerequisiteStatus -ne 'Applicable') {
+                            $notes += $diagnostic
+                            $skippedDefinitions += [pscustomobject]@{ Definition = $definition; Status = 'Skipped'; PrerequisiteStatus = $prerequisiteStatus; Diagnostic = $diagnostic }
+                            continue
+                        }
+                    } elseif (-not (Test-WelaAdSchemaClass $Session $definition.Class $definition.InheritedObjectType)) {
+                        throw "Required MDI schema class is absent: $($definition.Class)."
+                    }
                     $definitions += $definition
                 }
             } elseif ($request.Profile -eq 'MdiConfiguration') {
@@ -282,7 +300,7 @@ function Get-WelaAdSaclPlan {
             if (-not $Session.Writable -and $missing.Count) { $status = 'Blocked'; $notes += 'Selected DC is read-only.' }
         } catch { $notes += $_.Exception.Message }
         [pscustomobject]@{ Profile = $request.Profile; Server = $Session.Server; Dn = $request.Dn; Status = $status;
-            Definitions = $definitions; Before = $before; Diagnostic = $notes -join ' ' }
+            Definitions = $definitions; SkippedDefinitions = $skippedDefinitions; Before = $before; Diagnostic = $notes -join ' ' }
     }
 }
 
@@ -290,6 +308,12 @@ function Set-WelaAdSaclControls {
     param($Session, $Context, [array]$Plan)
     foreach ($entry in $Plan) {
         $id = "AdSacl/$($entry.Profile)/$($entry.Dn)"
+        foreach ($skipped in $entry.SkippedDefinitions) {
+            $Context.Results.Add([pscustomobject]@{ Id = "$id/$($skipped.Definition.Class)/Prerequisite"; Kind = 'AdObjectSaclPrerequisite';
+                Target = @{ Server = $Session.Server; Dn = $entry.Dn; Class = $skipped.Definition.Class }; Desired = $skipped.Definition;
+                Before = $null; After = $null; Status = 'Skipped'; PrerequisiteStatus = $skipped.PrerequisiteStatus; Diagnostic = $skipped.Diagnostic })
+            Write-Host "[Skipped] $id/$($skipped.Definition.Class) $($skipped.Diagnostic)" -ForegroundColor Yellow
+        }
         if ($entry.Status -notin @('SaclConfigured', 'ChangeRequired')) {
             $Context.Results.Add([pscustomobject]@{ Id = $id; Kind = 'AdObjectSacl'; Target = @{ Server = $Session.Server; Dn = $entry.Dn }; Desired = $entry.Definitions;
                 Before = $entry.Before; After = $null; Status = $(if ($entry.Status -eq 'NotApplicable') { 'Skipped' } else { 'Failed' }); Diagnostic = $entry.Diagnostic })
@@ -415,7 +439,7 @@ function Invoke-WelaAdSaclCommand {
         $report | Add-Member NoteProperty AuditPolicyPrerequisites @(
             [pscustomobject]@{ Name = 'Directory Service Access'; Guid = '0cce923b-69ae-11d9-bed3-505054503030'; Required = 'Success (Failure also required for Configuration failure auditing)'; Status = 'Unknown'; Diagnostic = 'Remote DC audit policy is not read or changed by this LDAP command.' },
             [pscustomobject]@{ Name = 'Directory Service Changes'; Guid = '0cce923c-69ae-11d9-bed3-505054503030'; Required = 'Success'; Status = 'Unknown'; Diagnostic = 'Verify effective policy and 5136 on the DC handling the object change.' })
-        $report | Add-Member NoteProperty VerificationScope 'Selected-DC object SACL state only. Inherited child SACLs, protected objects, policy, 4662/5136 generation, replication and collection are unverified. No Sigma uplift is claimed.'
+        $report | Add-Member NoteProperty VerificationScope 'Selected-DC object SACL state only. Skipped or Unknown class prerequisites do not establish auditing for those classes. Inherited child SACLs, protected objects, policy, 4662/5136 generation, replication and collection are unverified. No Sigma uplift is claimed.'
         if ($ResultsPath) { $report | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
         return $report
     } finally { $session.Connection.Dispose() }

@@ -21,12 +21,19 @@ function Reset-Mocks {
     $script:writes = 0; $script:reads = 0; $script:readError = $false; $script:writeError = $false
     $script:race = $false; $script:finalDrift = $false; $script:badReadback = $false; $script:removeExisting = $false
     $script:absentClass = ''; $script:dmsa = $true; $script:exchange = $true; $script:onPrompt = $null; $script:pkiMember = $true; $script:pkiRequest = $null
+    $script:dmsaError = ''; $script:schemaErrorClass = ''; $script:plannedAdditions = @()
     $script:state = [pscustomobject]@{ Server = $session.Server; Dn = $session.DomainDn; ObjectGuid = '01234567-89ab-cdef-0123-456789abcdef'; UsnChanged = '17'; Classes = @('top', 'domainDNS');
         Descriptor = [pscustomobject]@{ Binary = 'before'; Sddl = 'O:SYG:SYD:(A;;GA;;;SY)S:(AU;SA;WP;;;BA)'; Owner = 'S-1-5-18'; Group = 'S-1-5-18'; Dacl = 'unchanged-dacl'; ControlFlags = 32788; Sacl = @('unrelated') } }
     $session.Writable = $true
 }
-function Test-WelaAdSchemaClass { param($Session, $Class, $Guid) return $Class -ne $script:absentClass }
-function Test-WelaAdDmsaDomain { param($Session) return $script:dmsa }
+function Test-WelaAdSchemaClass { param($Session, $Class, $Guid)
+    if ($Class -eq $script:schemaErrorClass) { throw 'Schema lookup access denied' }
+    return $Class -ne $script:absentClass
+}
+function Test-WelaAdDmsaDomain { param($Session)
+    if ($script:dmsaError) { throw $script:dmsaError }
+    return $script:dmsa
+}
 function Search-WelaAdDirectory {
     param($Session, $Dn, $Filter, $Scope, $Attributes, [switch]$SecurityDescriptor)
     if ($Filter -eq '(objectClass=msExchOrganizationContainer)' -and $script:exchange) { [pscustomobject]@{ Dn = 'CN=Exchange'; Values = @{} } }
@@ -47,14 +54,15 @@ function Get-WelaAdObjectState {
 function Test-WelaAdAcePresent { param($Descriptor, $Definition) return $Descriptor.Sacl -contains ('added-' + $Definition.Class) }
 function New-WelaAdSaclAddition {
     param($Before, $Definitions)
-    [pscustomobject]@{ Binary = 'after'; AddedAces = @($Definitions | Where-Object { -not (Test-WelaAdAcePresent $Before.Descriptor $_) } | ForEach-Object { 'added-' + $_.Class }) }
+    $script:plannedAdditions = @($Definitions | Where-Object { -not (Test-WelaAdAcePresent $Before.Descriptor $_) } | ForEach-Object { 'added-' + $_.Class })
+    [pscustomobject]@{ Binary = 'after'; AddedAces = $script:plannedAdditions }
 }
 function Write-WelaAdSacl {
     param($Session, $Dn, $Binary)
     if ($script:writeError) { throw 'LDAP insufficientAccessRights' }
     $script:writes++
     if (-not $script:badReadback) {
-        $script:state.Descriptor.Sacl = @('unrelated') + @(Get-WelaAdAuditDefinitions | ForEach-Object { 'added-' + $_.Class })
+        $script:state.Descriptor.Sacl = @($script:state.Descriptor.Sacl) + $script:plannedAdditions
         $script:state.Descriptor.Binary = $Binary
     }
     if ($script:removeExisting) { $script:state.Descriptor.Sacl = @($script:state.Descriptor.Sacl | Where-Object { $_ -ne 'unrelated' }) }
@@ -82,8 +90,28 @@ try {
     $script:dmsa = $false
     $plan = @(Get-WelaAdSaclPlan $session @('MdiDomain') @())
     Assert ($plan[0].Definitions.Count -eq 5 -and $plan[0].Diagnostic -like '*dMSA skipped*') 'dMSA omitted without a 2025 domain DC'
+    Assert ($plan[0].SkippedDefinitions[0].PrerequisiteStatus -eq 'NotApplicable') 'known dMSA omission is distinct from unknown prerequisites'
     $script:absentClass = 'user'
     Assert ((@(Get-WelaAdSaclPlan $session @('MdiDomain') @()))[0].Status -eq 'Unknown') 'missing required class blocks writes'
+    foreach ($errorMessage in @('DC versions could not all be classified; dMSA applicability is unknown.', 'LDAP DC version query access denied')) {
+        Reset-Mocks; $script:dmsaError = $errorMessage
+        $plan = @(Get-WelaAdSaclPlan $session @('MdiDomain') @())
+        Assert ($plan[0].Status -eq 'ChangeRequired' -and $plan[0].Definitions.Count -eq 5) 'unknown optional dMSA check preserves five independent planned ACEs'
+        Assert ($plan[0].SkippedDefinitions.Count -eq 1 -and $plan[0].SkippedDefinitions[0].PrerequisiteStatus -eq 'Unknown' -and
+            $plan[0].SkippedDefinitions[0].Diagnostic.Contains($errorMessage)) 'plan records the skipped dMSA prerequisite and exact unknown diagnostic'
+        $ctx = Get-Context; $report = Invoke-TestConfigure $ctx
+        $applied = @($report.Results | Where-Object Kind -eq 'AdObjectSacl')
+        $gap = @($report.Results | Where-Object Kind -eq 'AdObjectSaclPrerequisite')
+        Assert ($report.ExitCode -eq 0 -and $report.Skipped -eq 1 -and $applied[0].Status -eq 'Applied' -and $applied[0].Desired.Count -eq 5) 'five ACEs configure with a visible skipped-control result'
+        Assert ($gap.Count -eq 1 -and $gap[0].Status -eq 'Skipped' -and $gap[0].PrerequisiteStatus -eq 'Unknown' -and $gap[0].Target.Class -eq 'msDS-DelegatedManagedServiceAccount') 'configuration retains structured dMSA Unknown gap'
+        Assert ($script:plannedAdditions.Count -eq 5 -and $script:state.Descriptor.Sacl -notcontains 'added-msDS-DelegatedManagedServiceAccount') 'unknown dMSA never produces a sixth ACE write'
+    }
+    Reset-Mocks; $script:schemaErrorClass = 'msDS-DelegatedManagedServiceAccount'
+    $plan = @(Get-WelaAdSaclPlan $session @('MdiDomain') @())
+    Assert ($plan[0].Status -eq 'ChangeRequired' -and $plan[0].Definitions.Count -eq 5 -and $plan[0].SkippedDefinitions[0].PrerequisiteStatus -eq 'Unknown') 'optional dMSA schema read error also remains isolated'
+    Reset-Mocks; $script:schemaErrorClass = 'user'
+    $ctx = Get-Context; $report = Invoke-TestConfigure $ctx
+    Assert ($report.ExitCode -eq 1 -and $script:writes -eq 0 -and $report.Results[0].Status -eq 'Failed') 'mandatory schema lookup failure still fails closed'
     Reset-Mocks; $script:exchange = $false
     Assert ((@(Get-WelaAdSaclPlan $session @('MdiConfiguration') @()))[0].Status -eq 'NotApplicable') 'configuration gated on Exchange history evidence'
     $script:exchange = $true
