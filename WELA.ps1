@@ -14,6 +14,7 @@
     [switch]$DryRun,
     [string]$BackupPath,
     [string]$ResultsPath,
+    [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
     [switch]$Help
 )
 
@@ -28,6 +29,7 @@ $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
+. (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1751,6 +1753,10 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
+  ./WELA.ps1 smb-auditing -SmbAction Plan
+  ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  # SMB auditing is opt-in and never changes signing/encryption requirements or guest access.
   ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
   ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
   ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
@@ -1776,8 +1782,8 @@ Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 # Reject unsupported dry-run requests before reaching any command's mutation path.
-if ($DryRun -and $Cmd -ne 'configure') {
-    throw "-DryRun is supported only by configure (including configure -Profile). No command was run."
+if ($DryRun -and $Cmd -ne 'configure' -and -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure')) {
+    throw "-DryRun is supported only by configure (including configure -Profile) and smb-auditing -SmbAction Configure. No command was run."
 }
 
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
@@ -1786,6 +1792,19 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'smb-auditing' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 smb-auditing [-SmbAction Audit|Plan|Configure] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Checks six version-aware SMB audit policies against local ADMX and available runtime properties. Configure writes supported audit DWORDs only. See docs/smb-auditing.md.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'smb-auditing uses -SmbAction; -Profile and -Baseline apply to Security audit settings.' }
+        try {
+            $report = Invoke-WelaSmbAuditCommand -Action $SmbAction -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] SMB auditing: $_" -ForegroundColor Red; exit 1 }
+    }
     "profiles" {
         (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List
     }
