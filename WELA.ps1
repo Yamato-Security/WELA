@@ -37,6 +37,9 @@
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
     [string[]]$WmiNamespace,
     [switch]$WmiIncludeChildren,
+    [string]$RuleEvidencePath,
+    [string]$RuleCorpusPath,
+    [string]$RuleManifestPath,
     [switch]$Help
 )
 
@@ -57,6 +60,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
+Import-Module (Join-Path $ScriptRoot "modules/RuleEligibility.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
@@ -627,6 +631,21 @@ function AuditLogSetting {
         "Not configured", "Enable all (7) on domain controllers only", "",
         "AuditNTLMInDomain; applicability is determined from Win32_OperatingSystem.ProductType."
     )
+    # Policy/channel matches are configuration estimates, not executed rules.
+    # Imported lab Ready states are reviewed separately by rule-eligibility and
+    # never silently reused as evidence for this currently audited machine.
+    $eligibility = Get-WelaRuleEligibility -CorpusPath $script:SecurityRulesPath -Observations $auditResult
+    $eligibilityById = @{}
+    foreach ($entry in $eligibility.Results) { $eligibilityById[$entry.Id] = $entry }
+    foreach ($rule in $all_rules) {
+        $entry = $eligibilityById[$rule.id]
+        $rule | Add-Member NoteProperty ConfigurationEstimate ([bool]$rule.applicable) -Force
+        $rule | Add-Member NoteProperty IdealConfigurationEstimate ([bool]$rule.ideal) -Force
+        $rule | Add-Member NoteProperty EligibilityState $entry.State -Force
+        $rule | Add-Member NoteProperty EligibilityReasons ($entry.Reasons -join '; ') -Force
+        $rule.applicable = $entry.State -eq 'Ready'
+        $rule.ideal = $false # A future configuration plan is never execution evidence.
+    }
     $auditResult | ForEach-Object { $_.CountByLevel() }
 
     $auditResult | ForEach-Object {
@@ -649,6 +668,7 @@ function AuditLogSetting {
     }
 
     if ($outType -eq "std") {
+        Write-Host 'Configuration observations: category percentages below are policy-mapping estimates, not detection readiness.' -ForegroundColor DarkYellow
         $auditResult | Group-Object -Property Category | ForEach-Object {
             $notEnabled = @("No Auditing", "Disabled", "Unknown", "Conditional", "Not installed")
             $summaryRows = @($_.Group | Where-Object { $_.CurrentSetting -ne 'Not applicable' })
@@ -716,16 +736,19 @@ function AuditLogSetting {
     $auditCsv    = Join-Path $script:ScriptRoot "WELA-Audit-Result.csv"
     $usableCsv   = Join-Path $script:ScriptRoot "UsableRules.csv"
     $unusableCsv = Join-Path $script:ScriptRoot "UnusableRules.csv"
+    $eligibilityCsv = Join-Path $script:ScriptRoot "RuleEligibility.csv"
     $currentJson = Join-Path $script:ScriptRoot "mitre-ttp-navigator-current.json"
     $idealJson   = Join-Path $script:ScriptRoot "mitre-ttp-navigator-ideal.json"
 
     $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note,
         @{ Name = 'NativeSourceEvidence'; Expression = { if ($_.NativeSources.Count) { ConvertTo-Json -InputObject $_.NativeSources -Depth 12 -Compress } else { '' } } } |
         Export-Csv -Path $auditCsv -NoTypeInformation
-    $usableRules   | Select-Object title, level, service, category, description, id | Export-Csv -Path $usableCsv -NoTypeInformation
-    $unUsableRules | Select-Object title, level, service, category, description, id | Export-Csv -Path $unusableCsv -NoTypeInformation
+    $usableRules   | Select-Object title, level, service, category, description, id, EligibilityState, EligibilityReasons | Export-Csv -Path $usableCsv -NoTypeInformation
+    $unUsableRules | Select-Object title, level, service, category, description, id, EligibilityState, EligibilityReasons | Export-Csv -Path $unusableCsv -NoTypeInformation
+    $eligibility.Results | Select-Object Id, Title, State, ScopeExclusion, ConfigurationEstimate, MetadataSha256,
+        @{Name='Reasons'; Expression={$_.Reasons -join '; '}} | Export-Csv -LiteralPath $eligibilityCsv -NoTypeInformation
     if ($ResultsPath -or $HtmlPath) {
-        Export-WelaAuditAssessment -Rows $auditResult -Rules @($uniqueRules) -Baseline $Baseline -ResultsPath $ResultsPath -HtmlPath $HtmlPath
+        Export-WelaAuditAssessment -Rows $auditResult -Rules @($uniqueRules) -Baseline $Baseline -ResultsPath $ResultsPath -HtmlPath $HtmlPath -Eligibility $eligibility
     }
 
     if ($outType -eq "gui") {
@@ -737,6 +760,7 @@ function AuditLogSetting {
     Write-Output "Audit check result saved to: $auditCsv"
     Write-Output "Usable detection rules list saved to: $usableCsv"
     Write-Output "Unusable detection rules list saved to: $unusableCsv"
+    Write-Output "Per-rule readiness and reasons saved to: $eligibilityCsv"
     if ($ResultsPath) { Write-Output "Audit assessment JSON saved to: $ResultsPath" }
     if ($HtmlPath) { Write-Output "Audit assessment HTML saved to: $HtmlPath" }
     if (@($auditResult | Where-Object { $_.NativeSources.Count -gt 0 }).Count) {
@@ -744,9 +768,9 @@ function AuditLogSetting {
     }
 
     Export-MitreHeatmap -sigmaRules $uniqueRules -OutputPath $currentJson
-    Write-Output "MITRE ATT&CK Navigator data(based on current settings) saved to: $currentJson"
+    Write-Output "MITRE ATT&CK Navigator data (evidence-qualified Ready rules) saved to: $currentJson"
     Export-MitreHeatmap -sigmaRules $uniqueRules -OutputPath $idealJson -UseIdealCount $true
-    Write-Output "MITRE ATT&CK Navigator data(based on ideal settings) saved to: $idealJson"
+    Write-Output "MITRE ATT&CK Navigator ideal data (no readiness credit from configuration alone) saved to: $idealJson"
 
     $totalRulesCount  = @($uniqueRules).Count
     $usableRulesCount = $usableRules.Count
@@ -757,7 +781,8 @@ function AuditLogSetting {
         # 数値のまま閾値判定する。書式化した文字列で比較すると辞書順比較になる
         $utilization = ($usableRulesCount / $totalRulesCount) * 100
         $color = if ($utilization -ge 70) { "Green" } elseif ($utilization -ge 10) { "DarkYellow" } else { "Red" }
-        Write-Host ("You can utilize {0:N2}% of your detection rules." -f $utilization) -ForegroundColor $color
+        Write-Host ("Evidence-qualified Ready: {0}/{1} native candidates ({2:N2}% of all {3} unique input rules)." -f $usableRulesCount, $eligibility.Summary.NativeCandidates, $utilization, $totalRulesCount) -ForegroundColor $color
+        Write-Host 'Configuration matches are estimates only. Use rule-eligibility to review complete imported lab evidence; Conditional rules are not counted as Ready.' -ForegroundColor DarkYellow
     }
     Write-Host ""
 }
@@ -1047,7 +1072,8 @@ function UpdateRules {
     $downloads = @(
         @{ Url = "$baseUrl/eid_subcategory_mapping.csv"; Path = $script:EidMappingPath },
         @{ Url = "$baseUrl/security_rules.json";         Path = $script:SecurityRulesPath },
-        @{ Url = "$baseUrl/audit_sacl_targets.json";     Path = $script:SaclTargetsPath }
+        @{ Url = "$baseUrl/audit_sacl_targets.json";     Path = $script:SaclTargetsPath },
+        @{ Url = "$baseUrl/rule_eligibility_manifest.json"; Path = (Join-Path $script:ScriptRoot 'config/rule_eligibility_manifest.json') }
     )
 
     $failed = 0
@@ -1708,6 +1734,8 @@ Usage:
   # Firewall text logging is opt-in; it does not change firewall enforcement or rules.
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
+  ./WELA.ps1 rule-eligibility -ResultsPath eligibility.json -HtmlPath eligibility.html
+  ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
   ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
   ./WELA.ps1 applocker-readiness -AppLockerAction Plan -AppLockerPolicyPath operator-audit.xml
@@ -1743,6 +1771,9 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'rule-eligibility' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('RuleEvidencePath', 'RuleCorpusPath', 'RuleManifestPath') }).Count) {
+    throw '-RuleEvidencePath, -RuleCorpusPath and -RuleManifestPath require the read-only rule-eligibility command. No command was run.'
+}
 if (($PSBoundParameters.ContainsKey('AppLockerAction') -or $AppLockerPolicyPath) -and $Cmd -ne 'applocker-readiness') {
     throw '-AppLockerAction and -AppLockerPolicyPath require applocker-readiness. No command was run.'
 }
@@ -1793,6 +1824,21 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'rule-eligibility' {
+        if ($Profile -or $Baseline -or $Auto -or $PlanPath) { throw 'rule-eligibility reviews native rule metadata and optional lab artifacts; use -ResultsPath/-HtmlPath, not configuration options.' }
+        $arguments = @{}
+        if ($RuleCorpusPath) { $arguments.CorpusPath = $RuleCorpusPath }
+        if ($RuleManifestPath) { $arguments.ManifestPath = $RuleManifestPath }
+        if ($RuleEvidencePath) { $arguments.EvidencePath = $RuleEvidencePath }
+        if ($Role) { $arguments.Role = $Role }
+        if ($Build) { $arguments.Build = $Build }
+        $report = Get-WelaRuleEligibility @arguments
+        Export-WelaRuleEligibility -Report $report -ResultsPath $ResultsPath -HtmlPath $HtmlPath
+        Write-Host $report.AssessmentBasis
+        $report.Summary | Format-List
+        if ($ResultsPath) { Write-Host "Per-rule JSON: $ResultsPath" }
+        if ($HtmlPath) { Write-Host "HTML report: $HtmlPath" }
+    }
     'channel-settings' {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 channel-settings [-ChannelAction Audit|Plan|Configure] [-ChannelProfile microsoft-wef-appendix-c] [-WefQuerySet Baseline|Suspect|Both] [-GrantEventLogReaders] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
