@@ -51,17 +51,59 @@ function Read-WelaEligibilityInput {
     [pscustomobject]@{ Sha256=$sha256; Text=[Text.Encoding]::UTF8.GetString($bytes).TrimStart([char]0xFEFF) }
 }
 
+function ConvertTo-WelaEligibilityCanonicalValue {
+    param($Value, [int]$Depth = 0)
+    if ($Depth -gt 12) { throw 'Metadata nesting exceeds 12 levels.' }
+    if ($null -eq $Value) { return 'n;' }
+    if ($Value -is [bool]) { if ($Value) { return 'b1;' }; return 'b0;' }
+    $invariant = [Globalization.CultureInfo]::InvariantCulture
+    if ($Value -is [string]) {
+        # Copy exact UTF-16 code units, including isolated surrogates. Encoding
+        # fallback must never turn distinct strings into the same identity.
+        $bytes = New-Object byte[] ($Value.Length * 2)
+        if ($bytes.Length) { [Buffer]::BlockCopy($Value.ToCharArray(), 0, $bytes, 0, $bytes.Length) }
+        if (-not [BitConverter]::IsLittleEndian) {
+            for ($i = 0; $i -lt $bytes.Length; $i += 2) { $first=$bytes[$i]; $bytes[$i]=$bytes[$i+1]; $bytes[$i+1]=$first }
+        }
+        return ('s' + $Value.Length.ToString($invariant) + ':' + [Convert]::ToBase64String($bytes) + ';')
+    }
+    if ($Value -is [byte] -or $Value -is [sbyte] -or $Value -is [int16] -or $Value -is [uint16] -or
+        $Value -is [int32] -or $Value -is [uint32] -or $Value -is [int64] -or $Value -is [uint64]) {
+        return ('i' + $Value.ToString($invariant) + ';')
+    }
+    if ($Value -is [single] -or $Value -is [double]) {
+        return ('f' + [BitConverter]::DoubleToInt64Bits([double]$Value).ToString('x16', $invariant) + ';')
+    }
+    if ($Value -is [decimal]) { return ('m' + $Value.ToString('G29', $invariant) + ';') }
+    $text = New-Object Text.StringBuilder
+    if ($Value -is [array]) {
+        [void]$text.Append('a' + $Value.Count.ToString($invariant) + ':')
+        foreach ($item in $Value) { [void]$text.Append((ConvertTo-WelaEligibilityCanonicalValue -Value $item -Depth ($Depth + 1))) }
+    } elseif ($Value -is [Collections.IDictionary] -or $Value -is [pscustomobject]) {
+        $dictionary = $Value -is [Collections.IDictionary]
+        [string[]]$names = @()
+        if ($dictionary) { $names = @($Value.Keys) } else { $names = @($Value.PSObject.Properties | ForEach-Object { $_.Name }) }
+        [Array]::Sort($names, [StringComparer]::Ordinal)
+        [void]$text.Append('o' + $names.Count.ToString($invariant) + ':')
+        foreach ($name in $names) {
+            [void]$text.Append((ConvertTo-WelaEligibilityCanonicalValue -Value $name -Depth ($Depth + 1)))
+            if ($dictionary) { $member = $Value[$name] } else { $member = $Value.$name }
+            [void]$text.Append((ConvertTo-WelaEligibilityCanonicalValue -Value $member -Depth ($Depth + 1)))
+        }
+    } else { throw ('Unsupported metadata value type: ' + $Value.GetType().FullName) }
+    [void]$text.Append(';')
+    return $text.ToString()
+}
+
 function Get-WelaEligibilityRuleHash {
     param($Rule)
-    $ordered = [ordered]@{}
+    $text = New-Object Text.StringBuilder
+    [void]$text.Append('wela-metadata-framed-v1;')
     foreach ($name in @('id', 'title', 'level', 'category', 'service', 'channel', 'event_ids', 'subcategory_guids', 'description', 'tags')) {
-        $ordered[$name] = $Rule.$name
+        [void]$text.Append((ConvertTo-WelaEligibilityCanonicalValue -Value $name))
+        [void]$text.Append((ConvertTo-WelaEligibilityCanonicalValue -Value $Rule.$name))
     }
-    # Windows PowerShell 5.1 uses HTML escaping by default. Require the same
-    # spelling on newer editions so identical metadata has one stable digest.
-    $arguments = @{InputObject=$ordered;Depth=12;Compress=$true}
-    if ((Get-Command ConvertTo-Json).Parameters.ContainsKey('EscapeHandling')) { $arguments.EscapeHandling = 'EscapeHtml' }
-    Get-WelaEligibilityTextHash (ConvertTo-Json @arguments)
+    Get-WelaEligibilityTextHash $text.ToString()
 }
 
 function Get-WelaEligibilityArtifact {
@@ -366,7 +408,7 @@ function Get-WelaRuleEligibility {
     [pscustomobject][ordered]@{
         SchemaVersion = 1; GeneratedAtUtc = $Now.ToString('o'); Scope = 'native-windows-rule-eligibility'
         AssessmentBasis = $(if ($EvidencePath) { 'Imported lab artifacts; Ready applies only to the recorded context/time and is not a current-host or universal guarantee.' } else { 'Metadata/configuration assessment only; no event-generation, ingestion or query evidence imported.' })
-        Corpus = [pscustomobject]@{ Sha256 = $corpusHash; MappingSha256 = $mappingHash; Pinned = [bool]$pinned; Manifest = $manifest; MetadataHashAlgorithm = 'ordered-json-html-escaped-utf8-sha256-v1'; Kind = 'WELA extracted Hayabusa rule metadata; not the complete upstream Sigma corpus' }
+        Corpus = [pscustomobject]@{ Sha256 = $corpusHash; MappingSha256 = $mappingHash; Pinned = [bool]$pinned; Manifest = $manifest; MetadataHashAlgorithm = 'wela-metadata-framed-utf16le-base64-sha256-v1'; Kind = 'WELA extracted Hayabusa rule metadata; not the complete upstream Sigma corpus' }
         RequestedContext = [pscustomobject]@{ Role = $Role; Build = $(if ($Build) { $Build } else { $null }) }
         Summary = [pscustomobject]@{
             InputRecords = $raw.Count; UniqueRules = $rows.Count; DuplicateRecords = $duplicateCount

@@ -59,7 +59,21 @@ try {
     $hashVector.title='Apostrophe' + [char]0x27 + 's <node> & "quoted" \ path ' + [char]0x65e5 + [char]0x672c + [char]0x8a9e + [char]::ConvertFromUtf32(0x1f600)
     $hashVector.description="line`nnext`ttab"
     $actualMetadataHash=& (Get-Module RuleEligibility) { param($rule) Get-WelaEligibilityRuleHash $rule } $hashVector
-    Assert ($actualMetadataHash -eq '8d81c215ae99b303fd30e346613a35b83a1949d7cfa4f436952ef3079b8d0ded') ("Metadata hash is independent of PowerShell JSON escaping: " + $actualMetadataHash)
+    # Expected digest independently calculated from the documented framing in Python.
+    Assert ($actualMetadataHash -eq 'cfa5e1a0f73d8f0eef62716a44e56334461bbf55ddf0a07b39ee63e378597e9d') ("Metadata hash is independent of PowerShell JSON serialization: " + $actualMetadataHash)
+    function Canonical($Value) { & (Get-Module RuleEligibility) { param($item) ConvertTo-WelaEligibilityCanonicalValue -Value $item } $Value }
+    foreach ($pair in @(
+        [pscustomobject]@{Left=$null;Right=''}, [pscustomobject]@{Left=$null;Right=@()},
+        [pscustomobject]@{Left=@();Right=[pscustomobject]@{}}, [pscustomobject]@{Left=1;Right='1'},
+        [pscustomobject]@{Left=$true;Right=1}, [pscustomobject]@{Left=1;Right=1.0},
+        [pscustomobject]@{Left=@('ab','c');Right=@('a','bc')}, [pscustomobject]@{Left='a';Right=@('a')},
+        [pscustomobject]@{Left=@('a','b');Right=@('b','a')},
+        [pscustomobject]@{Left=([string][char]0xd800);Right=([string][char]0xfffd)},
+        [pscustomobject]@{Left=([string][char]0x00e9);Right=('e'+[char]0x0301)}
+    )) { Assert ((Canonical $pair.Left) -cne (Canonical $pair.Right)) 'Canonical framing preserves type, boundaries, array order and exact Unicode code units.' }
+    Assert ((Canonical ([pscustomobject][ordered]@{z=@('x');a=@()})) -ceq (Canonical ([pscustomobject][ordered]@{a=@();z=@('x')}))) 'Object identity uses ordinal property order rather than insertion order.'
+    Assert ((Canonical ([pscustomobject]@{a=@('x')})) -cne (Canonical ([pscustomobject]@{a='x'}))) 'Nested singleton arrays retain their type.'
+    Assert ((Canonical ([pscustomobject]@{a=@()})) -cne (Canonical ([pscustomobject]@{a=$null}))) 'Nested empty arrays never collapse into null.'
     Save-Corpus @(Fixture-Rule)
     $r=Report
     Assert ($r.Summary.Ready -eq 0 -and $r.Results[0].State -eq 'Conditional') 'Lossy metadata cannot demonstrate usable rules.'
