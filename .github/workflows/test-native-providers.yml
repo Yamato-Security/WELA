@@ -1,0 +1,36 @@
+name: Native provider assessment regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Test public output in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/NativeProviders.Tests.ps1
+      - name: Test public output in PowerShell 7
+        shell: pwsh
+        run: ./tests/NativeProviders.Tests.ps1
+      - name: Read-only native smoke in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/NativeProviders.Windows.Tests.ps1 -OutputDirectory "$env:RUNNER_TEMP/native-provider-ps51"
+      - name: Read-only native smoke in PowerShell 7
+        shell: pwsh
+        run: ./tests/NativeProviders.Windows.Tests.ps1 -OutputDirectory "$env:RUNNER_TEMP/native-provider-ps7"
+      - name: Preserve read-only native evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: native-provider-observations
+          path: |
+            ${{ runner.temp }}/native-provider-ps51/native-assessment.json
+            ${{ runner.temp }}/native-provider-ps51/native-assessment.html
+            ${{ runner.temp }}/native-provider-ps7/native-assessment.json
+            ${{ runner.temp }}/native-provider-ps7/native-assessment.html
+          if-no-files-found: warn

@@ -17,6 +17,7 @@
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$FirewallAction = 'Audit',
     [ValidateSet('Preserve', 'CisV4')][string]$FirewallPathMode = 'Preserve',
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
+    [string]$HtmlPath,
     [switch]$Help
 )
 
@@ -33,6 +34,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
+Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -46,6 +48,9 @@ class WELA {
     [string] $SubCategory
     [string] $CurrentSetting = ""
     [string] $AuditPolicyGuid = ""
+    [string] $ChannelState = ""
+    [string] $GenerationReadiness = ""
+    [array] $NativeSources = @()
     [array] $Rules
     [hashtable] $RulesCount
     [string] $DefaultSetting = ""
@@ -86,7 +91,7 @@ class WELA {
             "std" {
                 # -contains は文字列に対しては完全一致なので、部分一致には -like を使う
                 $color = if ($this.CurrentSetting -eq "Enabled" -or $this.CurrentSetting -like "*Success*" -or $this.CurrentSetting -like "*Failure*") { "Green" }
-                         elseif ($this.CurrentSetting -eq "Unknown") { "DarkYellow" }
+                         elseif ($this.CurrentSetting -in @("Unknown", "Conditional", "Not installed", "Not applicable")) { "DarkYellow" }
                          else { "Red" }
                 $ruleCounts = ""
                 $logEnabled = $this.CurrentSetting
@@ -119,6 +124,12 @@ class WELA {
                 }
                 if ($this.CurrentSetting) {
                     Write-Host "    - Current Setting: $($this.CurrentSetting)"
+                }
+                foreach ($source in $this.NativeSources) {
+                    Write-Host "    - Channel: $($source.Channel.Name); state: $($source.Channel.State); mode: $($source.Channel.LogMode)"
+                    Write-Host "      Provider readiness: $($source.Provider.Readiness); rule coverage: $($source.RuleCoverage)"
+                    if ($source.Channel.Error) { Write-Host "      Channel read: $($source.Channel.Error.Category): $($source.Channel.Error.Message)" }
+                    if ($source.Provider.Error) { Write-Host "      Provider read: $($source.Provider.Error.Category): $($source.Provider.Error.Message)" }
                 }
                 if ($this.RecommendedSetting) {
                     Write-Host "    - Recommended Setting: $($this.RecommendedSetting)"
@@ -163,7 +174,12 @@ function RuleFilter {
 
     if ($category_channels.Count -gt 0) {
         $hasCriteria = $true
-        if (-not ($rule.channel | Where-Object { $category_channels -contains $_ })) {
+        if (-not ($rule.channel | Where-Object {
+            $ruleChannel = $_
+            # Catalog channels are concrete names/aliases; rule channels are patterns,
+            # matching the convention used by Get-WelaNativeSources.
+            $category_channels | Where-Object { $_ -like $ruleChannel }
+        })) {
             return $false
         }
     }
@@ -368,6 +384,7 @@ function BuildAuditResult {
 
     $auditpol = GetAuditpol
     $auditResult = @()
+    $nativeCache = @{}
     $sharedPlan = $null
     if ($baselineName -eq 'YamatoSecurity') {
         $context = Get-WelaSelectedContext
@@ -384,34 +401,17 @@ function BuildAuditResult {
         }
 
         # 現在の設定と、そのサブカテゴリ/チャネルが有効かどうかを決める
+        $nativeSources = @()
         switch ($item.currentSetting.type) {
-            "static" {
-                $enabled = $true
-                $current = $item.currentSetting.value
+            "native-channel" {
+                # Channel availability is observed separately from event generation.
+                # Rule-specific source mappings are attached after filtering below.
+                $enabled = $false
+                $current = 'Unknown'
             }
             "auditpol" {
                 $enabled = $enabledguid -contains $item.select.guid
                 $current = $auditpol[$item.select.guid]
-            }
-            "channel" {
-                # レジストリの Enabled 値はマニフェストの既定値のままだと存在しないことがあり、
-                # 「値が無い」を無効と解釈すると既定で有効なチャネルを誤判定する。
-                # また役割未導入でチャネル自体が無い場合と無効化されている場合も区別できないため、
-                # 実際のチャネル状態を Get-WinEvent から取得する。
-                $logInfo = $null
-                try {
-                    # Windows 以外や役割未導入の環境では取得できないので、その場合は判定不能とする
-                    $logInfo = Get-WinEvent -ListLog $item.currentSetting.channel -ErrorAction Stop
-                } catch {
-                    $logInfo = $null
-                }
-                if ($null -eq $logInfo) {
-                    $enabled = $false
-                    $current = "Unknown"
-                } else {
-                    $enabled = [bool]$logInfo.IsEnabled
-                    $current = if ($enabled) { "Enabled" } else { "Disabled" }
-                }
             }
             "registry" {
                 # 64bit/32bit でレジストリビューが分かれる設定があるため、いずれかで有効なら有効とみなす
@@ -437,8 +437,17 @@ function BuildAuditResult {
         } else {
             $eids     = AsArray $item.select.eventIds
             $channels = AsArray $item.select.channels
+            if ($item.currentSetting.type -eq 'native-channel') {
+                $channels = @($channels) + @($item.currentSetting.channels)
+            }
             $guid     = $item.select.guid
             $rules    = $all_rules | Where-Object { RuleFilter $_ $eids $channels $guid }
+        }
+        if ($item.currentSetting.type -eq 'native-channel') {
+            $nativeSources = @(Get-WelaNativeSources -Definition $item.currentSetting -Rules @($rules) -Cache $nativeCache)
+            $sourceRuleIds = @($nativeSources | ForEach-Object { $_.MappedRuleIds })
+            $rules = @($rules | Where-Object { $sourceRuleIds -contains $_.id })
+            $current = Get-WelaNativeSourceState -Sources $nativeSources
         }
 
         # 1つのルールは複数カテゴリに属しうるので、有効なカテゴリが1つでもあれば
@@ -446,11 +455,11 @@ function BuildAuditResult {
         if ($enabled) {
             $rules | ForEach-Object { $_.applicable = $true }
         }
-        if ($setting.ideal) {
+        if ($setting.ideal -and $item.currentSetting.type -ne 'native-channel') {
             $rules | ForEach-Object { $_.ideal = $true }
         }
 
-        $auditResult += [WELA]::New(
+        $entry = [WELA]::New(
                 $item.category,
                 $item.subCategory,
                 $current,
@@ -460,6 +469,13 @@ function BuildAuditResult {
                 $setting.volume,
                 $setting.note
         )
+        $entry.NativeSources = $nativeSources
+        if ($nativeSources.Count) {
+            $entry.ChannelState = (@($nativeSources | ForEach-Object { $_.Channel.State } | Select-Object -Unique)) -join '; '
+            $entry.GenerationReadiness = (@($nativeSources | ForEach-Object { $_.Provider.Readiness } | Select-Object -Unique)) -join '; '
+            $entry.Note = ($entry.Note + ' Channel availability does not establish event generation. Native provider rule coverage remains unconfirmed; inspect source evidence and validate representative events.').Trim()
+        }
+        $auditResult += $entry
     }
 
     if ($sharedPlan) {
@@ -517,7 +533,9 @@ function AuditLogSetting {
     param (
         [string] $outType,
         [string] $Baseline,
-        [switch] $debug
+        [switch] $debug,
+        [string] $ResultsPath,
+        [string] $HtmlPath
     )
 
     if (-not $debug -and -not (TestAdministrator)) {
@@ -597,7 +615,7 @@ function AuditLogSetting {
 
     if ($outType -eq "std") {
         $auditResult | Group-Object -Property Category | ForEach-Object {
-            $notEnabled = @("No Auditing", "Disabled", "Unknown")
+            $notEnabled = @("No Auditing", "Disabled", "Unknown", "Conditional", "Not installed")
             $summaryRows = @($_.Group | Where-Object { $_.CurrentSetting -ne 'Not applicable' })
             $enabledCount = ($summaryRows | Where-Object { $notEnabled -notcontains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
             $disabledCount = ($summaryRows | Where-Object { $notEnabled -contains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
@@ -605,6 +623,10 @@ function AuditLogSetting {
             $color = ""
             if ($summaryRows.Count -eq 0) {
                 $out = 'Not applicable'
+                $color = 'DarkYellow'
+            }
+            elseif (@($summaryRows | Where-Object { $_.NativeSources.Count -eq 0 }).Count -eq 0) {
+                $out = ($summaryRows | Select-Object -ExpandProperty CurrentSetting -Unique) -join '; '
                 $color = 'DarkYellow'
             }
             elseif (@($summaryRows | Where-Object { $_.Rules.Count -gt 0 }).Count -eq 0) {
@@ -637,7 +659,8 @@ function AuditLogSetting {
             if ($enabledCount + $disabledCount -ne 0) {
                 $enabledPercentage = "({0:N2}%)" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
-            if ($_.Name -notmatch "Powershell" -and $_.Name -notmatch "Security Advanced") {
+            if (($_.Name -notmatch "Powershell" -and $_.Name -notmatch "Security Advanced") -or
+                @($summaryRows | Where-Object { $_.NativeSources.Count -gt 0 }).Count -gt 0) {
                 $enabledPercentage = ""
             }
             Write-Host "$( $_.Name ): $out$($enabledPercentage)" -ForegroundColor $color
@@ -647,7 +670,7 @@ function AuditLogSetting {
             Write-Host ""
         }
     } elseif ($outType -eq "table") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, DefaultSetting, CurrentSetting, RecommendedSetting, Volume | Format-Table
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, DefaultSetting, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume | Format-Table
     }
 
     # 1つのルールが複数カテゴリに属するため、集計とCSVはルールID単位で重複排除する
@@ -661,19 +684,29 @@ function AuditLogSetting {
     $currentJson = Join-Path $script:ScriptRoot "mitre-ttp-navigator-current.json"
     $idealJson   = Join-Path $script:ScriptRoot "mitre-ttp-navigator-ideal.json"
 
-    $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, RecommendedSetting, Volume, Note | Export-Csv -Path $auditCsv -NoTypeInformation
+    $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note,
+        @{ Name = 'NativeSourceEvidence'; Expression = { if ($_.NativeSources.Count) { ConvertTo-Json -InputObject $_.NativeSources -Depth 12 -Compress } else { '' } } } |
+        Export-Csv -Path $auditCsv -NoTypeInformation
     $usableRules   | Select-Object title, level, service, category, description, id | Export-Csv -Path $usableCsv -NoTypeInformation
     $unUsableRules | Select-Object title, level, service, category, description, id | Export-Csv -Path $unusableCsv -NoTypeInformation
+    if ($ResultsPath -or $HtmlPath) {
+        Export-WelaAuditAssessment -Rows $auditResult -Rules @($uniqueRules) -Baseline $Baseline -ResultsPath $ResultsPath -HtmlPath $HtmlPath
+    }
 
     if ($outType -eq "gui") {
         $usableRules   | Select-Object title, level, service, category, description, id | Out-GridView -Title "Usable Detection Rules"
         $unUsableRules | Select-Object title, level, service, category, description, id | Out-GridView -Title "Unusable Detection Rules"
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     }
 
     Write-Output "Audit check result saved to: $auditCsv"
     Write-Output "Usable detection rules list saved to: $usableCsv"
     Write-Output "Unusable detection rules list saved to: $unusableCsv"
+    if ($ResultsPath) { Write-Output "Audit assessment JSON saved to: $ResultsPath" }
+    if ($HtmlPath) { Write-Output "Audit assessment HTML saved to: $HtmlPath" }
+    if (@($auditResult | Where-Object { $_.NativeSources.Count -gt 0 }).Count) {
+        Write-Host 'Native provider rules remain unconfirmed until event-specific generation is validated; enabled channels alone receive no usable-rule credit.' -ForegroundColor DarkYellow
+    }
 
     Export-MitreHeatmap -sigmaRules $uniqueRules -OutputPath $currentJson
     Write-Output "MITRE ATT&CK Navigator data(based on current settings) saved to: $currentJson"
@@ -1770,6 +1803,7 @@ Usage:
   # -Profile changes advanced audit policy plus its precedence prerequisite. Optional controls need -IncludeOptional.
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
+  ./WELA.ps1 audit-settings -Baseline YamatoSecurity -ResultsPath audit.json -HtmlPath audit.html
   ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
   ./WELA.ps1 configure -Baseline YamatoSecurity          # Configure audit settings based on the specified baseline
   ./WELA.ps1 configure -Baseline YamatoSecurity -Auto    # Configure audit settings automatically without prompts
@@ -1820,11 +1854,13 @@ switch ($Cmd.ToLower()) {
         if ($Help -or [string]::IsNullOrEmpty($Baseline)){
             Write-Host "Audit current Windows Event Log settings and compare with baseline"
             Write-Host ""
-            Write-Host "Usage: ./WELA.ps1 audit-settings -Baseline <YamatoSecurity|ASD|Microsoft_Client|Microsoft_Server> [-OutType <std|gui|table>]"
+            Write-Host "Usage: ./WELA.ps1 audit-settings -Baseline <YamatoSecurity|ASD|Microsoft_Client|Microsoft_Server> [-OutType <std|gui|table>] [-ResultsPath <json-file>] [-HtmlPath <html-file>]"
             Write-Host ""
             Write-Host "Options:"
             Write-Host "  -Baseline    Specify the baseline (YamatoSecurity, ASD, Microsoft_Client, Microsoft_Server)"
             Write-Host "  -OutType     Output type: std (default) or gui or table"
+            Write-Host "  -ResultsPath Save JSON assessment including native channel/provider evidence"
+            Write-Host "  -HtmlPath    Save a self-contained HTML assessment with the same evidence"
             Write-Host ""
             return
         }
@@ -1833,7 +1869,7 @@ switch ($Cmd.ToLower()) {
             Write-Host "Invalid Guide specified. Valid options are: $($validGuides -join ', ')."
             break
         }
-        AuditLogSetting -outType $OutType -Baseline $Baseline -debug:$Debug
+        AuditLogSetting -outType $OutType -Baseline $Baseline -debug:$Debug -ResultsPath $ResultsPath -HtmlPath $HtmlPath
     }
     "audit-filesize" {
         if ($Help){

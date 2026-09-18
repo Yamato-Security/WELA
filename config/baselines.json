@@ -14,8 +14,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Application"
+        ],
+        "provider": "Application"
       }
     },
     {
@@ -34,8 +37,14 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-AppLocker/MSI and Script",
+          "Microsoft-Windows-AppLocker/EXE and DLL",
+          "Microsoft-Windows-AppLocker/Packaged app-Deployment",
+          "Microsoft-Windows-AppLocker/Packaged app-Execution"
+        ],
+        "provider": "AppLocker"
       }
     },
     {
@@ -51,8 +60,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-Bits-Client/Operational"
+        ],
+        "provider": "BITS"
       }
     },
     {
@@ -68,8 +80,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-CodeIntegrity/Operational"
+        ],
+        "provider": "CodeIntegrity"
       }
     },
     {
@@ -106,8 +121,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "channel",
-        "channel": "Microsoft-Windows-DFSN-Server/Admin"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-DFSN-Server/Admin"
+        ],
+        "provider": "DFSN"
       }
     },
     {
@@ -123,8 +141,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-Diagnosis-Scripted/Operational"
+        ],
+        "provider": "Diagnosis"
       }
     },
     {
@@ -140,8 +161,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-DriverFrameworks-UserMode/Operational"
+        ],
+        "provider": "DriverFrameworks"
       }
     },
     {
@@ -157,8 +181,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall"
+        ],
+        "provider": "Firewall"
       }
     },
     {
@@ -174,8 +201,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-NTLM/Operational"
+        ],
+        "provider": "NTLM"
       }
     },
     {
@@ -193,8 +223,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Windows PowerShell"
+        ],
+        "provider": "PowerShellClassic"
       }
     },
     {
@@ -258,8 +291,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-PrintService/Admin"
+        ],
+        "provider": "PrintService"
       }
     },
     {
@@ -275,8 +311,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-PrintService/Operational"
+        ],
+        "provider": "PrintService"
       }
     },
     {
@@ -815,13 +854,16 @@
         "type": "filter",
         "eventIds": [],
         "channels": [
-          "Microsoft-Windows-Security-Mitigations*"
+          "Microsoft-Windows-Security-Mitigations/KernelMode"
         ],
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-Security-Mitigations/KernelMode"
+        ],
+        "provider": "ExploitProtection"
       }
     },
     {
@@ -832,13 +874,16 @@
         "type": "filter",
         "eventIds": [],
         "channels": [
-          "Microsoft-Windows-Security-Mitigations*"
+          "Microsoft-Windows-Security-Mitigations/UserMode"
         ],
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-Security-Mitigations/UserMode"
+        ],
+        "provider": "ExploitProtection"
       }
     },
     {
@@ -854,8 +899,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-SmbClient/Security"
+        ],
+        "provider": "SMBClient"
       }
     },
     {
@@ -871,8 +919,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "System"
+        ],
+        "provider": "System"
       }
     },
     {
@@ -909,8 +960,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational"
+        ],
+        "provider": "TerminalServices"
       }
     },
     {
@@ -926,8 +980,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-WMI-Activity/Operational"
+        ],
+        "provider": "WMI"
       }
     },
     {
@@ -943,8 +1000,11 @@
         "guid": ""
       },
       "currentSetting": {
-        "type": "static",
-        "value": "Enabled"
+        "type": "native-channel",
+        "channels": [
+          "Microsoft-Windows-Windows Defender/Operational"
+        ],
+        "provider": "Defender"
       }
     }
   ],
