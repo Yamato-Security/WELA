@@ -177,26 +177,58 @@ namespace Wela.AuditProfiles {
     return $current
 }
 
+function Get-WelaAuditSetArguments {
+    param(
+        [ValidatePattern('^[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$')][string]$Guid,
+        [ValidateRange(0, 3)][int]$Mask,
+        [ValidateSet('exact', 'minimum')][string]$Mode = 'exact'
+    )
+    $arguments = @('/set', "/subcategory:{$Guid}")
+    if ($Mode -eq 'minimum') {
+        # Only enable required bits; never clear another actor's newly enabled bit.
+        if ($Mask -band 1) { $arguments += '/success:enable' }
+        if ($Mask -band 2) { $arguments += '/failure:enable' }
+    } else {
+        $arguments += if ($Mask -band 1) { '/success:enable' } else { '/success:disable' }
+        $arguments += if ($Mask -band 2) { '/failure:enable' } else { '/failure:disable' }
+    }
+    return $arguments
+}
+
 function Set-WelaEffectiveAuditPolicy {
-    param([ValidatePattern('^[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$')][string]$Guid, [ValidateRange(0, 3)][int]$Mask)
-    $success = if ($Mask -band 1) { 'enable' } else { 'disable' }
-    $failure = if ($Mask -band 2) { 'enable' } else { 'disable' }
-    $output = & auditpol.exe /set "/subcategory:{$Guid}" "/success:$success" "/failure:$failure" 2>&1
+    param(
+        [ValidatePattern('^[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$')][string]$Guid,
+        [ValidateRange(0, 3)][int]$Mask,
+        [ValidateSet('exact', 'minimum')][string]$Mode = 'exact'
+    )
+    if ($Mode -eq 'minimum' -and $Mask -eq 0) { return }
+    $arguments = @(Get-WelaAuditSetArguments -Guid $Guid -Mask $Mask -Mode $Mode)
+    $output = & auditpol.exe @arguments 2>&1
     if ($LASTEXITCODE -ne 0) { throw "auditpol /set failed ($LASTEXITCODE): $($output -join ' ')" }
 }
 
 function Get-WelaHostContext {
     [CmdletBinding()]
-    param()
-    $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
-    $system = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
+    param(
+        [scriptblock]$ReadOperatingSystem = { Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop },
+        [scriptblock]$ReadComputerSystem = { Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop },
+        [scriptblock]$ReadCertificateAuthority = { Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration' -ErrorAction Stop }
+    )
+    $os = & $ReadOperatingSystem
+    $system = & $ReadComputerSystem
     if ([int]$os.ProductType -notin @(1, 2, 3) -or [int]$system.DomainRole -notin @(0, 1, 2, 3, 4, 5) -or [int]$os.BuildNumber -le 0) { throw 'Cannot determine a valid Windows role/build.' }
     if (([int]$os.ProductType -eq 1 -and [int]$system.DomainRole -notin @(0, 1)) -or
         ([int]$os.ProductType -eq 2 -and [int]$system.DomainRole -notin @(4, 5)) -or
         ([int]$os.ProductType -eq 3 -and [int]$system.DomainRole -notin @(2, 3))) { throw 'Windows ProductType and DomainRole disagree.' }
+    $hasCA = $false
+    if ([int]$os.ProductType -ne 1) {
+        $hasCA = & $ReadCertificateAuthority
+        if ($hasCA -isnot [bool]) { throw 'Cannot determine whether Certificate Services is installed.' }
+        if ($hasCA -and [int]$system.DomainRole -in @(4, 5)) { throw 'Combined domain-controller/CA hosts are unsupported by the current role profiles. No configuration should be applied.' }
+    }
     $role = if ([int]$os.ProductType -eq 1) { 'Client' }
         elseif ([int]$system.DomainRole -in @(4, 5)) { 'DomainController' }
-        elseif (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration') { 'ADCS' }
+        elseif ($hasCA) { 'ADCS' }
         else { 'MemberServer' }
     [pscustomobject]@{ Role = $role; Build = [int]$os.BuildNumber }
 }
@@ -218,7 +250,7 @@ function Invoke-WelaAuditProfilePlan {
     param(
         [Parameter(Mandatory)]$Plan,
         [scriptblock]$ReadPolicy = { Get-WelaEffectiveAuditPolicy },
-        [scriptblock]$WritePolicy = { param($Guid, $Mask) Set-WelaEffectiveAuditPolicy -Guid $Guid -Mask $Mask },
+        [scriptblock]$WritePolicy,
         [scriptblock]$ReadContext = { Get-WelaHostContext }
     )
     $hostContext = & $ReadContext
@@ -226,20 +258,34 @@ function Invoke-WelaAuditProfilePlan {
     Assert-WelaAuditProfileTarget -Plan $Plan -Context $hostContext -Current $before
     $selected = @($Plan.policies | Where-Object { $_.mode -in @('exact', 'minimum') -or ($_.mode -eq 'optional' -and $Plan.includeOptional) })
     $results = foreach ($policy in $selected) {
-        $initial = $before[$policy.guid]; $effective = $initial; $errorText = $null
-        $target = if ($policy.mode -eq 'minimum') { [int]$initial -bor [int]$policy.requiredMask } else { [int]$policy.requiredMask }
-        $status = 'No change'
-        if ($initial -ne $target) {
-            if ($PSCmdlet.ShouldProcess($policy.id, "Set audit policy to $(Format-WelaAuditMask $target)")) {
-                try {
-                    & $WritePolicy $policy.guid $target | Out-Null
+        $initial = $null; $effective = $null; $target = $null; $errorText = $null; $status = 'No change'
+        try {
+            # Whole-plan preflight is not a current-state cache: re-read immediately before each control.
+            $fresh = & $ReadPolicy
+            if ($fresh -isnot [hashtable] -or -not $fresh.ContainsKey($policy.guid) -or $null -eq $fresh[$policy.guid] -or $fresh[$policy.guid] -notin @(0, 1, 2, 3)) { throw 'Current audit policy became unknown before application.' }
+            $initial = $fresh[$policy.guid]; $effective = $initial
+            $isMinimum = $policy.mode -eq 'minimum'
+            $target = if ($isMinimum) { [int]$initial -bor [int]$policy.requiredMask } else { [int]$policy.requiredMask }
+            if ($initial -ne $target) {
+                if ($PSCmdlet.ShouldProcess($policy.id, "Set audit policy to $(Format-WelaAuditMask $target)")) {
+                    $writeMode = if ($isMinimum) { 'minimum' } else { 'exact' }
+                    if ($WritePolicy) {
+                        # Existing two-argument test providers retain their merged-mask contract.
+                        # A third mode argument lets providers preserve concurrent additional flags.
+                        & $WritePolicy $policy.guid $target $writeMode | Out-Null
+                    } else {
+                        $writeMask = if ($isMinimum) { $policy.requiredMask } else { $target }
+                        Set-WelaEffectiveAuditPolicy -Guid $policy.guid -Mask $writeMask -Mode $writeMode
+                    }
                     $verified = & $ReadPolicy
-                    $effective = if ($verified.ContainsKey($policy.guid)) { $verified[$policy.guid] } else { $null }
-                    if ($effective -ne $target) { throw 'Effective policy does not match the requested mask (GPO or command failure).' }
+                    $effective = if ($verified -is [hashtable] -and $verified.ContainsKey($policy.guid)) { $verified[$policy.guid] } else { $null }
+                    if ($null -eq $effective -or $effective -notin @(0, 1, 2, 3)) { throw 'Effective policy is unknown after application.' }
+                    $matches = if ($isMinimum) { ([int]$effective -band [int]$policy.requiredMask) -eq [int]$policy.requiredMask } else { $effective -eq $target }
+                    if (-not $matches) { throw 'Effective policy does not meet the requested audit requirement (GPO or command failure).' }
                     $status = 'Applied'
-                } catch { $status = 'Failed'; $errorText = $_.Exception.Message; $effective = $null }
-            } else { $status = 'Skipped' }
-        }
+                } else { $status = 'Skipped' }
+            }
+        } catch { $status = 'Failed'; $errorText = $_.Exception.Message; $effective = $null }
         [pscustomobject]@{
             id = $policy.id; guid = $policy.guid; mode = $policy.mode
             beforeMask = $initial; targetMask = $target; effectiveMask = $effective; status = $status; error = $errorText
