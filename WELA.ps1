@@ -1707,6 +1707,12 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if (($PSBoundParameters.ContainsKey('AppLockerAction') -or $AppLockerPolicyPath) -and $Cmd -ne 'applocker-readiness') {
+    throw '-AppLockerAction and -AppLockerPolicyPath require applocker-readiness. No command was run.'
+}
+if ($Cmd -eq 'applocker-readiness' -and ($Profile -or $Baseline)) {
+    throw 'applocker-readiness uses its own operator-supplied policy, not -Profile or -Baseline. No command was run.'
+}
 # Reject unsupported dry-run requests before reaching any command's mutation path.
 if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and

@@ -13,7 +13,9 @@ The default is read-only Audit. Windows 11 clients and member servers running Se
 
 ## Scope and import safeguards
 
-Import accepts an **operator-supplied** native XML policy. Every included collection must explicitly be AuditOnly and contain rules. XML DTDs, namespaces, unknown collection types, duplicate IDs and policy extensions are rejected. The native `Test-AppLockerPolicy` cmdlet validates the prepared XML before it can be installed; it does not execute the test file. There are no generated blanket allow rules or default policy assumptions.
+AppLocker-specific options are rejected on unrelated commands; `-Profile` and `-Baseline` do not select AppLocker policy.
+
+Import accepts an **operator-supplied** native XML policy. Every included collection must explicitly be AuditOnly and contain rules. XML DTDs, namespaces, unknown collection types, duplicate IDs and policy extensions are rejected. The prepared file is created without overwriting existing files, locked against writes, and compared byte-for-byte (length and SHA-256) with the reviewed in-memory XML before native validation. The native `Test-AppLockerPolicy` cmdlet validates that same locked file before it can be installed; it does not execute the test file. There are no generated blanket allow rules or default policy assumptions.
 
 Import only initializes an empty local/GP policy, or verifies an identical previously imported policy. Existing configured collections, existing enforcement (including NotConfigured collections with rules), unreadable policy, domain membership, observed enrollment/provider entries or unknown management state block import. Use the organization's policy authority to manage those hosts. The workflow uses `Set-AppLockerPolicy -Merge`, retains original policy XML in the recovery journal, rechecks state before writing, and verifies local collection content again after writing and at completion. It does not replace an existing policy. An import failure is reported with a nonzero exit code. Dry-run makes no policy or recovery-file changes.
 

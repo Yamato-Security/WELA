@@ -20,7 +20,7 @@ function Reset-Fixture {
     $script:localXml='<AppLockerPolicy Version="1" />'; $script:effectiveXml=$script:localXml
     $script:serviceState='Running'; $script:serviceMode='Auto'; $script:channelEnabled=$true
     $script:domain=$false; $script:managed=@(); $script:unknownPolicy=$false; $script:writes=0; $script:readCount=0
-    $script:race=$false; $script:reject=$false; $script:drift=$false
+    $script:race=$false; $script:reject=$false; $script:drift=$false; $script:tamper=$false; $script:validations=0
 }
 function Get-WelaAppLockerHost { [pscustomobject]@{Status='Candidate'; Is64BitProcess=$true; PartOfDomain=$script:domain} }
 function Get-WelaAppLockerManagement { [pscustomobject]@{Status='Observed'; ManagementEntries=$script:managed; CspPolicyState='Unknown'} }
@@ -37,7 +37,15 @@ function Get-WelaAppLockerPolicySnapshot {
     $value=if ($Scope -eq 'Local') {$script:localXml} else {$script:effectiveXml}
     [pscustomobject]@{Status='Observed'; Policy=(ConvertFrom-WelaAppLockerXml -Xml $value)}
 }
-function Test-AppLockerPolicy { [CmdletBinding()]param($XmlPolicy,$Path,$User) [pscustomobject]@{PolicyDecision='Allowed'} }
+$script:originalImportFile = ${function:New-WelaAppLockerImportReadLock}
+function New-WelaAppLockerImportReadLock {
+    param($Path,$Xml)
+    if (-not $script:tamper) { return & $script:originalImportFile -Path $Path -Xml $Xml }
+    # Simulate a file replaced before the read lock, without races or native policy calls.
+    [IO.File]::WriteAllText($Path, $Xml.Replace('AuditOnly', 'Enabled').Replace('<Conditions>', '<Conditions>  '), (New-Object Text.UTF8Encoding($false)))
+    return [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+}
+function Test-AppLockerPolicy { [CmdletBinding()]param($XmlPolicy,$Path,$User) $script:validations++; [pscustomobject]@{PolicyDecision='Allowed'} }
 function Set-AppLockerPolicy {
     [CmdletBinding()]param($XmlPolicy,[switch]$Merge)
     if (-not $Merge) { throw 'Import must never replace a policy.' }
@@ -68,9 +76,10 @@ Reset-Fixture; $script:unknownPolicy=$true
 Assert-Throws { Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired } 'readable'
 $cleanup=@()
 try {
-    foreach ($scenario in @('apply','dry','race','failure','drift','existing')) {
+    foreach ($scenario in @('apply','dry','race','failure','drift','existing','tamper')) {
         Reset-Fixture
         if ($scenario -eq 'race') {$script:race=$true}
+        if ($scenario -eq 'tamper') {$script:tamper=$true}
         if ($scenario -eq 'failure') {$script:reject=$true}
         if ($scenario -eq 'drift') {$script:drift=$true}
         if ($scenario -eq 'existing') {$script:localXml=$xml;$script:effectiveXml=$xml}
@@ -86,11 +95,30 @@ try {
                 Assert ($script:writes -eq 1 -and $context.Results[1].Status -eq 'AlreadyCompliant') 'Reapplying same policy should not write.'
             }
             'dry' { Assert ($script:writes -eq 0 -and -not (Test-Path $path)) 'Dry-run must not write policy or recovery files.' }
+            'tamper' { Assert ($script:writes -eq 0 -and $script:validations -eq 0 -and $result.ExitCode -eq 1 -and $result.Results[0].Diagnostic -match 'changed before its read lock') 'Altered prepared XML must fail before native validation or import, including equal-length mode tampering.' }
             'race' { Assert ($script:writes -eq 0 -and $result.ExitCode -eq 1) 'Concurrent enforcement must block merge.' }
             'failure' { Assert ($result.ExitCode -eq 1) 'Native write failure must propagate.' }
             'drift' { Assert ($result.ExitCode -eq 1) 'Final readback must detect policy drift.' }
             'existing' { Assert ($script:writes -eq 0 -and $result.ExitCode -eq 0) 'Identical policy stays unchanged.' }
         }
     }
+    $path=Join-Path ([IO.Path]::GetTempPath()) ('wela-applocker-existing-'+[guid]::NewGuid().ToString('N')+'.xml');$cleanup+=$path
+    [IO.File]::WriteAllText($path,'Existing unrelated file')
+    $rejected=$false
+    try { $stream=& $script:originalImportFile -Path $path -Xml $xml; $stream.Dispose() } catch { $rejected=$true }
+    Assert ($rejected -and [IO.File]::ReadAllText($path) -eq 'Existing unrelated file') 'Prepared import creation cannot overwrite a pre-existing file/link.'
+    # Execute only actual top-level option guards; no command dispatcher/mutator.
+    $tokens=$null;$parseErrors=$null
+    $ast=[System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../WELA.ps1'),[ref]$tokens,[ref]$parseErrors)
+    Assert ($parseErrors.Count -eq 0) 'CLI option guards parse.'
+    $guard=$ast.EndBlock.Statements | Where-Object { $_ -is [System.Management.Automation.Language.IfStatementAst] -and $_.Extent.Text.StartsWith("if ((`$PSBoundParameters.ContainsKey('AppLockerAction')") } | Select-Object -First 1
+    Assert ($null -ne $guard) 'Explicit AppLocker options must be guarded before dispatch.'
+    $exercise=[scriptblock]::Create('param($AppLockerAction,$AppLockerPolicyPath,$Cmd)' + [Environment]::NewLine + $guard.Extent.Text)
+    Assert-Throws { & $exercise -AppLockerAction Plan -Cmd configure } 'require applocker-readiness'
+    Assert-Throws { & $exercise -AppLockerPolicyPath 'operator.xml' -Cmd configure-sacl } 'require applocker-readiness'
+    & $exercise -AppLockerAction Plan -Cmd applocker-readiness
+    $guard=$ast.EndBlock.Statements | Where-Object { $_ -is [System.Management.Automation.Language.IfStatementAst] -and $_.Extent.Text.StartsWith("if (`$Cmd -eq 'applocker-readiness' -and (`$Profile") } | Select-Object -First 1
+    $Cmd='applocker-readiness';$Profile='wela-2.2.0';$Baseline=$null
+    Assert-Throws { & ([scriptblock]::Create($guard.Extent.Text)) } 'not -Profile or -Baseline'
 } finally { foreach ($path in $cleanup) { Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue } }
 Write-Host "PASS: $count AppLocker readiness/import assertions; no Windows policies changed."

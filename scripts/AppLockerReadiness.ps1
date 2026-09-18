@@ -154,6 +154,19 @@ function Assert-WelaAppLockerImportSafe {
     if ($Snapshot.LocalPolicy.Policy.Collections.Count -or $Snapshot.EffectiveGpPolicy.Policy.Collections.Count) { throw 'Existing policy is preserved. Import only initializes an empty local/GP policy; it never replaces a configured policy.' }
 }
 
+function New-WelaAppLockerImportReadLock {
+    param([string]$Path, [string]$Xml)
+    # CreateNew refuses a pre-existing file/link in the backup directory. Native
+    # readers generally require that the writer handle has already been closed.
+    $writer = [IO.File]::Open($Path, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try {
+        $bytes = [Text.Encoding]::UTF8.GetBytes($Xml)
+        $writer.Write($bytes, 0, $bytes.Length)
+        $writer.Flush()
+    } finally { $writer.Dispose() }
+    return [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+}
+
 function Set-WelaAppLockerAuditPolicy {
     param($Context, $Desired)
     $state = @{ Desired=$Desired; Before=$null; Context=$Context }
@@ -167,12 +180,22 @@ function Set-WelaAppLockerAuditPolicy {
         if (-not (Get-Command Set-AppLockerPolicy -ErrorAction SilentlyContinue)) { throw 'Set-AppLockerPolicy is unavailable in this session.' }
         # Import the validated in-memory snapshot, not a mutable operator source file.
         $path = Join-Path $state.Context.BackupPath 'appLocker-audit-import.xml'
-        [IO.File]::WriteAllText($path, $state.Desired.Xml, (New-Object Text.UTF8Encoding($false)))
         if (-not (Get-Command Test-AppLockerPolicy -ErrorAction SilentlyContinue)) { throw 'Test-AppLockerPolicy is unavailable; native schema validation is required before import.' }
         # Deny concurrent modification/deletion of the prepared XML while both
         # native cmdlets consume it; they need only read access.
-        $lock = [IO.File]::Open($path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+        $lock = New-WelaAppLockerImportReadLock -Path $path -Xml $state.Desired.Xml
         try {
+            # The file can be replaced between writer-close and read-lock-open.
+            # Validate the locked bytes against the already reviewed snapshot,
+            # since native schema validation alone also accepts enforcing XML.
+            $expectedBytes = [Text.Encoding]::UTF8.GetBytes($state.Desired.Xml)
+            if ($lock.Length -ne $expectedBytes.Length) { throw 'Prepared AppLocker XML changed before its read lock; no policy was imported.' }
+            $hasher = [Security.Cryptography.SHA256]::Create()
+            try {
+                $expectedHash = [Convert]::ToBase64String($hasher.ComputeHash($expectedBytes))
+                $actualHash = [Convert]::ToBase64String($hasher.ComputeHash($lock))
+                if ($actualHash -cne $expectedHash) { throw 'Prepared AppLocker XML changed before its read lock; no policy was imported.' }
+            } finally { $hasher.Dispose() }
             $validation = @(Test-AppLockerPolicy -XmlPolicy $path -Path "$env:SystemRoot\System32\cmd.exe" -User 'S-1-1-0' -ErrorAction Stop)
             if (-not $validation.Count) { throw 'Native policy validation returned no result; no policy was imported.' }
             $immediate = Get-WelaAppLockerReadiness

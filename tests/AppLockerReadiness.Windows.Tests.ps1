@@ -14,9 +14,11 @@ if (Get-Command Test-AppLockerPolicy -ErrorAction SilentlyContinue) {
     try {
         $xml='<AppLockerPolicy Version="1"><RuleCollection Type="Exe" EnforcementMode="AuditOnly"><FilePathRule Id="12345678-1234-1234-1234-123456789abc" Name="Read-only test" Description="" UserOrGroupSid="S-1-1-0" Action="Allow"><Conditions><FilePathCondition Path="%WINDIR%\*" /></Conditions></FilePathRule></RuleCollection></AppLockerPolicy>'
         $policy=ConvertFrom-WelaAppLockerXml -Xml $xml -ForImport
-        [IO.File]::WriteAllText($path,$policy.Xml)
-        $validation=@(Test-AppLockerPolicy -XmlPolicy $path -Path "$env:SystemRoot\System32\cmd.exe" -User 'S-1-1-0' -ErrorAction Stop)
-        if (-not $validation.Count) { throw 'Native schema validation returned no decision.' }
+        $lock=New-WelaAppLockerImportReadLock -Path $path -Xml $policy.Xml
+        try {
+            $validation=@(Test-AppLockerPolicy -XmlPolicy $path -Path "$env:SystemRoot\System32\cmd.exe" -User 'S-1-1-0' -ErrorAction Stop)
+            if (-not $validation.Count) { throw 'Native schema validation returned no decision.' }
+        } finally { $lock.Dispose() }
     } finally { Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue }
 } else { Write-Host 'Native policy validation unavailable in this PowerShell session; importer will refuse.' }
 Write-Host 'PASS: native read-only AppLocker observations. No Set-AppLockerPolicy or service changes.'
