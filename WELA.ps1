@@ -11,6 +11,7 @@
     [int]$Build,
     [string]$PlanPath,
     [switch]$IncludeOptional,
+    [ValidateSet('Plan', 'Skip')][string]$SaclMode = 'Plan',
     [switch]$Auto,
     [ValidateSet("PreserveOrAudit", "Audit", "Deny")]
     [string]$OutgoingNtlmMode = "PreserveOrAudit",
@@ -48,6 +49,7 @@ Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction 
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
+. (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -344,9 +346,10 @@ function Invoke-WelaProfileCommand {
     if (-not $script:Profile) { throw "Specify -Profile. Use './WELA.ps1 profiles' to list versioned profiles." }
     $context = Get-WelaSelectedContext
     $current = @{}
+    $saclLive = $false
     if (TestWindows) {
         $actual = Get-WelaHostContext
-        if ($actual.Role -eq $context.Role -and $actual.Build -eq $context.Build) { $current = Get-WelaEffectiveAuditPolicy }
+        if ($actual.Role -eq $context.Role -and $actual.Build -eq $context.Build) { $current = Get-WelaEffectiveAuditPolicy; $saclLive = $true }
         elseif ($Command -ne 'plan') { throw "Requested role/build does not match this Windows host." }
         else { Write-Host "Planning for another role/build: effective state remains Unknown." }
     }
@@ -354,11 +357,15 @@ function Invoke-WelaProfileCommand {
     $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional
     $precedence = Get-WelaAuditPrecedenceState -Offline:($current.Count -eq 0)
     $plan | Add-Member NoteProperty AuditPrecedence $precedence
+    $saclPlan = Get-WelaTargetedSaclPlan -AuditPlan $plan -Mode $script:SaclMode -Live:$saclLive
+    $plan | Add-Member NoteProperty SaclPrerequisites $saclPlan
     Write-Host "Profile: $($plan.profile); role: $($plan.role); build: $($plan.build)"
-    Write-Host "Scope: advanced audit policy and its subcategory-precedence prerequisite. Channels, command-line capture, PowerShell, NTLM, SACLs, CA AuditFilter and forwarding are separate."
+    Write-Host "Scope: advanced audit policy and its subcategory-precedence prerequisite. Channels, command-line capture, PowerShell, NTLM, SACL writes, CA AuditFilter and forwarding are separate."
     Write-Host "Audit precedence: $($precedence.State); required SCENoApplyLegacyAuditPolicy=1 (DWORD). $($precedence.Diagnostic)"
     if ($precedence.PolicySource) { Write-Host $precedence.PolicySource.Description }
     Show-WelaAuditProfilePrerequisites -Plan $plan
+    Write-Host "Targeted SACL companion plan: $($saclPlan.Mode), $($saclPlan.Targets.Count) targets; $($saclPlan.TelemetryGap)" -ForegroundColor DarkYellow
+    $saclPlan.Targets | Select-Object Scope, Path, Rights, Inheritance, PolicyMode, @{Name='PathState';Expression={$_.Observation.PathState}} | Format-Table -AutoSize
     $result = $plan
     if ($Command -eq 'configure') {
         if (-not (TestAdministrator)) { throw "Configuring advanced audit policy requires Administrator privileges." }
@@ -366,6 +373,8 @@ function Invoke-WelaProfileCommand {
         $configurationContext = New-WelaConfigurationContext -Auto:$script:Auto -DryRun:$script:DryRun -BackupPath $script:BackupPath
         Set-WelaProfileAuditControls -Context $configurationContext -Plan $plan
         $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan -Scope advanced-audit-policy-and-precedence
+        $result | Add-Member NoteProperty SaclPrerequisites $saclPlan
+        if ($script:ResultsPath) { $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:ResultsPath -Encoding UTF8 -ErrorAction Stop }
         $result.Results | Format-Table Id, Before, Desired, After, Status -AutoSize
     } else {
         $plan.policies | Format-Table id, mode, currentMask, requiredMask, action -AutoSize
@@ -1695,6 +1704,8 @@ Usage:
   ./WELA.ps1 configure-eventlogs -LogProfile asd-collector-archive-2021-10 -ApplyLogMode # Explicit archive choice
   ./WELA.ps1 configure -Baseline YamatoSecurity          # Configure audit settings based on the specified baseline
   ./WELA.ps1 configure -Baseline YamatoSecurity -Auto    # Configure audit settings automatically without prompts
+  ./WELA.ps1 plan -Profile asd-native-2021-10 -Role Client -Build 26100 -IncludeOptional -SaclMode Plan
+  # Profile plan/audit/configure include read-only SACL prerequisites; -SaclMode Skip reports the telemetry gap.
   ./WELA.ps1 configure-sacl                              # Add targeted File System/Registry audit SACLs (ASEP keys + sensitive files) needed by the rules, without global auditing
   ./WELA.ps1 configure-sacl -Auto                        # ...automatically without prompts
   ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
@@ -1709,6 +1720,12 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+# SaclMode belongs only to the read-only profile companion plan. In particular,
+# configure-sacl must never silently ignore an explicit request to Skip.
+if ($PSBoundParameters.ContainsKey('SaclMode') -and
+    (-not $Profile -or $Cmd -notin @('plan', 'audit', 'audit-settings', 'configure'))) {
+    throw '-SaclMode requires -Profile with plan, audit, audit-settings or configure. It does not control configure-sacl. No command was run.'
+}
 # Reject unsupported dry-run requests before reaching any command's mutation path.
 if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
     $_ -in @('AdSaclAction', 'AdServer', 'AdSaclProfile', 'AdObjectDn', 'AdReceiptPath')
