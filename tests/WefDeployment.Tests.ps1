@@ -202,6 +202,7 @@ try {
     $global:WelaWefFixture.Forwarded=$false
     $report=Invoke-Collector -ResultsPath (Join-Path $temp 'collector-result.json')
     Assert ($report.ExitCode -eq 0 -and $global:WelaWefFixture.Subs.Count -eq 1) 'Verified collector creates only the selected explicit subscription'
+    Assert ($null -eq $report.Subscriptions[0].ObservedSubscription.Xml.PSObject.Properties['PSDrive']) 'Observed XML strips reader ETS metadata before Windows PowerShell 5.1 JSON serialization'
     Assert ($report.Subscriptions[0].Runtime.Raw -eq 'Localized runtime fixture' -and $report.Subscriptions[0].EventArrival -eq 'Not tested') 'Native runtime evidence is retained without inventing successful arrivals'
     Assert ($report.Subscriptions[0].ChannelObservationLocation -like 'Collector only*') 'Collector channel inventory is not misrepresented as remote source state'
     $beforeWrites=$global:WelaWefFixture.Writes.Count; $script:backup=Join-Path $temp ([guid]::NewGuid().ToString('N')); $global:WelaWefFixture.Backup=$backup

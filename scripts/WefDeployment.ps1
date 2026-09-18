@@ -32,7 +32,10 @@ function Get-WelaWefControlState {
         'Subscription' {
             $ids = @((Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('es')).Output | ForEach-Object { $_.ToString().Trim() } | Where-Object { $_ })
             if ($ids -notcontains $Target.Id) { return [pscustomobject]@{ Exists=$false; Xml=$null; Key=$null; Definition=$null } }
-            $xml = (Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('gs',$Target.Id,'/f:xml')).Diagnostic
+            # Keep evidence as a plain string. Windows PowerShell 5.1's JSON
+            # serializer expands ETS properties on strings (for example a test
+            # reader's PSDrive/PSProvider graph), unlike modern PowerShell.
+            $xml = [string]::Concat((Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('gs',$Target.Id,'/f:xml')).Diagnostic)
             $model = ConvertFrom-WelaWefSubscription -Xml $xml -SourceSids $Target.SourceSids -Observed
             return [pscustomobject]@{ Exists=$true; Xml=$xml; Key=$model.Key; Definition=$model.Definition }
         }
