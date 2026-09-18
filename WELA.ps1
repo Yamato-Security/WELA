@@ -459,6 +459,12 @@ function AuditLogSetting {
         }
     }
 
+    $domainNtlm = Get-WelaDomainNtlmState
+    $auditResult += [WELA]::new(
+        "NTLM Authentication", "Domain NTLM auditing", $domainNtlm.Description, @(),
+        "Not configured", "Enable all (7) on domain controllers only", "",
+        "AuditNTLMInDomain; applicability is determined from Win32_OperatingSystem.ProductType."
+    )
     $auditResult | ForEach-Object { $_.CountByLevel() }
 
     $auditResult | ForEach-Object {
@@ -986,6 +992,90 @@ function UpdateRules {
     }
 }
 
+function Get-WelaDomainNtlmState {
+    # ProductType distinguishes an actual DC from a member server with AD DS tools installed.
+    $state = [pscustomobject]@{
+        Applicable = $false
+        Readable = $false
+        Value = $null
+        Description = 'Unknown (computer role could not be determined)'
+    }
+    try {
+        $os = Get-CimInstance -ClassName Win32_OperatingSystem -Property ProductType -ErrorAction Stop
+        switch ($os.ProductType) {
+            1 { $state.Description = 'Not applicable (Windows client)'; return $state }
+            2 { $state.Applicable = $true }
+            3 { $state.Description = 'Not applicable (member or standalone server, including non-DC AD CS)'; return $state }
+            default { return $state }
+        }
+    } catch {
+        $state.Description = "Unknown (computer role query failed: $($_.Exception.Message))"
+        return $state
+    }
+    try {
+        $path = 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters'
+        $state.Description = 'Not configured'
+        if (Test-Path -LiteralPath $path -ErrorAction Stop) {
+            $properties = Get-ItemProperty -LiteralPath $path -ErrorAction Stop
+            $property = $properties.PSObject.Properties['AuditNTLMInDomain']
+            if ($null -ne $property) {
+                $state.Value = $property.Value
+                $state.Description = switch ($state.Value) {
+                    0 { 'Disabled (0)' }
+                    7 { 'Enable all (7)' }
+                    default { "Value $($state.Value) (not interpreted as Enable all)" }
+                }
+            }
+        }
+        $state.Readable = $true
+    } catch {
+        $state.Description = "Unknown (domain NTLM registry read failed: $($_.Exception.Message))"
+    }
+    return $state
+}
+
+function Set-WelaDomainNtlmAudit {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param ([switch]$Auto)
+    $state = Get-WelaDomainNtlmState
+    Write-Host "Domain NTLM auditing: $($state.Description)"
+    if (-not $state.Applicable) {
+        Write-Host '[SKIPPED] Domain NTLM policy is only changed on a confirmed domain controller.' -ForegroundColor Yellow
+        return
+    }
+    if (-not $state.Readable) {
+        throw 'Domain NTLM policy was not changed because its current state could not be read.'
+    }
+    if ($state.Value -eq 7) {
+        Write-Host '[SKIPPED] Domain NTLM auditing is already Enable all (7).' -ForegroundColor Yellow
+        return
+    }
+    $path = 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters'
+    if (-not $PSCmdlet.ShouldProcess("$path\AuditNTLMInDomain", 'Set domain NTLM auditing to Enable all (7)')) { return }
+    if (-not $Auto) {
+        $response = Read-Host "Change domain NTLM auditing from '$($state.Description)' to 'Enable all (7)'? (Y/n)"
+        if ($response -ne '' -and $response -ne 'Y') {
+            Write-Host '[SKIPPED] Domain NTLM auditing.' -ForegroundColor Yellow
+            return
+        }
+    }
+    try {
+        if (-not (Test-Path -LiteralPath $path -ErrorAction Stop)) {
+            New-Item -Path $path -Force -ErrorAction Stop | Out-Null
+        }
+        Set-ItemProperty -LiteralPath $path -Name AuditNTLMInDomain -Value 7 -Type DWord -ErrorAction Stop
+        $after = Get-WelaDomainNtlmState
+        if (-not $after.Applicable -or -not $after.Readable -or $after.Value -ne 7) {
+            throw "Read-back did not confirm Enable all (7). Observed: $($after.Description)"
+        }
+        Write-Host '[OK] Domain NTLM auditing: Enable all (7), registry value verified.' -ForegroundColor Green
+        Write-Host 'Group Policy or MDM may reapply a different value; validate events on the domain controller.'
+    } catch {
+        throw "Domain NTLM configuration failed: $($_.Exception.Message)"
+    }
+}
+
+
 function Set-RegistryConfig {
     # レジストリを変更するため -WhatIf / -Confirm に対応する
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
@@ -1421,10 +1511,11 @@ function ConfigureAuditSettings {
     Write-Host "Configuring NTLM Audit Settings..."
     Write-Host ""
     $regPaths = @(
-        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "AuditReceivingNTLMTraffic"; Value = 2},
-        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters"; Name = "AuditNTLMInDomain"; Value = 2}
+        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "AuditReceivingNTLMTraffic"; Value = 2}
     )
     Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
+
+    Set-WelaDomainNtlmAudit -Auto:$Auto
 
     # LDAP query logging (Directory Service EventID 1644) - domain controllers only.
     # "15 Field Engineering" = 5 makes expensive / inefficient LDAP searches log as 1644, which surfaces
