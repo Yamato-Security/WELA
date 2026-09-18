@@ -55,6 +55,14 @@ an isolated DC before deployment. `tests/DomainNtlm.Tests.ps1` uses mocked OS an
 registry access; the associated Windows workflow runs Windows PowerShell 5.1 and
 PowerShell 7 without changing host policy.
 
+Live-DC validation for [issue #363](https://github.com/Yamato-Security/WELA/issues/363)
+remains pending. Before closing that issue, record the Windows build and confirmed
+DC role, the previous registry value/type, the verified `AuditNTLMInDomain=7`
+DWORD, and representative NTLM event XML from benign test authentication. Also
+check that a second run is idempotent and that clients, member servers and non-DC CAs leave
+this domain-only setting unchanged. Mocked policy tests and console/CSV regression
+tests do not provide this event-generation evidence.
+
 #### `configure` command examples
 Apply Yamato Security's recommended settings (with confirmation prompt before changing settings):
 ```

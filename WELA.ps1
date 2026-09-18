@@ -585,7 +585,14 @@ function AuditLogSetting {
             $disabledCount = ($_.Group |  Where-Object { $notEnabled -contains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
             $out = ""
             $color = ""
-            if (@($_.Group | Where-Object { $_.CurrentSetting -ne "Unknown" }).Count -eq 0) {
+            if (@($_.Group | Where-Object { $_.Rules.Count -gt 0 }).Count -eq 0) {
+                # Configuration-only rows have no rule coverage to aggregate.
+                # Preserve their observed state, including applicability and errors.
+                $out = ($_.Group | Select-Object -ExpandProperty CurrentSetting -Unique) -join '; '
+                if (-not $out) { $out = 'Unknown' }
+                $color = 'DarkYellow'
+            }
+            elseif (@($_.Group | Where-Object { $_.CurrentSetting -ne "Unknown" }).Count -eq 0) {
                 # 設定を確認できないカテゴリ。無効と断定はできない
                 $out = "Unknown"
                 $color = "DarkYellow"

@@ -17,3 +17,9 @@ jobs:
       - name: Test domain NTLM policy in PowerShell 7
         shell: pwsh
         run: ./tests/DomainNtlm.Tests.ps1
+      - name: Test domain NTLM audit output in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/DomainNtlmAuditOutput.Tests.ps1
+      - name: Test domain NTLM audit output in PowerShell 7
+        shell: pwsh
+        run: ./tests/DomainNtlmAuditOutput.Tests.ps1
