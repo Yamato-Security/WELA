@@ -4,6 +4,8 @@
     [switch]$Debug,
     [string]$Baseline,
     [switch]$Auto,
+    [ValidateSet("PreserveOrAudit", "Audit", "Deny")]
+    [string]$OutgoingNtlmMode = "PreserveOrAudit",
     [switch]$Help
 )
 
@@ -437,6 +439,12 @@ function AuditLogSetting {
         $_ | Add-Member -MemberType NoteProperty -Name "ideal" -Value $false
     }
     $auditResult = BuildAuditResult -all_rules $all_rules -Baseline $Baseline -enabledguid $enabledguid
+    $outgoingNtlm = Get-WelaOutgoingNtlmState
+    $auditResult += [WELA]::new(
+        "NTLM Authentication", "Outgoing NTLM policy", $outgoingNtlm.Description, @(),
+        "Not configured (Allow all)", "Audit all (1); preserve intentional Deny all (2)", "",
+        "RestrictSendingNTLMTraffic. Policy source: $($outgoingNtlm.PolicySource)"
+    )
 
     # ベースラインが扱っていないサブカテゴリでも、そのサブカテゴリが有効ならルールは動く。
     # ルール自身が持つ subcategory_guids を見て救済する。
@@ -1030,9 +1038,126 @@ function Set-RegistryConfig {
 }
 
 
+function Get-WelaOutgoingNtlmPolicySource {
+    # RSoP is a last-applied policy snapshot, not proof of the current registry writer.
+    $key = 'SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+    $name = 'RestrictSendingNTLMTraffic'
+    $matches = @()
+    foreach ($class in @('RSOP_RegistryPolicySetting', 'RSOP_SecuritySettingNumeric')) {
+        try {
+            $matches += @(Get-CimInstance -Namespace 'root\RSOP\Computer' -ClassName $class -ErrorAction Stop |
+                Where-Object {
+                    $normalizedKey = $_.keyName -replace '^(MACHINE|HKEY_LOCAL_MACHINE|HKLM)\\', ''
+                    ($normalizedKey -eq $key -and $_.valueName -eq $name) -or
+                    $normalizedKey -eq "$key\$name"
+                })
+        } catch {
+            # RSoP may be unavailable, including on standalone computers. Never infer "local".
+        }
+    }
+    $policy = $matches | Sort-Object precedence | Select-Object -First 1
+    if ($policy -and $policy.GPOID) {
+        return "Last-applied RSoP GPO: $($policy.GPOID) (may be stale; current registry writer unknown)"
+    }
+    return 'Unknown (no matching RSoP source available; local, GPO or MDM provenance is not established)'
+}
+
+function Get-WelaOutgoingNtlmState {
+    $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+    $name = 'RestrictSendingNTLMTraffic'
+    $value = $null
+    $readable = $true
+    $description = 'Not configured (Allow all)'
+    try {
+        if (Test-Path -LiteralPath $path -ErrorAction Stop) {
+            # Reading the key distinguishes an absent value from a failed read.
+            $properties = Get-ItemProperty -LiteralPath $path -ErrorAction Stop
+            $property = $properties.PSObject.Properties[$name]
+            if ($null -ne $property) {
+                $value = $property.Value
+                $description = switch ($value) {
+                    0 { 'Allow all (0)' }
+                    1 { 'Audit all (1)' }
+                    2 { 'Deny all (2): authentication restriction, with block events' }
+                    default { "Unknown registry value ($value)" }
+                }
+            }
+        }
+    } catch {
+        $readable = $false
+        $description = "Unknown (registry read failed: $($_.Exception.Message))"
+    }
+    [pscustomobject]@{
+        Value = $value
+        Readable = $readable
+        Description = $description
+        PolicySource = Get-WelaOutgoingNtlmPolicySource
+    }
+}
+
+function Set-WelaOutgoingNtlmPolicy {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
+        [ValidateSet('PreserveOrAudit', 'Audit', 'Deny')]
+        [string]$Mode = 'PreserveOrAudit',
+        [switch]$Auto
+    )
+    $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+    $name = 'RestrictSendingNTLMTraffic'
+    $state = Get-WelaOutgoingNtlmState
+    Write-Host "Outgoing NTLM: $($state.Description)"
+    Write-Host "Policy source: $($state.PolicySource)"
+    if (-not $state.Readable) {
+        throw 'Outgoing NTLM was not changed because its current state could not be read.'
+    }
+    if ($Mode -eq 'PreserveOrAudit' -and $state.Value -eq 2) {
+        Write-Host '[PRESERVED] Existing Deny all enforcement. Use -OutgoingNtlmMode Audit to explicitly replace it.' -ForegroundColor Yellow
+        return
+    }
+    if ($Mode -eq 'PreserveOrAudit' -and $null -ne $state.Value -and $state.Value -notin @(0, 1, 2)) {
+        Write-Warning 'Unknown outgoing NTLM value was preserved. Select an explicit -OutgoingNtlmMode after reviewing policy.'
+        return
+    }
+    $desired = if ($Mode -eq 'Deny') { 2 } else { 1 }
+    $description = if ($desired -eq 2) { 'Deny all (2): restrict outgoing NTLM authentication' } else { 'Audit all (1): log outgoing NTLM without denying it' }
+    if ($state.Value -eq $desired) {
+        Write-Host "[SKIPPED] Outgoing NTLM is already $description." -ForegroundColor Yellow
+        return
+    }
+    if ($desired -eq 2) {
+        Write-Warning 'Explicit Deny mode can break NTLM authentication. This is enforcement, not audit-only configuration.'
+    }
+    if (-not $PSCmdlet.ShouldProcess("$path\$name", $description)) { return }
+    if (-not $Auto) {
+        $response = Read-Host "Change outgoing NTLM from '$($state.Description)' to '$description'? (Y/n)"
+        if ($response -ne '' -and $response -ne 'Y') {
+            Write-Host '[SKIPPED] Outgoing NTLM.' -ForegroundColor Yellow
+            return
+        }
+    }
+    try {
+        if (-not (Test-Path -LiteralPath $path -ErrorAction Stop)) {
+            New-Item -Path $path -Force -ErrorAction Stop | Out-Null
+        }
+        Set-ItemProperty -LiteralPath $path -Name $name -Value $desired -Type DWord -ErrorAction Stop
+        $after = Get-WelaOutgoingNtlmState
+        if (-not $after.Readable -or $after.Value -ne $desired) {
+            throw "Read-back did not match requested value $desired. Observed: $($after.Description)"
+        }
+        Write-Host "[OK] Outgoing NTLM: $($after.Description)" -ForegroundColor Green
+        Write-Host "Policy source: $($after.PolicySource)"
+        Write-Host 'Registry state was verified; Group Policy or MDM may reapply a different value.'
+    } catch {
+        throw "Outgoing NTLM configuration failed: $($_.Exception.Message)"
+    }
+}
+
+
 function ConfigureAuditSettings {
     param (
         [switch] $Auto,
+        [ValidateSet("PreserveOrAudit", "Audit", "Deny")]
+        [string] $OutgoingNtlmMode = "PreserveOrAudit",
         [switch] $Debug
     )
 
@@ -1289,11 +1414,13 @@ function ConfigureAuditSettings {
     }
     Write-Host ""
 
+    # Outgoing restriction and audit-only modes must be selected independently.
+    Set-WelaOutgoingNtlmPolicy -Mode $OutgoingNtlmMode -Auto:$Auto
+
     # NTLM認証の監査設定
     Write-Host "Configuring NTLM Audit Settings..."
     Write-Host ""
     $regPaths = @(
-        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "RestrictSendingNTLMTraffic"; Value = 2},
         @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "AuditReceivingNTLMTraffic"; Value = 2},
         @{Path = "HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters"; Name = "AuditNTLMInDomain"; Value = 2}
     )
@@ -1774,10 +1901,11 @@ switch ($Cmd.ToLower()) {
         if ($Help){
             Write-Host "Configure Windows Event Log audit settings based on the YamatoSecurity baseline"
             Write-Host ""
-            Write-Host "Usage: ./WELA.ps1 configure [-Auto]"
+            Write-Host "Usage: ./WELA.ps1 configure [-Auto] [-OutgoingNtlmMode <PreserveOrAudit|Audit|Deny>]"
             Write-Host ""
             Write-Host "Options:"
             Write-Host "  -Auto        Automatically configure without prompts"
+            Write-Host "  -OutgoingNtlmMode  PreserveOrAudit (default): audit, preserving existing deny; Audit: explicitly replace deny; Deny: opt into enforcement"
             Write-Host ""
             Write-Host "Note: only the YamatoSecurity baseline is currently supported for 'configure'."
             Write-Host ""
@@ -1788,7 +1916,7 @@ switch ($Cmd.ToLower()) {
             Write-Host "Re-run with '-Baseline YamatoSecurity' (or omit -Baseline) if that is what you want."
             break
         }
-        ConfigureAuditSettings -Auto:$Auto -Debug:$Debug
+        ConfigureAuditSettings -Auto:$Auto -Debug:$Debug -OutgoingNtlmMode $OutgoingNtlmMode
     }
 
     "configure-sacl" {
