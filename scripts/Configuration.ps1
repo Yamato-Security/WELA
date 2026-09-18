@@ -94,7 +94,7 @@ function Invoke-WelaConfigurationControl {
 
 function Complete-WelaConfiguration {
     param($Context, [string]$ResultsPath, $Plan,
-          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only")]
+          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "firewall-text-logging-only")]
           [string]$Scope = "native-windows-configuration")
     # A second read detects a value that was compliant earlier but changed during
     # this run. It does not establish whether GPO or another writer caused drift.

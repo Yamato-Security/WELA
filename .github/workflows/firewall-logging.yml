@@ -1,0 +1,31 @@
+name: Firewall text logging regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'scripts/FirewallLogging.ps1'
+      - 'tests/FirewallLogging*'
+      - '.github/workflows/firewall-logging.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  firewall-logging:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Mocked logging regressions in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/FirewallLogging.Tests.ps1
+      - name: Actual Windows read-only smoke in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/FirewallLogging.Windows.Tests.ps1
+      - name: Mocked logging regressions in PowerShell 7
+        shell: pwsh
+        run: ./tests/FirewallLogging.Tests.ps1
+      - name: Actual Windows read-only smoke in PowerShell 7
+        shell: pwsh
+        run: ./tests/FirewallLogging.Windows.Tests.ps1

@@ -14,6 +14,9 @@
     [switch]$DryRun,
     [string]$BackupPath,
     [string]$ResultsPath,
+    [ValidateSet('Audit', 'Plan', 'Configure')][string]$FirewallAction = 'Audit',
+    [ValidateSet('Preserve', 'CisV4')][string]$FirewallPathMode = 'Preserve',
+    [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
     [switch]$Help
 )
 
@@ -28,6 +31,7 @@ $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
+. (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1751,6 +1755,10 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 firewall-logging -FirewallAction Audit -ResultsPath firewall.json
+  ./WELA.ps1 firewall-logging -FirewallAction Plan -FirewallPathMode CisV4
+  ./WELA.ps1 firewall-logging -FirewallAction Configure -DryRun
+  # Firewall text logging is opt-in; it does not change firewall enforcement or rules.
   ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
   ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
   ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
@@ -1776,8 +1784,8 @@ Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 # Reject unsupported dry-run requests before reaching any command's mutation path.
-if ($DryRun -and $Cmd -ne 'configure') {
-    throw "-DryRun is supported only by configure (including configure -Profile). No command was run."
+if ($DryRun -and $Cmd -ne 'configure' -and -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure')) {
+    throw "-DryRun is supported only by configure (including configure -Profile) and firewall-logging -FirewallAction Configure. No command was run."
 }
 
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
@@ -1786,6 +1794,19 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'firewall-logging' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 firewall-logging [-FirewallAction Audit|Plan|Configure] [-FirewallPathMode Preserve|CisV4] [-FirewallMinimumSizeKiB 16384..32767] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Audits/plans Domain, Private and Public text logs. Configure enables allowed/dropped logging, preserves larger sizes and existing paths by default, and verifies effective policy. CisV4 explicitly selects domainfw.log/privatefw.log/publicfw.log. See docs/firewall-logging.md.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'firewall-logging uses its own options; -Profile and -Baseline apply to Security audit settings.' }
+        try {
+            $report = Invoke-WelaFirewallLoggingCommand -Action $FirewallAction -PathMode $FirewallPathMode -MinimumSizeKiB $FirewallMinimumSizeKiB -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] Firewall logging: $_" -ForegroundColor Red; exit 1 }
+    }
     "profiles" {
         (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List
     }
