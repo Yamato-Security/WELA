@@ -38,6 +38,7 @@ jobs:
           mkdir -p release-binaries
           Copy-Item -Path WELA.ps1 -Destination release-binaries/
           Copy-Item -Recurse -Path ./config -Destination release-binaries/
+          Copy-Item -Recurse -Path ./modules -Destination release-binaries/
 
       - name: Set Artifact Name
         if: contains(matrix.info.os, 'windows') == true
