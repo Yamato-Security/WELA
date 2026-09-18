@@ -166,6 +166,9 @@ try {
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($child))
     $childOutput = @(& $engine -NoProfile -EncodedCommand $encoded 2>&1)
     $childExit = $global:LASTEXITCODE
+    # GitHub's PowerShell wrapper propagates LASTEXITCODE after the script. This
+    # child was deliberately failed; assertions below decide the test outcome.
+    $global:LASTEXITCODE = 0
     Assert ($childExit -eq 1) 'The actual configure dispatcher returns nonzero for a failed control report'
 
     # CA-specific wrapper: registry read succeeds, certutil succeeds, restart

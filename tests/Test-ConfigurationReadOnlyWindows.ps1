@@ -13,4 +13,7 @@ catch { $caught = $_.ToString() }
 if ($caught -notmatch 'exit: 9' -or $caught -notmatch 'WELA-smoke-diagnostic') {
     throw "Native exit/stderr capture failed: $caught"
 }
+# The intentionally failed child was asserted above; do not leak its expected
+# exit code into a CI shell wrapper after a successful smoke test.
+$global:LASTEXITCODE = 0
 Write-Host "Read-only Windows smoke checks passed (process creation audit mask: $mask). No Windows settings changed."
