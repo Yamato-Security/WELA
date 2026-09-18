@@ -70,6 +70,51 @@ Assert ($again.success -and $script:Writes.Count -eq $count) 'applying twice is 
 $script:State = $zero.Clone(); $script:State[$shareGuid] = 1
 $minimum = Invoke-WelaAuditProfilePlan -Plan $cis -ReadPolicy $reader -WritePolicy $writer -ReadContext $context -Confirm:$false
 Assert ($minimum.success -and $script:State[$shareGuid] -eq 3) 'fresh effective flags are preserved in minimum apply'
+# Minimum readback permits additional flags enabled by Windows/GPO after the write.
+$single = Get-WelaAuditProfilePlan -Profile cis-win11-v4-l1 -Role Client -Build 26100 -Current $zero
+$single.policies = @($single.policies | Where-Object { $_.id -eq 'Detailed File Share' })
+$script:State = $zero.Clone()
+$extra = Invoke-WelaAuditProfilePlan -Plan $single -ReadPolicy $reader -WritePolicy {
+    param($Guid, $Mask, $Mode)
+    Assert ($Mode -eq 'minimum') 'injected writer receives policy semantics'
+    $script:State[$Guid] = 3
+} -ReadContext $context -Confirm:$false
+Assert ($extra.success -and $extra.results[0].targetMask -eq 2 -and $extra.results[0].effectiveMask -eq 3) 'minimum Failure accepts post-write Success+Failure'
+# A flag introduced after whole-plan preflight is included in the immediate control read.
+$script:State = $zero.Clone(); $script:Reads = 0; $script:WrittenMask = $null
+$race = Invoke-WelaAuditProfilePlan -Plan $single -ReadPolicy {
+    $script:Reads++
+    if ($script:Reads -eq 2) { $script:State[$shareGuid] = 1 }
+    $script:State.Clone()
+} -WritePolicy {
+    param($Guid, $Mask, $Mode)
+    $script:WrittenMask = $Mask
+    $script:State[$Guid] = $Mask
+} -ReadContext $context -Confirm:$false
+Assert ($race.success -and $script:WrittenMask -eq 3 -and $race.results[0].beforeMask -eq 1) 'fresh per-control read preserves a flag introduced after preflight'
+$script:Reads = 0; $script:WrittenMask = $null
+$unknownRace = Invoke-WelaAuditProfilePlan -Plan $single -ReadPolicy {
+    $script:Reads++
+    if ($script:Reads -eq 1) { $zero.Clone() } else { @{} }
+} -WritePolicy { $script:WrittenMask = 1 } -ReadContext $context -Confirm:$false
+Assert (-not $unknownRace.success -and $null -eq $script:WrittenMask -and $unknownRace.results[0].sourceIds.Count -gt 0) 'state becoming unknown blocks that write and retains evidence'
+# Verify the real native command contract: minimum never supplies an unrequired disable.
+$minimumArgs = @(& (Get-Module AuditProfiles) { param($Guid) Get-WelaAuditSetArguments -Guid $Guid -Mask 2 -Mode minimum } $shareGuid)
+Assert ($minimumArgs -contains '/failure:enable' -and @($minimumArgs | Where-Object { $_ -like '/success:*' -or $_ -like '*:disable' }).Count -eq 0) 'minimum Failure writes only failure-enable, preserving concurrent Success'
+$exactArgs = @(& (Get-Module AuditProfiles) { param($Guid) Get-WelaAuditSetArguments -Guid $Guid -Mask 1 -Mode exact } $shareGuid)
+Assert ($exactArgs -contains '/success:enable' -and $exactArgs -contains '/failure:disable') 'exact Success deliberately clears Failure'
+# Role classification must not guess when CA presence is unreadable, or omit CA policy on a DC.
+$serverOS = { [pscustomobject]@{ ProductType = 3; BuildNumber = 26100 } }
+$dcOS = { [pscustomobject]@{ ProductType = 2; BuildNumber = 26100 } }
+$memberSystem = { [pscustomobject]@{ DomainRole = 3 } }
+$dcSystem = { [pscustomobject]@{ DomainRole = 5 } }
+Assert-Throws { Get-WelaHostContext -ReadOperatingSystem $serverOS -ReadComputerSystem $memberSystem -ReadCertificateAuthority { throw 'CA registry access denied' } } 'access denied'
+Assert-Throws { Get-WelaHostContext -ReadOperatingSystem $serverOS -ReadComputerSystem $memberSystem -ReadCertificateAuthority { $null } } 'Cannot determine'
+Assert-Throws { Get-WelaHostContext -ReadOperatingSystem $dcOS -ReadComputerSystem $dcSystem -ReadCertificateAuthority { $true } } 'Combined domain-controller/CA'
+$ca = Get-WelaHostContext -ReadOperatingSystem $serverOS -ReadComputerSystem $memberSystem -ReadCertificateAuthority { $true }
+Assert ($ca.Role -eq 'ADCS') 'member-server CA remains supported'
+$dc = Get-WelaHostContext -ReadOperatingSystem $dcOS -ReadComputerSystem $dcSystem -ReadCertificateAuthority { $false }
+Assert ($dc.Role -eq 'DomainController') 'DC without CA remains supported'
 $script:State = $zero.Clone()
 $failed = Invoke-WelaAuditProfilePlan -Plan $wela -ReadPolicy $reader -WritePolicy { throw 'command failed' } -ReadContext $context -Confirm:$false
 Assert (-not $failed.success -and @($failed.results | Where-Object { $_.status -eq 'Failed' }).Count -gt 0) 'native failure is machine-readable'
