@@ -1,0 +1,31 @@
+name: AD object SACL regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'scripts/AdObjectSacl.ps1'
+      - 'tests/AdObjectSacl*'
+      - '.github/workflows/ad-object-sacl.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ad-object-sacl:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Mocked AD orchestration in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AdObjectSacl.Tests.ps1
+      - name: Offline native descriptors and LDAP requests in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AdObjectSacl.Windows.Tests.ps1
+      - name: Mocked AD orchestration in PowerShell 7
+        shell: pwsh
+        run: ./tests/AdObjectSacl.Tests.ps1
+      - name: Offline native descriptors and LDAP requests in PowerShell 7
+        shell: pwsh
+        run: ./tests/AdObjectSacl.Windows.Tests.ps1

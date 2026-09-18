@@ -22,6 +22,11 @@
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
     [string]$HtmlPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
+    [ValidateSet('Audit', 'Plan', 'Configure', 'Rollback')][string]$AdSaclAction = 'Audit',
+    [string]$AdServer,
+    [ValidateSet('MdiDomain', 'MdiConfiguration', 'PkiObjects')][string[]]$AdSaclProfile,
+    [string[]]$AdObjectDn,
+    [string]$AdReceiptPath,
     [switch]$Help
 )
 
@@ -38,6 +43,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
@@ -1674,6 +1680,7 @@ Usage:
   ./WELA.ps1 smb-auditing -SmbAction Plan
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
   # SMB auditing is opt-in and never changes signing/encryption requirements or guest access.
+  ./WELA.ps1 ad-object-sacl -AdSaclAction Plan -AdServer dc01.example.test -AdSaclProfile MdiDomain
   ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
   ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
   ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
@@ -1703,10 +1710,16 @@ Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 # Reject unsupported dry-run requests before reaching any command's mutation path.
+if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
+    $_ -in @('AdSaclAction', 'AdServer', 'AdSaclProfile', 'AdObjectDn', 'AdReceiptPath')
+}).Count) {
+    throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
+}
 if ($DryRun -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
-    -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure and smb-auditing -SmbAction Configure. No command was run."
+    -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
+    -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback'))) {
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
 }
 if ($Profile -and $Cmd -in @('eventlog-profiles', 'audit-filesize', 'configure-eventlogs')) {
     throw '-Profile selects advanced audit policy only. Use -LogProfile for event-log size/mode settings.'
@@ -1749,6 +1762,20 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] SMB auditing: $_" -ForegroundColor Red; exit 1 }
+    }
+    'ad-object-sacl' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 ad-object-sacl -AdServer exact-dc-fqdn [-AdSaclAction Audit|Plan|Configure] -AdSaclProfile MdiDomain|MdiConfiguration|PkiObjects [-AdObjectDn exact-dn] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Rollback uses -AdSaclAction Rollback -AdReceiptPath trusted-receipt.json without profile selection. See docs/ad-object-sacl.md for prerequisites, scope, recovery and required DC lab evidence.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'ad-object-sacl uses explicit -AdSaclProfile; Security audit policy is a separate prerequisite.' }
+        try {
+            $report = Invoke-WelaAdSaclCommand -Action $AdSaclAction -Server $AdServer -Profiles $AdSaclProfile -ObjectDn $AdObjectDn `
+                -ReceiptPath $AdReceiptPath -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] AD object SACL: $_" -ForegroundColor Red; exit 1 }
     }
     "profiles" {
         (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List
