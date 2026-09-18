@@ -1,0 +1,63 @@
+name: WMI namespace auditing regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'scripts/WmiNamespaceAuditing.ps1'
+      - 'tests/WmiNamespaceAuditing*'
+      - 'tests/fixtures/wmi-namespace-descriptor.json'
+      - '.github/workflows/wmi-namespace-auditing.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wmi-namespace-auditing:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Mocked namespace SACL regression tests (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/WmiNamespaceAuditing.Tests.ps1
+      - name: Native read-only and in-memory writer adapter (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/WmiNamespaceAuditing.Windows.Tests.ps1
+      - name: In-memory privilege restoration failure paths (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/WmiNamespaceAuditing.Privilege.Tests.ps1
+      - name: Mocked namespace SACL regression tests (PowerShell 7)
+        shell: pwsh
+        run: ./tests/WmiNamespaceAuditing.Tests.ps1
+      - name: Native read-only and in-memory writer adapter (PowerShell 7)
+        shell: pwsh
+        run: ./tests/WmiNamespaceAuditing.Windows.Tests.ps1
+      - name: In-memory privilege restoration failure paths (PowerShell 7)
+        shell: pwsh
+        run: ./tests/WmiNamespaceAuditing.Privilege.Tests.ps1
+  disposable-namespace:
+    # Mutations are restricted to newly created namespaces on hosted throwaway VMs.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Real temporary-namespace SACL write/readback (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/WmiNamespaceAuditing.DisposableNamespace.Tests.ps1 -AllowDisposableNamespaceWrite -EvidencePath wmi-native-ps51.json
+      - name: Real temporary-namespace SACL write/readback (PowerShell 7)
+        shell: pwsh
+        run: ./tests/WmiNamespaceAuditing.DisposableNamespace.Tests.ps1 -AllowDisposableNamespaceWrite -EvidencePath wmi-native-ps7.json
+      - name: Record native descriptor evidence
+        if: always()
+        shell: pwsh
+        run: |
+          foreach ($path in @('wmi-native-ps51.json', 'wmi-native-ps7.json')) {
+            if (Test-Path -LiteralPath $path) {
+              Write-Host "Evidence: $path"
+              Get-Content -LiteralPath $path -Raw
+            }
+          }

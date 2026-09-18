@@ -1,0 +1,15 @@
+{
+  "ControlFlags": 36868,
+  "DACL": [
+    {"AccessMask": 393279, "AceFlags": 2, "AceType": 0, "GuidObjectType": null, "GuidInheritedObjectType": null, "Trustee": {"SIDString": "S-1-5-32-544", "Name": "Administrators", "Domain": "BUILTIN"}},
+    {"AccessMask": 32, "AceFlags": 0, "AceType": 1, "Trustee": {"SIDString": "S-1-5-21-1-2-3-1001"}}
+  ],
+  "Group": {"SIDString": "S-1-5-18"},
+  "Owner": {"SIDString": "S-1-5-32-544"},
+  "SACL": [
+    {"AccessMask": 2, "AceFlags": 128, "AceType": 2, "Trustee": {"SIDString": "S-1-1-0"}},
+    {"AccessMask": 8, "AceFlags": 16, "AceType": 19, "GuidObjectType": "unfamiliar-object", "OpaqueFutureField": [1, 7, 255], "Trustee": {"SIDString": "S-1-5-18"}},
+    {"AccessMask": 8, "AceFlags": 16, "AceType": 19, "GuidObjectType": "unfamiliar-object", "OpaqueFutureField": [1, 7, 255], "Trustee": {"SIDString": "S-1-5-18"}}
+  ],
+  "ProviderExtension": {"Keep": "unchanged"}
+}
