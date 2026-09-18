@@ -36,17 +36,17 @@ function New-WelaConfigurationContext {
 function Invoke-WelaConfigurationControl {
     param($Context, [string]$Id, [string]$Kind, $Target, $Desired,
           [scriptblock]$Read, [scriptblock]$Compliant, [scriptblock]$Apply,
-          [string]$Description = '', [scriptblock]$PreserveWhen)
+          [string]$Description = '', [scriptblock]$PreserveWhen, $CallbackState)
     $result = [pscustomobject][ordered]@{
         Id = $Id; Kind = $Kind; Target = $Target; Desired = $Desired
         Before = $null; After = $null; Status = 'Failed'; Diagnostic = ''
     }
     try {
-        $result.Before = & $Read
+        $result.Before = & $Read $CallbackState
         $preserveReason = if ($PreserveWhen) { & $PreserveWhen $result.Before } else { $null }
         if ($preserveReason) {
             $result.Status = 'Skipped'; $result.After = $result.Before; $result.Diagnostic = [string]$preserveReason
-        } elseif (& $Compliant $result.Before) {
+        } elseif (& $Compliant $result.Before $CallbackState) {
             $result.Status = 'AlreadyCompliant'
             $result.After = $result.Before
         } elseif ($Context.DryRun) {
@@ -70,19 +70,19 @@ function Invoke-WelaConfigurationControl {
                 }
                 $entry | ConvertTo-Json -Depth 12 -Compress |
                     Add-Content -LiteralPath (Join-Path $Context.BackupPath 'before.jsonl') -Encoding UTF8 -ErrorAction Stop
-                $applied = @(& $Apply)
+                $applied = @(& $Apply $CallbackState)
                 $result.Diagnostic = ($applied | ForEach-Object {
                     if ($_.PSObject.Properties['Diagnostic']) { $_.Diagnostic } else { $_.ToString() }
                 }) -join [Environment]::NewLine
-                $result.After = & $Read
-                if (-not (& $Compliant $result.After)) {
+                $result.After = & $Read $CallbackState
+                if (-not (& $Compliant $result.After $CallbackState)) {
                     throw "Post-apply verification did not match the requested state. $($result.Diagnostic)"
                 }
                 $result.Status = 'Applied'
             }
         }
         if ($result.Status -in @('Applied', 'AlreadyCompliant')) {
-            $Context.Checks.Add([pscustomobject]@{ Result = $result; Read = $Read; Compliant = $Compliant })
+            $Context.Checks.Add([pscustomobject]@{ Result = $result; Read = $Read; Compliant = $Compliant; CallbackState = $CallbackState })
         }
     } catch {
         $result.Status = 'Failed'; $result.Diagnostic = $_.ToString()
@@ -100,8 +100,8 @@ function Complete-WelaConfiguration {
     # this run. It does not establish whether GPO or another writer caused drift.
     foreach ($check in $Context.Checks) {
         try {
-            $check.Result.After = & $check.Read
-            if (-not (& $check.Compliant $check.Result.After)) {
+            $check.Result.After = & $check.Read $check.CallbackState
+            if (-not (& $check.Compliant $check.Result.After $check.CallbackState)) {
                 $check.Result.Status = 'Overridden'
                 $check.Result.Diagnostic = 'State was compliant earlier but changed before the final check; cause unknown.'
             }
@@ -139,14 +139,22 @@ function Complete-WelaConfiguration {
 
 function Set-WelaEventLogControl {
     param($Context, [string]$Log, [string]$Property, $Desired)
-    $read = { (Get-WinEvent -ListLog $Log -ErrorAction Stop).$Property }.GetNewClosure()
-    $test = if ($Property -eq 'MaximumSizeInBytes') {
-        { param($value) $value -ge $Desired }.GetNewClosure()
-    } else { { param($value) $value -eq $Desired }.GetNewClosure() }
-    $argument = if ($Property -eq 'MaximumSizeInBytes') { "/ms:$Desired" } else { '/e:true' }
-    $apply = { Invoke-WelaNative -FilePath 'wevtutil.exe' -Arguments @('sl', $Log, $argument) }.GetNewClosure()
+    $state = @{ Log = $Log; Property = $Property; Desired = $Desired }
+    # Explicit callback state preserves values for the final recheck without
+    # GetNewClosure's dynamic-module scope, which hides script-local helpers in 5.1.
+    $read = { param($state) (Get-WinEvent -ListLog $state.Log -ErrorAction Stop).($state.Property) }
+    $test = {
+        param($value, $state)
+        if ($state.Property -eq 'MaximumSizeInBytes') { return $value -ge $state.Desired }
+        return $value -eq $state.Desired
+    }
+    $apply = {
+        param($state)
+        $argument = if ($state.Property -eq 'MaximumSizeInBytes') { "/ms:$($state.Desired)" } else { '/e:true' }
+        Invoke-WelaNative -FilePath 'wevtutil.exe' -Arguments @('sl', $state.Log, $argument)
+    }
     Invoke-WelaConfigurationControl -Context $Context -Id "EventLog/$Log/$Property" -Kind EventLog `
-        -Target @{ Log = $Log; Property = $Property } -Desired $Desired -Read $read -Compliant $test -Apply $apply
+        -Target @{ Log = $Log; Property = $Property } -Desired $Desired -Read $read -Compliant $test -Apply $apply -CallbackState $state
 }
 
 function Get-WelaRegistryState {
@@ -179,21 +187,23 @@ function New-WelaRegistryKey {
 
 function Set-WelaRegistryControl {
     param($Context, [string]$Path, [string]$Name, $Value, [string]$Type = 'DWord', [scriptblock]$PreserveWhen)
-    $read = { Get-WelaRegistryState -Path $Path -Name $Name }.GetNewClosure()
-    $test = { param($state) $state.ValueExists -and $state.Value -eq $Value -and $state.Type -eq $Type }.GetNewClosure()
+    $state = @{ Path = $Path; Name = $Name; Value = $Value; Type = $Type; PreserveWhen = $PreserveWhen }
+    $read = { param($state) Get-WelaRegistryState -Path $state.Path -Name $state.Name }
+    $test = { param($value, $state) $value.ValueExists -and $value.Value -eq $state.Value -and $value.Type -eq $state.Type }
     $apply = {
-        New-WelaRegistryKey -Path $Path
-        if ($PreserveWhen) {
+        param($state)
+        New-WelaRegistryKey -Path $state.Path
+        if ($state.PreserveWhen) {
             # Recheck after the prompt and journal, immediately before the value write.
-            $fresh = Get-WelaRegistryState -Path $Path -Name $Name
-            $preserveReason = & $PreserveWhen $fresh
+            $fresh = Get-WelaRegistryState -Path $state.Path -Name $state.Name
+            $preserveReason = & $state.PreserveWhen $fresh
             if ($preserveReason) { throw "Refused registry write after state changed: $preserveReason" }
         }
-        Set-ItemProperty -LiteralPath $Path -Name $Name -Value $Value -Type $Type -ErrorAction Stop
-    }.GetNewClosure()
+        Set-ItemProperty -LiteralPath $state.Path -Name $state.Name -Value $state.Value -Type $state.Type -ErrorAction Stop
+    }
     Invoke-WelaConfigurationControl -Context $Context -Id "Registry/$Path/$Name" -Kind Registry `
         -Target @{ Path = $Path; Name = $Name } -Desired @{ Value = $Value; Type = $Type } `
-        -Read $read -Compliant $test -Apply $apply -PreserveWhen $PreserveWhen
+        -Read $read -Compliant $test -Apply $apply -PreserveWhen $PreserveWhen -CallbackState $state
 }
 
 function Initialize-WelaConfigurationAuditApi {
@@ -255,27 +265,29 @@ function Set-WelaAuditPolicyControl {
     param($Context, $Policy, [ValidateRange(0, 3)][int]$Mask = 3,
           [ValidateSet('exact', 'minimum')][string]$Mode = 'exact')
     $guid = $Policy.GUID
-    $read = { Get-WelaAuditPolicyMask -Guid $guid }.GetNewClosure()
+    $state = @{ Guid = $guid; Mask = $Mask; Mode = $Mode }
+    $read = { param($state) Get-WelaAuditPolicyMask -Guid $state.Guid }
     $test = {
-        param($value)
-        if ($Mode -eq 'minimum') { return ($value -band $Mask) -eq $Mask }
-        return $value -eq $Mask
-    }.GetNewClosure()
+        param($value, $state)
+        if ($state.Mode -eq 'minimum') { return ($value -band $state.Mask) -eq $state.Mask }
+        return $value -eq $state.Mask
+    }
     $apply = {
-        $arguments = @('/set', "/subcategory:{$guid}")
-        if ($Mode -eq 'minimum') {
+        param($state)
+        $arguments = @('/set', "/subcategory:{$($state.Guid)}")
+        if ($state.Mode -eq 'minimum') {
             # Only enable required flags: never disable another writer's added flag.
-            if ($Mask -band 1) { $arguments += '/success:enable' }
-            if ($Mask -band 2) { $arguments += '/failure:enable' }
+            if ($state.Mask -band 1) { $arguments += '/success:enable' }
+            if ($state.Mask -band 2) { $arguments += '/failure:enable' }
         } else {
-            $success = if ($Mask -band 1) { 'enable' } else { 'disable' }
-            $failure = if ($Mask -band 2) { 'enable' } else { 'disable' }
+            $success = if ($state.Mask -band 1) { 'enable' } else { 'disable' }
+            $failure = if ($state.Mask -band 2) { 'enable' } else { 'disable' }
             $arguments += "/success:$success", "/failure:$failure"
         }
         Invoke-WelaNative -FilePath 'auditpol.exe' -Arguments $arguments
-    }.GetNewClosure()
+    }
     Invoke-WelaConfigurationControl -Context $Context -Id "AuditPolicy/$($Policy.Name)" -Kind AuditPolicy `
-        -Target @{ Guid = $guid } -Desired @{ Mask = $Mask; Mode = $Mode } -Read $read -Compliant $test -Apply $apply
+        -Target @{ Guid = $guid } -Desired @{ Mask = $Mask; Mode = $Mode } -Read $read -Compliant $test -Apply $apply -CallbackState $state
 }
 
 function Set-WelaProfileAuditControls {
@@ -310,12 +322,14 @@ function Set-WelaCertificateAuditControl {
         $caName = (Get-ItemProperty -LiteralPath $root -Name Active -ErrorAction Stop).Active
         if (-not $caName) { throw 'CA configuration has no active CA name.' }
         $path = Join-Path $root $caName
+        $state = @{ Path = $path }
         $read = {
+            param($state)
             [pscustomobject]@{
-                Registry = Get-WelaRegistryState -Path $path -Name AuditFilter
+                Registry = Get-WelaRegistryState -Path $state.Path -Name AuditFilter
                 ServiceStatus = (Get-Service -Name CertSvc -ErrorAction Stop).Status.ToString()
             }
-        }.GetNewClosure()
+        }
         $test = { param($value) $value.Registry.ValueExists -and $value.Registry.Value -eq 127 -and $value.Registry.Type -eq 'DWord' -and $value.ServiceStatus -eq 'Running' }
         $apply = {
             $state = Get-Service -Name CertSvc -ErrorAction Stop
@@ -327,7 +341,7 @@ function Set-WelaCertificateAuditControl {
         }
         Invoke-WelaConfigurationControl -Context $Context -Id 'ADCS/AuditFilter' -Kind CertificateService `
             -Target @{ Path = $path; Name = 'AuditFilter'; Service = 'CertSvc' } -Desired 127 `
-            -Read $read -Compliant $test -Apply $apply -Description 'Set AuditFilter=127 and restart Certificate Services.'
+            -Read $read -Compliant $test -Apply $apply -Description 'Set AuditFilter=127 and restart Certificate Services.' -CallbackState $state
     } catch {
         $Context.Results.Add([pscustomobject]@{ Id = 'ADCS/AuditFilter'; Kind = 'CertificateService'; Target = $root; Desired = 127; Before = $null; After = $null; Status = 'Failed'; Diagnostic = $_.ToString() })
     }
