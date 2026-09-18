@@ -7,11 +7,15 @@
 
 **改善:**
 
+- `configure`と`configure -Profile`に`-DryRun`と`-ResultsPath`を追加し、Windows設定を変更せずに変更内容を確認し、設定項目ごとの結果をJSONで出力できるようにした。`-DryRun`に対応していないコマンドは、実行前にエラーで停止する。 (#392) (@Shirofune-Security)
+- `-BackupPath`と、各設定項目の変更前の状態を記録する復旧用ジャーナルを追加し、手動での復旧手順を文書化した。 (#392) (@Shirofune-Security)
 - ベースライン定義を`WELA.ps1`から`config/baselines.json`に外部化し、ベースラインの追加・変更をJSONの編集のみで行えるようにした。 (#358) (@fukusuket)
+- `Microsoft-Windows-DFSN-Server/Admin`チャネルを`audit-settings`と`audit-filesize`の確認対象に追加した。 (#358) (@fukusuket)
 - MITRE ATT&CK Navigatorのヒートマップを ATT&CK v19 に対応させ、ATT&CK側でrevokedとなった技術IDを置換先に書き換えるようにした(例: v19で`T1685`に統合された`T1562`と`T1562.001`)。Navigatorはrevokedのエントリを黙って破棄するため、従来はその分のカバレッジがヒートマップから欠落していた。 (@fukusuket)
 
 **バグ修正:**
 
+- 設定時に外部コマンドの終了コードと変更後の設定値を確認し、処理の終了前にも再確認するようにした。書き込み失敗、設定の未反映、CAサービスの再起動失敗、最終確認時の設定の不一致を明示的に報告し、一律に成功とせず、0以外の終了コードを返すようにした。 (#392) (@Shirofune-Security)
 - ルールのフィルタ条件が全て適用されず最後の条件のみが適用されていたため、ルール数が正確ではなかった。 (#358) (@fukusuket)
 - 依存するログが無効になっているルールも使用可能として報告されていた。 (#358) (@fukusuket)
 - 複数のカテゴリに属するルールが重複してカウントされ、CSVファイルにも重複して出力されていた。 (#358) (@fukusuket)
