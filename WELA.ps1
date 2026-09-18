@@ -1723,6 +1723,11 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+# Reject unsupported dry-run requests before reaching any command's mutation path.
+if ($DryRun -and $Cmd -ne 'configure') {
+    throw "-DryRun is supported only by configure (including configure -Profile). No command was run."
+}
+
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
     Invoke-WelaProfileCommand -Command $Cmd.ToLower()
     return

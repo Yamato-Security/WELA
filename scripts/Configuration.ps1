@@ -36,14 +36,17 @@ function New-WelaConfigurationContext {
 function Invoke-WelaConfigurationControl {
     param($Context, [string]$Id, [string]$Kind, $Target, $Desired,
           [scriptblock]$Read, [scriptblock]$Compliant, [scriptblock]$Apply,
-          [string]$Description = '')
+          [string]$Description = '', [scriptblock]$PreserveWhen)
     $result = [pscustomobject][ordered]@{
         Id = $Id; Kind = $Kind; Target = $Target; Desired = $Desired
         Before = $null; After = $null; Status = 'Failed'; Diagnostic = ''
     }
     try {
         $result.Before = & $Read
-        if (& $Compliant $result.Before) {
+        $preserveReason = if ($PreserveWhen) { & $PreserveWhen $result.Before } else { $null }
+        if ($preserveReason) {
+            $result.Status = 'Skipped'; $result.After = $result.Before; $result.Diagnostic = [string]$preserveReason
+        } elseif (& $Compliant $result.Before) {
             $result.Status = 'AlreadyCompliant'
             $result.After = $result.Before
         } elseif ($Context.DryRun) {
@@ -175,16 +178,22 @@ function New-WelaRegistryKey {
 }
 
 function Set-WelaRegistryControl {
-    param($Context, [string]$Path, [string]$Name, $Value, [string]$Type = 'DWord')
+    param($Context, [string]$Path, [string]$Name, $Value, [string]$Type = 'DWord', [scriptblock]$PreserveWhen)
     $read = { Get-WelaRegistryState -Path $Path -Name $Name }.GetNewClosure()
     $test = { param($state) $state.ValueExists -and $state.Value -eq $Value -and $state.Type -eq $Type }.GetNewClosure()
     $apply = {
         New-WelaRegistryKey -Path $Path
+        if ($PreserveWhen) {
+            # Recheck after the prompt and journal, immediately before the value write.
+            $fresh = Get-WelaRegistryState -Path $Path -Name $Name
+            $preserveReason = & $PreserveWhen $fresh
+            if ($preserveReason) { throw "Refused registry write after state changed: $preserveReason" }
+        }
         Set-ItemProperty -LiteralPath $Path -Name $Name -Value $Value -Type $Type -ErrorAction Stop
     }.GetNewClosure()
     Invoke-WelaConfigurationControl -Context $Context -Id "Registry/$Path/$Name" -Kind Registry `
         -Target @{ Path = $Path; Name = $Name } -Desired @{ Value = $Value; Type = $Type } `
-        -Read $read -Compliant $test -Apply $apply
+        -Read $read -Compliant $test -Apply $apply -PreserveWhen $PreserveWhen
 }
 
 function Initialize-WelaConfigurationAuditApi {
@@ -361,7 +370,19 @@ function Set-WelaNtlmConfigurationControl {
             } else {
                 # Shared runner owns prompts, dry-run suppression, exact registry
                 # before-state journal, type/value read-back and final drift check.
-                Set-WelaRegistryControl -Context $Context -Path $path -Name $name -Value $desired
+                $preserve = $null
+                if ($Scope -eq 'Outgoing' -and $Mode -eq 'PreserveOrAudit') {
+                    $preserve = {
+                        param($snapshot)
+                        if ($snapshot.ValueExists -and $snapshot.Type -eq 'DWord' -and $snapshot.Value -eq 2) {
+                            return 'Preserved newly observed Deny all enforcement (2); explicit Audit mode is required to replace it.'
+                        }
+                        if ($snapshot.ValueExists -and ($snapshot.Type -ne 'DWord' -or $snapshot.Value -notin @(0, 1, 2))) {
+                            return "Preserved newly observed unknown outgoing NTLM value/type ($($snapshot.Value)/$($snapshot.Type))."
+                        }
+                    }
+                }
+                Set-WelaRegistryControl -Context $Context -Path $path -Name $name -Value $desired -PreserveWhen $preserve
                 return
             }
         }
