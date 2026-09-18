@@ -1,0 +1,32 @@
+name: WMI namespace auditing regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'scripts/WmiNamespaceAuditing.ps1'
+      - 'tests/WmiNamespaceAuditing*'
+      - 'tests/fixtures/wmi-namespace-descriptor.json'
+      - '.github/workflows/wmi-namespace-auditing.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wmi-namespace-auditing:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Mocked namespace SACL regression tests (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/WmiNamespaceAuditing.Tests.ps1
+      - name: Native read-only and in-memory writer adapter (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/WmiNamespaceAuditing.Windows.Tests.ps1
+      - name: Mocked namespace SACL regression tests (PowerShell 7)
+        shell: pwsh
+        run: ./tests/WmiNamespaceAuditing.Tests.ps1
+      - name: Native read-only and in-memory writer adapter (PowerShell 7)
+        shell: pwsh
+        run: ./tests/WmiNamespaceAuditing.Windows.Tests.ps1
