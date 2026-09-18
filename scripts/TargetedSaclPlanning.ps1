@@ -58,7 +58,22 @@ function Resolve-WelaSaclUserFile {
     if (-not $User.HiveLoaded) { return [pscustomobject]@{ Path = $null; State = 'UnloadedHive'; Diagnostic = 'Known-folder redirection cannot be read without loading the user hive; no hive was loaded.' } }
     if (-not $User.ProfilePath) { return [pscustomobject]@{ Path = $null; State = 'UnresolvedUserPath'; Diagnostic = 'Profile path is unavailable.' } }
     try {
-        $folder = if ($RelativePath -like '*\Startup') { 'Startup' } else { 'AppData' }
+        # Match complete known-folder roots, not an arbitrary directory named
+        # Startup. Keep the configured suffix rather than substituting an app.
+        $parts = @($RelativePath -split '\\')
+        if ($RelativePath -match '[<>:"/|?*\x00-\x1F]' -or $RelativePath -match '%[^%]+%' -or
+            @($parts | Where-Object { -not $_ -or $_ -in @('.', '..') -or $_ -match '[ .]$' }).Count) {
+            throw 'User target contains unsupported or ambiguous path components.'
+        }
+        $startupRoot = 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'
+        $appDataRoot = 'AppData\Roaming'
+        if ($RelativePath -ieq $startupRoot) {
+            $folder = 'Startup'; $suffix = ''
+        } elseif ($RelativePath.StartsWith($startupRoot + '\', [StringComparison]::OrdinalIgnoreCase)) {
+            $folder = 'Startup'; $suffix = $RelativePath.Substring($startupRoot.Length + 1)
+        } elseif ($RelativePath.StartsWith($appDataRoot + '\', [StringComparison]::OrdinalIgnoreCase)) {
+            $folder = 'AppData'; $suffix = $RelativePath.Substring($appDataRoot.Length + 1)
+        } else { throw 'User target must be the Startup known folder or a child of the supported AppData\Roaming known-folder root.' }
         $keyPath = "Registry::HKEY_USERS\$($User.Sid)\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
         $key = Get-Item -LiteralPath $keyPath -ErrorAction Stop
         # DoNotExpandEnvironmentNames is essential when reading another user's hive.
@@ -66,7 +81,7 @@ function Resolve-WelaSaclUserFile {
         if (-not $raw) { throw "Known-folder value '$folder' is absent." }
         $resolved = [regex]::Replace($raw, '(?i)%USERPROFILE%', [System.Text.RegularExpressions.MatchEvaluator]{ param($match) $User.ProfilePath })
         if ($resolved -match '%[^%]+%' -or $resolved -notmatch '^(?:[A-Za-z]:\\|\\\\)') { throw 'Known-folder path contains unresolved user variables or is not absolute.' }
-        if ($folder -eq 'AppData') { $resolved = $resolved.TrimEnd('\') + '\Signal' }
+        if ($suffix) { $resolved = $resolved.TrimEnd('\') + '\' + $suffix }
         $expected = $User.ProfilePath.TrimEnd('\') + '\' + $RelativePath
         $state = if ($resolved -ine $expected) { 'Redirected' } else { 'Resolved' }
         [pscustomobject]@{ Path = $resolved; State = $state; Diagnostic = 'Resolved from this user hive; remote paths are reported without network access.' }

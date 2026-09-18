@@ -64,18 +64,51 @@ $unloaded = Resolve-WelaSaclUserFile -User ([pscustomobject]@{HiveLoaded=$false}
 Assert ($unloaded.State -eq 'UnloadedHive') 'Unloaded hive must not fall back to operator APPDATA.'
 # Verify actual resolver against real catalog escaping, not a pre-normalized fixture.
 $script:knownFolder = '%USERPROFILE%\AppData\Roaming'
+$script:knownFolderName = $null; $script:knownFolderReads = 0
 $script:key = [pscustomobject]@{}
-$script:key | Add-Member ScriptMethod GetValue { param($Name,$Default,$Options) if ($Options -ne [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) { throw 'Unsafe variable expansion mode' }; return $script:knownFolder }
-function Get-Item { param($LiteralPath,[switch]$Force,$ErrorAction) return $script:key }
+$script:key | Add-Member ScriptMethod GetValue { param($Name,$Default,$Options) if ($Options -ne [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) { throw 'Unsafe variable expansion mode' }; $script:knownFolderName = $Name; return $script:knownFolder }
+function Get-Item {
+    param($LiteralPath,[switch]$Force,$ErrorAction)
+    if ($LiteralPath -ne 'Registry::HKEY_USERS\S-1-5-21-1\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders') { throw 'Unexpected known-folder read scope.' }
+    $script:knownFolderReads++; return $script:key
+}
 $definitions = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/audit_sacl_targets.json') -Raw | ConvertFrom-Json
 $user = [pscustomobject]@{Sid='S-1-5-21-1';ProfilePath='C:\Users\One';HiveLoaded=$true}
 $signal = Resolve-WelaSaclUserFile -User $user -RelativePath $definitions.user_files[1].relpath
 Assert ($signal.State -eq 'Resolved' -and $signal.Path -eq 'C:\Users\One\AppData\Roaming\Signal') 'Actual doubled-separator catalog path must not mislabel a default known folder as redirected.'
+# Additional catalog-shaped targets retain their complete suffix under the
+# selected user's known folder. Resolving a remote root never accesses it.
+$userFileFixtures = @(
+    [pscustomobject]@{ relpath = 'AppData\\Roaming\\Foo'; suffix = 'Foo' },
+    [pscustomobject]@{ relpath = 'appdata\roaming\Vendor\Cache'; suffix = 'Vendor\Cache' },
+    [pscustomobject]@{ relpath = 'AppData\Roaming\Foo\Startup'; suffix = 'Foo\Startup' }
+)
+foreach ($fixture in $userFileFixtures) {
+    $script:knownFolder = '%USERPROFILE%\AppData\Roaming'
+    $result = Resolve-WelaSaclUserFile -User $user -RelativePath $fixture.relpath
+    Assert ($result.State -eq 'Resolved' -and $result.Path -ieq ('C:\Users\One\AppData\Roaming\' + $fixture.suffix) -and $script:knownFolderName -eq 'AppData') 'Additional AppData target must retain its suffix and use the AppData known folder.'
+    $script:knownFolder = '\\server\share\Roaming'
+    $result = Resolve-WelaSaclUserFile -User $user -RelativePath $fixture.relpath
+    Assert ($result.State -eq 'Redirected' -and $result.Path -eq ('\\server\share\Roaming\' + $fixture.suffix) -and $script:knownFolderName -eq 'AppData') 'Redirected AppData target must retain its own suffix.'
+    $readsBefore = $script:knownFolderReads
+    Assert ((Get-WelaSaclTargetObservation -Path $result.Path -Kind FileSystem).PathState -eq 'RemoteNotInspected' -and $script:knownFolderReads -eq $readsBefore) 'Remote AppData target must be reported without target access.'
+}
 $script:knownFolder = '%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'
 $startup = Resolve-WelaSaclUserFile -User $user -RelativePath $definitions.user_files[0].relpath
-Assert ($startup.State -eq 'Resolved') 'Actual Startup catalog path normalizes before comparison.'
+Assert ($startup.State -eq 'Resolved' -and $script:knownFolderName -eq 'Startup') 'Actual Startup catalog path normalizes before comparison and uses its own known folder.'
 $script:knownFolder = '\\server\share\Startup'
-Assert ((Resolve-WelaSaclUserFile -User $user -RelativePath $definitions.user_files[0].relpath).State -eq 'Redirected') 'Real redirected Startup remains distinguished.'
+$startup = Resolve-WelaSaclUserFile -User $user -RelativePath $definitions.user_files[0].relpath
+Assert ($startup.State -eq 'Redirected' -and $startup.Path -eq $script:knownFolder -and $script:knownFolderName -eq 'Startup') 'Real redirected Startup remains distinguished without appending its catalog suffix twice.'
+$startupChild = Resolve-WelaSaclUserFile -User $user -RelativePath 'AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\Child'
+Assert ($startupChild.Path -eq '\\server\share\Startup\Child' -and $script:knownFolderName -eq 'Startup') 'A target below Startup must retain Startup redirection rather than fall back to AppData.'
+foreach ($invalid in @('Desktop\Startup', 'AppData\Local\Foo', 'AppData\RoamingOther\Foo', 'AppData\Roaming',
+        'AppData\Roaming\..\Local\Foo', 'AppData\Roaming\.\Foo', 'AppData\Roaming\Foo.\Bar', 'AppData\Roaming\Foo \Bar',
+        'AppData\Roaming\Foo:stream', 'AppData/Roaming/Foo', 'AppData\Roaming\*', 'AppData\Roaming\Foo\',
+        'AppData\Roaming\%APPDATA%', 'C:\Users\Other\AppData\Roaming\Foo')) {
+    $readsBefore = $script:knownFolderReads
+    $result = Resolve-WelaSaclUserFile -User $user -RelativePath $invalid
+    Assert ($result.State -eq 'UnresolvedUserPath' -and -not $result.Path -and $script:knownFolderReads -eq $readsBefore) "Unsupported user target must remain unresolved without path reads: $invalid"
+}
 Assert (@($live.Targets | Where-Object { $_.Scope -eq 'user_registry' -and $_.Path -match '\\\\' }).Count -eq 0) 'User registry keys normalize catalog separators.'
 # Failures inside an individual profile must affect global inventory completeness.
 function Get-ChildItem {

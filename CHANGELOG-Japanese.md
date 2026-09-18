@@ -52,7 +52,7 @@
 
 **新機能:**
 
-- プロファイルの plan/audit/configure に対象を限定した SACL の読み取り専用計画を追加しました。オブジェクト監査ポリシー、ユーザーハイブ・フォルダーリダイレクトの未確認箇所、WEF Run/RunOnce の監査エントリを表示し、`-SaclMode Skip` による省略も明示します。SACL の書き込みや未検証の検知率向上は行いません。 (#398) (@Shirofune-Security)
+- プロファイルの plan/audit/configure に対象を限定した SACL の読み取り専用計画を追加しました。オブジェクト監査ポリシー、ユーザーハイブ・フォルダーリダイレクトの未確認箇所、WEF Run/RunOnce の監査エントリを表示し、`-SaclMode Skip` による省略も明示します。ユーザーファイルの対象は、そのユーザーの AppData または Startup 既知フォルダー配下の相対パスを保持し、未対応・曖昧なパスは未解決として扱います。SACL の書き込みや未検証の検知率向上は行いません。 (#398) (@Shirofune-Security)
 
 
 - MITRE ATT&CK Navigatorヒートマップに対応した。 (#11) (@fukusuket)
