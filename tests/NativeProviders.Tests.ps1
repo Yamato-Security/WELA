@@ -165,7 +165,13 @@ try {
     $html = Get-Content -LiteralPath $htmlPath -Raw
     Assert-Equal ($html -match 'Not installed') $true 'HTML retains absent-feature state'
     Assert-Equal ($html -match 'PermissionDenied') $true 'HTML retains denied-access reason'
-    Assert-Equal ($html -match '&lt;provider-test&gt;') $true 'HTML encodes untrusted error text'
+    # Windows PowerShell JSON escapes angle brackets as Unicode; PowerShell 7 may
+    # leave them for HtmlEncode. Both must safely preserve the original evidence.
+    $htmlRows = @([regex]::Matches($html, '(?s)<pre>(.*?)</pre>') | ForEach-Object {
+        [System.Net.WebUtility]::HtmlDecode($_.Groups[1].Value) | ConvertFrom-Json
+    })
+    $htmlErrorText = ($htmlRows | ForEach-Object { $_.NativeSources.Channel.Error.Message }) -join ' '
+    Assert-Equal ($htmlErrorText -match '<provider-test>') $true 'HTML encoding preserves untrusted error text'
     Assert-Equal ($html -match '<provider-test>') $false 'HTML never interprets error text as markup'
     Assert-Equal ($output -match '(?m)^Applocker: Conditional') $true 'Console does not summarize AppLocker as enabled'
     Assert-Equal ($output -match 'Native provider rules remain unconfirmed') $true 'Console explains conservative coverage'
