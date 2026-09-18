@@ -21,3 +21,5 @@ Assert-Cli @('wec-collector','-LogProfile','ASD') 1 'LogProfile is supported onl
 Assert-Cli @('wef-source','-ChannelAction','Configure') 1 'Channel options require'
 Assert-Cli @('wef-source') 1 'WefConfigPath is required'
 Write-Host "WefDeployment.Cli.Tests: $script:count public CLI checks passed."
+# Expected child failures are asserted above; do not leak their exit code to CI.
+$global:LASTEXITCODE = 0
