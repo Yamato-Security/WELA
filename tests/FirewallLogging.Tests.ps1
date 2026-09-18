@@ -21,6 +21,7 @@ function Reset-Mocks {
     $script:writes = 0; $script:writeArguments = @(); $script:blockedAccess = $false
     $script:failRead = $false; $script:failWrite = $false; $script:gpo = $false; $script:onPrompt = $null
     $script:accessCalls = 0
+    $script:unverifiedPaths = @()
 }
 function Get-NetFirewallProfile {
     param($Name, $PolicyStore, $ErrorAction)
@@ -47,7 +48,7 @@ function Set-NetFirewallProfile {
 function Get-WelaFirewallLogAccess {
     param($Path)
     $script:accessCalls++
-    [pscustomobject]@{ State = $(if ($script:blockedAccess) { 'Unknown' } else { 'VerifiedExplicitGrant' }); Path = $Path; Diagnostic = 'Mock service ACL'; ServiceAccount = 'NT AUTHORITY\LocalService'; ServiceStatus = 'Running' }
+    [pscustomobject]@{ State = $(if ($script:blockedAccess -or $script:unverifiedPaths -contains $Path) { 'Unknown' } else { 'VerifiedExplicitGrant' }); Path = $Path; Diagnostic = 'Mock service ACL'; ServiceAccount = 'NT AUTHORITY\LocalService'; ServiceStatus = 'Running' }
 }
 function Read-Host {
     param($Prompt)
@@ -145,6 +146,33 @@ try {
     $context = New-TestContext -Prompt
     Set-WelaFirewallLoggingControls $context @((Get-WelaFirewallLoggingPlan)[0])
     Assert ($script:writes -eq 0 -and $context.Results[0].Status -eq 'Failed') 'Operator changes during prompt prevent stale recovery snapshot writes'
+
+    foreach ($unverified in @($true, $false)) {
+        Reset-Mocks
+        $plan = @((Get-WelaFirewallLoggingPlan)[0])
+        $newPath = 'C:\ChangedAfterPlan\Domain.log'
+        $script:effectiveProfiles.Domain.LogFileName = $newPath
+        $script:localProfiles.Domain.LogFileName = $newPath
+        if ($unverified) { $script:unverifiedPaths = @($newPath) }
+        $context = New-TestContext
+        Set-WelaFirewallLoggingControls $context $plan
+        Assert ($script:writes -eq 0 -and $context.Results[0].Status -eq 'Failed') "Preserve mode refuses a path changed between planning and initial read (unverified=$unverified)"
+        Assert ($context.Results[0].Diagnostic -match 'changed after planning') 'Stale planned path produces an actionable failure'
+        Assert (-not (Test-Path -LiteralPath (Join-Path $context.BackupPath 'before.jsonl'))) 'Path drift is refused before creating a mutation journal entry'
+    }
+
+    Reset-Mocks
+    $plan = @((Get-WelaFirewallLoggingPlan)[0])
+    $script:onPrompt = { $script:unverifiedPaths = @($script:effectiveProfiles.Domain.LogFileName) }
+    $context = New-TestContext -Prompt
+    Set-WelaFirewallLoggingControls $context $plan
+    Assert ($script:writes -eq 0 -and $context.Results[0].Status -eq 'Failed') 'Newly unknown actual destination permissions prevent a write after confirmation'
+
+    Reset-Mocks
+    $script:unverifiedPaths = @($script:effectiveProfiles.Domain.LogFileName)
+    $context = New-TestContext
+    Set-WelaFirewallLoggingControls $context @((Get-WelaFirewallLoggingPlan -PathMode CisV4)[0])
+    Assert ($script:writes -eq 1 -and $context.Results[0].Status -eq 'Applied') 'Explicit CIS migration can replace an unverified old destination with a verified new destination'
 
     Reset-Mocks
     $plan = @(Get-WelaFirewallLoggingPlan)

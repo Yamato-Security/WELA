@@ -141,7 +141,13 @@ function Set-WelaFirewallLoggingControls {
         $read = {
             param($state)
             $snapshot = Get-WelaFirewallLoggingState -Name $state.Name
-            $targetAccess = if ($snapshot.Effective.LogFileName -eq $state.Desired.LogFileName) { $snapshot.Access } else { Get-WelaFirewallLogAccess -Path $state.Desired.LogFileName }
+            if ($state.Desired.PathMode -eq 'Preserve' -and
+                [Environment]::ExpandEnvironmentVariables($snapshot.Effective.LogFileName) -ne [Environment]::ExpandEnvironmentVariables($state.Desired.LogFileName)) {
+                throw 'Effective firewall log path changed after planning; rerun the plan to assess and preserve the current destination.'
+            }
+            $targetAccess = if ($state.Desired.PathMode -eq 'Preserve' -or $snapshot.Effective.LogFileName -eq $state.Desired.LogFileName) {
+                $snapshot.Access
+            } else { Get-WelaFirewallLogAccess -Path $state.Desired.LogFileName }
             if ($targetAccess.State -ne 'VerifiedExplicitGrant') { throw "Log path access is $($targetAccess.State): $($targetAccess.Diagnostic)" }
             $state.Observed = $snapshot
             return $snapshot
@@ -156,7 +162,11 @@ function Set-WelaFirewallLoggingControls {
                     if ($fresh.$store.$property -ne $state.Observed.$store.$property) { throw "Firewall $store $property changed after the recovery snapshot; retry after reviewing policy." }
                 }
             }
-            $access = Get-WelaFirewallLogAccess -Path $state.Desired.LogFileName
+            if ($state.Desired.PathMode -eq 'Preserve' -and $fresh.Access.State -ne 'VerifiedExplicitGrant') {
+                throw "Effective log path access is $($fresh.Access.State): $($fresh.Access.Diagnostic)"
+            }
+            $targetPath = if ($state.Desired.PathMode -eq 'Preserve') { $fresh.Effective.LogFileName } else { $state.Desired.LogFileName }
+            $access = Get-WelaFirewallLogAccess -Path $targetPath
             if ($access.State -ne 'VerifiedExplicitGrant') { throw "Log path access is $($access.State): $($access.Diagnostic)" }
             $size = [Math]::Max([double]$state.Desired.MinimumSizeKiB, [Math]::Max([double]$fresh.Effective.LogMaxSizeKilobytes, [double]$fresh.Local.LogMaxSizeKilobytes))
             $parameters = @{ Name = $state.Name; PolicyStore = 'PersistentStore'; LogAllowed = 'True'; LogBlocked = 'True'; LogMaxSizeKilobytes = [uint64]$size; ErrorAction = 'Stop' }

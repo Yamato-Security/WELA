@@ -30,7 +30,7 @@ The default `Preserve` path mode never writes `LogFileName`. `CisV4` explicitly 
 
 Reports retain `ActiveStore` (resultant effective policy) and `PersistentStore` (local policy), plus differing logging fields. Configure writes only PersistentStore, verifies ActiveStore after each change, and checks it again at completion. A local write overridden by GPO/MDM fails verification. A previously compliant setting that changes before the final check becomes `Overridden`; the run exits 1. These observations do not establish the current policy writer or guarantee persistence after a later policy refresh. An already compliant effective policy is accepted without manufacturing a local override.
 
-Recovery snapshots include both stores. WELA rechecks them after confirmation and journaling, and refuses the write if logging settings changed meanwhile. There is no atomic transaction with Group Policy; subsequent races remain detectable only through the following reads. A failed control does not stop the remaining profiles.
+Recovery snapshots include both stores. Preserve mode rejects an effective path that changed after planning, even before the initial recovery snapshot, and verifies access to the actual effective destination. Rerun the plan to assess a changed path. WELA rechecks both stores after confirmation and journaling, and refuses the write if logging settings changed meanwhile. Explicit `CisV4` migration instead checks the selected new destination. There is no atomic transaction with Group Policy; subsequent races remain detectable only through the following reads. A failed control does not stop the remaining profiles.
 
 ## Service permissions and operational limits
 
