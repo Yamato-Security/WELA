@@ -1,5 +1,15 @@
 # Read-only companion planning for the existing configure-sacl targets.
 # Never loads offline hives, enables privileges, changes audit policy or writes ACLs.
+function Expand-WelaSaclProfilePath {
+    param([string]$Path)
+    foreach ($token in [regex]::Matches($Path, '%([^%]+)%')) {
+        if ($token.Groups[1].Value -notin @('SystemDrive', 'SystemRoot', 'windir')) { throw 'Profile path contains a user-specific or unknown variable; operator values must not be substituted.' }
+    }
+    $expanded = [Environment]::ExpandEnvironmentVariables($Path)
+    if (-not $expanded -or $expanded -match '%[^%]+%' -or $expanded -notmatch '^(?:[A-Za-z]:\\|\\\\)') { throw 'Profile path is empty, unresolved or not absolute.' }
+    return $expanded
+}
+
 function Get-WelaSaclUserInventory {
     $users = New-Object 'System.Collections.Generic.List[object]'
     $diagnostics = New-Object 'System.Collections.Generic.List[string]'
@@ -18,15 +28,21 @@ function Get-WelaSaclUserInventory {
                 continue
             }
             $path = $null; $message = ''
-            try { $path = [Environment]::ExpandEnvironmentVariables([string](Get-ItemProperty -LiteralPath $key.PSPath -Name ProfileImagePath -ErrorAction Stop).ProfileImagePath) }
-            catch { $message = "Profile path unavailable: $($_.Exception.Message)" }
+            try {
+                $rawPath = [string](Get-ItemProperty -LiteralPath $key.PSPath -Name ProfileImagePath -ErrorAction Stop).ProfileImagePath
+                $path = Expand-WelaSaclProfilePath $rawPath
+            } catch {
+                $path = $null; $message = "Profile path unavailable: $($_.Exception.Message)"
+                $diagnostics.Add("$sid : $message")
+            }
             $users.Add([pscustomobject]@{ Sid = $sid; ProfilePath = $path; HiveLoaded = $loaded.ContainsKey($sid); Diagnostic = $message })
             $loaded.Remove($sid)
         }
-        $default = [Environment]::ExpandEnvironmentVariables([string](Get-ItemProperty -LiteralPath $profileRoot -Name Default -ErrorAction Stop).Default)
+        $default = Expand-WelaSaclProfilePath ([string](Get-ItemProperty -LiteralPath $profileRoot -Name Default -ErrorAction Stop).Default)
         $users.Add([pscustomobject]@{ Sid = 'Default'; ProfilePath = $default; HiveLoaded = $false; Diagnostic = 'Future-user template; hive is not loaded by planning.' })
     } catch { $diagnostics.Add("Profile inventory incomplete: $($_.Exception.Message)") }
     foreach ($sid in $loaded.Keys) {
+        $diagnostics.Add("Loaded hive $sid has no matching ProfileList entry; user file paths are unknown.")
         $users.Add([pscustomobject]@{ Sid = $sid; ProfilePath = $null; HiveLoaded = $true; Diagnostic = 'Loaded hive has no matching ProfileList entry; user file paths are unknown.' })
     }
     [pscustomobject]@{ Users = @($users.ToArray()); Diagnostics = @($diagnostics.ToArray()); Complete = ($diagnostics.Count -eq 0) }
@@ -36,6 +52,7 @@ function Resolve-WelaSaclUserFile {
     param($User, [string]$RelativePath)
     # Resolve another user's known folders only from that user's loaded hive.
     # Expanding the operator's APPDATA here would silently credit the wrong path.
+    $RelativePath = $RelativePath.Replace('\\', '\')
     if (-not $User.HiveLoaded) { return [pscustomobject]@{ Path = $null; State = 'UnloadedHive'; Diagnostic = 'Known-folder redirection cannot be read without loading the user hive; no hive was loaded.' } }
     if (-not $User.ProfilePath) { return [pscustomobject]@{ Path = $null; State = 'UnresolvedUserPath'; Diagnostic = 'Profile path is unavailable.' } }
     try {
@@ -59,10 +76,25 @@ function Get-WelaSaclTargetObservation {
     if (-not $Path -or $Path -match '%[^%]+%') { return [pscustomobject]@{ PathState = 'Unknown'; SaclReadState = 'Unknown'; Diagnostic = 'Target path is unresolved.' } }
     if ($Path.StartsWith('\\')) { return [pscustomobject]@{ PathState = 'RemoteNotInspected'; SaclReadState = 'Unknown'; Diagnostic = 'Network/redirected target requires assessment on the file server; planning does not authenticate to remote paths.' } }
     try {
-        $item = Get-Item -LiteralPath $Path -Force -ErrorAction Stop
-        if ($Kind -eq 'FileSystem' -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-            return [pscustomobject]@{ PathState = 'ReparsePoint'; SaclReadState = 'Unknown'; Diagnostic = 'Reparse target requires separate assessment; its path is not credited.' }
-        }
+        if ($Kind -eq 'FileSystem') {
+            if ($Path -notmatch '^([A-Za-z]):\\') { return [pscustomobject]@{ PathState = 'Unknown'; SaclReadState = 'Unknown'; Diagnostic = 'Only absolute local drive paths are inspected.' } }
+            $drive = Get-PSDrive -Name $Matches[1] -PSProvider FileSystem -ErrorAction Stop
+            if ([string]$drive.DisplayRoot -like '\\*' -or [string]$drive.Root -like '\\*') {
+                return [pscustomobject]@{ PathState = 'RemoteNotInspected'; SaclReadState = 'Unknown'; Diagnostic = 'Mapped network drive is not inspected; no target path access was attempted.' }
+            }
+            $parts = @($Path.Substring(3) -split '\\' | Where-Object { $_ -ne '' })
+            if (@($parts | Where-Object { $_ -in @('.', '..') }).Count) { return [pscustomobject]@{ PathState = 'Unknown'; SaclReadState = 'Unknown'; Diagnostic = 'Dot segments require explicit path review before inspection.' } }
+            $checked = $Path.Substring(0, 3)
+            # Inspect each ancestor before resolving the next component. A leaf-only
+            # check can follow a junction/symlink into a remote share first.
+            for ($index = 0; $index -le $parts.Count; $index++) {
+                $item = Get-Item -LiteralPath $checked -Force -ErrorAction Stop
+                if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+                    return [pscustomobject]@{ PathState = 'ReparsePoint'; SaclReadState = 'Unknown'; Diagnostic = "Reparse component '$checked' requires separate assessment; descendants and SACL were not inspected." }
+                }
+                if ($index -lt $parts.Count) { $checked = $checked.TrimEnd('\') + '\' + $parts[$index] }
+            }
+        } else { $item = Get-Item -LiteralPath $Path -Force -ErrorAction Stop }
     } catch {
         $state = if ($_.CategoryInfo.Category -eq 'ObjectNotFound') { 'Missing' } else { 'Inaccessible' }
         return [pscustomobject]@{ PathState = $state; SaclReadState = 'Unknown'; Diagnostic = $_.Exception.Message }
@@ -99,10 +131,10 @@ function Get-WelaTargetedSaclPlan {
             foreach ($user in $instances) {
                 $resolution = 'Resolved'; $detail = ''; $path = $null
                 if ($section -eq 'user_registry') {
-                    $path = "Registry::HKEY_USERS\$($user.Sid)\$($target.key)"
+                    $path = "Registry::HKEY_USERS\$($user.Sid)\$(([string]$target.key).Replace('\\', '\'))"
                     if (-not $user.HiveLoaded) { $resolution = 'UnloadedHive'; $detail = 'User hive not loaded; planning never mounts NTUSER.DAT.' }
                 } elseif ($section -eq 'user_files') {
-                    $path = "$($user.ProfilePath)\$($target.relpath)"
+                    $path = "$($user.ProfilePath)\$(([string]$target.relpath).Replace('\\', '\'))"
                     if ($Live -and $Mode -eq 'Plan') {
                         $resolved = Resolve-WelaSaclUserFile -User $user -RelativePath $target.relpath
                         $resolution = $resolved.State; $detail = $resolved.Diagnostic

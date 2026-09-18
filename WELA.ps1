@@ -1713,6 +1713,12 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+# SaclMode belongs only to the read-only profile companion plan. In particular,
+# configure-sacl must never silently ignore an explicit request to Skip.
+if ($PSBoundParameters.ContainsKey('SaclMode') -and
+    (-not $Profile -or $Cmd -notin @('plan', 'audit', 'audit-settings', 'configure'))) {
+    throw '-SaclMode requires -Profile with plan, audit, audit-settings or configure. It does not control configure-sacl. No command was run.'
+}
 # Reject unsupported dry-run requests before reaching any command's mutation path.
 if ($DryRun -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and

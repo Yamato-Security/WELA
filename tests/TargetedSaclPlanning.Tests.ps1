@@ -62,8 +62,74 @@ $remote = Get-WelaSaclTargetObservation -Path '\\server\share\Startup' -Kind Fil
 Assert ($remote.PathState -eq 'RemoteNotInspected') 'Read-only planning must not access remote known folders.'
 $unloaded = Resolve-WelaSaclUserFile -User ([pscustomobject]@{HiveLoaded=$false}) -RelativePath 'AppData\Roaming\Signal'
 Assert ($unloaded.State -eq 'UnloadedHive') 'Unloaded hive must not fall back to operator APPDATA.'
+# Verify actual resolver against real catalog escaping, not a pre-normalized fixture.
+$script:knownFolder = '%USERPROFILE%\AppData\Roaming'
+$script:key = [pscustomobject]@{}
+$script:key | Add-Member ScriptMethod GetValue { param($Name,$Default,$Options) if ($Options -ne [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) { throw 'Unsafe variable expansion mode' }; return $script:knownFolder }
+function Get-Item { param($LiteralPath,[switch]$Force,$ErrorAction) return $script:key }
+$definitions = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/audit_sacl_targets.json') -Raw | ConvertFrom-Json
+$user = [pscustomobject]@{Sid='S-1-5-21-1';ProfilePath='C:\Users\One';HiveLoaded=$true}
+$signal = Resolve-WelaSaclUserFile -User $user -RelativePath $definitions.user_files[1].relpath
+Assert ($signal.State -eq 'Resolved' -and $signal.Path -eq 'C:\Users\One\AppData\Roaming\Signal') 'Actual doubled-separator catalog path must not mislabel a default known folder as redirected.'
+$script:knownFolder = '%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'
+$startup = Resolve-WelaSaclUserFile -User $user -RelativePath $definitions.user_files[0].relpath
+Assert ($startup.State -eq 'Resolved') 'Actual Startup catalog path normalizes before comparison.'
+$script:knownFolder = '\\server\share\Startup'
+Assert ((Resolve-WelaSaclUserFile -User $user -RelativePath $definitions.user_files[0].relpath).State -eq 'Redirected') 'Real redirected Startup remains distinguished.'
+Assert (@($live.Targets | Where-Object { $_.Scope -eq 'user_registry' -and $_.Path -match '\\\\' }).Count -eq 0) 'User registry keys normalize catalog separators.'
+# Failures inside an individual profile must affect global inventory completeness.
+function Get-ChildItem {
+    param($LiteralPath,$ErrorAction)
+    if ($LiteralPath -eq 'Registry::HKEY_USERS') { return }
+    [pscustomobject]@{PSChildName='S-1-5-21-1';PSPath='Registry::profile-one'}
+}
+$script:profilePath = $null
+function Get-ItemProperty {
+    param($LiteralPath,$Name,$ErrorAction)
+    if ($Name -eq 'Default') { return [pscustomobject]@{Default='C:\Users\Default'} }
+    if ($null -eq $script:profilePath) { throw 'Profile path denied' }
+    [pscustomobject]@{ProfileImagePath=$script:profilePath}
+}
+$inventory = Get-WelaSaclUserInventory
+Assert (-not $inventory.Complete -and $inventory.Diagnostics.Count -gt 0 -and $inventory.Users[0].ProfilePath -eq $null) 'Unreadable per-user profile path must not yield complete inventory.'
+$script:profilePath = '%USERPROFILE%\AnotherProfile'
+$inventory = Get-WelaSaclUserInventory
+Assert (-not $inventory.Complete -and $inventory.Users[0].ProfilePath -eq $null) 'ProfileList must not expand operator USERPROFILE for another user.'
+$script:profilePath = 'C:\Users\One'
+Assert (Get-WelaSaclUserInventory).Complete 'Known absolute profiles and Default form a complete inventory.'
+Remove-Item Function:Get-ChildItem, Function:Get-ItemProperty
+# Guard mapped drives and every ancestor before any descendants or ACL read.
+$script:accessed = @(); $script:aclCalls = 0; $script:remoteDrive = $false
+function Get-PSDrive { param($Name,$PSProvider,$ErrorAction) [pscustomobject]@{Root='C:\';DisplayRoot=$(if ($script:remoteDrive) {'\\server\share'} else {$null})} }
+function Get-Item {
+    param($LiteralPath,[switch]$Force,$ErrorAction)
+    $script:accessed += $LiteralPath
+    if ($LiteralPath -like 'C:\Users\*') { throw 'Guard must not traverse the Users junction.' }
+    [pscustomobject]@{Attributes=$(if ($LiteralPath -eq 'C:\Users') {[IO.FileAttributes]::ReparsePoint} else {[IO.FileAttributes]::Directory})}
+}
+function Get-Acl { $script:aclCalls++; throw 'ACL reads must not cross redirect boundaries.' }
+$guarded = Get-WelaSaclTargetObservation -Path 'C:\Users\One\AppData\Roaming\Signal' -Kind FileSystem
+Assert ($guarded.PathState -eq 'ReparsePoint' -and $script:accessed.Count -eq 2 -and $script:aclCalls -eq 0) 'Ancestor junction stops before child resolution or Get-Acl.'
+$script:accessed=@(); $script:remoteDrive=$true
+$guarded = Get-WelaSaclTargetObservation -Path 'Z:\Startup' -Kind FileSystem
+Assert ($guarded.PathState -eq 'RemoteNotInspected' -and $script:accessed.Count -eq 0) 'Mapped network drive never reaches Get-Item.'
+Remove-Item Function:Get-Item, Function:Get-PSDrive, Function:Get-Acl
+# Extract and execute only the option guard; never execute configure-sacl dispatch.
+$tokens=$null; $errors=$null
+$ast=[System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../WELA.ps1'),[ref]$tokens,[ref]$errors)
+Assert ($errors.Count -eq 0) 'CLI must parse after adding explicit SaclMode command guard.'
+$guard=$ast.EndBlock.Statements | Where-Object { $_ -is [System.Management.Automation.Language.IfStatementAst] -and $_.Extent.Text.StartsWith("if (`$PSBoundParameters.ContainsKey('SaclMode')") } | Select-Object -First 1
+Assert ($null -ne $guard) 'Public CLI must reject ignored SaclMode before dispatch.'
+$exercise=[scriptblock]::Create('param($SaclMode,$Cmd,$Profile)' + [Environment]::NewLine + $guard.Extent.Text)
+$rejected=$false
+try { & $exercise -SaclMode Skip -Cmd configure-sacl } catch { $rejected=$true }
+Assert $rejected 'configure-sacl -SaclMode Skip must be rejected before any legacy SACL mutator.'
+$rejected=$false
+try { & $exercise -SaclMode Skip -Cmd configure } catch { $rejected=$true }
+Assert $rejected 'Legacy configure without Profile cannot silently ignore SaclMode.'
+& $exercise -SaclMode Skip -Cmd plan -Profile wela-2.2.0
+& $exercise -SaclMode Skip -Cmd configure -Profile wela-2.2.0
 # Real CLI offline JSON export exercises integration without changing Windows.
-Remove-Item Function:Get-Item
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('wela-sacl-plan-' + [guid]::NewGuid().ToString('N') + '.json')
 try {
     # Different role/build deliberately prevents live probing even on Windows CI.
