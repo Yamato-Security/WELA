@@ -386,8 +386,14 @@ function Export-WelaRuleEligibility {
         $encode = { param($value) [Net.WebUtility]::HtmlEncode([string]$value) }
         $html = New-Object Text.StringBuilder
         [void]$html.Append('<!doctype html><html lang="en"><meta charset="utf-8"><title>WELA native rule eligibility</title><style>body{font:16px sans-serif;margin:2rem}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #ccc;padding:.5rem;text-align:left}code{overflow-wrap:anywhere}</style><h1>Native rule eligibility</h1>')
-        [void]$html.Append('<p>' + (& $encode $Report.AssessmentBasis) + '</p><pre>' + (& $encode ($Report.Summary | ConvertTo-Json -Depth 6)) + '</pre><p>Corpus SHA256: <code>' + (& $encode $Report.Corpus.Sha256) + '</code></p><table><tr><th>Rule</th><th>State</th><th>Reasons</th></tr>')
-        foreach ($row in $Report.Results) { [void]$html.Append('<tr><td>' + (& $encode ($row.Title + ' [' + $row.Id + ']')) + '</td><td>' + (& $encode $row.State) + '</td><td>' + (& $encode ((@($row.Reasons) + @($row.ScopeExclusion)) -join '; ')) + '</td></tr>') }
+        [void]$html.Append('<p>' + (& $encode $Report.AssessmentBasis) + '</p><pre>' + (& $encode ($Report.Summary | ConvertTo-Json -Depth 6)) + '</pre><h2>Requested context</h2><pre>' + (& $encode ($Report.RequestedContext | ConvertTo-Json -Depth 6)) + '</pre><p>Corpus SHA256: <code>' + (& $encode $Report.Corpus.Sha256) + '</code></p><table><tr><th>Rule</th><th>State</th><th>Reasons and recorded evidence scope</th></tr>')
+        foreach ($row in $Report.Results) {
+            [void]$html.Append('<tr><td>' + (& $encode ($row.Title + ' [' + $row.Id + ']')) + '</td><td>' + (& $encode $row.State) + '</td><td>' + (& $encode ((@($row.Reasons) + @($row.ScopeExclusion)) -join '; ')))
+            if ($row.State -eq 'Ready') {
+                [void]$html.Append('<p>Evidence as of UTC: <code>' + (& $encode $row.EvidenceAsOfUtc) + '</code></p><p>Recorded context (not the current host):</p><pre>' + (& $encode ($row.EvidenceContext | ConvertTo-Json -Depth 6)) + '</pre>')
+            }
+            [void]$html.Append('</td></tr>')
+        }
         [void]$html.Append('</table></html>')
         $html.ToString() | Set-Content -LiteralPath $HtmlPath -Encoding UTF8 -ErrorAction Stop
     }

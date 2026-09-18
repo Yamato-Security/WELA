@@ -87,6 +87,16 @@ try {
     Reset-Evidence;$r=Report -Evidence
     Assert ($r.Summary.Ready -eq 1 -and $r.Results[0].State -eq 'Ready') ('Coherent complete synthetic evidence demonstrates the importer gates: '+($r.Results[0].Reasons -join '; '))
     Assert ($r.Results[0].EvidenceContext.computer -eq 'lab.example.test' -and $r.AssessmentBasis -like '*not a current-host*') 'Imported Ready states retain their recorded host/time and explicit limitations.'
+    $evidenceHtml=Join-Path $root 'evidence.html'
+    Export-WelaRuleEligibility -Report $r -HtmlPath $evidenceHtml
+    $exported=[IO.File]::ReadAllText($evidenceHtml)
+    foreach ($required in @('Requested context','lab.example.test','Client','26100','fixture-1','domainJoined','installedRoles','fixture-backend','backendVersion','2026-09-19T10:04:00Z')) {
+        Assert ($exported.Contains($required)) "Shared HTML must retain evidence scope: $required"
+    }
+    $r.Results[0].EvidenceContext.computer='<script>alert("fixture")</script>'
+    Export-WelaRuleEligibility -Report $r -HtmlPath $evidenceHtml
+    $exported=[IO.File]::ReadAllText($evidenceHtml)
+    Assert (-not $exported.Contains('<script>') -and $exported.Contains('&lt;script&gt;')) 'Evidence context is HTML-encoded rather than executable markup.'
     foreach ($name in @('sourceRule','normalizedRule','review','beforeState','afterState','eventXml','ingestion','query','queryResult')) {
         Reset-Evidence;$script:record.artifacts.Remove($name);Assert-NotReady "Missing $name prevents Ready."
     }
