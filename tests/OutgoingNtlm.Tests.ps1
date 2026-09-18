@@ -29,10 +29,15 @@ function Reset-Policy($Value) {
     $script:ignoreWrite = $false
     $script:response = 'Y'
     $script:rsop = @()
+    $script:onPrompt = $null
+    $script:onRead = $null
+    $script:reads = 0
 }
 function Test-Path { param($LiteralPath, $ErrorAction) return $script:keyExists }
 function Get-ItemProperty {
     param($LiteralPath, $ErrorAction)
+    $script:reads++
+    if ($script:onRead) { & $script:onRead }
     if ($script:readFails) { throw 'Access denied' }
     if ($null -eq $script:value) { return [pscustomobject]@{} }
     return [pscustomobject]@{ RestrictSendingNTLMTraffic = $script:value }
@@ -45,7 +50,7 @@ function Set-ItemProperty {
     if (-not $script:ignoreWrite) { $script:value = $Value }
 }
 function Get-CimInstance { param($Namespace, $ClassName, $ErrorAction) if ($ClassName -eq 'RSOP_RegistryPolicySetting') { return $script:rsop } }
-function Read-Host { param($Prompt) $script:prompts++; return $script:response }
+function Read-Host { param($Prompt) $script:prompts++; if ($script:onPrompt) { & $script:onPrompt }; return $script:response }
 
 $script:assertions = 0
 foreach ($initial in @($null, 0, 1)) {
@@ -88,6 +93,34 @@ Assert-Equal $script:writes 0 'Declining preserves deny'
 $script:response = ''
 Set-WelaOutgoingNtlmPolicy -Mode Audit
 Assert-Equal $script:value 1 'Confirmed explicit override succeeds'
+# A user confirmation must not authorize replacing enforcement that appeared during the prompt.
+foreach ($changed in @(2, 42)) {
+    Reset-Policy 0
+    $script:changedDuringPrompt = $changed
+    $script:onPrompt = { $script:value = $script:changedDuringPrompt }
+    Set-WelaOutgoingNtlmPolicy
+    Assert-Equal $script:prompts 1 'State changes while the user is confirming'
+    Assert-Equal $script:value $changed 'Default mode preserves newly applied deny or unknown policy'
+    Assert-Equal $script:writes 0 'A stale initial read never authorizes replacing new enforcement'
+}
+Reset-Policy 0
+$script:onPrompt = { $script:readFails = $true }
+Assert-Throws { Set-WelaOutgoingNtlmPolicy } 'State becoming unreadable during confirmation aborts'
+Assert-Equal $script:writes 0 'Unreadable refreshed state is not overwritten'
+Reset-Policy 0
+$script:onPrompt = { $script:value = 2 }
+Set-WelaOutgoingNtlmPolicy -Mode Audit
+Assert-Equal $script:value 1 'Explicit Audit still authorizes replacing deny introduced during confirmation'
+Assert-Equal $script:writes 1 'Explicit override writes once after a fresh readable state'
+Reset-Policy 0
+$script:onPrompt = { $script:value = 1 }
+Set-WelaOutgoingNtlmPolicy
+Assert-Equal $script:writes 0 'A concurrently applied audit setting is not redundantly rewritten'
+Reset-Policy 0
+$script:onRead = { if ($script:reads -eq 2) { $script:value = 2 } }
+Set-WelaOutgoingNtlmPolicy -Auto
+Assert-Equal $script:value 2 'Auto also preserves deny introduced after the initial read'
+Assert-Equal $script:writes 0 'Auto rechecks immediately before writing'
 Reset-Policy 0
 $script:writeFails = $true
 Assert-Throws { Set-WelaOutgoingNtlmPolicy -Auto } 'Write failure propagates'
