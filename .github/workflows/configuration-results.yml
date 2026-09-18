@@ -23,3 +23,9 @@ jobs:
       - name: Read-only Windows smoke in PowerShell 7
         shell: pwsh
         run: ./tests/Test-ConfigurationReadOnlyWindows.ps1
+      - name: NTLM integration in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/IntegrationNtlmConfiguration.Tests.ps1
+      - name: NTLM integration in PowerShell 7
+        shell: pwsh
+        run: ./tests/IntegrationNtlmConfiguration.Tests.ps1

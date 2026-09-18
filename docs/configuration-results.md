@@ -100,3 +100,16 @@ read-back, idempotence, final drift, dry runs, journal failure, locale-independe
 and a child `cmd.exe` diagnostic/exit test. CI runs both scripts in Windows PowerShell
 5.1 and PowerShell 7. Mutating behavior still requires isolated Windows/CA lab
 validation; mock and read-only tests do not establish end-to-end event production.
+
+## NTLM policy integration
+
+Outgoing and domain NTLM decisions use the same configuration context. `-DryRun`
+prevents both writes, and actual changes are journaled with their original registry
+types before execution. Applied values participate in the final drift check.
+`PreserveOrAudit` preserves an existing outgoing deny (`2`) and unknown numeric
+values, recording the reason as `Skipped`; explicit `Audit` and `Deny` remain
+available through `-OutgoingNtlmMode`. Non-DC domain auditing is `Skipped`.
+Unknown domain role, unreadable policy and failed writes produce `Failed` outcomes
+and a nonzero overall result while allowing other controls to be assessed.
+`tests/IntegrationNtlmConfiguration.Tests.ps1` exercises this composed behavior
+using mocked registry/CIM calls and temporary journals only.
