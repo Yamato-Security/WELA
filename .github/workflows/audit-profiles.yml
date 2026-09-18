@@ -17,9 +17,21 @@ jobs:
       - name: Test shared profiles in PowerShell 7
         shell: pwsh
         run: ./tests/audit-profiles.Tests.ps1
+      - name: Test profile audit output in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AuditProfileOutput.Tests.ps1
+      - name: Test profile audit output in PowerShell 7
+        shell: pwsh
+        run: ./tests/AuditProfileOutput.Tests.ps1
       - name: Read all effective policies using native API in Windows PowerShell 5.1
         shell: powershell
         run: ./tests/audit-profiles.Windows.Tests.ps1
       - name: Read all effective policies using native API in PowerShell 7
         shell: pwsh
         run: ./tests/audit-profiles.Windows.Tests.ps1
+      - name: Test native writer failure handling in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AuditProfileNativeWriter.Tests.ps1
+      - name: Test native writer failure handling in PowerShell 7
+        shell: pwsh
+        run: ./tests/AuditProfileNativeWriter.Tests.ps1

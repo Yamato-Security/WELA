@@ -370,10 +370,10 @@ function Set-WelaNtlmConfigurationControl {
             $skipReason = $state.Description
         } elseif (-not $state.Readable) {
             throw "$Scope NTLM current state could not be read: $($state.Description)"
-        } elseif ($Scope -eq 'Outgoing' -and $Mode -eq 'PreserveOrAudit' -and $state.Value -eq 2) {
+        } elseif ($Scope -eq 'Outgoing' -and $Mode -eq 'PreserveOrAudit' -and $state.Type -eq 'DWord' -and $state.Value -eq 2) {
             $skipReason = 'Preserved existing Deny all enforcement (2); use -OutgoingNtlmMode Audit to explicitly replace it.'
-        } elseif ($Scope -eq 'Outgoing' -and $Mode -eq 'PreserveOrAudit' -and $null -ne $state.Value -and $state.Value -notin @(0, 1, 2)) {
-            $skipReason = "Preserved unknown outgoing NTLM value ($($state.Value)); select an explicit mode after policy review."
+        } elseif ($Scope -eq 'Outgoing' -and $Mode -eq 'PreserveOrAudit' -and $null -ne $state.Type -and ($state.Type -ne 'DWord' -or $state.Value -notin @(0, 1, 2))) {
+            $skipReason = "Preserved unknown outgoing NTLM value/type ($($state.Value)/$($state.Type)); select an explicit mode after policy review."
         }
         if (-not $skipReason) {
             if ($Scope -eq 'Outgoing' -and $Mode -eq 'Deny') {

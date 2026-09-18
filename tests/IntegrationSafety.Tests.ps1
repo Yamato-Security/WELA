@@ -58,7 +58,7 @@ function New-RaceContext([switch]$Prompt) {
 }
 function Get-WelaOutgoingNtlmState {
     # The first display is deliberately stale; the shared runner must trust its own fresh read.
-    [pscustomobject]@{ Readable = $true; Value = 0; Description = 'Allow all (initial read)'; PolicySource = 'mock' }
+    [pscustomobject]@{ Readable = $true; Value = 0; Type = 'DWord'; Description = 'Allow all (initial read)'; PolicySource = 'mock' }
 }
 function Get-WelaRegistryState {
     param($Path, $Name)

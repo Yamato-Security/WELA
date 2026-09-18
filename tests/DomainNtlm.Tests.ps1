@@ -18,8 +18,9 @@ function Assert-Throws([scriptblock]$Action, [string]$Message) {
     try { & $Action } catch { $threw = $true }
     Assert-Equal $threw $true $Message
 }
-function Reset-Policy($Value, $ProductType = 2) {
+function Reset-Policy($Value, $ProductType = 2, [string]$Type = 'DWord') {
     $script:value = $Value
+    $script:type = $Type
     $script:productType = $ProductType
     $script:writes = 0
     $script:prompts = 0
@@ -27,8 +28,10 @@ function Reset-Policy($Value, $ProductType = 2) {
     $script:keyExists = $true
     $script:roleFails = $false
     $script:readFails = $false
+    $script:typeReadFails = $false
     $script:writeFails = $false
     $script:ignoreWrite = $false
+    $script:ignoreTypeWrite = $false
     $script:response = 'Y'
 }
 function Get-CimInstance {
@@ -44,13 +47,26 @@ function Get-ItemProperty {
     if ($null -eq $script:value) { return [pscustomobject]@{} }
     return [pscustomobject]@{ AuditNTLMInDomain = $script:value }
 }
+function Get-Item {
+    param($LiteralPath, $ErrorAction)
+    $key = [pscustomobject]@{}
+    $key | Add-Member ScriptMethod GetValueKind {
+        param($Name)
+        if ($script:typeReadFails) { throw 'Value kind unavailable' }
+        return [Microsoft.Win32.RegistryValueKind]$script:type
+    }
+    return $key
+}
 function New-Item { param($Path, [switch]$Force, $ErrorAction) $script:keyExists = $true }
 function Set-ItemProperty {
     param($LiteralPath, $Name, $Value, $Type, $ErrorAction)
     if ($script:writeFails) { throw 'Access denied' }
     if ($Name -ne 'AuditNTLMInDomain') { throw "Unexpected write: $Name" }
     $script:writes++
-    if (-not $script:ignoreWrite) { $script:value = $Value }
+    if (-not $script:ignoreWrite) {
+        $script:value = $Value
+        if (-not $script:ignoreTypeWrite) { $script:type = $Type }
+    }
 }
 function Read-Host { param($Prompt) $script:prompts++; return $script:response }
 
@@ -119,4 +135,23 @@ Assert-Throws { Set-WelaDomainNtlmAudit -Auto } 'Write failure propagates'
 Reset-Policy 2
 $script:ignoreWrite = $true
 Assert-Throws { Set-WelaDomainNtlmAudit -Auto } 'Read-back mismatch propagates'
+foreach ($kind in @('String', 'QWord')) {
+    Reset-Policy '7' 2 $kind
+    $state = Get-WelaDomainNtlmState
+    Assert-Equal $state.Type $kind 'Domain state retains registry kind'
+    Assert-Equal ($state.Description -like 'Unknown registry type*expected DWord*') $true 'A non-DWORD 7 is not reported as Enable all'
+    Set-WelaDomainNtlmAudit -Auto
+    Assert-Equal $script:writes 1 'A numerically matching value with the wrong type is repaired'
+    Assert-Equal $script:type 'DWord' 'Domain repair writes DWORD'
+    Assert-Equal ((Get-WelaDomainNtlmState).Description) 'Enable all (7)' 'Only the repaired DWORD is reported as Enable all'
+}
+Reset-Policy '7' 2 'String'
+$script:ignoreTypeWrite = $true
+Assert-Throws { Set-WelaDomainNtlmAudit -Auto } 'Domain read-back rejects the right value with the wrong type'
+Assert-Equal $script:writes 1 'Domain read-back type failure occurs after an attempted repair'
+Reset-Policy 7
+$script:typeReadFails = $true
+Assert-Equal ((Get-WelaDomainNtlmState).Readable) $false 'A registry kind read failure is not a readable domain state'
+Assert-Throws { Set-WelaDomainNtlmAudit -Auto } 'Domain configuration fails closed when registry kind cannot be read'
+Assert-Equal $script:writes 0 'Unknown domain registry kind is never overwritten'
 Write-Host "PASS: $script:assertions domain NTLM assertions (mocked; no host changes)."

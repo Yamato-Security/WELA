@@ -27,6 +27,8 @@ function New-TestContext([switch]$DryRun) {
 }
 function Reset-Mocks($Outgoing = 0, $Domain = 2, $ProductType = 2) {
     $script:registry = @{ RestrictSendingNTLMTraffic = $Outgoing; AuditNTLMInDomain = $Domain }
+    $script:registryTypes = @{ RestrictSendingNTLMTraffic = 'DWord'; AuditNTLMInDomain = 'DWord' }
+    $script:typeReadFails = $false; $script:ignoreTypeWrite = $false
     $script:productType = $ProductType
     $script:writes = 0; $script:readFails = $false; $script:writeFails = ''
     $script:roleFails = $false
@@ -49,10 +51,20 @@ function Get-ItemProperty {
     if ($script:readFails) { throw 'Mock registry read failure' }
     return [pscustomobject]$script:registry
 }
+function Get-Item {
+    param($LiteralPath, $ErrorAction)
+    $key = [pscustomobject]@{}
+    $key | Add-Member ScriptMethod GetValueKind {
+        param($Name)
+        if ($script:typeReadFails) { throw 'Mock registry kind read failure' }
+        return [Microsoft.Win32.RegistryValueKind]$script:registryTypes[$Name]
+    }
+    return $key
+}
 function Get-WelaRegistryState {
     param($Path, $Name)
     if ($script:readFails) { throw 'Mock registry read failure' }
-    [pscustomobject]@{ KeyExists = $true; ValueExists = ($null -ne $script:registry[$Name]); Value = $script:registry[$Name]; Type = 'DWord' }
+    [pscustomobject]@{ KeyExists = $true; ValueExists = ($null -ne $script:registry[$Name]); Value = $script:registry[$Name]; Type = $script:registryTypes[$Name] }
 }
 function Set-ItemProperty {
     param($LiteralPath, $Name, $Value, $Type, $ErrorAction)
@@ -64,6 +76,7 @@ function Set-ItemProperty {
     if ($script:writeFails -eq $Name) { throw 'Mock NTLM write failure' }
     $script:writes++
     $script:registry[$Name] = $Value
+    if (-not $script:ignoreTypeWrite) { $script:registryTypes[$Name] = $Type }
 }
 try {
     Reset-Mocks
@@ -145,6 +158,47 @@ try {
     Set-WelaOutgoingNtlmPolicy -Context $context -WhatIf
     Set-WelaDomainNtlmAudit -Context $context -WhatIf
     Assert ($script:writes -eq 0) 'Context adapters also preserve standalone WhatIf behavior'
+
+    foreach ($value in @('0', '1', '2')) {
+        Reset-Mocks $value
+        $script:registryTypes.RestrictSendingNTLMTraffic = 'String'
+        $context = New-TestContext
+        Set-WelaOutgoingNtlmPolicy -Context $context
+        $row = $context.Results[0]
+        Assert ($script:writes -eq 0 -and $row.Status -eq 'Skipped') 'Integrated default preserves numeric strings'
+        Assert ($row.Diagnostic -match 'unknown.*value/type' -and $row.Before.Type -eq 'String') 'Integrated early decision records unknown type without mislabeling string 2 as enforcement'
+    }
+    foreach ($mode in @('Audit', 'Deny')) {
+        $desired = if ($mode -eq 'Audit') { 1 } else { 2 }
+        Reset-Mocks ([string]$desired) '7'
+        $script:registryTypes.RestrictSendingNTLMTraffic = 'String'
+        $script:registryTypes.AuditNTLMInDomain = 'String'
+        $context = New-TestContext
+        Set-WelaOutgoingNtlmPolicy -Context $context -Mode $mode
+        Set-WelaDomainNtlmAudit -Context $context
+        $result = Complete-WelaConfiguration $context
+        Assert ($result.ExitCode -eq 0 -and $script:writes -eq 2) 'Explicit outgoing and domain configuration repair matching numeric strings'
+        Assert ($script:registryTypes.RestrictSendingNTLMTraffic -eq 'DWord' -and $script:registryTypes.AuditNTLMInDomain -eq 'DWord') 'Both integrated repairs verify DWORD types'
+        $journal = @(Get-Content -LiteralPath (Join-Path $context.BackupPath 'before.jsonl') | ConvertFrom-Json)
+        Assert ($journal.Count -eq 2 -and $journal[0].Before.Type -eq 'String' -and $journal[1].Before.Type -eq 'String') 'Type repairs journal original string types for recovery'
+    }
+    Reset-Mocks '1' '7'
+    $script:registryTypes.RestrictSendingNTLMTraffic = 'String'
+    $script:registryTypes.AuditNTLMInDomain = 'String'
+    $script:ignoreTypeWrite = $true
+    $context = New-TestContext
+    Set-WelaOutgoingNtlmPolicy -Context $context -Mode Audit
+    Set-WelaDomainNtlmAudit -Context $context
+    $result = Complete-WelaConfiguration $context
+    Assert ($script:writes -eq 2 -and $result.Failed -eq 2 -and $result.ExitCode -eq 1) 'Integrated read-back rejects numeric matches with unchanged invalid types'
+
+    Reset-Mocks 1 7
+    $script:typeReadFails = $true
+    $context = New-TestContext
+    Set-WelaOutgoingNtlmPolicy -Context $context -Mode Audit
+    Set-WelaDomainNtlmAudit -Context $context
+    $result = Complete-WelaConfiguration $context
+    Assert ($script:writes -eq 0 -and $result.Failed -eq 2 -and $result.ExitCode -eq 1) 'Unreadable registry kinds fail closed before integrated writes'
     Write-Host "PASS: $script:assertions NTLM integration assertions (mocked; no Windows changes)."
 } finally {
     foreach ($context in $script:contexts) {

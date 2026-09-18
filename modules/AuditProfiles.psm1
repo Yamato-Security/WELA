@@ -203,8 +203,16 @@ function Set-WelaEffectiveAuditPolicy {
     )
     if ($Mode -eq 'minimum' -and $Mask -eq 0) { return }
     $arguments = @(Get-WelaAuditSetArguments -Guid $Guid -Mask $Mask -Mode $Mode)
-    $output = & auditpol.exe @arguments 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "auditpol /set failed ($LASTEXITCODE): $($output -join ' ')" }
+    $command = Get-Command -Name 'auditpol.exe' -CommandType Application -ErrorAction Stop
+    # Native stderr alone is not failure, including under Windows PowerShell 5.1.
+    $ErrorActionPreference = 'Continue'
+    $PSNativeCommandUseErrorActionPreference = $false
+    $global:LASTEXITCODE = $null
+    $output = @(& $command.Source @arguments 2>&1)
+    $exitCode = $global:LASTEXITCODE # Snapshot before formatting diagnostics or running another command.
+    if ($null -eq $exitCode -or $exitCode -ne 0) {
+        throw "auditpol /set failed ($exitCode): $($output -join ' ')"
+    }
 }
 
 function Get-WelaHostContext {

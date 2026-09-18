@@ -41,6 +41,7 @@ class WELA {
     [string] $Category
     [string] $SubCategory
     [string] $CurrentSetting = ""
+    [string] $AuditPolicyGuid = ""
     [array] $Rules
     [hashtable] $RulesCount
     [string] $DefaultSetting = ""
@@ -456,7 +457,9 @@ function BuildAuditResult {
     if ($sharedPlan) {
         foreach ($policy in $sharedPlan.policies) {
             $rules = ApplyRules -rules $all_rules -guid $policy.guid
-            $current = if ($auditpol.ContainsKey($policy.guid)) { $auditpol[$policy.guid] } else { 'Unknown' }
+            $current = if ($policy.mode -eq 'not-applicable') { 'Not applicable' }
+                       elseif ($auditpol.ContainsKey($policy.guid)) { $auditpol[$policy.guid] }
+                       else { 'Unknown' }
             if ($policy.mode -ne 'not-applicable' -and $enabledguid -contains $policy.guid) {
                 $rules | ForEach-Object { $_.applicable = $true }
             }
@@ -468,8 +471,10 @@ function BuildAuditResult {
             $defaultSetting = if ($legacy) { $legacy.defaultSetting } else { '' }
             $volume = if ($legacy) { $legacy.volume } else { '' }
             $note = (@($policy.prerequisites, $policy.note) | Where-Object { $_ }) -join ' '
-            $auditResult += [WELA]::New("Security Advanced ($($policy.category))", $policy.id, $current, [array]$rules,
+            $entry = [WELA]::New("Security Advanced ($($policy.category))", $policy.id, $current, [array]$rules,
                 $defaultSetting, $policy.recommendation, $volume, $note)
+            $entry.AuditPolicyGuid = $policy.guid
+            $auditResult += $entry
         }
     }
 
@@ -540,10 +545,14 @@ function AuditLogSetting {
 
     # ベースラインが扱っていないサブカテゴリでも、そのサブカテゴリが有効ならルールは動く。
     # ルール自身が持つ subcategory_guids を見て救済する。
+    # A live audit mask cannot make a role-inapplicable policy produce its events.
+    $notApplicableGuids = @($auditResult | Where-Object {
+        $_.CurrentSetting -eq 'Not applicable' -and $_.AuditPolicyGuid
+    } | Select-Object -ExpandProperty AuditPolicyGuid)
     $all_rules | ForEach-Object {
         if (-not $_.applicable) {
             foreach ($guid in $_.subcategory_guids) {
-                if ($enabledguid -contains $guid) {
+                if ($enabledguid -contains $guid -and $notApplicableGuids -notcontains $guid) {
                     $_.applicable = $true
                     break
                 }
@@ -581,18 +590,23 @@ function AuditLogSetting {
     if ($outType -eq "std") {
         $auditResult | Group-Object -Property Category | ForEach-Object {
             $notEnabled = @("No Auditing", "Disabled", "Unknown")
-            $enabledCount = ($_.Group |  Where-Object { $notEnabled -notcontains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
-            $disabledCount = ($_.Group |  Where-Object { $notEnabled -contains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
+            $summaryRows = @($_.Group | Where-Object { $_.CurrentSetting -ne 'Not applicable' })
+            $enabledCount = ($summaryRows | Where-Object { $notEnabled -notcontains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
+            $disabledCount = ($summaryRows | Where-Object { $notEnabled -contains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
             $out = ""
             $color = ""
-            if (@($_.Group | Where-Object { $_.Rules.Count -gt 0 }).Count -eq 0) {
+            if ($summaryRows.Count -eq 0) {
+                $out = 'Not applicable'
+                $color = 'DarkYellow'
+            }
+            elseif (@($summaryRows | Where-Object { $_.Rules.Count -gt 0 }).Count -eq 0) {
                 # Configuration-only rows have no rule coverage to aggregate.
                 # Preserve their observed state, including applicability and errors.
-                $out = ($_.Group | Select-Object -ExpandProperty CurrentSetting -Unique) -join '; '
+                $out = ($summaryRows | Select-Object -ExpandProperty CurrentSetting -Unique) -join '; '
                 if (-not $out) { $out = 'Unknown' }
                 $color = 'DarkYellow'
             }
-            elseif (@($_.Group | Where-Object { $_.CurrentSetting -ne "Unknown" }).Count -eq 0) {
+            elseif (@($summaryRows | Where-Object { $_.CurrentSetting -ne "Unknown" }).Count -eq 0) {
                 # 設定を確認できないカテゴリ。無効と断定はできない
                 $out = "Unknown"
                 $color = "DarkYellow"
@@ -611,7 +625,7 @@ function AuditLogSetting {
                 $out = "Partially Enabled"
                 $color = "DarkYellow"
             }
-            $enabledPercentage = "0.00%"
+            $enabledPercentage = ""
             if ($enabledCount + $disabledCount -ne 0) {
                 $enabledPercentage = "({0:N2}%)" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
@@ -1097,6 +1111,7 @@ function Get-WelaDomainNtlmState {
         Applicable = $false
         Readable = $false
         Value = $null
+        Type = $null
         Description = 'Unknown (computer role could not be determined)'
     }
     try {
@@ -1119,10 +1134,15 @@ function Get-WelaDomainNtlmState {
             $property = $properties.PSObject.Properties['AuditNTLMInDomain']
             if ($null -ne $property) {
                 $state.Value = $property.Value
-                $state.Description = switch ($state.Value) {
-                    0 { 'Disabled (0)' }
-                    7 { 'Enable all (7)' }
-                    default { "Value $($state.Value) (not interpreted as Enable all)" }
+                $state.Type = (Get-Item -LiteralPath $path -ErrorAction Stop).GetValueKind('AuditNTLMInDomain').ToString()
+                if ($state.Type -ne 'DWord') {
+                    $state.Description = "Unknown registry type ($($state.Type)): value $($state.Value) (expected DWord)"
+                } else {
+                    $state.Description = switch ($state.Value) {
+                        0 { 'Disabled (0)' }
+                        7 { 'Enable all (7)' }
+                        default { "Value $($state.Value) (not interpreted as Enable all)" }
+                    }
                 }
             }
         }
@@ -1149,7 +1169,7 @@ function Set-WelaDomainNtlmAudit {
     if (-not $state.Readable) {
         throw 'Domain NTLM policy was not changed because its current state could not be read.'
     }
-    if ($state.Value -eq 7) {
+    if ($state.Type -eq 'DWord' -and $state.Value -eq 7) {
         Write-Host '[SKIPPED] Domain NTLM auditing is already Enable all (7).' -ForegroundColor Yellow
         return
     }
@@ -1168,7 +1188,7 @@ function Set-WelaDomainNtlmAudit {
         }
         Set-ItemProperty -LiteralPath $path -Name AuditNTLMInDomain -Value 7 -Type DWord -ErrorAction Stop
         $after = Get-WelaDomainNtlmState
-        if (-not $after.Applicable -or -not $after.Readable -or $after.Value -ne 7) {
+        if (-not $after.Applicable -or -not $after.Readable -or $after.Type -ne 'DWord' -or $after.Value -ne 7) {
             throw "Read-back did not confirm Enable all (7). Observed: $($after.Description)"
         }
         Write-Host '[OK] Domain NTLM auditing: Enable all (7), registry value verified.' -ForegroundColor Green
@@ -1272,6 +1292,7 @@ function Get-WelaOutgoingNtlmState {
     $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
     $name = 'RestrictSendingNTLMTraffic'
     $value = $null
+    $type = $null
     $readable = $true
     $description = 'Not configured (Allow all)'
     try {
@@ -1281,11 +1302,16 @@ function Get-WelaOutgoingNtlmState {
             $property = $properties.PSObject.Properties[$name]
             if ($null -ne $property) {
                 $value = $property.Value
-                $description = switch ($value) {
-                    0 { 'Allow all (0)' }
-                    1 { 'Audit all (1)' }
-                    2 { 'Deny all (2): authentication restriction, with block events' }
-                    default { "Unknown registry value ($value)" }
+                $type = (Get-Item -LiteralPath $path -ErrorAction Stop).GetValueKind($name).ToString()
+                if ($type -ne 'DWord') {
+                    $description = "Unknown registry type ($type): value $value (expected DWord)"
+                } else {
+                    $description = switch ($value) {
+                        0 { 'Allow all (0)' }
+                        1 { 'Audit all (1)' }
+                        2 { 'Deny all (2): authentication restriction, with block events' }
+                        default { "Unknown registry value ($value)" }
+                    }
                 }
             }
         }
@@ -1295,6 +1321,7 @@ function Get-WelaOutgoingNtlmState {
     }
     [pscustomobject]@{
         Value = $value
+        Type = $type
         Readable = $readable
         Description = $description
         PolicySource = Get-WelaOutgoingNtlmPolicySource
@@ -1321,17 +1348,17 @@ function Set-WelaOutgoingNtlmPolicy {
     if (-not $state.Readable) {
         throw 'Outgoing NTLM was not changed because its current state could not be read.'
     }
-    if ($Mode -eq 'PreserveOrAudit' -and $state.Value -eq 2) {
+    if ($Mode -eq 'PreserveOrAudit' -and $state.Type -eq 'DWord' -and $state.Value -eq 2) {
         Write-Host '[PRESERVED] Existing Deny all enforcement. Use -OutgoingNtlmMode Audit to explicitly replace it.' -ForegroundColor Yellow
         return
     }
-    if ($Mode -eq 'PreserveOrAudit' -and $null -ne $state.Value -and $state.Value -notin @(0, 1, 2)) {
-        Write-Warning 'Unknown outgoing NTLM value was preserved. Select an explicit -OutgoingNtlmMode after reviewing policy.'
+    if ($Mode -eq 'PreserveOrAudit' -and $null -ne $state.Type -and ($state.Type -ne 'DWord' -or $state.Value -notin @(0, 1, 2))) {
+        Write-Warning 'Unknown outgoing NTLM value/type was preserved. Select an explicit -OutgoingNtlmMode after reviewing policy.'
         return
     }
     $desired = if ($Mode -eq 'Deny') { 2 } else { 1 }
     $description = if ($desired -eq 2) { 'Deny all (2): restrict outgoing NTLM authentication' } else { 'Audit all (1): log outgoing NTLM without denying it' }
-    if ($state.Value -eq $desired) {
+    if ($state.Type -eq 'DWord' -and $state.Value -eq $desired) {
         Write-Host "[SKIPPED] Outgoing NTLM is already $description." -ForegroundColor Yellow
         return
     }
@@ -1353,15 +1380,15 @@ function Set-WelaOutgoingNtlmPolicy {
         if (-not $freshState.Readable) {
             throw 'Outgoing NTLM was not changed because its current state became unreadable.'
         }
-        if ($Mode -eq 'PreserveOrAudit' -and $freshState.Value -eq 2) {
+        if ($Mode -eq 'PreserveOrAudit' -and $freshState.Type -eq 'DWord' -and $freshState.Value -eq 2) {
             Write-Host '[PRESERVED] Deny all enforcement appeared before the write. Select explicit Audit mode to replace it.' -ForegroundColor Yellow
             return
         }
-        if ($Mode -eq 'PreserveOrAudit' -and $null -ne $freshState.Value -and $freshState.Value -notin @(0, 1, 2)) {
-            Write-Warning "Outgoing NTLM changed to an unknown value ($($freshState.Value)); it was preserved."
+        if ($Mode -eq 'PreserveOrAudit' -and $null -ne $freshState.Type -and ($freshState.Type -ne 'DWord' -or $freshState.Value -notin @(0, 1, 2))) {
+            Write-Warning "Outgoing NTLM changed to an unknown value/type ($($freshState.Value)/$($freshState.Type)); it was preserved."
             return
         }
-        if ($freshState.Value -eq $desired) {
+        if ($freshState.Type -eq 'DWord' -and $freshState.Value -eq $desired) {
             Write-Host "[SKIPPED] Outgoing NTLM is now already $description." -ForegroundColor Yellow
             return
         }
@@ -1370,7 +1397,7 @@ function Set-WelaOutgoingNtlmPolicy {
         }
         Set-ItemProperty -LiteralPath $path -Name $name -Value $desired -Type DWord -ErrorAction Stop
         $after = Get-WelaOutgoingNtlmState
-        if (-not $after.Readable -or $after.Value -ne $desired) {
+        if (-not $after.Readable -or $after.Type -ne 'DWord' -or $after.Value -ne $desired) {
             throw "Read-back did not match requested value $desired. Observed: $($after.Description)"
         }
         Write-Host "[OK] Outgoing NTLM: $($after.Description)" -ForegroundColor Green
