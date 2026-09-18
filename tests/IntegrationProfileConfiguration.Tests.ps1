@@ -33,6 +33,7 @@ function Assert-Throws([scriptblock]$Action, [string]$Pattern) {
 function Reset-Run([string]$Profile = 'cis-win11-v4-l1', [switch]$DryRun) {
     $script:state = $zero.Clone()
     $script:writes = @()
+    $script:precedenceValue = 0
     $script:failGuid = ''
     $script:concurrentGuid = ''
     $script:Profile = $Profile
@@ -46,6 +47,18 @@ function Reset-Run([string]$Profile = 'cis-win11-v4-l1', [switch]$DryRun) {
     $script:cleanup.Add($script:BackupPath)
     $script:cleanup.Add($script:ResultsPath)
 }
+function Get-WelaRegistryState {
+    param($Path, $Name)
+    if ($Name -ne 'SCENoApplyLegacyAuditPolicy') { throw 'Unexpected registry read' }
+    [pscustomobject]@{ KeyExists = $true; ValueExists = $true; Value = $script:precedenceValue; Type = 'DWord' }
+}
+function New-WelaRegistryKey { param($Path) }
+function Set-ItemProperty {
+    param($LiteralPath, $Name, $Value, $Type, $ErrorAction)
+    if ($Name -ne 'SCENoApplyLegacyAuditPolicy') { throw 'Unexpected registry write' }
+    $script:precedenceValue = $Value
+}
+function Get-CimInstance { param($Namespace, $ClassName, $ErrorAction) throw 'No RSoP fixture' }
 function TestWindows { return $true }
 function TestAdministrator { return $true }
 function Get-WelaHostContext { [pscustomobject]@{ Role = 'Client'; Build = $script:hostBuild } }
@@ -84,7 +97,7 @@ try {
     Invoke-WelaProfileCommand configure | Out-Null
     $report = Get-Content -LiteralPath $script:ResultsPath -Raw | ConvertFrom-Json
     Assert ($script:writes.Count -eq 0 -and $report.DryRun) 'configure -Profile -DryRun makes no audit writes'
-    Assert ($report.Scope -eq 'advanced-audit-policy-only' -and $report.ProfileScope -eq 'advanced-audit-policy-only') 'Profile-only results declare their narrower scope'
+    Assert ($report.Scope -eq 'advanced-audit-policy-and-precedence' -and $report.ProfileScope -eq 'advanced-audit-policy-only') 'Profile-only results declare their narrower scope'
     Assert (-not (Test-Path -LiteralPath $script:BackupPath)) 'Profile dry run creates no journal directory'
     Assert ($report.Results.Count -gt 0 -and @($report.Results | Where-Object Status -ne Skipped).Count -eq 0) 'Profile dry-run proposals remain explicit skipped results'
 

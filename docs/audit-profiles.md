@@ -2,7 +2,7 @@
 
 `audit-settings`, `plan`, and `configure` share `config/audit_profiles.json` for advanced Security audit policy. The ordinary `audit-settings -Baseline YamatoSecurity` and ordinary `configure` also use `wela-2.2.0`, eliminating a separate hard-coded configuration list. All 59 subcategories use canonical GUIDs, including categories missing from the older display catalog.
 
-**Profile scope is advanced audit policy only.** Selecting Microsoft, CIS or ASD does not configure their PowerShell settings, command-line capture, channel buffers, NTLM policy, firewall logs, SACLs, CA AuditFilter, forwarding or retention. This is not a claim of full baseline compliance or detection coverage. Sysmon and external sensors are outside this feature. Ordinary `configure` without `-Profile` continues the existing broader WELA setup, with its advanced audit portion supplied by the shared profile.
+**Profile definitions cover advanced audit policy.** Configuration also verifies and enables its `SCENoApplyLegacyAuditPolicy=1` DWORD prerequisite before applying subcategories. Selecting Microsoft, CIS or ASD does not configure their PowerShell settings, command-line capture, channel buffers, NTLM policy, firewall logs, SACLs, CA AuditFilter, forwarding or retention. This is not a claim of full baseline compliance or detection coverage. Sysmon and external sensors are outside this feature. Ordinary `configure` without `-Profile` continues the existing broader WELA setup, with its advanced audit portion supplied by the shared profile.
 
 ## Commands
 
@@ -16,7 +16,7 @@
 # On Windows, omit Role/Build to detect this host and read effective auditpol values.
 .\WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
 
-# Apply ONLY advanced audit policy. Interactive unless -Auto is supplied.
+# Apply advanced audit policy and its precedence prerequisite. Interactive unless -Auto is supplied.
 .\WELA.ps1 configure -Profile asd-native-2021-10 -Auto -PlanPath result.json
 
 # Select optional File System/Registry policy flags, without creating SACLs.
@@ -72,3 +72,13 @@ powershell -NoProfile -File tests/audit-profiles.Tests.ps1
 ```
 
 The tests cover source/schema validation, role/build gating, exact/minimum/optional/NC behavior, locale-independent native policy reads, unknown-state refusal, fresh-state merging, idempotence, failed commands and verification, and the ordinary Yamato audit display. CI runs these on Windows PowerShell 5.1 and PowerShell 7. Source review and mocked tests are not substitutes for checking effective policy and benign event XML on isolated Windows clients, member servers, DCs and CAs.
+
+## Advanced audit precedence
+
+Both configure paths journal and verify `HKLM\SYSTEM\CurrentControlSet\Control\Lsa\SCENoApplyLegacyAuditPolicy=1` (DWORD). Declining or failing this prerequisite skips dependent audit-policy writes. Every actual subcategory write rechecks precedence, and final verification detects later registry or effective-mask drift. Profiles selecting no audit controls do not change the prerequisite. `plan` and `audit-settings -Profile` include `AuditPrecedence` evidence; offline plans leave its live state Unknown. The result scope is `advanced-audit-policy-and-precedence`; profile-definition scope remains `advanced-audit-policy-only`.
+
+Matching last-applied RSoP GPO IDs are reported where readable. RSoP may be stale and does not identify the current writer. A reported 0 is flagged as conflicting with the desired value; unrecognized RSoP encodings remain unknown. Local success is a point-in-time observation, not proof of persistence through Group Policy or MDM refresh. WELA does not run `gpupdate` implicitly.
+
+See [Microsoft's precedence policy documentation](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/audit-force-audit-policy-subcategory-settings-to-override). This prevents legacy category policy from replacing subcategory settings; it does not supersede other advanced-audit policies.
+
+For recovery, review the journal and restore the exact prior registry value/type (or remove only the value if it was previously absent), then restore reviewed subcategory settings. Never delete the Lsa key. In an isolated joined Windows VM, create a conflicting legacy category GPO, record `gpresult /scope computer /h before.html`, and capture `auditpol /get /category:* /r`. Apply WELA, explicitly refresh with `gpupdate /target:computer /force`, then rerun `audit-settings -Profile <selected-profile> -PlanPath after.json` and the auditpol capture. Verify registry precedence, each effective mask and GPO provenance; retain the snapshots and benign event XML. This domain-refresh/event test remains pending; CI exercises injected failures/drift and read-only Windows observations.

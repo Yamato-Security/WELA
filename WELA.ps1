@@ -307,7 +307,7 @@ function Show-WelaAuditProfilePrerequisites {
 
 function Invoke-WelaProfileCommand {
     param([string]$Command)
-    if ($script:Baseline) { throw "Use -Profile or -Baseline, not both. Versioned profiles cover advanced audit policy only." }
+    if ($script:Baseline) { throw "Use -Profile or -Baseline, not both. Versioned profiles cover advanced audit policy and its precedence prerequisite." }
     if (-not $script:Profile) { throw "Specify -Profile. Use './WELA.ps1 profiles' to list versioned profiles." }
     $context = Get-WelaSelectedContext
     $current = @{}
@@ -319,8 +319,12 @@ function Invoke-WelaProfileCommand {
     }
     elseif ($Command -ne 'plan') { throw "Audit and configure require Windows. Offline planning requires explicit -Role and -Build." }
     $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional
+    $precedence = Get-WelaAuditPrecedenceState -Offline:($current.Count -eq 0)
+    $plan | Add-Member NoteProperty AuditPrecedence $precedence
     Write-Host "Profile: $($plan.profile); role: $($plan.role); build: $($plan.build)"
-    Write-Host "Scope: advanced audit policy only. Channels, command-line capture, PowerShell, NTLM, SACLs, CA AuditFilter and forwarding are separate."
+    Write-Host "Scope: advanced audit policy and its subcategory-precedence prerequisite. Channels, command-line capture, PowerShell, NTLM, SACLs, CA AuditFilter and forwarding are separate."
+    Write-Host "Audit precedence: $($precedence.State); required SCENoApplyLegacyAuditPolicy=1 (DWORD). $($precedence.Diagnostic)"
+    if ($precedence.PolicySource) { Write-Host $precedence.PolicySource.Description }
     Show-WelaAuditProfilePrerequisites -Plan $plan
     $result = $plan
     if ($Command -eq 'configure') {
@@ -328,7 +332,7 @@ function Invoke-WelaProfileCommand {
         Assert-WelaAuditProfileTarget -Plan $plan -Context $actual -Current $current
         $configurationContext = New-WelaConfigurationContext -Auto:$script:Auto -DryRun:$script:DryRun -BackupPath $script:BackupPath
         Set-WelaProfileAuditControls -Context $configurationContext -Plan $plan
-        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan -Scope advanced-audit-policy-only
+        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan -Scope advanced-audit-policy-and-precedence
         $result.Results | Format-Table Id, Before, Desired, After, Status -AutoSize
     } else {
         $plan.policies | Format-Table id, mode, currentMask, requiredMask, action -AutoSize
@@ -1755,7 +1759,7 @@ Usage:
   ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
   ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
   ./WELA.ps1 configure -Profile asd-native-2021-10 -PlanPath result.json -Auto
-  # -Profile changes advanced audit policy ONLY. Optional controls need -IncludeOptional.
+  # -Profile changes advanced audit policy plus its precedence prerequisite. Optional controls need -IncludeOptional.
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
   ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
@@ -1834,14 +1838,14 @@ switch ($Cmd.ToLower()) {
             Write-Host "Usage: ./WELA.ps1 configure [-Profile <id>] [-Auto] [-DryRun] [-BackupPath <new-directory>] [-ResultsPath <json-file>] [-OutgoingNtlmMode <PreserveOrAudit|Audit|Deny>]"
             Write-Host ""
             Write-Host "Options:"
-            Write-Host "  -Profile     Configure advanced audit policy only from a versioned profile; list IDs with profiles"
+            Write-Host "  -Profile     Configure advanced audit policy and precedence from a versioned profile; list IDs with profiles"
             Write-Host "  -Auto        Automatically configure without prompts"
             Write-Host "  -OutgoingNtlmMode  PreserveOrAudit (default): audit, preserving existing deny; Audit: explicitly replace deny; Deny: opt into enforcement"
             Write-Host "  -DryRun      Read live state and report proposed changes without writing Windows settings"
             Write-Host "  -BackupPath  New directory for the pre-change recovery journal (unique default beside WELA)"
             Write-Host "  -ResultsPath Save structured per-control outcomes as JSON"
             Write-Host ""
-            Write-Host "Without -Profile, configure applies the YamatoSecurity native logging settings. -Profile applies advanced audit policy only. -DryRun and recovery/results options work with both."
+            Write-Host "Without -Profile, configure applies the YamatoSecurity native logging settings. -Profile applies advanced audit policy and its precedence prerequisite. -DryRun and recovery/results options work with both."
             Write-Host ""
             return
         }

@@ -94,7 +94,7 @@ function Invoke-WelaConfigurationControl {
 
 function Complete-WelaConfiguration {
     param($Context, [string]$ResultsPath, $Plan,
-          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only")]
+          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence")]
           [string]$Scope = "native-windows-configuration")
     # A second read detects a value that was compliant earlier but changed during
     # this run. It does not establish whether GPO or another writer caused drift.
@@ -263,9 +263,9 @@ function Get-WelaAuditPolicyMask {
 
 function Set-WelaAuditPolicyControl {
     param($Context, $Policy, [ValidateRange(0, 3)][int]$Mask = 3,
-          [ValidateSet('exact', 'minimum')][string]$Mode = 'exact')
+          [ValidateSet('exact', 'minimum')][string]$Mode = 'exact', [switch]$RequirePrecedence)
     $guid = $Policy.GUID
-    $state = @{ Guid = $guid; Mask = $Mask; Mode = $Mode }
+    $state = @{ Guid = $guid; Mask = $Mask; Mode = $Mode; RequirePrecedence = [bool]$RequirePrecedence }
     $read = { param($state) Get-WelaAuditPolicyMask -Guid $state.Guid }
     $test = {
         param($value, $state)
@@ -274,6 +274,12 @@ function Set-WelaAuditPolicyControl {
     }
     $apply = {
         param($state)
+        if ($state.RequirePrecedence) {
+            $precedence = Get-WelaRegistryState -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name SCENoApplyLegacyAuditPolicy
+            if (-not $precedence.ValueExists -or $precedence.Type -ne 'DWord' -or $precedence.Value -ne 1) {
+                throw 'Audit precedence changed before the write; subcategory policy was not changed.'
+            }
+        }
         $arguments = @('/set', "/subcategory:{$($state.Guid)}")
         if ($state.Mode -eq 'minimum') {
             # Only enable required flags: never disable another writer's added flag.
@@ -293,10 +299,18 @@ function Set-WelaAuditPolicyControl {
 function Set-WelaProfileAuditControls {
     param($Context, $Plan)
     # The caller must complete Assert-WelaAuditProfileTarget before any mutations.
+    $selected = @($Plan.policies | Where-Object { $_.mode -in @('exact', 'minimum') -or ($_.mode -eq 'optional' -and $Plan.includeOptional) })
+    if ($selected.Count -eq 0) { return }
+    Set-WelaAuditPrecedenceControl -Context $Context
+    $precedence = $Context.Results[$Context.Results.Count - 1]
     foreach ($policy in $Plan.policies) {
         if ($policy.mode -notin @('exact', 'minimum') -and -not ($policy.mode -eq 'optional' -and $Plan.includeOptional)) { continue }
+        if ($precedence.Status -eq 'Failed' -or ($precedence.Status -eq 'Skipped' -and -not $Context.DryRun)) {
+            $Context.Results.Add([pscustomobject]@{ Id = "AuditPolicy/$($policy.id)"; Kind = 'AuditPolicy'; Target = @{ Guid = $policy.guid }; Desired = $policy.requiredMask; Before = $null; After = $null; Status = 'Skipped'; Diagnostic = 'Audit precedence was not verified; dependent policy was not changed.' })
+            continue
+        }
         $mode = if ($policy.mode -eq 'minimum') { 'minimum' } else { 'exact' }
-        Set-WelaAuditPolicyControl -Context $Context -Policy @{ GUID = $policy.guid; Name = $policy.id } -Mask $policy.requiredMask -Mode $mode
+        Set-WelaAuditPolicyControl -Context $Context -Policy @{ GUID = $policy.guid; Name = $policy.id } -Mask $policy.requiredMask -Mode $mode -RequirePrecedence
         $row = $Context.Results[$Context.Results.Count - 1]
         $row | Add-Member NoteProperty Profile $Plan.profile
         $row | Add-Member NoteProperty Version $Plan.version
@@ -309,6 +323,62 @@ function Set-WelaProfileAuditControls {
         $row | Add-Member NoteProperty SourceIds $policy.sourceIds
         $row | Add-Member NoteProperty Note $policy.note
     }
+}
+
+function Get-WelaAuditPrecedenceSource {
+    # RSoP records last-applied GPO data, not the current registry writer.
+    $matches = @()
+    foreach ($class in @('RSOP_RegistryPolicySetting', 'RSOP_SecuritySettingNumeric')) {
+        try {
+            $matches += @(Get-CimInstance -Namespace 'root\RSOP\Computer' -ClassName $class -ErrorAction Stop | Where-Object {
+                $keyProperty = $_.PSObject.Properties['keyName']
+                $valueProperty = $_.PSObject.Properties['valueName']
+                $key = if ($keyProperty) { [string]$keyProperty.Value -replace '^(MACHINE|HKEY_LOCAL_MACHINE|HKLM)\\', '' } else { '' }
+                ($key -eq 'SYSTEM\CurrentControlSet\Control\Lsa' -and $valueProperty -and $valueProperty.Value -eq 'SCENoApplyLegacyAuditPolicy') -or
+                    $key -eq 'SYSTEM\CurrentControlSet\Control\Lsa\SCENoApplyLegacyAuditPolicy'
+            })
+        } catch { }
+    }
+    $policy = $matches | Sort-Object { if ($_.PSObject.Properties['precedence']) { $_.precedence } else { [int]::MaxValue } } | Select-Object -First 1
+    $gpo = if ($policy -and $policy.PSObject.Properties['GPOID']) { $policy.GPOID } else { $null }
+    $value = if ($policy -and $policy.PSObject.Properties['value']) { $policy.value } else { $null }
+    $knownValue = ($value -is [int] -or $value -is [uint32] -or $value -is [long] -or $value -is [string]) -and ([string]$value -in @('0', '1'))
+    [pscustomobject]@{
+        GpoId = $gpo; ReportedValue = $value
+        ConflictsWithRequiredValue = if ($knownValue) { [string]$value -ne '1' } else { $null }
+        Description = if ($gpo) { "Last-applied RSoP GPO: $gpo (may be stale; current registry writer unknown)" } else { 'Unknown (no matching RSoP source; local, GPO or MDM ownership is not established)' }
+    }
+}
+
+function Get-WelaAuditPrecedenceState {
+    param([switch]$Offline)
+    $registry = $null; $status = 'Unknown'; $diagnostic = 'Offline plan; live precedence was not read.'
+    $source = $null
+    if (-not $Offline) {
+        $source = Get-WelaAuditPrecedenceSource
+        try {
+            $registry = Get-WelaRegistryState -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name SCENoApplyLegacyAuditPolicy
+            $status = if (-not $registry.ValueExists) { 'Not configured' }
+                      elseif ($registry.Type -ne 'DWord' -or $registry.Value -notin @(0, 1)) { 'Unknown' }
+                      elseif ($registry.Value -eq 1) { 'Enabled' } else { 'Disabled' }
+            $diagnostic = 'Observed registry state only; effective audit masks are read separately. GPO/MDM can change this value after verification.'
+        } catch { $diagnostic = $_.ToString() }
+    }
+    [pscustomobject]@{ Name = 'SCENoApplyLegacyAuditPolicy'; RequiredValue = 1; RequiredType = 'DWord'; State = $status; Registry = $registry; PolicySource = $source; Diagnostic = $diagnostic }
+}
+
+function Set-WelaAuditPrecedenceControl {
+    param($Context)
+    Set-WelaRegistryControl -Context $Context -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name SCENoApplyLegacyAuditPolicy -Value 1
+    $row = $Context.Results[$Context.Results.Count - 1]
+    $source = Get-WelaAuditPrecedenceSource
+    $row | Add-Member NoteProperty PolicySource $source
+    $row | Add-Member NoteProperty VerificationScope 'Current registry value and per-subcategory effective masks; no Group Policy refresh was performed.'
+    if ($source.ConflictsWithRequiredValue) {
+        $row.Diagnostic += ' Last-applied RSoP reports a different value; reconcile that GPO and verify again after policy refresh.'
+        Write-Host $row.Diagnostic -ForegroundColor DarkYellow
+    }
+    Write-Host "Audit precedence policy source: $($source.Description)"
 }
 
 function Set-WelaCertificateAuditControl {

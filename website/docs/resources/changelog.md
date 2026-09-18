@@ -19,6 +19,7 @@
 
 **Bug Fixes:**
 
+- Both `configure` paths now journal and verify `SCENoApplyLegacyAuditPolicy=1` (DWORD) before applying advanced audit subcategories. Failed or declined precedence changes block dependent writes; pre-write and final checks detect drift. Profile plans report precedence state and available last-applied RSoP evidence without claiming persistence through policy refresh. (issue #374) (@Shirofune-Security)
 - Fixed `configure` enabling outgoing NTLM blocking by default. It now sets Audit all (`RestrictSendingNTLMTraffic=1`) for unset or Allow policies while preserving existing Deny all (`2`) and unknown values/types. Use `-OutgoingNtlmMode Audit` to explicitly replace a deny policy, or `Deny` to enable blocking. Configuration rechecks policy before writing, verifies changes, reports failures, and displays the observed policy and available last-applied RSoP information. (#388) (@Shirofune-Security)
 - `audit-settings` now reports role-inapplicable audit policies as `Not applicable` and excludes them from category enablement totals. NTLM policy values are interpreted and verified only when stored as DWORDs. (#392) (@Shirofune-Security)
 - Configuration now checks native command exit codes, verifies settings after applying changes, and checks them again before finishing. Failed writes, ineffective changes, CA restart failures and settings that no longer match at the final check produce explicit results and a nonzero exit code instead of unconditional success. (#392) (@Shirofune-Security)

@@ -1,0 +1,25 @@
+name: Audit precedence regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  precedence:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Mocked precedence and drift (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/AuditPrecedence.Tests.ps1
+      - name: Mocked precedence and drift (PowerShell 7)
+        shell: pwsh
+        run: ./tests/AuditPrecedence.Tests.ps1
+      - name: Read-only precedence and audit API (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/AuditPrecedence.Windows.Tests.ps1
+      - name: Read-only precedence and audit API (PowerShell 7)
+        shell: pwsh
+        run: ./tests/AuditPrecedence.Windows.Tests.ps1
