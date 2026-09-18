@@ -1340,6 +1340,24 @@ function Set-WelaOutgoingNtlmPolicy {
         }
     }
     try {
+        # A prompt or ShouldProcess confirmation may outlive a Group Policy refresh.
+        # Recheck immediately before mutation so default audit setup cannot undo new enforcement.
+        $freshState = Get-WelaOutgoingNtlmState
+        if (-not $freshState.Readable) {
+            throw 'Outgoing NTLM was not changed because its current state became unreadable.'
+        }
+        if ($Mode -eq 'PreserveOrAudit' -and $freshState.Value -eq 2) {
+            Write-Host '[PRESERVED] Deny all enforcement appeared before the write. Select explicit Audit mode to replace it.' -ForegroundColor Yellow
+            return
+        }
+        if ($Mode -eq 'PreserveOrAudit' -and $null -ne $freshState.Value -and $freshState.Value -notin @(0, 1, 2)) {
+            Write-Warning "Outgoing NTLM changed to an unknown value ($($freshState.Value)); it was preserved."
+            return
+        }
+        if ($freshState.Value -eq $desired) {
+            Write-Host "[SKIPPED] Outgoing NTLM is now already $description." -ForegroundColor Yellow
+            return
+        }
         if (-not (Test-Path -LiteralPath $path -ErrorAction Stop)) {
             New-Item -Path $path -Force -ErrorAction Stop | Out-Null
         }
