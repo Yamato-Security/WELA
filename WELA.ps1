@@ -327,7 +327,7 @@ function Invoke-WelaProfileCommand {
         Assert-WelaAuditProfileTarget -Plan $plan -Context $actual -Current $current
         $configurationContext = New-WelaConfigurationContext -Auto:$script:Auto -DryRun:$script:DryRun -BackupPath $script:BackupPath
         Set-WelaProfileAuditControls -Context $configurationContext -Plan $plan
-        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan
+        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan -Scope advanced-audit-policy-only
         $result.Results | Format-Table Id, Before, Desired, After, Status -AutoSize
     } else {
         $plan.policies | Format-Table id, mode, currentMask, requiredMask, action -AutoSize
@@ -1430,7 +1430,7 @@ function ConfigureAuditSettings {
     )
     Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto -Context $context
     Set-WelaDomainNtlmAudit -Auto:$Auto -Context $context
-    if (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters') {
+    if ($hostContext.Role -eq 'DomainController') {
         Set-RegistryConfig -RegPaths @(
             @{Path = 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Diagnostics'; Name = '15 Field Engineering'; Value = 5}
         ) -Auto:$Auto -Context $context
@@ -1774,16 +1774,17 @@ switch ($Cmd.ToLower()) {
         if ($Help){
             Write-Host "Configure Windows Event Log audit settings based on the YamatoSecurity baseline"
             Write-Host ""
-            Write-Host "Usage: ./WELA.ps1 configure [-Auto] [-DryRun] [-BackupPath <new-directory>] [-ResultsPath <json-file>] [-OutgoingNtlmMode <PreserveOrAudit|Audit|Deny>]"
+            Write-Host "Usage: ./WELA.ps1 configure [-Profile <id>] [-Auto] [-DryRun] [-BackupPath <new-directory>] [-ResultsPath <json-file>] [-OutgoingNtlmMode <PreserveOrAudit|Audit|Deny>]"
             Write-Host ""
             Write-Host "Options:"
+            Write-Host "  -Profile     Configure advanced audit policy only from a versioned profile; list IDs with profiles"
             Write-Host "  -Auto        Automatically configure without prompts"
             Write-Host "  -OutgoingNtlmMode  PreserveOrAudit (default): audit, preserving existing deny; Audit: explicitly replace deny; Deny: opt into enforcement"
             Write-Host "  -DryRun      Read live state and report proposed changes without writing Windows settings"
             Write-Host "  -BackupPath  New directory for the pre-change recovery journal (unique default beside WELA)"
             Write-Host "  -ResultsPath Save structured per-control outcomes as JSON"
             Write-Host ""
-            Write-Host "Note: only the YamatoSecurity baseline is currently supported for 'configure'."
+            Write-Host "Without -Profile, configure applies the YamatoSecurity native logging settings. -Profile applies advanced audit policy only. -DryRun and recovery/results options work with both."
             Write-Host ""
             return
         }

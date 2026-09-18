@@ -29,3 +29,9 @@ jobs:
       - name: NTLM integration in PowerShell 7
         shell: pwsh
         run: ./tests/IntegrationNtlmConfiguration.Tests.ps1
+      - name: Profile integration in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/IntegrationProfileConfiguration.Tests.ps1
+      - name: Profile integration in PowerShell 7
+        shell: pwsh
+        run: ./tests/IntegrationProfileConfiguration.Tests.ps1

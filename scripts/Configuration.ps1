@@ -90,7 +90,9 @@ function Invoke-WelaConfigurationControl {
 }
 
 function Complete-WelaConfiguration {
-    param($Context, [string]$ResultsPath, $Plan)
+    param($Context, [string]$ResultsPath, $Plan,
+          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only")]
+          [string]$Scope = "native-windows-configuration")
     # A second read detects a value that was compliant earlier but changed during
     # this run. It does not establish whether GPO or another writer caused drift.
     foreach ($check in $Context.Checks) {
@@ -109,16 +111,17 @@ function Complete-WelaConfiguration {
     $skipped = @($Context.Results | Where-Object { $_.Status -eq 'Skipped' }).Count
     $report = [pscustomobject][ordered]@{
         ExitCode = $(if ($failed) { 1 } else { 0 }); DryRun = $Context.DryRun
-        BackupPath = $Context.BackupPath; Failed = $failed; Skipped = $skipped
+        BackupPath = $Context.BackupPath; Failed = $failed; Skipped = $skipped; Scope = $Scope
         Results = @($Context.Results.ToArray())
     }
     if ($Plan) {
         $report | Add-Member NoteProperty Profile $Plan.profile
+        $report | Add-Member NoteProperty Version $Plan.version
         $report | Add-Member NoteProperty Role $Plan.role
         $report | Add-Member NoteProperty Build $Plan.build
         $report | Add-Member NoteProperty SchemaSha256 $Plan.schemaSha256
         $report | Add-Member NoteProperty Provenance $Plan.provenance
-        $report | Add-Member NoteProperty Scope $Plan.scope
+        $report | Add-Member NoteProperty ProfileScope $Plan.scope
     }
     if ($ResultsPath) {
         try { $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
@@ -243,22 +246,24 @@ function Set-WelaAuditPolicyControl {
     param($Context, $Policy, [ValidateRange(0, 3)][int]$Mask = 3,
           [ValidateSet('exact', 'minimum')][string]$Mode = 'exact')
     $guid = $Policy.GUID
-    $observed = @{ Mask = $null }
-    $read = {
-        $observed.Mask = Get-WelaAuditPolicyMask -Guid $guid
-        return $observed.Mask
-    }.GetNewClosure()
+    $read = { Get-WelaAuditPolicyMask -Guid $guid }.GetNewClosure()
     $test = {
         param($value)
         if ($Mode -eq 'minimum') { return ($value -band $Mask) -eq $Mask }
         return $value -eq $Mask
     }.GetNewClosure()
     $apply = {
-        # Minimum requirements preserve the flags observed immediately before journaling.
-        $target = if ($Mode -eq 'minimum') { $observed.Mask -bor $Mask } else { $Mask }
-        $success = if ($target -band 1) { 'enable' } else { 'disable' }
-        $failure = if ($target -band 2) { 'enable' } else { 'disable' }
-        Invoke-WelaNative -FilePath 'auditpol.exe' -Arguments @('/set', "/subcategory:{$guid}", "/success:$success", "/failure:$failure")
+        $arguments = @('/set', "/subcategory:{$guid}")
+        if ($Mode -eq 'minimum') {
+            # Only enable required flags: never disable another writer's added flag.
+            if ($Mask -band 1) { $arguments += '/success:enable' }
+            if ($Mask -band 2) { $arguments += '/failure:enable' }
+        } else {
+            $success = if ($Mask -band 1) { 'enable' } else { 'disable' }
+            $failure = if ($Mask -band 2) { 'enable' } else { 'disable' }
+            $arguments += "/success:$success", "/failure:$failure"
+        }
+        Invoke-WelaNative -FilePath 'auditpol.exe' -Arguments $arguments
     }.GetNewClosure()
     Invoke-WelaConfigurationControl -Context $Context -Id "AuditPolicy/$($Policy.Name)" -Kind AuditPolicy `
         -Target @{ Guid = $guid } -Desired @{ Mask = $Mask; Mode = $Mode } -Read $read -Compliant $test -Apply $apply
@@ -273,6 +278,8 @@ function Set-WelaProfileAuditControls {
         Set-WelaAuditPolicyControl -Context $Context -Policy @{ GUID = $policy.guid; Name = $policy.id } -Mask $policy.requiredMask -Mode $mode
         $row = $Context.Results[$Context.Results.Count - 1]
         $row | Add-Member NoteProperty Profile $Plan.profile
+        $row | Add-Member NoteProperty Version $Plan.version
+        $row | Add-Member NoteProperty SchemaSha256 $Plan.schemaSha256
         $row | Add-Member NoteProperty Role $Plan.role
         $row | Add-Member NoteProperty Build $Plan.build
         $row | Add-Member NoteProperty Mode $policy.mode

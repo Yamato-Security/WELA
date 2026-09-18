@@ -113,3 +113,35 @@ Unknown domain role, unreadable policy and failed writes produce `Failed` outcom
 and a nonzero overall result while allowing other controls to be assessed.
 `tests/IntegrationNtlmConfiguration.Tests.ps1` exercises this composed behavior
 using mocked registry/CIM calls and temporary journals only.
+
+## Versioned profile integration
+
+`configure -Profile <id>` uses the same dry-run, recovery-journal and verification
+runner as the broader default `configure` command. Host role/build and all required
+effective audit settings are validated before creating a journal or changing any
+Windows setting. The Windows-defaults profile remains read-only.
+
+```powershell
+.\WELA.ps1 configure -Profile cis-win11-v4-l1 -DryRun -ResultsPath .\cis-plan.json
+.\WELA.ps1 configure -Profile microsoft-sct-win11-24h2 -Auto -BackupPath C:\WELA-Recovery\sct-001 -ResultsPath .\sct-results.json
+```
+
+Exact recommendations set the named mask; minimum recommendations only enable
+required flags and accept a compliant superset. They never disable an unrequested
+flag, including one added by another writer between observation and application.
+Omitted, Not Configured and non-applicable policies are preserved. Opt-in policies
+require `-IncludeOptional`. Both result paths retain version, host role/build,
+source identifiers and prerequisites such as SACLs; recording an enabled audit
+subcategory does not claim its prerequisite was installed.
+
+The result `Scope` is `native-windows-configuration` for default configure and
+`advanced-audit-policy-only` for `configure -Profile`. `ProfileScope` describes the
+advanced-policy subset within either result. `-PlanPath` remains available for
+profile JSON output; `-ResultsPath` saves the verified configuration report.
+
+This composed change depends on the outgoing/domain NTLM corrections, versioned
+audit profiles and six additional native audit controls. It preserves their
+selection behavior while adding shared execution and recovery reporting.
+`tests/IntegrationProfileConfiguration.Tests.ps1` tests the composed command
+paths without touching Windows policy, including exact/minimum behavior, concurrent
+flags, unknown-state preflight, reference-only defaults, metadata and dry runs.
