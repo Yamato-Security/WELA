@@ -326,27 +326,69 @@ function Set-WelaProfileAuditControls {
 }
 
 function Get-WelaAuditPrecedenceSource {
-    # RSoP records last-applied GPO data, not the current registry writer.
+    # Normalize each documented RSoP schema separately. Cached evidence does not
+    # prove the current registry writer, even when the represented value is known.
+    $targetKey = 'SYSTEM\CurrentControlSet\Control\Lsa'
+    $targetName = 'SCENoApplyLegacyAuditPolicy'
     $matches = @()
-    foreach ($class in @('RSOP_RegistryPolicySetting', 'RSOP_SecuritySettingNumeric')) {
+    foreach ($class in @('RSOP_RegistryPolicySetting', 'RSOP_SecuritySettingNumeric', 'RSOP_RegistryValue')) {
         try {
-            $matches += @(Get-CimInstance -Namespace 'root\RSOP\Computer' -ClassName $class -ErrorAction Stop | Where-Object {
-                $keyProperty = $_.PSObject.Properties['keyName']
-                $valueProperty = $_.PSObject.Properties['valueName']
-                $key = if ($keyProperty) { [string]$keyProperty.Value -replace '^(MACHINE|HKEY_LOCAL_MACHINE|HKLM)\\', '' } else { '' }
-                ($key -eq 'SYSTEM\CurrentControlSet\Control\Lsa' -and $valueProperty -and $valueProperty.Value -eq 'SCENoApplyLegacyAuditPolicy') -or
-                    $key -eq 'SYSTEM\CurrentControlSet\Control\Lsa\SCENoApplyLegacyAuditPolicy'
-            })
+            $records = @(Get-CimInstance -Namespace 'root\RSOP\Computer' -ClassName $class -ErrorAction Stop)
+            foreach ($record in $records) {
+                $key = ''; $name = ''; $raw = $null; $reported = $null; $known = $false
+                if ($class -eq 'RSOP_RegistryPolicySetting') {
+                    if ($record.PSObject.Properties['deleted'] -and $record.deleted -eq $true) { continue }
+                    if ($record.PSObject.Properties['registryKey']) { $key = [string]$record.registryKey }
+                    if ($record.PSObject.Properties['valueName']) { $name = [string]$record.valueName }
+                    if ($record.PSObject.Properties['value']) { $raw = $record.value }
+                    # REG_DWORD is exactly four little-endian bytes. Other types,
+                    # arrays and lengths remain unknown rather than being coerced.
+                    if ($record.PSObject.Properties['valueType'] -and ($record.valueType -is [int] -or $record.valueType -is [uint32] -or $record.valueType -is [long]) -and $record.valueType -eq 4 -and $raw -is [byte[]] -and $raw.Length -eq 4) {
+                        if ($raw[1] -eq 0 -and $raw[2] -eq 0 -and $raw[3] -eq 0 -and $raw[0] -in @(0, 1)) {
+                            $reported = [uint32]$raw[0]; $known = $true
+                        }
+                    }
+                } elseif ($class -eq 'RSOP_SecuritySettingNumeric') {
+                    if ($record.PSObject.Properties['KeyName']) { $key = [string]$record.KeyName }
+                    if ($record.PSObject.Properties['Setting']) { $raw = $record.Setting }
+                    if (($raw -is [int] -or $raw -is [uint32] -or $raw -is [long]) -and $raw -in @(0, 1)) {
+                        $reported = [uint32]$raw; $known = $true
+                    }
+                    # This security schema identifies settings by name; accept the
+                    # exact policy name as well as a matching full registry path.
+                    if ($key -eq $targetName) { $key = "$targetKey\$targetName" }
+                } else {
+                    if ($record.PSObject.Properties['Path']) { $key = [string]$record.Path }
+                    if ($record.PSObject.Properties['Data']) { $raw = $record.Data }
+                    # Security-option registry values expose Type/Data, not Value.
+                    # Only canonical decimal strings 0/1 of REG_DWORD are decoded.
+                    if ($record.PSObject.Properties['Type'] -and ($record.Type -is [int] -or $record.Type -is [uint32] -or $record.Type -is [long]) -and $record.Type -eq 4 -and $raw -is [string] -and $raw -cin @('0', '1')) {
+                        $reported = [uint32]$raw; $known = $true
+                    }
+                }
+                $key = $key -replace '^(MACHINE|HKEY_LOCAL_MACHINE|HKLM)\\', ''
+                $matchingTarget = if ($class -eq 'RSOP_RegistryPolicySetting') { $key -eq $targetKey -and $name -eq $targetName } else { $key -eq "$targetKey\$targetName" }
+                if (-not $matchingTarget) { continue }
+                $matches += [pscustomobject]@{
+                    SourceClass = $class
+                    GpoId = $(if ($record.PSObject.Properties['GPOID']) { $record.GPOID } else { $null })
+                    Precedence = $(if ($record.PSObject.Properties['precedence']) { $record.precedence } else { [uint32]::MaxValue })
+                    ReportedValue = $(if ($known) { $reported } else { $raw })
+                    ValueRecognized = $known
+                }
+            }
         } catch { }
     }
-    $policy = $matches | Sort-Object { if ($_.PSObject.Properties['precedence']) { $_.precedence } else { [int]::MaxValue } } | Select-Object -First 1
-    $gpo = if ($policy -and $policy.PSObject.Properties['GPOID']) { $policy.GPOID } else { $null }
-    $value = if ($policy -and $policy.PSObject.Properties['value']) { $policy.value } else { $null }
-    $knownValue = ($value -is [int] -or $value -is [uint32] -or $value -is [long] -or $value -is [string]) -and ([string]$value -in @('0', '1'))
+    $ordered = @($matches | Sort-Object Precedence)
+    $policy = $ordered | Select-Object -First 1
+    $gpo = if ($policy) { $policy.GpoId } else { $null }
+    $value = if ($policy) { $policy.ReportedValue } else { $null }
     [pscustomobject]@{
         GpoId = $gpo; ReportedValue = $value
-        ConflictsWithRequiredValue = if ($knownValue) { [string]$value -ne '1' } else { $null }
-        Description = if ($gpo) { "Last-applied RSoP GPO: $gpo (may be stale; current registry writer unknown)" } else { 'Unknown (no matching RSoP source; local, GPO or MDM ownership is not established)' }
+        SourceClass = $(if ($policy) { $policy.SourceClass } else { $null })
+        ConflictsWithRequiredValue = if ($policy -and $policy.ValueRecognized) { $value -ne 1 } else { $null }
+        Matches = $ordered
+        Description = if ($gpo) { "Last-applied RSoP GPO evidence: $gpo (may be stale; current registry writer unknown; see Matches for all observations)" } else { 'Unknown (no matching RSoP source; local, GPO or MDM ownership is not established)' }
     }
 }
 
