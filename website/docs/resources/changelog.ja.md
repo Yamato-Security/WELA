@@ -7,7 +7,7 @@
 
 **改善:**
 
-- 6つのネイティブSMB監査ポリシーを監査・計画・設定する任意実行の`smb-auditing`を追加しました。OSビルドとローカルADMXの正確な定義を確認してから書き込み、ポリシーのDWORD値と取得可能な実行時設定を分けて表示します。Dry-run、復旧用記録、最終検証に対応し、署名・暗号化要件やゲストアクセスは変更しません。実イベント生成と収集の検証は別途必要です。 (issue #377) (@Shirofune-Security)
+- 6つのネイティブSMB監査ポリシーを監査・計画・設定する任意実行の`smb-auditing`を追加しました。OSビルドとローカルADMXの正確な定義を確認してから書き込み、ポリシーのDWORD値と取得可能な実行時設定を分けて表示します。Dry-run、復旧用記録、最終検証に対応し、署名・暗号化要件やゲストアクセスは変更しません。実イベント生成と収集の検証は別途必要です。 (#397) (@Shirofune-Security)
 - `audit-settings`、`plan`、`configure`で共有するバージョン付きの詳細監査ポリシープロファイルを追加した。59のサブカテゴリと14のプロファイルで、WELA、文書に基づくWindows既定値、Microsoft、確認済みのCIS v4.0.0、ASDのWindows標準機能向け監査ガイドに対応する。ホストの役割とビルドの検証、オフラインでの設定計画、出典と前提条件を含むJSON出力をサポートする。完全一致、最低限、任意、変更なし、未構成、適用対象外を区別する。Windows既定値は参照専用で、プロファイルの対象はSecurityログの詳細監査ポリシーに限定される。 (#390) (@Shirofune-Security)
 - WELAのプロファイルにWindows標準の監査サブカテゴリを6つ追加した。Group MembershipとAuthorization Policy Changeは成功、Application Group Management、MPSSVC Rule-Level Policy Change、IPsec Driver、Kernel Objectは成功と失敗を監査する。各ガイドに対応するプロファイルでは、それぞれの監査設定と前提条件を維持する。Kernel Objectのイベント生成には対象オブジェクトに適切なSACLが必要であり、この変更ではそのSACLを作成しない。 (#391) (@Shirofune-Security)
 - `configure`と`configure -Profile`に`-DryRun`と`-ResultsPath`を追加し、Windows設定を変更せずに変更内容を確認し、設定項目ごとの結果をJSONで出力できるようにした。`-DryRun`に対応していないコマンドは、実行前にエラーで停止する。 (#392) (@Shirofune-Security)
