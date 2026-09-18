@@ -1,0 +1,31 @@
+name: SMB audit policy regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'scripts/SmbAuditing.ps1'
+      - 'tests/SmbAuditing*'
+      - '.github/workflows/smb-auditing.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smb-auditing:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Mocked policy/runtime and real ADMX parsing in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/SmbAuditing.Tests.ps1
+      - name: Actual Windows read-only smoke in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/SmbAuditing.Windows.Tests.ps1
+      - name: Mocked policy/runtime and real ADMX parsing in PowerShell 7
+        shell: pwsh
+        run: ./tests/SmbAuditing.Tests.ps1
+      - name: Actual Windows read-only smoke in PowerShell 7
+        shell: pwsh
+        run: ./tests/SmbAuditing.Windows.Tests.ps1

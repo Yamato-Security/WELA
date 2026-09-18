@@ -94,8 +94,9 @@ function Invoke-WelaConfigurationControl {
 
 function Complete-WelaConfiguration {
     param($Context, [string]$ResultsPath, $Plan,
-          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only")]
-          [string]$Scope = "native-windows-configuration")
+          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only")]
+          [string]$Scope = "native-windows-configuration",
+          [string]$SuccessMessage = 'Configuration completed; all requested controls verified.')
     # A second read detects a value that was compliant earlier but changed during
     # this run. It does not establish whether GPO or another writer caused drift.
     foreach ($check in $Context.Checks) {
@@ -133,7 +134,7 @@ function Complete-WelaConfiguration {
     if ($report.ExitCode) { Write-Host "Configuration incomplete: $failed failed or overridden control(s). Review results and recovery journal." -ForegroundColor Red }
     elseif ($Context.DryRun) { Write-Host 'Dry run completed. No Windows configuration was changed.' -ForegroundColor Cyan }
     elseif ($skipped) { Write-Host "Configuration completed with $skipped skipped control(s)." -ForegroundColor Yellow }
-    else { Write-Host 'Configuration completed; all requested controls verified.' -ForegroundColor Green }
+    else { Write-Host $SuccessMessage -ForegroundColor Green }
     return $report
 }
 

@@ -21,6 +21,7 @@
     [ValidateSet('Preserve', 'CisV4')][string]$FirewallPathMode = 'Preserve',
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
     [string]$HtmlPath,
+    [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
     [switch]$Help
 )
 
@@ -36,6 +37,7 @@ $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
+. (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
@@ -1668,6 +1670,10 @@ Usage:
   ./WELA.ps1 firewall-logging -FirewallAction Plan -FirewallPathMode CisV4
   ./WELA.ps1 firewall-logging -FirewallAction Configure -DryRun
   # Firewall text logging is opt-in; it does not change firewall enforcement or rules.
+  ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
+  ./WELA.ps1 smb-auditing -SmbAction Plan
+  ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  # SMB auditing is opt-in and never changes signing/encryption requirements or guest access.
   ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
   ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
   ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
@@ -1698,8 +1704,9 @@ Write-Host ""
 
 # Reject unsupported dry-run requests before reaching any command's mutation path.
 if ($DryRun -and $Cmd -notin @('configure', 'configure-eventlogs') -and
-    -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs and firewall-logging -FirewallAction Configure. No command was run."
+    -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
+    -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure')) {
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure and smb-auditing -SmbAction Configure. No command was run."
 }
 if ($Profile -and $Cmd -in @('eventlog-profiles', 'audit-filesize', 'configure-eventlogs')) {
     throw '-Profile selects advanced audit policy only. Use -LogProfile for event-log size/mode settings.'
@@ -1729,6 +1736,19 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] Firewall logging: $_" -ForegroundColor Red; exit 1 }
+    }
+    'smb-auditing' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 smb-auditing [-SmbAction Audit|Plan|Configure] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Checks six version-aware SMB audit policies against local ADMX and available runtime properties. Configure writes supported audit DWORDs only. See docs/smb-auditing.md.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'smb-auditing uses -SmbAction; -Profile and -Baseline apply to Security audit settings.' }
+        try {
+            $report = Invoke-WelaSmbAuditCommand -Action $SmbAction -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] SMB auditing: $_" -ForegroundColor Red; exit 1 }
     }
     "profiles" {
         (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List
