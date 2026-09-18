@@ -151,14 +151,24 @@ function Get-WelaRegistryState {
     }
 }
 
+function New-WelaRegistryKey {
+    param([string]$Path)
+    if (Test-Path -LiteralPath $Path -ErrorAction Stop) { return }
+    $separator = $Path.TrimEnd('\').LastIndexOf('\')
+    if ($separator -lt 1) { throw "Registry root is unavailable: $Path" }
+    $parent = $Path.Substring(0, $separator)
+    # Registry New-Item without Force requires its immediate parent. Build only
+    # missing ancestors; never run New-Item -Force against an existing key.
+    New-WelaRegistryKey -Path $parent
+    $null = New-Item -Path $Path -ErrorAction Stop
+}
+
 function Set-WelaRegistryControl {
     param($Context, [string]$Path, [string]$Name, $Value, [string]$Type = 'DWord')
     $read = { Get-WelaRegistryState -Path $Path -Name $Name }.GetNewClosure()
     $test = { param($state) $state.ValueExists -and $state.Value -eq $Value -and $state.Type -eq $Type }.GetNewClosure()
     $apply = {
-        if (-not (Test-Path -LiteralPath $Path -ErrorAction Stop)) {
-            $null = New-Item -Path $Path -ErrorAction Stop
-        }
+        New-WelaRegistryKey -Path $Path
         Set-ItemProperty -LiteralPath $Path -Name $Name -Value $Value -Type $Type -ErrorAction Stop
     }.GetNewClosure()
     Invoke-WelaConfigurationControl -Context $Context -Id "Registry/$Path/$Name" -Kind Registry `
@@ -166,16 +176,59 @@ function Set-WelaRegistryControl {
         -Read $read -Compliant $test -Apply $apply
 }
 
+function Initialize-WelaConfigurationAuditApi {
+    if ('Wela.ConfigurationAuditApi' -as [type]) { return }
+    # Querying the Windows API avoids localized auditpol /get CSV (six columns;
+    # unlike /backup output, it has no numeric Setting Value column).
+    Add-Type -TypeDefinition @'
+using System;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+namespace Wela {
+    public static class ConfigurationAuditApi {
+        [StructLayout(LayoutKind.Sequential)]
+        private struct AuditPolicyInformation {
+            public Guid Subcategory;
+            public UInt32 Information;
+            public Guid Category;
+        }
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.U1)]
+        private static extern bool AuditQuerySystemPolicy(
+            [In] Guid[] subcategories, UInt32 count, out IntPtr policy);
+        [DllImport("advapi32.dll")]
+        private static extern void AuditFree(IntPtr buffer);
+        public static UInt32 Query(Guid subcategory) {
+            IntPtr buffer = IntPtr.Zero;
+            if (!AuditQuerySystemPolicy(new Guid[] { subcategory }, 1, out buffer)) {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+            try {
+                if (buffer == IntPtr.Zero) throw new InvalidOperationException("Audit policy query returned no buffer.");
+                AuditPolicyInformation policy = (AuditPolicyInformation)Marshal.PtrToStructure(buffer, typeof(AuditPolicyInformation));
+                if (policy.Subcategory != subcategory) throw new InvalidOperationException("Audit policy query returned a different subcategory.");
+                return policy.Information;
+            } finally {
+                if (buffer != IntPtr.Zero) AuditFree(buffer);
+            }
+        }
+    }
+}
+'@ -ErrorAction Stop
+}
+
+function Get-WelaNativeAuditPolicy {
+    param([string]$Guid)
+    Initialize-WelaConfigurationAuditApi
+    return [Wela.ConfigurationAuditApi]::Query([guid]$Guid)
+}
+
 function Get-WelaAuditPolicyMask {
     param([string]$Guid)
-    $native = Invoke-WelaNative -FilePath 'auditpol.exe' -Arguments @('/get', "/subcategory:{$Guid}", '/r')
-    # Column order is stable; names and Inclusion Setting text are localized.
-    $rows = $native.Output | ConvertFrom-Csv -Header Machine, Target, Name, Guid, Inclusion, Exclusion, SettingValue
-    $row = @($rows | Where-Object { $_.Guid -and $_.Guid.Trim('{}') -eq $Guid })
-    if ($row.Count -ne 1 -or $row[0].SettingValue -notmatch '^[0-3]$') {
-        throw "auditpol returned no unambiguous numeric setting for $Guid. $($native.Diagnostic)"
-    }
-    return [int]$row[0].SettingValue
+    $flags = Get-WelaNativeAuditPolicy -Guid $Guid
+    if ($flags -notin @(0, 1, 2, 3, 4)) { throw "Unexpected audit policy flags $flags for $Guid." }
+    # POLICY_AUDIT_EVENT_NONE is 4; the success/failure mask is zero.
+    return [int]($flags -band 3)
 }
 
 function Set-WelaAuditPolicyControl {
@@ -204,7 +257,7 @@ function Set-WelaCertificateAuditControl {
                 ServiceStatus = (Get-Service -Name CertSvc -ErrorAction Stop).Status.ToString()
             }
         }.GetNewClosure()
-        $test = { param($value) $value.Registry.ValueExists -and $value.Registry.Value -eq 127 -and $value.ServiceStatus -eq 'Running' }
+        $test = { param($value) $value.Registry.ValueExists -and $value.Registry.Value -eq 127 -and $value.Registry.Type -eq 'DWord' -and $value.ServiceStatus -eq 'Running' }
         $apply = {
             $state = Get-Service -Name CertSvc -ErrorAction Stop
             if ($state.Status -ne 'Running') { throw 'CertSvc is not running; refusing to start a previously stopped CA. Start it deliberately before retrying.' }

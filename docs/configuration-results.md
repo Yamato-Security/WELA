@@ -39,8 +39,10 @@ controls do not claim universal success. Verification is an observation at that
 moment; it does not prove future GPO persistence, event production, collection or
 Sigma rule coverage. A zero exit code with skipped controls is not full compliance.
 
-Audit policy reads use GUIDs and the numeric value in `auditpol /r` output, rather
-than localized setting names. Registry writes use terminating errors and verify
+Audit policy reads use GUIDs and numeric flags from the Windows
+[AuditQuerySystemPolicy API](https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/nf-ntsecapi-auditquerysystempolicy).
+`auditpol /get /r` contains localized labels and no numeric setting column; it is
+not parsed as though it were `auditpol /backup` output. Registry writes use terminating errors and verify
 both the value and registry type. Log sizes retain larger existing buffers. A CA
 is detected from its configured registry state; certutil must succeed before a
 restart is attempted, and the restart must return to Running. A stopped CA is not
@@ -93,9 +95,8 @@ force a Group Policy setting. These are design constraints, not implemented clai
 
 `tests/Test-ConfigurationResults.ps1` uses mock Windows APIs and disposable temp
 journals. It exercises nonzero native exits and stderr, false-success writes,
-read-back, idempotence, final drift, dry runs, journal failure, localized audit CSV
-labels, and CA write/restart failure. It does not change Windows settings.
-`tests/Test-ConfigurationReadOnlyWindows.ps1` runs real read-only `auditpol /get`
+read-back, idempotence, final drift, dry runs, journal failure, locale-independent native audit flags, and CA write/restart failure. It does not change Windows settings.
+`tests/Test-ConfigurationReadOnlyWindows.ps1` runs real read-only Windows audit-policy API and `auditpol /get` queries
 and a child `cmd.exe` diagnostic/exit test. CI runs both scripts in Windows PowerShell
 5.1 and PowerShell 7. Mutating behavior still requires isolated Windows/CA lab
 validation; mock and read-only tests do not establish end-to-end event production.

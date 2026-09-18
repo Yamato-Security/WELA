@@ -2,7 +2,10 @@
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $script:ScriptRoot = $repo
-. (Join-Path $repo 'scripts/Configuration.ps1')
+# Load trusted source functions into the same scope as the mocks. Windows
+# PowerShell 5.1 otherwise resolves a script-local original ahead of global mocks.
+$definitions = Get-Content -LiteralPath (Join-Path $repo 'scripts/Configuration.ps1') -Raw
+Invoke-Expression ($definitions -replace '(?m)^function ', 'function global:')
 $script:passed = 0
 function Assert($Condition, [string]$Message) {
     if (-not $Condition) { throw "FAIL: $Message" }
@@ -93,6 +96,29 @@ try {
     Set-WelaRegistryControl $c 'HKLM:\mock' Value 1
     Assert ($c.Results[1].Status -eq 'AlreadyCompliant' -and $script:registryWrites -eq $beforeWrites) 'Registry reruns preserve compliant values'
 
+    # Missing nested registry parents must be created individually, retaining
+    # existing parent keys/values. Mock provider rejects children without parents.
+    $script:mockKeys = @{'HKLM:' = $true; 'HKLM:\SOFTWARE' = $true}
+    $script:createdKeys = New-Object 'System.Collections.Generic.List[string]'
+    function global:Test-Path {
+        param($LiteralPath, $Path, $ErrorAction)
+        if ($LiteralPath -like 'HKLM:*') { return $script:mockKeys.ContainsKey($LiteralPath) }
+        Microsoft.PowerShell.Management\Test-Path -LiteralPath $(if ($LiteralPath) { $LiteralPath } else { $Path })
+    }
+    function global:New-Item {
+        param($Path, $ItemType, [switch]$Force, $ErrorAction)
+        if ($Path -notlike 'HKLM:*') { return Microsoft.PowerShell.Management\New-Item @PSBoundParameters }
+        if ($Force) { throw 'Test refuses Force on registry keys' }
+        if ($script:mockKeys.ContainsKey($Path)) { throw 'Existing parent would be recreated' }
+        $parent = $Path.Substring(0, $Path.LastIndexOf('\'))
+        if (-not $script:mockKeys.ContainsKey($parent)) { throw "Missing registry parent: $parent" }
+        $script:createdKeys.Add($Path); $script:mockKeys[$Path] = $true
+    }
+    New-WelaRegistryKey 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging'
+    Assert ($script:createdKeys.Count -eq 5 -and $script:mockKeys.ContainsKey('HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging')) 'Missing registry ancestors are created safely in order'
+    New-WelaRegistryKey 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging'
+    Assert ($script:createdKeys.Count -eq 5) 'Existing registry parents are preserved on rerun'
+
     # Function stubs stand in for the Windows APIs from this point onward.
     $script:logSize = 1048576; $script:nativeFails = $true; $script:nativeWrites = 0
     function global:Get-WinEvent { param($ListLog, $ErrorAction) [pscustomobject]@{ MaximumSizeInBytes = $script:logSize; IsEnabled = $false } }
@@ -114,15 +140,17 @@ try {
     Set-WelaEventLogControl $c Security MaximumSizeInBytes 134217728
     Assert ($c.Results[1].Status -eq 'AlreadyCompliant') 'Event log helper avoids repeated writes'
 
-    function global:Invoke-WelaNative {
-        param($FilePath, $Arguments)
-        [pscustomobject]@{ ExitCode = 0; Output = @('Localized,header,labels,here,x,y,z', 'host,System,localized name,{0CCE922B-69AE-11D9-BED3-505054503030},localized text,,3'); Diagnostic = '' }
-    }
-    Assert ((Get-WelaAuditPolicyMask '0CCE922B-69AE-11D9-BED3-505054503030') -eq 3) 'Audit policy parser uses numeric mask and GUID, not localized labels'
-    function global:Invoke-WelaNative { param($FilePath, $Arguments) [pscustomobject]@{ Output = @('unparseable'); Diagnostic = 'bad data' } }
+    # Compile the interop declaration without invoking Windows APIs on this host.
+    Initialize-WelaConfigurationAuditApi
+    Assert ($null -ne ('Wela.ConfigurationAuditApi' -as [type])) 'Audit query interop compiles'
+    function global:Get-WelaNativeAuditPolicy { param($Guid) return 3 }
+    Assert ((Get-WelaAuditPolicyMask '0CCE922B-69AE-11D9-BED3-505054503030') -eq 3) 'Audit policy uses native numeric flags independent of locale'
+    function global:Get-WelaNativeAuditPolicy { param($Guid) return 4 }
+    Assert ((Get-WelaAuditPolicyMask '0CCE922B-69AE-11D9-BED3-505054503030') -eq 0) 'Native NONE flag normalizes to no success/failure audit'
+    function global:Get-WelaNativeAuditPolicy { param($Guid) return 16 }
     $caught = ''
     try { Get-WelaAuditPolicyMask '0CCE922B-69AE-11D9-BED3-505054503030' } catch { $caught = $_.ToString() }
-    Assert ($caught -ne '') 'Unparseable audit state cannot be marked compliant'
+    Assert ($caught -ne '') 'Unexpected native flags cannot be marked compliant'
 
     # Extract ConfigureAuditSettings without running the WELA command dispatcher.
     $tokens = $null; $errors = $null
@@ -154,8 +182,8 @@ try {
         if ($Path -like 'HKLM:*') { return "$Path\$ChildPath" }
         Microsoft.PowerShell.Management\Join-Path -Path $Path -ChildPath $ChildPath
     }
-    $script:filter = 0; $script:restartCalls = 0
-    function global:Get-WelaRegistryState { param($Path, $Name) [pscustomobject]@{ ValueExists = $true; Value = $script:filter; Type = 'DWord'; KeyExists = $true } }
+    $script:filter = 0; $script:restartCalls = 0; $script:filterType = 'DWord'
+    function global:Get-WelaRegistryState { param($Path, $Name) [pscustomobject]@{ ValueExists = $true; Value = $script:filter; Type = $script:filterType; KeyExists = $true } }
     function global:Get-Service { param($Name, $ErrorAction) [pscustomobject]@{ Status = 'Running' } }
     function global:Restart-Service { param($Name, [switch]$Force, $ErrorAction) $script:restartCalls++; throw 'Injected CertSvc restart failure' }
     function global:Invoke-WelaNative { param($FilePath, $Arguments) $script:filter = 127; [pscustomobject]@{ ExitCode = 0; Diagnostic = 'mock certutil' } }
@@ -171,6 +199,11 @@ try {
     $c = New-TestContext -DryRun
     Set-WelaCertificateAuditControl $c
     Assert ($c.Results[0].Status -eq 'Skipped' -and $script:restartCalls -eq 0) 'CA dry run never writes or restarts'
+
+    $script:filter = '127'; $script:filterType = 'String'
+    $c = New-TestContext -DryRun
+    Set-WelaCertificateAuditControl $c
+    Assert ($c.Results[0].Status -eq 'Skipped') 'REG_SZ 127 is not accepted as a compliant CA DWORD AuditFilter'
 
     Write-Host "$script:passed configuration-result regression assertions passed. No Windows settings changed."
 } finally {
