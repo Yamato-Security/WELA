@@ -55,7 +55,8 @@ function Get-WelaChannelAccessPlan {
         $grant = $false; $deny = $false; $unknownAce = $false
         foreach ($ace in $original.DiscretionaryAcl) {
             if ($ace -isnot [System.Security.AccessControl.KnownAce]) { $unknownAce = $true; continue }
-            if ($ace.AceFlags -band [System.Security.AccessControl.AceFlags]::InheritOnly) { continue }
+            # PowerShell 5.1 cannot bitwise-cast byte-backed AceFlags enums.
+            if ([int]$ace.AceFlags -band [int][System.Security.AccessControl.AceFlags]::InheritOnly) { continue }
             $readMask = ($ace.AccessMask -band 1) -or ($ace.AccessMask -band 268435456) -or ($ace.AccessMask -band [int]::MinValue)
             if ($readMask -and $ace.AceQualifier -eq [System.Security.AccessControl.AceQualifier]::AccessDenied) { $deny = $true }
             if ($ace -is [System.Security.AccessControl.CommonAce] -and -not $ace.IsCallback -and
@@ -76,7 +77,7 @@ function Get-WelaChannelAccessPlan {
         # Place the explicit allow before inherited entries; do not canonicalize others.
         $index = $copy.DiscretionaryAcl.Count
         for ($i = 0; $i -lt $copy.DiscretionaryAcl.Count; $i++) {
-            if ($copy.DiscretionaryAcl[$i].AceFlags -band [System.Security.AccessControl.AceFlags]::Inherited) { $index = $i; break }
+            if ([int]$copy.DiscretionaryAcl[$i].AceFlags -band [int][System.Security.AccessControl.AceFlags]::Inherited) { $index = $i; break }
         }
         $copy.DiscretionaryAcl.InsertAce($index, $newAce)
         $sddl = $copy.GetSddlForm([System.Security.AccessControl.AccessControlSections]::All)
@@ -86,7 +87,7 @@ function Get-WelaChannelAccessPlan {
         }
         $result.State = 'GrantRequired'; $result.ProposedDescriptor = $sddl; $result.AddedAceIndex = $index
     } catch {
-        $result.State = 'ManualReview'; $result.Diagnostic = $_.Exception.Message + ' [' + $_.InvocationInfo.ScriptLineNumber + ']'
+        $result.State = 'ManualReview'; $result.Diagnostic = $_.Exception.Message
     }
     [pscustomobject]$result
 }
