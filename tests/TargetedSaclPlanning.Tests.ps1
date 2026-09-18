@@ -84,12 +84,15 @@ function Get-ChildItem {
     [pscustomobject]@{PSChildName='S-1-5-21-1';PSPath='Registry::profile-one'}
 }
 $script:profilePath = $null
-function Get-ItemProperty {
-    param($LiteralPath,$Name,$ErrorAction)
-    if ($Name -eq 'Default') { return [pscustomobject]@{Default='C:\Users\Default'} }
+$script:profileKey = [pscustomobject]@{}
+$script:profileKey | Add-Member ScriptMethod GetValue {
+    param($Name,$Default,$Options)
+    if ($Options -ne [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) { throw 'ProfileList read must preserve unexpanded tokens.' }
+    if ($Name -eq 'Default') { return 'C:\Users\Default' }
     if ($null -eq $script:profilePath) { throw 'Profile path denied' }
-    [pscustomobject]@{ProfileImagePath=$script:profilePath}
+    return $script:profilePath
 }
+function Get-Item { param($LiteralPath,[switch]$Force,$ErrorAction) return $script:profileKey }
 $inventory = Get-WelaSaclUserInventory
 Assert (-not $inventory.Complete -and $inventory.Diagnostics.Count -gt 0 -and $inventory.Users[0].ProfilePath -eq $null) 'Unreadable per-user profile path must not yield complete inventory.'
 $script:profilePath = '%USERPROFILE%\AnotherProfile'
@@ -97,7 +100,7 @@ $inventory = Get-WelaSaclUserInventory
 Assert (-not $inventory.Complete -and $inventory.Users[0].ProfilePath -eq $null) 'ProfileList must not expand operator USERPROFILE for another user.'
 $script:profilePath = 'C:\Users\One'
 Assert (Get-WelaSaclUserInventory).Complete 'Known absolute profiles and Default form a complete inventory.'
-Remove-Item Function:Get-ChildItem, Function:Get-ItemProperty
+Remove-Item Function:Get-ChildItem
 # Guard mapped drives and every ancestor before any descendants or ACL read.
 $script:accessed = @(); $script:aclCalls = 0; $script:remoteDrive = $false
 function Get-PSDrive { param($Name,$PSProvider,$ErrorAction) [pscustomobject]@{Root='C:\';DisplayRoot=$(if ($script:remoteDrive) {'\\server\share'} else {$null})} }

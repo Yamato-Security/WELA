@@ -29,7 +29,8 @@ function Get-WelaSaclUserInventory {
             }
             $path = $null; $message = ''
             try {
-                $rawPath = [string](Get-ItemProperty -LiteralPath $key.PSPath -Name ProfileImagePath -ErrorAction Stop).ProfileImagePath
+                $profileKey = Get-Item -LiteralPath $key.PSPath -ErrorAction Stop
+                $rawPath = [string]$profileKey.GetValue('ProfileImagePath', $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
                 $path = Expand-WelaSaclProfilePath $rawPath
             } catch {
                 $path = $null; $message = "Profile path unavailable: $($_.Exception.Message)"
@@ -38,7 +39,8 @@ function Get-WelaSaclUserInventory {
             $users.Add([pscustomobject]@{ Sid = $sid; ProfilePath = $path; HiveLoaded = $loaded.ContainsKey($sid); Diagnostic = $message })
             $loaded.Remove($sid)
         }
-        $default = Expand-WelaSaclProfilePath ([string](Get-ItemProperty -LiteralPath $profileRoot -Name Default -ErrorAction Stop).Default)
+        $profileListKey = Get-Item -LiteralPath $profileRoot -ErrorAction Stop
+        $default = Expand-WelaSaclProfilePath ([string]$profileListKey.GetValue('Default', $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames))
         $users.Add([pscustomobject]@{ Sid = 'Default'; ProfilePath = $default; HiveLoaded = $false; Diagnostic = 'Future-user template; hive is not loaded by planning.' })
     } catch { $diagnostics.Add("Profile inventory incomplete: $($_.Exception.Message)") }
     foreach ($sid in $loaded.Keys) {
