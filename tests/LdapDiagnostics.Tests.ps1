@@ -11,7 +11,7 @@ function Reject([scriptblock]$Action,[string]$Pattern) {
 function Reset-Fixture {
     $script:values=@{}; $script:writes=@(); $script:role='Applicable'; $script:readError=$false
     $script:writeError=$false; $script:ignoreWrite=$false; $script:race=$false; $script:reads=0
-    $script:types=@{}; $script:journal=$null
+    $script:types=@{}; $script:journal=$null; $script:failName=$null
 }
 function Get-WelaLdapHost { [pscustomobject]@{Status=$script:role;Diagnostic='fixture';ComputerName='dc1';Build=26100} }
 function Get-WelaRegistryState {
@@ -25,14 +25,14 @@ function New-WelaRegistryKey { param($Path) }
 function Set-ItemProperty {
     param($LiteralPath,$Name,$Value,$Type,$ErrorAction)
     Assert ($script:journal -and (Test-Path $script:journal)) 'Every native write must follow the complete pre-change journal.'
-    if ($script:writeError) { throw 'write denied' }
+    if ($script:writeError -or $Name -eq $script:failName) { throw 'write denied' }
     $script:writes += $Name
     if (-not $script:ignoreWrite) { $script:values[$Name]=$Value; $script:types[$Name]=$Type }
 }
 function Remove-ItemProperty {
     param($LiteralPath,$Name,$ErrorAction)
     Assert ($script:journal -and (Test-Path $script:journal)) 'Every removal must follow a recovery journal.'
-    if ($script:writeError) { throw 'remove denied' }
+    if ($script:writeError -or $Name -eq $script:failName) { throw 'remove denied' }
     $script:writes += $Name
     if (-not $script:ignoreWrite) { $script:values.Remove($Name); $script:types.Remove($Name) }
 }
@@ -95,6 +95,31 @@ try {
             default { Assert ($result.ExitCode -eq 1 -and $script:writes.Count -eq 0) "Scenario $scenario must block before native writes." }
         }
     }
+    # Exercise actual partial mutation boundaries: recovery is journal-based and
+    # does not automatically overwrite the successfully changed subset.
+    foreach ($mode in @('Diagnostic','MdiCleanup')) {
+        Reset-Fixture
+        $thresholds=@{SearchTime=100;Expensive=10000;Inefficient=1000}
+        if ($mode -eq 'MdiCleanup') {
+            $thresholds=@{}
+            foreach ($definition in Get-WelaLdapDefinitions) { $script:values[$definition.Name]=1; $script:types[$definition.Name]='DWord' }
+            $script:values['15 Field Engineering']=5
+            $script:failName='Search Time Threshold (msecs)'
+        } else { $script:failName='15 Field Engineering' }
+        $script:values['Unrelated diagnostic']=7; $script:types['Unrelated diagnostic']='DWord'
+        $plan=Get-WelaLdapPlan (Get-WelaLdapSnapshot) $mode $thresholds
+        $context=New-FixtureContext
+        Set-WelaLdapDiagnostics $context $plan
+        $result=Complete-WelaConfiguration $context
+        $journal=Get-Content $script:journal -Raw | ConvertFrom-Json
+        Assert ($result.ExitCode -eq 1 -and $journal.Before.Values.Count -eq 4) 'A failure after earlier writes retains the complete recovery snapshot.'
+        Assert ($script:values['Unrelated diagnostic'] -eq 7) 'Partial failures preserve unrelated registry values.'
+        if ($mode -eq 'Diagnostic') {
+            Assert ($script:writes.Count -eq 3 -and -not $script:values.ContainsKey('15 Field Engineering')) 'Failed verbosity write leaves verified thresholds and does not claim success.'
+        } else {
+            Assert ($script:writes.Count -eq 1 -and -not $script:values.ContainsKey('15 Field Engineering') -and $script:values['Search Time Threshold (msecs)'] -eq 1 -and $script:values['Expensive Search Results Threshold'] -eq 1 -and $script:values['Inefficient Search Results Threshold'] -eq 1) 'Cleanup stops after the first failed threshold removal without restoring verbosity or removing later values.'
+        }
+    }
     Reset-Fixture; $script:role='NotApplicable'
     $report=Invoke-WelaLdapCommand -Action Audit
     Assert ($report.Snapshot.Values.Count -eq 0 -and $script:reads -eq 0) 'Member/client/non-DC CA never queries or creates NTDS settings.'
@@ -104,6 +129,23 @@ try {
 
     # Execute the real general configure body with all native boundaries replaced.
     $ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $script:ScriptRoot 'WELA.ps1'),[ref]$null,[ref]$null)
+    # Preserve the real ordering of the LDAP guard and early profile dispatch, while
+    # replacing the profile handler so configure can never change this test host.
+    $dispatchNodes=@($ast.EndBlock.Statements | Where-Object {
+        $_ -is [Management.Automation.Language.IfStatementAst] -and
+        ($_.Extent.Text -match 'LDAP options require' -or $_.Extent.Text -match 'Invoke-WelaProfileCommand -Command')
+    })
+    Assert ($dispatchNodes.Count -eq 2) 'Exercise both real CLI boundaries in source order.'
+    $dispatch=[scriptblock]::Create('param($Cmd,$Profile,$LdapAction,$LdapMode,$LdapSearchTimeMs,$LdapExpensiveThreshold,$LdapInefficientThreshold)' + [Environment]::NewLine + (($dispatchNodes | ForEach-Object {$_.Extent.Text}) -join [Environment]::NewLine))
+    function Invoke-WelaProfileCommand { param($Command) $script:profileDispatched=$true }
+    foreach ($command in @('plan','audit','audit-settings','configure')) {
+        foreach ($option in @('LdapAction','LdapMode','LdapSearchTimeMs','LdapExpensiveThreshold','LdapInefficientThreshold')) {
+            $script:profileDispatched=$false
+            $arguments=@{Cmd=$command;Profile='fixture'}; $arguments[$option]='fixture'
+            Reject { & $dispatch @arguments } 'LDAP options require'
+            Assert (-not $script:profileDispatched) "LDAP option $option must block $command before unrelated profile dispatch."
+        }
+    }
     $node=$ast.Find({param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'ConfigureAuditSettings'},$false)
     . ([scriptblock]::Create($node.Extent.Text))
     function TestWindows {$true}; function TestAdministrator {$true}

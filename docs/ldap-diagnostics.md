@@ -4,6 +4,8 @@ Normal `configure` preserves existing LDAP diagnostics and explains that 1644 is
 
 The dedicated local workflow supports Server 2022/2025 DC builds 20348/26100 in 64-bit Windows PowerShell 5.1 or PowerShell 7. Client, member server and member-server CA hosts are not applicable. Unknown or conflicting role/build evidence blocks writes; no NTDS settings are created on a non-DC.
 
+LDAP options require the dedicated `ldap-diagnostics` command. Supplying them to another command, including `configure -Profile`, stops before that command runs.
+
 ```powershell
 ./WELA.ps1 ldap-diagnostics -LdapAction Audit -ResultsPath ldap-before.json
 ./WELA.ps1 ldap-diagnostics -LdapAction Plan -LdapMode Diagnostic -LdapSearchTimeMs 100

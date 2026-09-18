@@ -1794,13 +1794,13 @@ if (($PSBoundParameters.ContainsKey('ChannelAction') -or $PSBoundParameters.Cont
     throw 'Channel options require channel-settings. No command was run.'
 }
 
+if ($Cmd -ne 'ldap-diagnostics' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('LdapAction','LdapMode','LdapSearchTimeMs','LdapExpensiveThreshold','LdapInefficientThreshold') }).Count) {
+    throw 'LDAP options require the dedicated ldap-diagnostics command. No command was run.'
+}
+
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
     Invoke-WelaProfileCommand -Command $Cmd.ToLower()
     return
-}
-
-if ($Cmd -ne 'ldap-diagnostics' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('LdapAction','LdapMode','LdapSearchTimeMs','LdapExpensiveThreshold','LdapInefficientThreshold') }).Count) {
-    throw 'LDAP options require the dedicated ldap-diagnostics command. No command was run.'
 }
 
 switch ($Cmd.ToLower()) {
