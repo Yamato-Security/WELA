@@ -53,7 +53,7 @@ foreach ($sddl in @('', 'invalid', 'O:BAG:SY', 'O:BAG:SYD:NO_ACCESS_CONTROL', 'O
 # The original unknown ACE bytes must never be discarded. SDDL has no representation
 # for arbitrary custom ACEs; parsing/planning must refuse instead of replacing them.
 $raw = [System.Security.AccessControl.RawSecurityDescriptor]::new('O:BAG:SYD:(A;;0x7;;;BA)')
-$raw.DiscretionaryAcl.InsertAce(1, [System.Security.AccessControl.CustomAce]::new([System.Security.AccessControl.AceType]127, [System.Security.AccessControl.AceFlags]::None, [byte[]]@(0, 0, 0, 0)))
+$raw.DiscretionaryAcl.InsertAce(1, [System.Security.AccessControl.CustomAce]::new(([Enum]::ToObject([System.Security.AccessControl.AceType], 127)), [System.Security.AccessControl.AceFlags]::None, [byte[]]@(0, 0, 0, 0)))
 $binaryBefore = Binary $raw
 $refused = $false
 try {
