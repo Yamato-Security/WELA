@@ -32,6 +32,8 @@
     [string]$ChannelProfile = 'microsoft-wef-appendix-c',
     [ValidateSet('Baseline', 'Suspect', 'Both')][string]$WefQuerySet = 'Both',
     [switch]$GrantEventLogReaders,
+    [ValidateSet('Audit', 'Plan', 'Configure')][string]$WefAction = 'Audit',
+    [string]$WefConfigPath,
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
@@ -62,6 +64,8 @@ Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
+Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
+. (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1697,6 +1701,9 @@ Usage:
   ./WELA.ps1 channel-settings -ChannelAction Audit -WefQuerySet Both -ResultsPath channels.json
   ./WELA.ps1 channel-settings -ChannelAction Plan -GrantEventLogReaders
   ./WELA.ps1 channel-settings -ChannelAction Configure -GrantEventLogReaders -DryRun
+
+  ./WELA.ps1 wef-source -WefAction Plan -WefConfigPath source.json -ResultsPath source-plan.json
+  ./WELA.ps1 wec-collector -WefAction Configure -WefConfigPath collector.json -DryRun
   # Native channels only; ACL changes require -GrantEventLogReaders. Forwarding identity access needs a separate test.
   ./WELA.ps1 wmi-auditing -WmiAction List
   ./WELA.ps1 wmi-auditing -WmiAction Plan -WmiNamespace root\cimv2 -ResultsPath wmi-plan.json
@@ -1746,6 +1753,9 @@ Write-Host ""
 if (($PSBoundParameters.ContainsKey('AppLockerAction') -or $AppLockerPolicyPath) -and $Cmd -ne 'applocker-readiness') {
     throw '-AppLockerAction and -AppLockerPolicyPath require applocker-readiness. No command was run.'
 }
+if (($PSBoundParameters.ContainsKey('WefAction') -or $PSBoundParameters.ContainsKey('WefConfigPath')) -and $Cmd -notin @('wef-source','wec-collector')) {
+    throw '-WefAction and -WefConfigPath require wef-source or wec-collector. No command was run.'
+}
 if ($Cmd -eq 'applocker-readiness' -and ($Profile -or $Baseline)) {
     throw 'applocker-readiness uses its own operator-supplied policy, not -Profile or -Baseline. No command was run.'
 }
@@ -1765,9 +1775,10 @@ if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
     -not ($Cmd -eq 'channel-settings' -and $ChannelAction -eq 'Configure') -and
+    -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, applocker-readiness -AppLockerAction Import, and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1793,6 +1804,21 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    { $_ -in @('wef-source','wec-collector') } {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 wef-source|wec-collector -WefConfigPath operator.json [-WefAction Audit|Plan|Configure] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Native domain/Kerberos HTTP source configuration and create-only collector subscriptions. Existing collector listener and explicit scoped ingress are prerequisites. Optional ASD hardening is explicit in JSON. See docs/wef-deployment.md; forwarding/event arrival remain unverified.'
+            return
+        }
+        if ($Profile -or $Baseline -or $HtmlPath) { throw 'WEF commands require their own explicit JSON config and use -ResultsPath; -Profile, -Baseline and -HtmlPath are unsupported.' }
+        if ($WefAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'WEF Configure requires Administrator privileges.' }
+        try {
+            $wefRole=if ($Cmd -eq 'wef-source') { 'Source' } else { 'Collector' }
+            $report=Invoke-WelaWefCommand -Role $wefRole -Action $WefAction -ConfigPath $WefConfigPath -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] WEF configuration: $_" -ForegroundColor Red; exit 1 }
+    }
     'channel-settings' {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 channel-settings [-ChannelAction Audit|Plan|Configure] [-ChannelProfile microsoft-wef-appendix-c] [-WefQuerySet Baseline|Suspect|Both] [-GrantEventLogReaders] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
