@@ -93,10 +93,17 @@ try {
     foreach ($required in @('Requested context','lab.example.test','Client','26100','fixture-1','domainJoined','installedRoles','fixture-backend','backendVersion','2026-09-19T10:04:00Z')) {
         Assert ($exported.Contains($required)) "Shared HTML must retain evidence scope: $required"
     }
-    $r.Results[0].EvidenceContext.computer='<script>alert("fixture")</script>'
+    $hostileContext='</pre><script>alert("fixture")</script>&'
+    $r.Results[0].EvidenceContext.computer=$hostileContext
     Export-WelaRuleEligibility -Report $r -HtmlPath $evidenceHtml
     $exported=[IO.File]::ReadAllText($evidenceHtml)
-    Assert (-not $exported.Contains('<script>') -and $exported.Contains('&lt;script&gt;')) 'Evidence context is HTML-encoded rather than executable markup.'
+    Assert (-not ($exported -match '<\s*script\b')) 'Evidence context cannot create executable script markup.'
+    # Windows PowerShell 5.1 may JSON-escape angle brackets before HTML encoding;
+    # compare the decoded value rather than requiring one serialization spelling.
+    $contextBlock=[regex]::Match($exported, '(?s)Recorded context \(not the current host\):</p><pre>(.*?)</pre>')
+    Assert $contextBlock.Success 'The evidence context remains inside its HTML text block.'
+    $renderedContext=[Net.WebUtility]::HtmlDecode($contextBlock.Groups[1].Value) | ConvertFrom-Json
+    Assert ($renderedContext.computer -ceq $hostileContext) 'HTML text and JSON decoding preserve the exact context value without creating markup.'
     foreach ($name in @('sourceRule','normalizedRule','review','beforeState','afterState','eventXml','ingestion','query','queryResult')) {
         Reset-Evidence;$script:record.artifacts.Remove($name);Assert-NotReady "Missing $name prevents Ready."
     }
