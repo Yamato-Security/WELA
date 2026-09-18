@@ -1,0 +1,101 @@
+# Verified configuration and recovery
+
+`configure` reads live state, records each proposed write before executing it,
+checks native exit codes, and reads the resulting state. It returns an object with
+`ExitCode`, `DryRun`, `BackupPath`, `Failed`, `Skipped`, and a `Results` array.
+`-ResultsPath` also saves that object as JSON. The command exits with status 1 when
+any control fails or changes again before the final verification. A fatal preflight
+or result-file error also exits with status 1.
+
+```powershell
+# Read live settings; do not change Windows settings, restart services or create a journal.
+.\WELA.ps1 configure -DryRun -ResultsPath .\proposed-results.json
+
+# Apply with interactive approval for each change, including the CA restart.
+.\WELA.ps1 configure -BackupPath C:\WELA-Recovery\run-001 -ResultsPath .\results.json
+
+# Apply the existing WELA choices without individual prompts.
+.\WELA.ps1 configure -Auto -ResultsPath .\results.json
+```
+
+Keep the complete WELA directory, including `scripts/Configuration.ps1`. Choose a
+recovery path whose parent directory is writable only by the operators who manage
+these settings. The backup directory must not already exist. Without `-BackupPath`,
+a unique directory is created beside WELA. `-Debug` does not substitute cached
+audit policy data during configuration. `-DryRun` may write the explicitly requested
+result file, but performs no Windows configuration writes.
+
+| Status | Meaning |
+| --- | --- |
+| Applied | Write succeeded and immediate read-back matched. |
+| AlreadyCompliant | The initial live value already met the requirement; no write. |
+| Skipped | Dry run, operator decline, or no configured local CA. |
+| Failed | State could not be read, journaling failed, write/restart failed, or verification failed. |
+| Overridden | A value verified earlier became noncompliant by the final read. Cause is unknown. |
+
+Unknown and unavailable channels are reported as failed observations rather than
+silently claiming that logging is enabled. Partial runs and runs with skipped
+controls do not claim universal success. Verification is an observation at that
+moment; it does not prove future GPO persistence, event production, collection or
+Sigma rule coverage. A zero exit code with skipped controls is not full compliance.
+
+Audit policy reads use GUIDs and the numeric value in `auditpol /r` output, rather
+than localized setting names. Registry writes use terminating errors and verify
+both the value and registry type. Log sizes retain larger existing buffers. A CA
+is detected from its configured registry state; certutil must succeed before a
+restart is attempted, and the restart must return to Running. A stopped CA is not
+started automatically. A restart failure remains failed even if the registry value
+was already written.
+
+## Recovery journal and rollback design
+
+Each line of `before.jsonl` records the computer, timestamp, control identity,
+requested setting and exact pre-change state. Registry entries include whether the
+key/value existed and the previous registry type. Event-log entries capture size or
+enabled state; audit policies capture the numeric mask; CA entries also capture
+service state. A journal write failure prevents that control's mutation. The
+journal is per control, not a full system backup, and can contain records for failed
+or declined downstream actions. Save the final result file alongside it.
+
+This change provides a guarded **manual recovery procedure**, not an automatic
+rollback command. Automatic bulk rollback could overwrite a later administrator or
+GPO change and could interrupt certificate services. Before recovery:
+
+1. Use an elevated shell on the journal's recorded computer. Review the specific
+   failed or applied control and capture its current live state.
+2. Compare current state with the recorded requested/verified after-state. If it
+   differs, stop and determine whether another writer made an intentional change.
+   Do not blindly replay a journal or restore an entire audit policy backup.
+3. Restore only the intended controls, normally in reverse application order:
+   - **EventLog:** `wevtutil sl <log> /ms:<previous-bytes>` or `/e:<previous-bool>`.
+     Review shrinking buffers or disabling a channel before proceeding.
+   - **AuditPolicy:** `auditpol /set /subcategory:{<guid>} /success:<enable|disable>
+     /failure:<enable|disable>`. Previous mask bit 1 means success, bit 2 means
+     failure. Restore that subcategory, not unrelated policy.
+   - **Registry:** restore the previous value using its recorded registry type.
+     If the value did not exist, remove only that value. Preserve unrelated values
+     and never recursively delete a newly created parent key. Binary and multistring
+     old values must be reconstructed with their original types from the JSON.
+   - **CertificateService:** restore the active CA's previous AuditFilter value (or
+     its original absence) and separately approve the necessary service restart.
+     Do not start a CA that was deliberately stopped. A failed restart can leave
+     the registry and running service out of sync; an operator must resolve this.
+4. Check every native exit code and read the restored state. Keep the recovery
+   commands and observations with the original journal.
+
+A future automated rollback command should require the same host and control
+identity, validate journal schema and allowlisted types, check current state against
+recorded after-state, refuse unexpected drift, journal recovery itself, and require
+explicit approval for CA restarts. It should never import the whole registry or
+force a Group Policy setting. These are design constraints, not implemented claims.
+
+## Testing
+
+`tests/Test-ConfigurationResults.ps1` uses mock Windows APIs and disposable temp
+journals. It exercises nonzero native exits and stderr, false-success writes,
+read-back, idempotence, final drift, dry runs, journal failure, localized audit CSV
+labels, and CA write/restart failure. It does not change Windows settings.
+`tests/Test-ConfigurationReadOnlyWindows.ps1` runs real read-only `auditpol /get`
+and a child `cmd.exe` diagnostic/exit test. CI runs both scripts in Windows PowerShell
+5.1 and PowerShell 7. Mutating behavior still requires isolated Windows/CA lab
+validation; mock and read-only tests do not establish end-to-end event production.

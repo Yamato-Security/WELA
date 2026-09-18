@@ -4,6 +4,9 @@
     [switch]$Debug,
     [string]$Baseline,
     [switch]$Auto,
+    [switch]$DryRun,
+    [string]$BackupPath,
+    [string]$ResultsPath,
     [switch]$Help
 )
 
@@ -17,6 +20,7 @@ $SecurityRulesPath  = Join-Path $ScriptRoot "config/security_rules.json"
 $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
+. (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -986,10 +990,23 @@ function Set-RegistryConfig {
         [array]$RegPaths,
 
         [Parameter(Mandatory = $false)]
-        [switch]$Auto
+        [switch]$Auto,
+        $Context
     )
 
     foreach ($reg in $RegPaths) {
+        if ($Context) {
+            if ($PSCmdlet.ShouldProcess("$($reg.Path)\$($reg.Name)", "Set to $($reg.Value)")) {
+                Set-WelaRegistryControl -Context $Context -Path $reg.Path -Name $reg.Name -Value $reg.Value
+            } else {
+                $Context.Results.Add([pscustomobject]@{
+                    Id = "Registry/$($reg.Path)/$($reg.Name)"; Kind = 'Registry'
+                    Target = @{ Path = $reg.Path; Name = $reg.Name }; Desired = $reg.Value
+                    Before = $null; After = $null; Status = 'Skipped'; Diagnostic = 'ShouldProcess declined the change.'
+                })
+            }
+            continue
+        }
         try {
             $currentValue = "Not Set"
             $pathExists = Test-Path $reg.Path
@@ -1031,69 +1048,18 @@ function Set-RegistryConfig {
 
 
 function ConfigureAuditSettings {
-    param (
-        [switch] $Auto,
-        [switch] $Debug
-    )
+    param ([switch]$Auto, [switch]$Debug, [switch]$DryRun, [string]$BackupPath, [string]$ResultsPath)
 
-    if (-not (TestWindows)) {
-        Write-Host "[ERROR] 'configure' changes Windows settings and can only run on Windows." -ForegroundColor Red
-        return
+    if (-not (TestWindows)) { throw "'configure' can only run on Windows." }
+    if (-not (TestAdministrator)) { throw 'This script requires Administrator privileges.' }
+    # Never use the debug cache to decide whether mutating controls are compliant.
+    if ($Debug) { Write-Host 'configure always reads live state; the auditpol debug cache is not used.' -ForegroundColor Yellow }
+    $context = New-WelaConfigurationContext -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath
+    if (-not $DryRun) { Write-Host "Recovery journal: $($context.BackupPath)" }
+
+    foreach ($log in @('Security', 'Microsoft-Windows-PowerShell/Operational', 'Windows PowerShell')) {
+        Set-WelaEventLogControl -Context $context -Log $log -Property MaximumSizeInBytes -Desired 1073741824
     }
-
-    # 管理者権限の確認
-    if (-not (TestAdministrator)) {
-        Write-Error "This script requires Administrator privileges"
-        exit 1
-    }
-
-    if (-not (CollectAuditpol -UseCached:$Debug)) {
-        return
-    }
-
-    # ログサイズ定数
-    $oneGB = 1073741824
-    $oneTwentyEightMB = 134217728
-
-    # セキュリティおよびPowerShellログを1GBに設定
-    Write-Host "Configuring Event Logs..."
-    Write-Host ""
-    $largeLogs = @(
-        "Security",
-        "Microsoft-Windows-PowerShell/Operational",
-        "Windows PowerShell"
-    )
-
-    foreach ($log in $largeLogs) {
-        try {
-            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
-            $currentSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
-            $newSize = 1024
-            Write-Host "Log: $log"
-            if ($currentSize -ge $newSize) {
-                Write-Host "[SKIPPED] $log : Current size ($currentSize MB) is already greater than or equal to $newSize MB." -ForegroundColor Yellow
-                Write-Host ""
-                continue
-            }
-            if ($Auto) {
-                $response = "Y"
-            } else {
-                $response = Read-Host "Your current setting is $currentSize MB. Do you want to change it to 1024 MB? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                wevtutil sl $log /ms:$oneGB 2>&1 | Out-Null
-                Write-Host "[OK] $log : 1024 MB" -ForegroundColor Green
-            } else {
-                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "[ERROR] $log : $_" -ForegroundColor Red
-        }
-        Write-Host ""
-    }
-
-    # その他の重要なログを128MBに設定
     $mediumLogs = @(
         "System",
         "Application",
@@ -1120,199 +1086,38 @@ function ConfigureAuditSettings {
     )
 
     foreach ($log in $mediumLogs) {
-        try {
-            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
-            $currentSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
-            $newSize = 128
-            Write-Host "Log: $log"
-            if ($currentSize -ge $newSize) {
-                Write-Host "[SKIPPED] $log : Current size ($currentSize MB) is already greater than or equal to $newSize MB." -ForegroundColor Yellow
-                Write-Host ""
-                continue
-            }
-            if ($Auto) {
-                $response = "Y"
-            } else {
-                $response = Read-Host "Your current setting is $currentSize MB. Do you want to change it to 128 MB? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                wevtutil sl $log /ms:$oneTwentyEightMB 2>&1 | Out-Null
-                Write-Host "[OK] $log : 128 MB" -ForegroundColor Green
-            } else {
-                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "[ERROR] $log : $_" -ForegroundColor Red
-        }
-        Write-Host ""
+        Set-WelaEventLogControl -Context $context -Log $log -Property MaximumSizeInBytes -Desired 134217728
+    }
+    foreach ($log in @('Microsoft-Windows-TaskScheduler/Operational', 'Microsoft-Windows-DriverFrameworks-UserMode/Operational', 'Microsoft-Windows-Crypto-DPAPI/Debug')) {
+        Set-WelaEventLogControl -Context $context -Log $log -Property IsEnabled -Desired $true
     }
 
-    # 特定のログの有効化
-    Write-Host "Enabling Event Logs..."
-    Write-Host ""
-    foreach ($log in @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational", "Microsoft-Windows-Crypto-DPAPI/Debug")) {
-        try {
-            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
-            $currentState = if ($logInfo.IsEnabled) { "Enabled" } else { "Disabled" }
-            $newState = "Enabled"
-            Write-Host "Log: $log"
-            if ($currentState -eq $newState) {
-                Write-Host "[SKIPPED] $log : Already Enabled." -ForegroundColor Yellow
-                Write-Host ""
-                continue
-            }
-            if ($Auto) {
-                $response = "Y"
-            } else {
-                $response = Read-Host "Your current setting is $currentState. Do you want to change it to Enabled? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                wevtutil sl $log /e:true 2>&1 | Out-Null
-                Write-Host "[OK] Enabled: $log" -ForegroundColor Green
-            } else {
-                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "[ERROR] Failed to enable $log : $_" -ForegroundColor Red
-        }
-        Write-Host ""
-    }
-
-    # PowerShell ロギングの設定
-    Write-Host "Configuring PowerShell Logging..."
-    Write-Host ""
-    # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。
-    # 32bit の PowerShell 用に Wow6432Node 側も併せて設定する。
     $regPaths = @()
     foreach ($root in $script:PowerShellPolicyRoots) {
-        $regPaths += @{Path = "$root\ModuleLogging";      Name = "EnableModuleLogging";      Value = 1}
-        $regPaths += @{Path = "$root\ScriptBlockLogging"; Name = "EnableScriptBlockLogging"; Value = 1}
+        $regPaths += @{Path = "$root\ModuleLogging"; Name = 'EnableModuleLogging'; Value = 1}
+        $regPaths += @{Path = "$root\ScriptBlockLogging"; Name = 'EnableScriptBlockLogging'; Value = 1}
     }
-    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
-
-    # モジュール名レジストリの設定
+    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto -Context $context
     foreach ($root in $script:PowerShellPolicyRoots) {
-    try {
-        $moduleLoggingPath = "$root\ModuleLogging\ModuleNames"
-        $currentValue = "Not Set"
-        $pathExists = Test-Path $moduleLoggingPath
-        if ($pathExists) {
-            $prop = Get-ItemProperty -Path $moduleLoggingPath -Name "*" -ErrorAction SilentlyContinue
-            if ($prop) {
-                $currentValue = $prop."*"
-            }
-        }
-        Write-Host "Registry: $moduleLoggingPath"
-        if ($currentValue -eq "*") {
-            Write-Host "[SKIPPED] Module logging : Already set to * (all modules)." -ForegroundColor Yellow
-            Write-Host ""
-        } else
-        {
-            if ($Auto)
-            {
-                $response = "Y"
-            }
-            else
-            {
-                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to * (all modules)? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y")
-            {
-                if (-not $pathExists)
-                {
-                    New-Item -Path $moduleLoggingPath -Force | Out-Null
-                }
-                Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
-                Write-Host "[OK] Module logging enabled for all modules" -ForegroundColor Green
-            }
-            else
-            {
-                Write-Host "[SKIPPED] Module logging" -ForegroundColor Yellow
-            }
-        }
+        Set-WelaRegistryControl -Context $context -Path "$root\ModuleLogging\ModuleNames" -Name '*' -Value '*' -Type String
     }
-    catch {
-        Write-Host "[ERROR] Failed to configure module names: $_" -ForegroundColor Red
-    }
-    Write-Host ""
-    }
+    Set-WelaRegistryControl -Context $context -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit' `
+        -Name ProcessCreationIncludeCmdLine_Enabled -Value 1
 
-    # コマンドライン監査の有効化
-    Write-Host "Enabling Command Line Auditing..."
-    Write-Host ""
-    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
-    $valueName = "ProcessCreationIncludeCmdLine_Enabled"
-    try {
-        $currentValue = "Not Set"
-        if (Test-Path $regPath) {
-            $prop = Get-ItemProperty -Path $regPath -Name $valueName -ErrorAction SilentlyContinue
-            $currentValue = $prop.$valueName
-        }
-        Write-Host "Registry: $regPath"
-        if ($currentValue -eq 1) {
-            Write-Host "[SKIPPED] Command Line Auditing : Already Enabled." -ForegroundColor Yellow
-            Write-Host ""
-        } else
-        {
-            if ($Auto)
-            {
-                $response = "Y"
-            }
-            else
-            {
-                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to 1 (Enabled)? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y")
-            {
-                $regPath = $regPath -replace "HKLM:", "HKLM"
-                $arguments = "add $regPath /v $valueName /f /t REG_DWORD /d 1"
-                $process = Start-Process -FilePath "reg.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
-                if ($process.ExitCode -eq 0)
-                {
-                    Write-Host "[OK] Command line auditing enabled" -ForegroundColor Green
-                }
-                else
-                {
-                    Write-Host "[ERROR] Command line auditing failed (ExitCode: $( $process.ExitCode ))" -ForegroundColor Red
-                }
-            }
-            else
-            {
-                Write-Host "[SKIPPED] Command line auditing" -ForegroundColor Yellow
-            }
-        }
-    }
-    catch {
-        Write-Host "[ERROR] Failed to check command line auditing: $_" -ForegroundColor Red
-    }
-    Write-Host ""
-
-    # NTLM認証の監査設定
-    Write-Host "Configuring NTLM Audit Settings..."
-    Write-Host ""
+    # NTLM policy values are unchanged here; separate policy corrections can use
+    # the same verified registry-control helper.
     $regPaths = @(
         @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "RestrictSendingNTLMTraffic"; Value = 2},
         @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "AuditReceivingNTLMTraffic"; Value = 2},
         @{Path = "HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters"; Name = "AuditNTLMInDomain"; Value = 2}
     )
-    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
-
-    # LDAP query logging (Directory Service EventID 1644) - domain controllers only.
-    # "15 Field Engineering" = 5 makes expensive / inefficient LDAP searches log as 1644, which surfaces
-    # BloodHound / SharpHound-style directory reconnaissance. Only applied where the NTDS role is present.
-    if (Test-Path "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters") {
-        Write-Host "Configuring LDAP query logging (1644) on this domain controller..."
-        Write-Host ""
+    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto -Context $context
+    if (Test-Path 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters') {
         Set-RegistryConfig -RegPaths @(
-            @{Path = "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Diagnostics"; Name = "15 Field Engineering"; Value = 5}
-        ) -Auto:$Auto
+            @{Path = 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Diagnostics'; Name = '15 Field Engineering'; Value = 5}
+        ) -Auto:$Auto -Context $context
     }
 
-    # 監査ポリシーの設定
-    Write-Host "Configuring Audit Policies..."
-    Write-Host ""
     $auditPolicies = @(
         @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "0CCE923F-69AE-11D9-BED3-505054503030"},
         @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "0CCE9242-69AE-11D9-BED3-505054503030"},
@@ -1350,112 +1155,11 @@ function ConfigureAuditSettings {
         @{Category = "System"; Name = "Other System Events"; GUID = "0CCE9214-69AE-11D9-BED3-505054503030"}
     )
 
-    $currentAuditPol = GetAuditpol
-
-    foreach ($policy in $auditPolicies)
-    {
-        $newSetting = "Success and Failure"
-        $currentSetting = if ($currentAuditPol.ContainsKey($policy.GUID))
-        {
-            $currentAuditPol[$policy.GUID]
-        }
-        else
-        {
-            "Unknown"
-        }
-
-        Write-Host "Audit Policy: $( $policy.Category ) - $( $policy.Name )"
-        if ($currentSetting -eq $newSetting)
-        {
-            Write-Host "[SKIPPED] $( $policy.Category ) - $( $policy.Name ) : Already set to $newSetting." -ForegroundColor Yellow
-            Write-Host ""
-            continue
-        }
-        if ($Auto) {
-            $response = "Y"
-        } else {
-            $response = Read-Host "Your current setting is $currentSetting. Do you want to change it to $newSetting? (Y/n)"
-        }
-        if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-            $arguments = "/set /subcategory:{$($policy.GUID)} /success:enable /failure:enable"
-            $process = Start-Process -FilePath "auditpol.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
-
-            if ($process.ExitCode -eq 0) {
-                Write-Host "[OK] $($policy.Category) - $($policy.Name)" -ForegroundColor Green
-            }
-            else {
-                Write-Host "[ERROR] $($policy.Category) - $($policy.Name) (ExitCode: $($process.ExitCode))" -ForegroundColor Red
-            }
-        } else {
-            Write-Host "[SKIPPED] $($policy.Category) - $($policy.Name)" -ForegroundColor Yellow
-        }
-        Write-Host ""
+    foreach ($policy in $auditPolicies) {
+        Set-WelaAuditPolicyControl -Context $context -Policy $policy
     }
-
-    # AD CS AuditFilter の設定
-    Write-Host "Configuring AD CS Audit Settings..."
-    try {
-        $installed = (Get-WindowsFeature -Name AD-Certificate).InstallState -eq "Installed"
-    } catch {
-        $installed = $false
-    }
-
-    if ($installed) {
-        try {
-            $csRootKey = "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\"
-            $caName = (Get-ItemProperty $csRootKey -ErrorAction Stop).Active
-            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\$caName"
-            $prop = Get-ItemProperty -Path $regPath -Name "AuditFilter" -ErrorAction SilentlyContinue
-            $currentValue = if ($null -ne $prop) { [int]$prop.AuditFilter } else { "Not Set" }
-            if ($currentValue -eq 127) {
-                Write-Host "[OK] AuditFilter is already 127" -ForegroundColor Green
-            }
-            else {
-                $proceed = $false
-                if ($Auto) {
-                    $proceed = $true
-                }
-                else {
-                    $response = Read-Host "Do you want to set AuditFilter to 127 and restart Certificate Services? (Y/n)"
-                    $proceed = ($response -eq "" -or $response -match "^[Yy]$")
-                }
-
-                if ($proceed) {
-                    try {
-                        # AuditFilter の設定
-                        & certutil.exe -setreg "CA\AuditFilter" 127 >$null 2>&1
-                        # 証明書サービスの再起動
-                        Restart-Service -Name "CertSvc" -Force -ErrorAction Stop
-                        # 反映確認
-                        $propAfter = Get-ItemProperty -Path $regPath -Name "AuditFilter" -ErrorAction SilentlyContinue
-                        $newValue = if ($null -ne $propAfter) { [int]$propAfter.AuditFilter } else { $null }
-
-                        if ($newValue -eq 127) {
-                            Write-Host "[OK] AuditFilter set to 127 and CertSvc restarted" -ForegroundColor Green
-                        }
-                        else {
-                            Write-Host "[ERROR] AuditFilter did not apply as expected (current: $newValue)" -ForegroundColor Red
-                        }
-                    }
-                    catch {
-                        Write-Host "[ERROR] Failed to set AuditFilter or restart CertSvc: $_" -ForegroundColor Red
-                    }
-                }
-                else {
-                    Write-Host "[SKIP] No changes applied to AuditFilter"
-                }
-            }
-        }
-        catch {
-            Write-Host "[ERROR] Failed to process AD CS audit settings: $_" -ForegroundColor Red
-        }
-    }
-    else {
-        Write-Host "[INFO] AD Certificate Services is not installed. Skipping." -ForegroundColor Yellow
-    }
-    Write-Host ""
-
-    Write-Host "Configuration completed successfully" -ForegroundColor Green
+    Set-WelaCertificateAuditControl -Context $context
+    Complete-WelaConfiguration -Context $context -ResultsPath $ResultsPath
 }
 
 $logo = @"
@@ -1774,10 +1478,13 @@ switch ($Cmd.ToLower()) {
         if ($Help){
             Write-Host "Configure Windows Event Log audit settings based on the YamatoSecurity baseline"
             Write-Host ""
-            Write-Host "Usage: ./WELA.ps1 configure [-Auto]"
+            Write-Host "Usage: ./WELA.ps1 configure [-Auto] [-DryRun] [-BackupPath <new-directory>] [-ResultsPath <json-file>]"
             Write-Host ""
             Write-Host "Options:"
             Write-Host "  -Auto        Automatically configure without prompts"
+            Write-Host "  -DryRun      Read live state and report proposed changes without writing Windows settings"
+            Write-Host "  -BackupPath  New directory for the pre-change recovery journal (unique default beside WELA)"
+            Write-Host "  -ResultsPath Save structured per-control outcomes as JSON"
             Write-Host ""
             Write-Host "Note: only the YamatoSecurity baseline is currently supported for 'configure'."
             Write-Host ""
@@ -1788,7 +1495,14 @@ switch ($Cmd.ToLower()) {
             Write-Host "Re-run with '-Baseline YamatoSecurity' (or omit -Baseline) if that is what you want."
             break
         }
-        ConfigureAuditSettings -Auto:$Auto -Debug:$Debug
+        try {
+            $report = ConfigureAuditSettings -Auto:$Auto -Debug:$Debug -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode -ne 0) { exit $report.ExitCode }
+        } catch {
+            Write-Host "[Failed] Configuration aborted: $_" -ForegroundColor Red
+            exit 1
+        }
     }
 
     "configure-sacl" {
