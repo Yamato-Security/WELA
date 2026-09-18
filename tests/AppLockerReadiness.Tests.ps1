@@ -5,6 +5,10 @@ $count=0
 function Assert($Condition,$Message) { if (-not $Condition) { throw $Message }; $script:count++ }
 function Assert-Throws([scriptblock]$Action,$Pattern) { $message=''; try { & $Action | Out-Null } catch { $message=$_.Exception.Message }; Assert ($message -match $Pattern) "Expected '$Pattern', got '$message'." }
 $xml='<AppLockerPolicy Version="1"><RuleCollection Type="Exe" EnforcementMode="AuditOnly"><FilePathRule Id="12345678-1234-1234-1234-123456789abc" Name="Test" Description="" UserOrGroupSid="S-1-1-0" Action="Allow"><Conditions><FilePathCondition Path="%WINDIR%\*" /></Conditions></FilePathRule></RuleCollection></AppLockerPolicy>'
+$placeholderNodes = @('Exe','Dll','Msi','Script','Appx') | ForEach-Object { '<RuleCollection Type="' + $_ + '" EnforcementMode="NotConfigured" />' }
+$placeholders = '<AppLockerPolicy Version="1">' + ($placeholderNodes -join '') + '</AppLockerPolicy>'
+$unusedPlaceholders = '<AppLockerPolicy Version="1">' + (($placeholderNodes | Select-Object -Skip 1) -join '') + '</AppLockerPolicy>'
+$readbackPlaceholders = $xml.Replace('</AppLockerPolicy>', (($placeholderNodes | Select-Object -Skip 1) -join '') + '</AppLockerPolicy>')
 $desired=ConvertFrom-WelaAppLockerXml -Xml $xml -ForImport
 Assert ($desired.TotalRules -eq 1 -and -not $desired.HasEnforcement) 'Audit-only rule must parse.'
 Assert ((Get-WelaAppLockerXmlKey $xml) -ceq (Get-WelaAppLockerXmlKey ($xml.Replace('Type="Exe" EnforcementMode="AuditOnly"', 'EnforcementMode="AuditOnly" Type="Exe"')))) 'Attribute ordering cannot change compliance.'
@@ -16,11 +20,18 @@ Assert-Throws { ConvertFrom-WelaAppLockerXml -Xml ($xml.Replace('</RuleCollectio
 Assert-Throws { ConvertFrom-WelaAppLockerXml -Xml ($xml.Replace('12345678-1234-1234-1234-123456789abc','not-a-guid')) -ForImport } 'IDs'
 $implicit=ConvertFrom-WelaAppLockerXml -Xml ($xml.Replace('AuditOnly','NotConfigured'))
 Assert ($implicit.HasEnforcement) 'NotConfigured with rules may enforce; never call it disabled.'
+$parsedPlaceholders=ConvertFrom-WelaAppLockerXml -Xml $placeholders
+Assert ($parsedPlaceholders.Collections.Count -eq 5 -and $parsedPlaceholders.EmptyPlaceholderCount -eq 5) 'Raw placeholder collections remain in assessment XML/metadata while all five are recognized as empty.'
+Assert ($parsedPlaceholders.Xml -match 'NotConfigured' -and -not $parsedPlaceholders.HasEnforcement) 'Normalization never deletes the original policy evidence or fabricates enforcement.'
+$commented=ConvertFrom-WelaAppLockerXml -Xml '<AppLockerPolicy Version="1"><RuleCollection Type="Exe" EnforcementMode="NotConfigured"> <!-- native comment --> </RuleCollection></AppLockerPolicy>'
+Assert ($commented.EmptyPlaceholderCount -eq 1) 'Whitespace and comments do not turn an otherwise empty collection into policy content.'
+Assert-Throws { ConvertFrom-WelaAppLockerXml -Xml $placeholders -ForImport } 'AuditOnly'
 function Reset-Fixture {
     $script:localXml='<AppLockerPolicy Version="1" />'; $script:effectiveXml=$script:localXml
     $script:serviceState='Running'; $script:serviceMode='Auto'; $script:channelEnabled=$true
     $script:domain=$false; $script:managed=@(); $script:unknownPolicy=$false; $script:writes=0; $script:readCount=0
     $script:race=$false; $script:reject=$false; $script:drift=$false; $script:tamper=$false; $script:validations=0
+    $script:withPlaceholders=$false
 }
 function Get-WelaAppLockerHost { [pscustomobject]@{Status='Candidate'; Is64BitProcess=$true; PartOfDomain=$script:domain} }
 function Get-WelaAppLockerManagement { [pscustomobject]@{Status='Observed'; ManagementEntries=$script:managed; CspPolicyState='Unknown'} }
@@ -52,6 +63,7 @@ function Set-AppLockerPolicy {
     $script:writes++
     if ($script:reject) { throw 'native rejected policy' }
     $script:localXml=[IO.File]::ReadAllText($XmlPolicy); $script:effectiveXml=$script:localXml
+    if ($script:withPlaceholders) { $script:localXml=$readbackPlaceholders; $script:effectiveXml=$script:localXml }
 }
 Reset-Fixture
 $empty=Get-WelaAppLockerReadiness
@@ -74,18 +86,68 @@ Reset-Fixture; $script:managed=@('MDM provider')
 Assert-Throws { Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired } 'managed'
 Reset-Fixture; $script:unknownPolicy=$true
 Assert-Throws { Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired } 'readable'
+Reset-Fixture; $script:localXml=$placeholders; $script:effectiveXml=$placeholders
+Assert-Throws { Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired } 'NotConfigured.*merge may retain'
+Assert (-not (Test-WelaAppLockerPolicyMatch (Get-WelaAppLockerReadiness) $desired)) 'Empty placeholders do not satisfy a requested policy with rules.'
+Reset-Fixture; $script:localXml=$unusedPlaceholders; $script:effectiveXml=$unusedPlaceholders
+Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired
+Assert (-not (Test-WelaAppLockerPolicyMatch (Get-WelaAppLockerReadiness) $desired)) 'Untargeted empty placeholders permit initialization without pretending that requested rules already exist.'
+foreach ($scope in @('Local','Effective')) {
+    Reset-Fixture
+    if ($scope -eq 'Local') { $script:localXml=$placeholders } else { $script:effectiveXml=$placeholders }
+    Assert-Throws { Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired } 'NotConfigured.*merge may retain'
+}
+Reset-Fixture; $script:localXml=$readbackPlaceholders; $script:effectiveXml=$readbackPlaceholders
+Assert (Test-WelaAppLockerPolicyMatch (Get-WelaAppLockerReadiness) $desired) 'One imported collection plus four empty placeholders matches the requested one-collection policy.'
+Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired
+# A RuleCount == 0 filter would incorrectly ignore each of these. Test both the
+# initial local/effective guards and the post-import comparison against real XML.
+$nonPlaceholders=@(
+    '<RuleCollection Type="Dll" EnforcementMode="Enabled" />',
+    '<RuleCollection Type="Dll" EnforcementMode="AuditOnly" />',
+    '<RuleCollection Type="Dll" EnforcementMode="NotConfigured"><RuleCollectionExtensions /></RuleCollection>',
+    '<RuleCollection Type="Dll" EnforcementMode="NotConfigured"><FutureRule /></RuleCollection>',
+    '<RuleCollection Type="Dll" EnforcementMode="NotConfigured" Future="" />',
+    '<RuleCollection Type="Dll" EnforcementMode="NotConfigured" Description="" />',
+    '<RuleCollection Type="Dll" EnforcementMode="NotConfigured">unknown content</RuleCollection>',
+    '<RuleCollection Type="Dll" EnforcementMode="NotConfigured"><![CDATA[unknown content]]></RuleCollection>',
+    '<RuleCollection Type="Dll" EnforcementMode="NotConfigured"><?future data?></RuleCollection>',
+    '<RuleCollection xmlns="urn:unknown" Type="Dll" EnforcementMode="NotConfigured" />',
+    '<RuleCollection xmlns:x="urn:unknown" Type="Dll" EnforcementMode="NotConfigured" x:Future="" />',
+    ($desired.Collections[0].Xml.Replace('Type="Exe"','Type="Dll"').Replace('AuditOnly','NotConfigured'))
+)
+foreach ($node in $nonPlaceholders) {
+    $policyXml='<AppLockerPolicy Version="1">' + $node + '</AppLockerPolicy>'
+    $parsed=ConvertFrom-WelaAppLockerXml -Xml $policyXml
+    Assert ($parsed.EmptyPlaceholderCount -eq 0 -and -not $parsed.Collections[0].IsEmptyPlaceholder) 'Configured/unknown collection content is never normalized away.'
+    foreach ($scope in @('Local','Effective')) {
+        Reset-Fixture
+        if ($scope -eq 'Local') { $script:localXml=$policyXml } else { $script:effectiveXml=$policyXml }
+        Assert-Throws { Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired } 'preserved'
+    }
+    Reset-Fixture; $script:localXml=$xml.Replace('</AppLockerPolicy>', $node + '</AppLockerPolicy>')
+    Assert (-not (Test-WelaAppLockerPolicyMatch (Get-WelaAppLockerReadiness) $desired)) 'Unexpected configured/unknown collection fails readback even when the requested Exe rule matches.'
+}
+foreach ($policyXml in @($placeholders.Replace('Version="1"','Version="1" Future=""'), $placeholders.Replace('</AppLockerPolicy>','unknown content</AppLockerPolicy>'))) {
+    Reset-Fixture; $script:localXml=$policyXml
+    Assert-Throws { Assert-WelaAppLockerImportSafe (Get-WelaAppLockerReadiness) $desired } 'Unknown policy'
+}
+Assert-Throws { ConvertFrom-WelaAppLockerXml -Xml ($xml.Replace('Version="1"','Version="1" Future=""')) -ForImport } 'Unknown policy'
 $cleanup=@()
 try {
-    foreach ($scenario in @('apply','dry','race','failure','drift','existing','tamper')) {
+    foreach ($scenario in @('apply','dry','race','failure','drift','existing','tamper','placeholders','placeholder-dry','placeholder-drift','target-placeholder')) {
         Reset-Fixture
+        if ($scenario -like 'placeholder*') { $script:localXml=$unusedPlaceholders; $script:effectiveXml=$unusedPlaceholders; $script:withPlaceholders=$true }
+        if ($scenario -eq 'target-placeholder') { $script:localXml=$placeholders; $script:effectiveXml=$placeholders }
         if ($scenario -eq 'race') {$script:race=$true}
         if ($scenario -eq 'tamper') {$script:tamper=$true}
         if ($scenario -eq 'failure') {$script:reject=$true}
         if ($scenario -eq 'drift') {$script:drift=$true}
         if ($scenario -eq 'existing') {$script:localXml=$xml;$script:effectiveXml=$xml}
         $path=Join-Path ([IO.Path]::GetTempPath()) ('wela-applocker-'+[guid]::NewGuid().ToString('N'));$cleanup+=$path
-        $context=New-WelaConfigurationContext -Auto -DryRun:($scenario -eq 'dry') -BackupPath $path
+        $context=New-WelaConfigurationContext -Auto -DryRun:($scenario -in @('dry','placeholder-dry')) -BackupPath $path
         Set-WelaAppLockerAuditPolicy -Context $context -Desired $desired
+        if ($scenario -eq 'placeholder-drift') { $script:localXml=$readbackPlaceholders.Replace('Type="Dll" EnforcementMode="NotConfigured"','Type="Dll" EnforcementMode="AuditOnly"') }
         $result=Complete-WelaConfiguration -Context $context
         switch ($scenario) {
             'apply' {
@@ -100,6 +162,18 @@ try {
             'failure' { Assert ($result.ExitCode -eq 1) 'Native write failure must propagate.' }
             'drift' { Assert ($result.ExitCode -eq 1) 'Final readback must detect policy drift.' }
             'existing' { Assert ($script:writes -eq 0 -and $result.ExitCode -eq 0) 'Identical policy stays unchanged.' }
+            'placeholders' {
+                Assert ($script:writes -eq 1 -and $result.ExitCode -eq 0 -and $result.Results[0].Status -eq 'Applied') 'Public runner imports from empty placeholders and verifies populated readback with remaining placeholders.'
+                $journal=Get-Content (Join-Path $path 'before.jsonl') | ConvertFrom-Json
+                Assert ($journal.Before.LocalPolicy.Policy.Collections.Count -eq 4 -and $journal.Before.LocalPolicy.Policy.EmptyPlaceholderCount -eq 4) 'Recovery journal preserves all original unused placeholder collection metadata.'
+                $export=$result | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+                Assert ($export.Results[0].After.LocalPolicy.Policy.Collections.Count -eq 5 -and $export.Results[0].After.LocalPolicy.Policy.EmptyPlaceholderCount -eq 4) 'Result JSON distinguishes the configured collection from four retained placeholders.'
+                Set-WelaAppLockerAuditPolicy -Context $context -Desired $desired
+                Assert ($script:writes -eq 1 -and $context.Results[1].Status -eq 'AlreadyCompliant') 'Repeated import with placeholders performs no duplicate merge.'
+            }
+            'placeholder-dry' { Assert ($script:writes -eq 0 -and -not (Test-Path $path) -and $result.Results[0].Status -eq 'Skipped') 'Placeholder normalization does not weaken dry-run guarantees.' }
+            'placeholder-drift' { Assert ($script:writes -eq 1 -and $result.ExitCode -eq 1 -and $result.Results[0].Status -in @('Failed','Overridden')) 'Final drift from an empty placeholder into a configured empty collection remains a failure.' }
+            'target-placeholder' { Assert ($script:writes -eq 0 -and $script:validations -eq 0 -and $result.ExitCode -eq 1 -and $result.Results[0].Diagnostic -match 'merge may retain NotConfigured') 'A targeted empty NotConfigured collection blocks before native import to avoid accidental enforcement.' }
         }
     }
     $path=Join-Path ([IO.Path]::GetTempPath()) ('wela-applocker-existing-'+[guid]::NewGuid().ToString('N')+'.xml');$cleanup+=$path

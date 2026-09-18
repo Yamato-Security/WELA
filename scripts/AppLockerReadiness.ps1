@@ -10,6 +10,9 @@ function ConvertFrom-WelaAppLockerXml {
         $doc.Load($reader)
     } finally { $reader.Dispose() }
     if ($doc.DocumentElement.LocalName -cne 'AppLockerPolicy' -or $doc.DocumentElement.NamespaceURI -or $doc.DocumentElement.GetAttribute('Version') -ne '1') { throw 'Expected unqualified AppLockerPolicy Version=1.' }
+    $unknownPolicyData = @($doc.DocumentElement.Attributes | Where-Object { $_.NamespaceURI -or $_.Name -cne 'Version' }).Count -gt 0 -or
+        @($doc.DocumentElement.ChildNodes | Where-Object { $_.NodeType -notin @('Element', 'Whitespace', 'SignificantWhitespace', 'Comment') }).Count -gt 0
+    if ($ForImport -and $unknownPolicyData) { throw 'Unknown policy attributes/content are not accepted for import.' }
     $collections = New-Object 'System.Collections.Generic.List[object]'
     $types = @{}; $ids = @{}
     foreach ($node in @($doc.DocumentElement.ChildNodes | Where-Object NodeType -eq Element)) {
@@ -33,11 +36,18 @@ function ConvertFrom-WelaAppLockerXml {
                 if (@($rule.ChildNodes | Where-Object { $_.NodeType -eq 'Element' -and $_.LocalName -notin @('Conditions', 'Exceptions') }).Count) { throw 'Unknown rule child element.' }
             }
         }
-        $collections.Add([pscustomobject]@{ Type=$type; EnforcementMode=$mode; RuleCount=$rules.Count; PotentialEnforcement=($mode -eq 'Enabled' -or ($mode -eq 'NotConfigured' -and $rules.Count -gt 0)); Xml=$node.OuterXml })
+        # Some serializers can include empty NotConfigured collection shells.
+        # Only this exact shape is ignorable; zero rules alone is insufficient.
+        $placeholder = $node.LocalName -ceq 'RuleCollection' -and -not $node.NamespaceURI -and
+            $type -cin @('Exe', 'Dll', 'Msi', 'Script', 'Appx') -and $mode -ceq 'NotConfigured' -and
+            $node.Attributes.Count -eq 2 -and
+            @($node.Attributes | Where-Object { $_.NamespaceURI -or $_.Name -cnotin @('Type', 'EnforcementMode') }).Count -eq 0 -and
+            @($node.ChildNodes | Where-Object { $_.NodeType -notin @('Whitespace', 'SignificantWhitespace', 'Comment') }).Count -eq 0
+        $collections.Add([pscustomobject]@{ Type=$type; EnforcementMode=$mode; RuleCount=$rules.Count; IsEmptyPlaceholder=[bool]$placeholder; PotentialEnforcement=($mode -eq 'Enabled' -or ($mode -eq 'NotConfigured' -and $rules.Count -gt 0)); Xml=$node.OuterXml })
     }
     if ($ForImport -and -not $collections.Count) { throw 'An empty policy cannot supply AppLocker generation prerequisites.' }
     if ($ForImport -and @($doc.SelectNodes('//*') | Where-Object { $_.NamespaceURI -or @($_.Attributes | Where-Object { $_.NamespaceURI }).Count }).Count) { throw 'Namespaced policy elements/attributes are not accepted for import.' }
-    [pscustomobject]@{ Xml=$doc.OuterXml; Collections=@($collections.ToArray()); TotalRules=(@($collections.ToArray() | Measure-Object RuleCount -Sum)[0].Sum); HasEnforcement=(@($collections.ToArray() | Where-Object PotentialEnforcement).Count -gt 0) }
+    [pscustomobject]@{ Xml=$doc.OuterXml; Collections=@($collections.ToArray()); EmptyPlaceholderCount=@($collections.ToArray() | Where-Object IsEmptyPlaceholder).Count; HasUnknownPolicyData=[bool]$unknownPolicyData; TotalRules=(@($collections.ToArray() | Measure-Object RuleCount -Sum)[0].Sum); HasEnforcement=(@($collections.ToArray() | Where-Object PotentialEnforcement).Count -gt 0) }
 }
 
 function Get-WelaAppLockerHost {
@@ -136,9 +146,10 @@ function Test-WelaAppLockerPolicyMatch {
     param($Snapshot, $Desired)
     if ($Snapshot.LocalPolicy.Status -ne 'Observed') { return $false }
     $current = $Snapshot.LocalPolicy.Policy
-    if ($current.Collections.Count -ne $Desired.Collections.Count -or $current.HasEnforcement) { return $false }
+    $currentCollections = @($current.Collections | Where-Object { -not $_.IsEmptyPlaceholder })
+    if ($currentCollections.Count -ne $Desired.Collections.Count -or $current.HasEnforcement -or $current.HasUnknownPolicyData) { return $false }
     foreach ($wanted in $Desired.Collections) {
-        $actual = @($current.Collections | Where-Object Type -eq $wanted.Type)
+        $actual = @($currentCollections | Where-Object Type -eq $wanted.Type)
         if ($actual.Count -ne 1 -or (Get-WelaAppLockerXmlKey $actual[0].Xml) -cne (Get-WelaAppLockerXmlKey $wanted.Xml)) { return $false }
     }
     return $true
@@ -150,8 +161,16 @@ function Assert-WelaAppLockerImportSafe {
     if ($Snapshot.Host.PartOfDomain -or $Snapshot.Management.Status -ne 'Observed' -or @($Snapshot.Management.ManagementEntries).Count) { throw 'Local import is blocked on domain-joined, managed or unknown-management hosts. Deploy through the existing policy authority.' }
     if ($Snapshot.LocalPolicy.Status -ne 'Observed' -or $Snapshot.EffectiveGpPolicy.Status -ne 'Observed') { throw 'Both local and GP effective policies must be readable.' }
     if ($Snapshot.LocalPolicy.Policy.HasEnforcement -or $Snapshot.EffectiveGpPolicy.Policy.HasEnforcement) { throw 'Existing enforcement (including NotConfigured collections with rules) is preserved; audit-only import is blocked.' }
+    if ($Snapshot.LocalPolicy.Policy.HasUnknownPolicyData -or $Snapshot.EffectiveGpPolicy.Policy.HasUnknownPolicyData) { throw 'Unknown policy attributes/content are preserved; audit-only import is blocked.' }
     if (Test-WelaAppLockerPolicyMatch -Snapshot $Snapshot -Desired $Desired) { return }
-    if ($Snapshot.LocalPolicy.Policy.Collections.Count -or $Snapshot.EffectiveGpPolicy.Policy.Collections.Count) { throw 'Existing policy is preserved. Import only initializes an empty local/GP policy; it never replaces a configured policy.' }
+    # -Merge preserves target enforcement settings. A currently empty
+    # NotConfigured target can enforce the new rules once merged. Only unused
+    # placeholders are safe to ignore before an import; do not remove/change them.
+    $targetPlaceholders = @(@($Snapshot.LocalPolicy.Policy.Collections) + @($Snapshot.EffectiveGpPolicy.Policy.Collections) |
+        Where-Object { $_.IsEmptyPlaceholder -and $_.Type -in $Desired.Collections.Type })
+    if ($targetPlaceholders.Count) { throw ('Empty NotConfigured collection(s) targeted by this import are preserved: ' + (($targetPlaceholders.Type | Select-Object -Unique) -join ', ') + '. A merge may retain NotConfigured and enforce newly added rules; review these collections through the existing policy authority before importing.') }
+    if (@($Snapshot.LocalPolicy.Policy.Collections | Where-Object { -not $_.IsEmptyPlaceholder }).Count -or
+        @($Snapshot.EffectiveGpPolicy.Policy.Collections | Where-Object { -not $_.IsEmptyPlaceholder }).Count) { throw 'Existing policy is preserved. Import only initializes an empty local/GP policy; it never replaces a configured policy.' }
 }
 
 function New-WelaAppLockerImportReadLock {

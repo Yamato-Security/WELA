@@ -55,7 +55,7 @@
 
 **新機能:**
 
-- `applocker-readiness` を追加し、AppLocker のポリシー、強制モード、Application Identity サービス、チャネルを確認できるようにしました。空のローカルポリシーには指定した監査専用 XML を検証してインポートできます。既存の強制ポリシーや管理対象ホストでは変更を拒否し、CSP とイベント生成の未検証状態を明示します。 (#400) (@Shirofune-Security)
+- `applocker-readiness` を追加し、AppLocker のポリシー、強制モード、Application Identity サービス、チャネルを確認できるようにしました。空のローカルポリシーには指定した監査専用 XML を検証してインポートできます。既存の強制ポリシーや管理対象ホストでは変更を拒否します。未使用の空の NotConfigured コレクションによる誤った比較失敗を防ぎ、新しいルールの対象となる空のコレクションはマージ時に強制が有効になる可能性があるため拒否します。元の XML と未知・設定済みの内容を保持し、CSP とイベント生成の未検証状態を明示します。 (#400) (@Shirofune-Security)
 
 - MITRE ATT&CK Navigatorヒートマップに対応した。 (#11) (@fukusuket)
 - Windows設定を様々なベースラインに構成するための`configure`コマンドを追加した。 (#12) (@fukusuket)
