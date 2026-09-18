@@ -854,7 +854,7 @@
         "type": "filter",
         "eventIds": [],
         "channels": [
-          "Microsoft-Windows-Security-Mitigations*"
+          "Microsoft-Windows-Security-Mitigations/KernelMode"
         ],
         "guid": ""
       },
@@ -874,7 +874,7 @@
         "type": "filter",
         "eventIds": [],
         "channels": [
-          "Microsoft-Windows-Security-Mitigations*"
+          "Microsoft-Windows-Security-Mitigations/UserMode"
         ],
         "guid": ""
       },

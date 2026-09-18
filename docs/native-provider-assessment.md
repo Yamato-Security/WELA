@@ -21,7 +21,7 @@ The JSON and self-contained HTML reports preserve channel state, log mode, secur
 | Provider `Unknown` | A required provider/status query was unavailable or failed. The channel observation is still retained separately. |
 | Domain NTLM `Not applicable` | The host is confirmed not to be a domain controller. An unreadable role remains unknown. |
 
-Each exact channel is read independently. An enabled AppLocker EXE/DLL channel does not hide a disabled MSI/Script channel. PowerShell's `pwsh` metadata alias for classic event 400 maps to `Windows PowerShell`; it does not prove PowerShell 7 logging. The Security-Mitigations catalog now reads separate KernelMode and UserMode channels, preserving the existing wildcard rule selector without issuing broad wildcard channel queries.
+Each exact channel is read independently. An enabled AppLocker EXE/DLL channel does not hide a disabled MSI/Script channel. PowerShell's `pwsh` metadata alias for classic event 400 maps to `Windows PowerShell`; it does not prove PowerShell 7 logging. Catalog selectors use concrete channel names or metadata aliases. In both filtering and source mapping, rule channels are patterns matched against these concrete names. The Security-Mitigations catalog reads separate KernelMode and UserMode channels, mapping the existing wildcard rules to both without issuing broad wildcard channel queries or mapping a channel-specific rule to its sibling.
 
 ## Provider evidence and coverage limits
 

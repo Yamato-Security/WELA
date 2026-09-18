@@ -172,7 +172,9 @@ function RuleFilter {
         $hasCriteria = $true
         if (-not ($rule.channel | Where-Object {
             $ruleChannel = $_
-            $category_channels | Where-Object { $ruleChannel -like $_ }
+            # Catalog channels are concrete names/aliases; rule channels are patterns,
+            # matching the convention used by Get-WelaNativeSources.
+            $category_channels | Where-Object { $_ -like $ruleChannel }
         })) {
             return $false
         }

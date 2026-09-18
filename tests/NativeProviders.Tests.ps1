@@ -83,6 +83,11 @@ $script:ScriptRoot = Join-Path ([IO.Path]::GetTempPath()) ('wela-native-provider
 $null = New-Item -ItemType Directory -Path $script:ScriptRoot
 $script:SecurityRulesPath = Join-Path $script:ScriptRoot 'rules.json'
 try {
+    # Exercise the real corpus's rule-side wildcard against the exact catalog
+    # selectors, through the public CSV/JSON/HTML assessment path.
+    $wildcardRules = @(Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/security_rules.json') -Raw |
+        ConvertFrom-Json | Where-Object { $_.channel -contains 'Microsoft-Windows-Security-Mitigations*' })
+    Assert-Equal ($wildcardRules.Count -gt 0) $true 'Real Security-Mitigations wildcard rules are present'
     $fixtures = @(
         @{ id = 'application'; channel = @('Application') }
         @{ id = 'print'; channel = @('Microsoft-Windows-PrintService/Operational') }
@@ -97,6 +102,9 @@ try {
         @{ id = 'mitigation-user'; channel = @('Microsoft-Windows-Security-Mitigations/UserMode') }
         @{ id = 'security'; channel = @('sec'); subcategory_guids = @('0CCE9215-69AE-11D9-BED3-505054503030') }
     )
+    foreach ($rule in $wildcardRules) {
+        $fixtures += @{ id = $rule.id; channel = @($rule.channel); event_ids = @($rule.event_ids) }
+    }
     foreach ($rule in $fixtures) {
         $rule.level = 'medium'; $rule.title = $rule.id
         if (-not $rule.ContainsKey('event_ids')) { $rule.event_ids = @() }
@@ -154,13 +162,25 @@ try {
     $classic = $sources | Where-Object { $_.Channel.Name -eq 'Windows PowerShell' }
     Assert-Equal ($classic.MappedRuleIds -contains 'classic') $true 'Classic PowerShell alias maps to its real channel'
     $kernel = $sources | Where-Object { $_.Channel.Name -eq 'Microsoft-Windows-Security-Mitigations/KernelMode' }
-    Assert-Equal ($kernel.MappedRuleIds -contains 'mitigation-kernel') $true 'Exact mitigation channel matches existing wildcard catalog selector'
+    $user = $sources | Where-Object { $_.Channel.Name -eq 'Microsoft-Windows-Security-Mitigations/UserMode' }
+    Assert-Equal ($kernel.MappedRuleIds -contains 'mitigation-kernel') $true 'Exact mitigation channel matches its concrete catalog selector'
     Assert-Equal ($kernel.MappedRuleIds -contains 'mitigation-user') $false 'Kernel mitigation source does not inherit user-mode rules'
-    Assert-Equal (($rows | Where-Object { $_.NativeSources.Channel.Name -contains 'Microsoft-Windows-Security-Mitigations/KernelMode' }).RuleCount) 1 'Category count uses actual source mappings, not a sibling wildcard match'
-    Assert-Equal $report.Coverage.TotalRules 12 'Whole rule corpus remains in coverage denominator'
+    Assert-Equal ($user.MappedRuleIds -contains 'mitigation-user') $true 'User mitigation source retains its exact rule'
+    Assert-Equal ($user.MappedRuleIds -contains 'mitigation-kernel') $false 'User mitigation source does not inherit kernel rules'
+    foreach ($rule in $wildcardRules) {
+        Assert-Equal ($kernel.MappedRuleIds -contains $rule.id) $true 'Rule-side wildcard maps to the concrete KernelMode source'
+        Assert-Equal ($user.MappedRuleIds -contains $rule.id) $true 'Rule-side wildcard maps to the concrete UserMode source'
+        Assert-Equal (RuleFilter $rule @('999') @($kernel.Channel.Name) '') $false 'A wildcard channel match still requires the selected event ID'
+        Assert-Equal (RuleFilter $rule @($rule.event_ids[0]) @($kernel.Channel.Name) '') $true 'Matching channel and event ID pass together'
+    }
+    foreach ($source in @($kernel, $user)) {
+        Assert-Equal (($rows | Where-Object { $_.NativeSources.Channel.Name -contains $source.Channel.Name }).RuleCount) (1 + $wildcardRules.Count) 'Each category includes exact and wildcard rules without unrelated sibling rules'
+    }
+    Assert-Equal @(& $module { $script:channelReads | Where-Object { $_ -match '[*?]' } }).Count 0 'Wildcard rules never trigger wildcard native channel reads'
+    Assert-Equal $report.Coverage.TotalRules $fixtures.Count 'Rules mapped to both native sources appear once in the full denominator'
     Assert-Equal $report.Coverage.UsableRules 1 'Only the independently enabled Security source receives usable credit'
     Assert-Equal @(Import-Csv (Join-Path $script:ScriptRoot 'UsableRules.csv')).Count 1 'Usable CSV matches conservative JSON coverage'
-    Assert-Equal @(Import-Csv (Join-Path $script:ScriptRoot 'UnusableRules.csv')).Count 11 'Unconfirmed native rules are retained in CSV'
+    Assert-Equal @(Import-Csv (Join-Path $script:ScriptRoot 'UnusableRules.csv')).Count ($fixtures.Count - 1) 'Unconfirmed native rules are retained once in CSV'
     Assert-Equal @($script:heatmapRules | Where-Object { $_.id -ne 'security' -and ($_.applicable -or $_.ideal) }).Count 0 'No current or ideal native provider uplift is fabricated'
     $html = Get-Content -LiteralPath $htmlPath -Raw
     Assert-Equal ($html -match 'Not installed') $true 'HTML retains absent-feature state'
