@@ -85,8 +85,9 @@ $script:SecurityRulesPath = Join-Path $script:ScriptRoot 'rules.json'
 try {
     # Exercise the real corpus's rule-side wildcard against the exact catalog
     # selectors, through the public CSV/JSON/HTML assessment path.
-    $wildcardRules = @(Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/security_rules.json') -Raw |
-        ConvertFrom-Json | Where-Object { $_.channel -contains 'Microsoft-Windows-Security-Mitigations*' })
+    $corpus = Get-Content -LiteralPath (Join-Path $PSScriptRoot '../config/security_rules.json') -Raw | ConvertFrom-Json
+    # Explicitly enumerate the parsed array on Windows PowerShell 5.1 as well.
+    $wildcardRules = @($corpus | Where-Object { $_.channel -contains 'Microsoft-Windows-Security-Mitigations*' })
     Assert-Equal ($wildcardRules.Count -gt 0) $true 'Real Security-Mitigations wildcard rules are present'
     $fixtures = @(
         @{ id = 'application'; channel = @('Application') }
