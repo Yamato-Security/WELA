@@ -135,7 +135,7 @@ source identifiers and prerequisites such as SACLs; recording an enabled audit
 subcategory does not claim its prerequisite was installed.
 
 The result `Scope` is `native-windows-configuration` for default configure and
-`advanced-audit-policy-only` for `configure -Profile`. `ProfileScope` describes the
+`advanced-audit-policy-and-precedence` for `configure -Profile`. `ProfileScope` describes the
 advanced-policy subset within either result. `-PlanPath` remains available for
 profile JSON output; `-ResultsPath` saves the verified configuration report.
 
