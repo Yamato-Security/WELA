@@ -98,7 +98,7 @@
         "DomainController",
         "ADCS"
       ],
-      "prerequisites": ""
+      "prerequisites": "Only generates application-group management evidence when the corresponding application-group activity occurs."
     },
     {
       "id": "Computer Account Management",
@@ -509,7 +509,7 @@
         "DomainController",
         "ADCS"
       ],
-      "prerequisites": "A matching kernel-object SACL is required; enabling the subcategory alone does not generate object events."
+      "prerequisites": "Requires a matching target-object SACL and access rights/type. Enabling this audit policy does not install kernel-object SACLs or guarantee detection coverage."
     },
     {
       "id": "Other Object Access Events",
@@ -906,10 +906,69 @@
           "mode": "optional",
           "mask": 3,
           "note": "Opt-in subcategory prerequisite only. Use configure-sacl separately for targeted file/registry SACLs."
+        },
+        "Group Membership": {
+          "mode": "exact",
+          "mask": 1,
+          "sourceIds": [
+            "ms-sct",
+            "cis-client",
+            "cis-server",
+            "asd"
+          ],
+          "evidence": "CIS v4 17.5.2; Microsoft SCT; ASD native Group Membership Success."
+        },
+        "Application Group Management": {
+          "mode": "exact",
+          "mask": 3,
+          "sourceIds": [
+            "cis-client",
+            "cis-server"
+          ],
+          "evidence": "CIS v4 17.2.1: Success and Failure."
+        },
+        "Authorization Policy Change": {
+          "mode": "exact",
+          "mask": 1,
+          "sourceIds": [
+            "cis-client",
+            "cis-server",
+            "ms-sct"
+          ],
+          "evidence": "CIS v4 17.7.3 and Server 2025 SCT: Success. The separate WEF profile retains Success and Failure."
+        },
+        "MPSSVC Rule-Level Policy Change": {
+          "mode": "exact",
+          "mask": 3,
+          "sourceIds": [
+            "ms-sct",
+            "cis-client",
+            "cis-server",
+            "ms-wef"
+          ],
+          "evidence": "CIS v4 17.7.4; Microsoft SCT and WEF: Success and Failure."
+        },
+        "IPsec Driver": {
+          "mode": "exact",
+          "mask": 3,
+          "sourceIds": [
+            "cis-client",
+            "cis-server",
+            "ms-audit"
+          ],
+          "evidence": "CIS v4 17.9.1 and Microsoft generic audit recommendation: Success and Failure."
+        },
+        "Kernel Object": {
+          "mode": "exact",
+          "mask": 3,
+          "sourceIds": [
+            "asd"
+          ],
+          "evidence": "ASD native audit policy: Success and Failure; matching object SACLs are a separate prerequisite."
         }
       },
       "roleOverrides": {},
-      "note": "Shared replacement for the 34-policy configure list. Policies irrelevant to the selected role are not applied. The three targeted SACL prerequisites are opt-in."
+      "note": "WELA native audit-policy profile: original configure controls plus six source-backed baseline gaps. Role-specific controls are not applied outside their roles. File/Registry/Handle optional policies and object SACL dependencies remain separate. Source profiles retain their own exact/minimum masks."
     },
     {
       "id": "windows-defaults-reviewed-2026-09",

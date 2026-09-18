@@ -31,7 +31,7 @@ The WELA and documentary guide profiles currently cover the reviewed Windows 11/
 
 | Profile | Version / meaning |
 | --- | --- |
-| `wela-2.2.0` | Reviewed WELA development snapshot `8ef938f0966e86adc527395f50f907c43e843d1e`; retains the 34 existing success/failure policies, with irrelevant roles skipped and three SACL prerequisites optional |
+| `wela-2.2.0` | Reviewed WELA development snapshot `8ef938f0966e86adc527395f50f907c43e843d1e`; extends the 34 existing policies with [six native audit controls](../website/docs/commands/native-audit-controls.md), with irrelevant roles skipped and three SACL prerequisites optional |
 | `windows-defaults-reviewed-2026-09` | Documentary effective-default model; **reference only**, cannot be applied or used to reset an OS |
 | `microsoft-sct-win11-24h2`, `microsoft-sct-win11-25h2` | Official SCT Policy Analyzer settings, exact masks |
 | `microsoft-sct-server2022`, `microsoft-sct-server2025-2602` | Official SCT member/DC settings; AD CS uses the member-server baseline |
