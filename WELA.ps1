@@ -25,6 +25,9 @@
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
+    [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [string[]]$WmiNamespace,
+    [switch]$WmiIncludeChildren,
     [switch]$Help
 )
 
@@ -42,6 +45,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
+. (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
@@ -1678,6 +1682,10 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 wmi-auditing -WmiAction List
+  ./WELA.ps1 wmi-auditing -WmiAction Plan -WmiNamespace root\cimv2 -ResultsPath wmi-plan.json
+  ./WELA.ps1 wmi-auditing -WmiAction Configure -WmiNamespace root\cimv2 -DryRun
+  # Namespace SACLs are opt-in; descendants require -WmiIncludeChildren. See docs/wmi-namespace-auditing.md.
   ./WELA.ps1 firewall-logging -FirewallAction Audit -ResultsPath firewall.json
   ./WELA.ps1 firewall-logging -FirewallAction Plan -FirewallPathMode CisV4
   ./WELA.ps1 firewall-logging -FirewallAction Configure -DryRun
@@ -1733,8 +1741,12 @@ if ($PSBoundParameters.ContainsKey('SaclMode') -and
 # Reject unsupported dry-run requests before reaching any command's mutation path.
 if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
-    -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, and applocker-readiness -AppLockerAction Import. No command was run."
+    -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
+    -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, wmi-auditing -WmiAction Configure, and applocker-readiness -AppLockerAction Import. No command was run."
+}
+if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
+    throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
 }
 if ($Profile -and $Cmd -in @('eventlog-profiles', 'audit-filesize', 'configure-eventlogs')) {
     throw '-Profile selects advanced audit policy only. Use -LogProfile for event-log size/mode settings.'
@@ -1752,6 +1764,19 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'wmi-auditing' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 wmi-auditing -WmiAction List|Audit|Plan|Configure [-WmiNamespace root\cimv2,root\subscription] [-WmiIncludeChildren] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Select exact local namespaces explicitly. Default action List is read-only. Configure appends ASD success audit ACEs; descendant inheritance requires an explicit switch. No access permissions, audit policy or forwarding changes.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'wmi-auditing uses its own namespace selections, not -Profile or -Baseline.' }
+        try {
+            $report = Invoke-WelaWmiAuditCommand -Action $WmiAction -Namespace $WmiNamespace -IncludeChildren:$WmiIncludeChildren -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] WMI namespace auditing: $_" -ForegroundColor Red; exit 1 }
+    }
     'firewall-logging' {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 firewall-logging [-FirewallAction Audit|Plan|Configure] [-FirewallPathMode Preserve|CisV4] [-FirewallMinimumSizeKiB 16384..32767] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
