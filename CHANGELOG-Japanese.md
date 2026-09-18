@@ -52,6 +52,9 @@
 
 **新機能:**
 
+- プロファイルの plan/audit/configure に対象を限定した SACL の読み取り専用計画を追加しました。オブジェクト監査ポリシー、ユーザーハイブ・フォルダーリダイレクトの未確認箇所、WEF Run/RunOnce の監査エントリを表示し、`-SaclMode Skip` による省略も明示します。SACL の書き込みや未検証の検知率向上は行いません。 (issue #373) (@Shirofune-Security)
+
+
 - MITRE ATT&CK Navigatorヒートマップに対応した。 (#11) (@fukusuket)
 - Windows設定を様々なベースラインに構成するための`configure`コマンドを追加した。 (#12) (@fukusuket)
 - Defender for Identityの必要なログに対応した。 (#114) (@fukusuket)
