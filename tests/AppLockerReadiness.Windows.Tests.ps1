@@ -1,0 +1,37 @@
+$ErrorActionPreference='Stop'
+if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'Windows required.' }
+. (Join-Path $PSScriptRoot '../scripts/AppLockerReadiness.ps1')
+$report=Get-WelaAppLockerReadiness
+if ($report.Collections.Count -ne 5 -or $report.CspPolicyState -ne 'Unknown' -or $report.UsableRuleCredit -ne 0) { throw 'Native report lost collection/CSP uncertainty.' }
+if ($report.Host.Status -eq 'Unknown') { throw ($report.Host | ConvertTo-Json) }
+foreach ($scope in @($report.LocalPolicy,$report.EffectiveGpPolicy)) {
+    if ($scope.Status -eq 'Observed' -and -not $scope.Policy.Xml) { throw 'Observed policy must retain XML evidence.' }
+    if ($scope.Status -ne 'Observed') { Write-Host "Policy read limitation: $($scope.Status) $($scope.Diagnostic)" }
+}
+# The native cmdlet parses the XML without installing it or executing the file.
+if (Get-Command Test-AppLockerPolicy -ErrorAction SilentlyContinue) {
+    $path=Join-Path $env:TEMP ('wela-applocker-schema-'+[guid]::NewGuid().ToString('N')+'.xml')
+    $placeholderPath=$path.Replace('.xml','-placeholders.xml')
+    try {
+        $xml='<AppLockerPolicy Version="1"><RuleCollection Type="Exe" EnforcementMode="AuditOnly"><FilePathRule Id="12345678-1234-1234-1234-123456789abc" Name="Read-only test" Description="" UserOrGroupSid="S-1-1-0" Action="Allow"><Conditions><FilePathCondition Path="%WINDIR%\*" /></Conditions></FilePathRule></RuleCollection></AppLockerPolicy>'
+        $policy=ConvertFrom-WelaAppLockerXml -Xml $xml -ForImport
+        $lock=New-WelaAppLockerImportReadLock -Path $path -Xml $policy.Xml
+        try {
+            $validation=@(Test-AppLockerPolicy -XmlPolicy $path -Path "$env:SystemRoot\System32\cmd.exe" -User 'S-1-1-0' -ErrorAction Stop)
+            if (-not $validation.Count) { throw 'Native schema validation returned no decision.' }
+        } finally { $lock.Dispose() }
+        # In-memory native-readback representation: the one Exe collection plus
+        # empty NotConfigured shells for other types. Validate through the native
+        # reader only; this does not install or merge any policy.
+        $shells=(@('Dll','Msi','Script','Appx') | ForEach-Object { '<RuleCollection Type="' + $_ + '" EnforcementMode="NotConfigured" />' }) -join ''
+        $withPlaceholders=ConvertFrom-WelaAppLockerXml -Xml $policy.Xml.Replace('</AppLockerPolicy>',$shells+'</AppLockerPolicy>')
+        $snapshot=[pscustomobject]@{LocalPolicy=[pscustomobject]@{Status='Observed';Policy=$withPlaceholders}}
+        if (-not (Test-WelaAppLockerPolicyMatch $snapshot $policy) -or $withPlaceholders.EmptyPlaceholderCount -ne 4) { throw 'Placeholder readback representation did not match the requested collection.' }
+        $lock=New-WelaAppLockerImportReadLock -Path $placeholderPath -Xml $withPlaceholders.Xml
+        try {
+            $withShells=@(Test-AppLockerPolicy -XmlPolicy $placeholderPath -Path "$env:SystemRoot\System32\cmd.exe" -User 'S-1-1-0' -ErrorAction Stop)
+            if ($withShells.Count -ne $validation.Count -or (($withShells.PolicyDecision -join ',') -cne ($validation.PolicyDecision -join ','))) { throw 'Native XML reader changed its decision with empty NotConfigured placeholders.' }
+        } finally { $lock.Dispose() }
+    } finally { Remove-Item -LiteralPath $path,$placeholderPath -Force -ErrorAction SilentlyContinue }
+} else { Write-Host 'Native policy validation unavailable in this PowerShell session; importer will refuse.' }
+Write-Host 'PASS: native read-only AppLocker observations. No Set-AppLockerPolicy or service changes.'

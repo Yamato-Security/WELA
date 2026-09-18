@@ -28,6 +28,15 @@
     [ValidateSet('MdiDomain', 'MdiConfiguration', 'PkiObjects')][string[]]$AdSaclProfile,
     [string[]]$AdObjectDn,
     [string]$AdReceiptPath,
+    [ValidateSet('Audit', 'Plan', 'Configure')][string]$ChannelAction = 'Audit',
+    [string]$ChannelProfile = 'microsoft-wef-appendix-c',
+    [ValidateSet('Baseline', 'Suspect', 'Both')][string]$WefQuerySet = 'Both',
+    [switch]$GrantEventLogReaders,
+    [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
+    [string]$AppLockerPolicyPath,
+    [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [string[]]$WmiNamespace,
+    [switch]$WmiIncludeChildren,
     [switch]$Help
 )
 
@@ -45,10 +54,14 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
+. (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
+. (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
+Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
+. (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1681,6 +1694,14 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 channel-settings -ChannelAction Audit -WefQuerySet Both -ResultsPath channels.json
+  ./WELA.ps1 channel-settings -ChannelAction Plan -GrantEventLogReaders
+  ./WELA.ps1 channel-settings -ChannelAction Configure -GrantEventLogReaders -DryRun
+  # Native channels only; ACL changes require -GrantEventLogReaders. Forwarding identity access needs a separate test.
+  ./WELA.ps1 wmi-auditing -WmiAction List
+  ./WELA.ps1 wmi-auditing -WmiAction Plan -WmiNamespace root\cimv2 -ResultsPath wmi-plan.json
+  ./WELA.ps1 wmi-auditing -WmiAction Configure -WmiNamespace root\cimv2 -DryRun
+  # Namespace SACLs are opt-in; descendants require -WmiIncludeChildren. See docs/wmi-namespace-auditing.md.
   ./WELA.ps1 firewall-logging -FirewallAction Audit -ResultsPath firewall.json
   ./WELA.ps1 firewall-logging -FirewallAction Plan -FirewallPathMode CisV4
   ./WELA.ps1 firewall-logging -FirewallAction Configure -DryRun
@@ -1688,6 +1709,8 @@ Usage:
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
+  ./WELA.ps1 applocker-readiness -AppLockerAction Plan -AppLockerPolicyPath operator-audit.xml
   # SMB auditing is opt-in and never changes signing/encryption requirements or guest access.
   ./WELA.ps1 ad-object-sacl -AdSaclAction Plan -AdServer dc01.example.test -AdSaclProfile MdiDomain
   ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
@@ -1720,6 +1743,12 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if (($PSBoundParameters.ContainsKey('AppLockerAction') -or $AppLockerPolicyPath) -and $Cmd -ne 'applocker-readiness') {
+    throw '-AppLockerAction and -AppLockerPolicyPath require applocker-readiness. No command was run.'
+}
+if ($Cmd -eq 'applocker-readiness' -and ($Profile -or $Baseline)) {
+    throw 'applocker-readiness uses its own operator-supplied policy, not -Profile or -Baseline. No command was run.'
+}
 # SaclMode belongs only to the read-only profile companion plan. In particular,
 # configure-sacl must never silently ignore an explicit request to Skip.
 if ($PSBoundParameters.ContainsKey('SaclMode') -and
@@ -1732,11 +1761,16 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
-    -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback'))) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
+    -not ($Cmd -eq 'channel-settings' -and $ChannelAction -eq 'Configure') -and
+    -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
+    -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, applocker-readiness -AppLockerAction Import, and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
+}
+if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
+    throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
 }
 if ($Profile -and $Cmd -in @('eventlog-profiles', 'audit-filesize', 'configure-eventlogs')) {
     throw '-Profile selects advanced audit policy only. Use -LogProfile for event-log size/mode settings.'
@@ -1748,12 +1782,45 @@ if (($ResizeLogs -or $ApplyLogMode) -and $Cmd -ne 'configure-eventlogs') {
     throw '-ResizeLogs and -ApplyLogMode require configure-eventlogs. No command was run.'
 }
 
+if (($PSBoundParameters.ContainsKey('ChannelAction') -or $PSBoundParameters.ContainsKey('ChannelProfile') -or
+    $PSBoundParameters.ContainsKey('WefQuerySet') -or $GrantEventLogReaders) -and $Cmd -ne 'channel-settings') {
+    throw 'Channel options require channel-settings. No command was run.'
+}
+
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
     Invoke-WelaProfileCommand -Command $Cmd.ToLower()
     return
 }
 
 switch ($Cmd.ToLower()) {
+    'channel-settings' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 channel-settings [-ChannelAction Audit|Plan|Configure] [-ChannelProfile microsoft-wef-appendix-c] [-WefQuerySet Baseline|Suspect|Both] [-GrantEventLogReaders] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Audits CAPI2/native WEF prerequisites. Configure enables/grows declared channels; only -GrantEventLogReaders permits adding the CAPI2 read ACE. Existing descriptor entries and retention are preserved. See docs/native-channel-access.md.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'channel-settings uses -ChannelProfile; -Profile and -Baseline select Security audit settings.' }
+        if ($HtmlPath) { throw 'channel-settings exports JSON through -ResultsPath; -HtmlPath is not supported.' }
+        if ($ChannelAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'channel-settings Configure requires Administrator privileges.' }
+        try {
+            $report = Invoke-WelaNativeChannelCommand -Action $ChannelAction -Profile $ChannelProfile -QuerySet $WefQuerySet -GrantEventLogReaders:$GrantEventLogReaders -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] Native channel settings: $_" -ForegroundColor Red; exit 1 }
+    }
+    'wmi-auditing' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 wmi-auditing -WmiAction List|Audit|Plan|Configure [-WmiNamespace root\cimv2,root\subscription] [-WmiIncludeChildren] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Select exact local namespaces explicitly. Default action List is read-only. Configure appends ASD success audit ACEs; descendant inheritance requires an explicit switch. No access permissions, audit policy or forwarding changes.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'wmi-auditing uses its own namespace selections, not -Profile or -Baseline.' }
+        try {
+            $report = Invoke-WelaWmiAuditCommand -Action $WmiAction -Namespace $WmiNamespace -IncludeChildren:$WmiIncludeChildren -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] WMI namespace auditing: $_" -ForegroundColor Red; exit 1 }
+    }
     'firewall-logging' {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 firewall-logging [-FirewallAction Audit|Plan|Configure] [-FirewallPathMode Preserve|CisV4] [-FirewallMinimumSizeKiB 16384..32767] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
@@ -1793,6 +1860,20 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] AD object SACL: $_" -ForegroundColor Red; exit 1 }
+    }
+    "applocker-readiness" {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 applocker-readiness [-AppLockerAction Audit|Plan|Import] [-AppLockerPolicyPath operator.xml] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            return
+        }
+        if ($AppLockerAction -eq 'Import' -and -not (TestAdministrator)) { throw 'AppLocker policy import requires Administrator privileges.' }
+        $report = Invoke-WelaAppLockerCommand -Action $AppLockerAction -PolicyPath $AppLockerPolicyPath -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        if ($report.PSObject.Properties['Assessment']) {
+            $report.Assessment.Collections | Format-Table Type, EnforcementMode, RuleCount, PrerequisiteState, GenerationReadiness -AutoSize
+            Write-Host 'GP observations only; CSP policies and actual event generation remain unverified.' -ForegroundColor Yellow
+            if ($report.ImportBlocker) { Write-Host "Import blocked: $($report.ImportBlocker)" -ForegroundColor Yellow }
+        } else { $report.Results | Format-Table Id, Status, Diagnostic -AutoSize }
+        if ($report.ExitCode -ne 0) { throw 'AppLocker assessment/import failed; see structured results.' }
     }
     "profiles" {
         (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List

@@ -94,7 +94,7 @@ function Invoke-WelaConfigurationControl {
 
 function Complete-WelaConfiguration {
     param($Context, [string]$ResultsPath, $Plan,
-          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "ad-object-sacl-only")]
+          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only")]
           [string]$Scope = "native-windows-configuration",
           [string]$SuccessMessage = 'Configuration completed; all requested controls verified.')
     # A second read detects a value that was compliant earlier but changed during

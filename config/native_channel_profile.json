@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 1,
+  "id": "microsoft-wef-appendix-c",
+  "scope": "native-channel-settings-only",
+  "source": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/use-windows-event-forwarding-to-assist-in-intrusion-detection",
+  "reviewed": "2026-09-19",
+  "controls": [
+    {
+      "channel": "Microsoft-Windows-CAPI2/Operational",
+      "enabled": true,
+      "sourceExampleBytes": 102432768,
+      "readerSid": "S-1-5-32-573",
+      "readerMask": 1
+    },
+    {
+      "channel": "Microsoft-Windows-AppLocker/EXE and DLL",
+      "enabled": null,
+      "sourceExampleBytes": 102432768,
+      "readerSid": null,
+      "readerMask": null
+    },
+    {
+      "channel": "Microsoft-Windows-DriverFrameworks-UserMode/Operational",
+      "enabled": true,
+      "sourceExampleBytes": 52432896,
+      "readerSid": null,
+      "readerMask": null
+    }
+  ],
+  "querySets": {
+    "Baseline": {
+      "channels": [
+        {
+          "name": "Application",
+          "queryIds": [
+            "15",
+            "37",
+            "40"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-AppLocker/EXE and DLL",
+          "queryIds": [
+            "1"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-AppLocker/MSI and Script",
+          "queryIds": [
+            "1"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-AppLocker/Packaged app-Deployment",
+          "queryIds": [
+            "11"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-AppLocker/Packaged app-Execution",
+          "queryIds": [
+            "10"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-SMBClient/Operational",
+          "queryIds": [
+            "36"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-SmartCard-Audit/Authentication",
+          "queryIds": [
+            "35"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-TaskScheduler/Operational",
+          "queryIds": [
+            "3"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-TerminalServices-RDPClient/Operational",
+          "queryIds": [
+            "31"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-Windows Defender/Operational",
+          "queryIds": [
+            "41"
+          ]
+        },
+        {
+          "name": "Security",
+          "queryIds": [
+            "2",
+            "5",
+            "6",
+            "7",
+            "8",
+            "14",
+            "16",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "32",
+            "34",
+            "42"
+          ]
+        },
+        {
+          "name": "System",
+          "queryIds": [
+            "0",
+            "3",
+            "4",
+            "5",
+            "9",
+            "13",
+            "17"
+          ]
+        }
+      ],
+      "excludedQueries": [
+        {
+          "queryId": "12",
+          "reason": "EMET is not built in"
+        },
+        {
+          "queryId": "39",
+          "reason": "Sysmon is out of scope"
+        }
+      ]
+    },
+    "Suspect": {
+      "channels": [
+        {
+          "name": "Microsoft-Windows-CAPI2/Operational",
+          "queryIds": [
+            "2"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-DNS-Client/Operational",
+          "queryIds": [
+            "7"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-DriverFrameworks-UserMode/Operational",
+          "queryIds": [
+            "13"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-LSA/Operational",
+          "queryIds": [
+            "4"
+          ]
+        },
+        {
+          "name": "Microsoft-Windows-PowerShell/Operational",
+          "queryIds": [
+            "12"
+          ]
+        },
+        {
+          "name": "Security",
+          "queryIds": [
+            "0",
+            "3",
+            "5",
+            "6",
+            "8",
+            "9",
+            "10",
+            "11"
+          ]
+        },
+        {
+          "name": "System",
+          "queryIds": [
+            "1"
+          ]
+        },
+        {
+          "name": "Windows PowerShell",
+          "queryIds": [
+            "14"
+          ]
+        }
+      ],
+      "excludedQueries": []
+    }
+  }
+}
