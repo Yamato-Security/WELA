@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "wela": {
+      "title": "WELA 2.2.0 logging choices",
+      "url": "https://github.com/Yamato-Security/WELA/issues/379"
+    },
+    "cis-v4": {
+      "title": "CIS Windows 11 Enterprise / Windows Server 2022 v4.0.0 (historical reviewed editions)",
+      "url": "https://www.cisecurity.org/benchmark/microsoft_windows_desktop",
+      "note": "Event Log Service size and full-log behavior recommendations only; effective local values do not establish configured GPO or full benchmark compliance."
+    },
+    "asd-2021": {
+      "title": "ASD Windows event logging and forwarding, October 2021",
+      "url": "https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/windows-event-logging-and-forwarding"
+    },
+    "ms-wevtutil": {
+      "title": "Microsoft wevtutil reference",
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil"
+    }
+  },
+  "profiles": [
+    {
+      "id": "wela-source-2.2.0",
+      "kind": "source",
+      "scope": "event-log-size-and-mode-only",
+      "note": "Default configure/audit-filesize model. Circular mode is a recommendation; applying it requires -ApplyLogMode. Sizes are minima unless -ResizeLogs is explicit.",
+      "controls": [
+        {
+          "log": "Application",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-AppLocker/EXE and DLL",
+          "minimumBytes": 268435456,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-AppLocker/MSI and Script",
+          "minimumBytes": 268435456,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-AppLocker/Packaged app-Deployment",
+          "minimumBytes": 268435456,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-AppLocker/Packaged app-Execution",
+          "minimumBytes": 268435456,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-Bits-Client/Analytic",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-Bits-Client/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-CodeIntegrity/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-Crypto-DPAPI/Debug",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-DFSN-Server/Admin",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-DriverFrameworks-UserMode/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-NTLM/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-PowerShell/Operational",
+          "minimumBytes": 1073741824,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-PrintService/Admin",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-PrintService/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-Security-Mitigations/KernelMode",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-Security-Mitigations/UserMode",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-SmbClient/Security",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-TaskScheduler/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-Windows Defender/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall",
+          "minimumBytes": 268435456,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Microsoft-Windows-WMI-Activity/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Security",
+          "minimumBytes": 1073741824,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "System",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Windows PowerShell",
+          "minimumBytes": 1073741824,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "WELA 2.2.0 shared size model; preserves prior configure 1024 MiB thresholds and fixes audit/configure mismatches."
+        },
+        {
+          "log": "Setup",
+          "minimumBytes": 33554432,
+          "mode": "Circular",
+          "sourceIds": [
+            "cis-v4"
+          ],
+          "evidence": "CIS v4.0.0 18.10.26.3.2: Setup >=32768 KiB; Windows 11 p.1047, Server 2022 p.849."
+        },
+        {
+          "log": "Microsoft-Windows-Diagnosis-Scripted/Operational",
+          "minimumBytes": 134217728,
+          "mode": "Circular",
+          "sourceIds": [
+            "wela"
+          ],
+          "evidence": "Retains the prior WELA configure 128 MiB setting; now shared with size auditing."
+        }
+      ]
+    },
+    {
+      "id": "cis-v4-source",
+      "kind": "source",
+      "scope": "event-log-size-and-mode-only",
+      "note": "Reviewed Windows 11 Enterprise and Server 2022 v4.0.0 effective log settings only; not a GPO compliance assessment.",
+      "controls": [
+        {
+          "log": "Application",
+          "minimumBytes": 33554432,
+          "mode": "Circular",
+          "sourceIds": [
+            "cis-v4"
+          ],
+          "evidence": "Client v4.0.0 18.10.26.1.1 p.1035; Client v4.0.0 18.10.26.1.2 p.1037; Server v4.0.0 18.10.26.1.1 p.837; Server v4.0.0 18.10.26.1.2 p.839. Size minimum; full-log retention Disabled (overwrite)."
+        },
+        {
+          "log": "Security",
+          "minimumBytes": 201326592,
+          "mode": "Circular",
+          "sourceIds": [
+            "cis-v4"
+          ],
+          "evidence": "Client v4.0.0 18.10.26.2.1 p.1040; Client v4.0.0 18.10.26.2.2 p.1042; Server v4.0.0 18.10.26.2.1 p.842; Server v4.0.0 18.10.26.2.2 p.844. Size minimum; full-log retention Disabled (overwrite)."
+        },
+        {
+          "log": "Setup",
+          "minimumBytes": 33554432,
+          "mode": "Circular",
+          "sourceIds": [
+            "cis-v4"
+          ],
+          "evidence": "Client v4.0.0 18.10.26.3.1 p.1045; Client v4.0.0 18.10.26.3.2 p.1047; Server v4.0.0 18.10.26.3.1 p.847; Server v4.0.0 18.10.26.3.2 p.849. Size minimum; full-log retention Disabled (overwrite)."
+        },
+        {
+          "log": "System",
+          "minimumBytes": 33554432,
+          "mode": "Circular",
+          "sourceIds": [
+            "cis-v4"
+          ],
+          "evidence": "Client v4.0.0 18.10.26.4.1 p.1050; Client v4.0.0 18.10.26.4.2 p.1052; Server v4.0.0 18.10.26.4.1 p.852; Server v4.0.0 18.10.26.4.2 p.854. Size minimum; full-log retention Disabled (overwrite)."
+        }
+      ]
+    },
+    {
+      "id": "asd-source-2021-10",
+      "kind": "source",
+      "scope": "event-log-size-and-mode-only",
+      "note": "ASD source buffer sizes. Circular mode is an explicit WELA source-host operating choice; ASD collector archival is a separate profile.",
+      "controls": [
+        {
+          "log": "Application",
+          "minimumBytes": 67108864,
+          "mode": "Circular",
+          "sourceIds": [
+            "asd-2021",
+            "wela"
+          ],
+          "evidence": "ASD source size: Security 2097152 KiB; Application/System 65536 KiB. Circular source mode is a WELA operating choice."
+        },
+        {
+          "log": "Security",
+          "minimumBytes": 2147483648,
+          "mode": "Circular",
+          "sourceIds": [
+            "asd-2021",
+            "wela"
+          ],
+          "evidence": "ASD source size: Security 2097152 KiB; Application/System 65536 KiB. Circular source mode is a WELA operating choice."
+        },
+        {
+          "log": "System",
+          "minimumBytes": 67108864,
+          "mode": "Circular",
+          "sourceIds": [
+            "asd-2021",
+            "wela"
+          ],
+          "evidence": "ASD source size: Security 2097152 KiB; Application/System 65536 KiB. Circular source mode is a WELA operating choice."
+        }
+      ]
+    },
+    {
+      "id": "asd-collector-archive-2021-10",
+      "kind": "collector",
+      "scope": "event-log-size-and-mode-only",
+      "note": "ForwardedEvents only. Requires a provisioned collector, secure archive storage, capacity monitoring and backup/move procedures. Does not create WEF subscriptions or guarantee retention duration.",
+      "controls": [
+        {
+          "log": "ForwardedEvents",
+          "minimumBytes": 2147483648,
+          "mode": "AutoBackup",
+          "sourceIds": [
+            "asd-2021"
+          ],
+          "evidence": "ASD collection server: 2097152 KiB; archive when full when not forwarding to a secure central logging facility."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+name: Event-log settings regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  eventlog-settings:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Safe event-log fixtures in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/EventLogSettings.Tests.ps1
+      - name: Safe event-log fixtures in PowerShell 7
+        shell: pwsh
+        run: ./tests/EventLogSettings.Tests.ps1
+      - name: Read-only Windows event-log smoke in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/EventLogSettings.Windows.Tests.ps1
+      - name: Read-only Windows event-log smoke in PowerShell 7
+        shell: pwsh
+        run: ./tests/EventLogSettings.Windows.Tests.ps1

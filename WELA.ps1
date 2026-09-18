@@ -4,6 +4,9 @@
     [switch]$Debug,
     [string]$Baseline,
     [string]$Profile,
+    [string]$LogProfile,
+    [switch]$ResizeLogs,
+    [switch]$ApplyLogMode,
     [ValidateSet("Client", "MemberServer", "DomainController", "ADCS")][string]$Role,
     [int]$Build,
     [string]$PlanPath,
@@ -29,6 +32,8 @@ $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
+Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
+. (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -954,119 +959,15 @@ function Export-MitreHeatmap {
 
 
 function AuditFileSize {
-    # 推奨サイズはベースラインによらず共通のため、パラメータは取らない
-    if (-not (TestWindows)) {
-        Write-Host "[ERROR] 'audit-filesize' reads Windows event logs and can only run on Windows." -ForegroundColor Red
-        return
-    }
-
-    # 対象のイベントログ名をハッシュテーブル化
-    $logNames = @{
-        "Application" = @("20 MB", "128 MB+")
-        "Microsoft-Windows-AppLocker/EXE and DLL" = @("1 MB", "256 MB+")
-        "Microsoft-Windows-AppLocker/MSI and Script" = @("1 MB", "256 MB+")
-        "Microsoft-Windows-AppLocker/Packaged app-Deployment" = @("1 MB", "256 MB+")
-        "Microsoft-Windows-AppLocker/Packaged app-Execution" = @("1 MB", "256 MB+")
-        "Microsoft-Windows-Bits-Client/Analytic" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-Bits-Client/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-CodeIntegrity/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-Crypto-DPAPI/Debug" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-DFSN-Server/Admin" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-DriverFrameworks-UserMode/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-NTLM/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-PowerShell/Operational" = @("15 MB", "256 MB+")
-        "Microsoft-Windows-PrintService/Admin" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-PrintService/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-Security-Mitigations/KernelMode" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-Security-Mitigations/UserMode" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-SmbClient/Security" = @("8 MB", "128 MB+")
-        "Microsoft-Windows-TaskScheduler/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational" = @("1 MB", "128 MB+")
-        "Microsoft-Windows-Windows Defender/Operational" = @("16MB", "128 MB+")
-        "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall" = @("1 MB", "256 MB+")
-        "Microsoft-Windows-WMI-Activity/Operational" = @("1 MB", "128 MB+")
-        "Security" = @("20 MB", "256 MB+")
-        "System" = @("20 MB", "128 MB+")
-        "Windows PowerShell" = @("15 MB", "256 MB+")
-    }
-
-    $results = @()
-
-    $missingLogs = @()
-
-    foreach ($logName in $logNames.Keys | Sort-Object) {
-        # 存在しないログ(役割やOSエディションによる)で全体を止めない
-        $logInfo = Get-WinEvent -ListLog $logName -ErrorAction SilentlyContinue
-        if (-not $logInfo) {
-            $missingLogs += $logName
-            continue
-        }
-        $maxLogSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
-        $recommendedSize = [int]($logNames[$logName][1] -replace " MB\+?", "")
-        # ローテーション直前までファイルは上限まで育つので、95%以上を「ほぼ満杯」とみなす
-        $logIsFull = $logInfo.MaximumSizeInBytes -gt 0 -and
-                     $logInfo.FileSize -ge ($logInfo.MaximumSizeInBytes * 0.95)
-        $logMode = if ($logInfo.LogMode -eq "Retain") { "NoOverwrite" } else { $logInfo.LogMode }
-        $correctSetting = if ($maxLogSize -ge $recommendedSize -and $logMode -ne "NoOverwrite") { "Y" } else { "N" }
-
-        $results += [PSCustomObject]@{
-            LogFile         = Split-Path $logInfo.LogFilePath -Leaf
-            CurrentLogSize  = "{0:N2} MB" -f ($logInfo.FileSize / 1MB)
-            MaxLogSize      = "$maxLogSize MB"
-            Default         = $logNames[$logName][0]
-            Recommended     = $logNames[$logName][1]
-            IsLogFull       = $logIsFull
-            LogMode         = $logMode
-            CorrectSetting  = $correctSetting
-        }
-    }
-
-    # Format-Tableには色つき出力の機能はないので、Write-Hostで色をつける
-    $tableLayout = "{0,-75} {1,-15} {2,-10} {3,-10} {4,-15} {5,-10} {6,-15} {7,-10}"
-    Write-Host ($tableLayout -f `
-        "Log File", `
-        "Current Size", `
-        "Max Size", `
-        "Default", `
-        "Recommended", `
-        "Is Full", `
-        "Log Mode", `
-        "Correct Setting" `
-        )
-    Write-Host ($tableLayout -f `
-        "--------", `
-        "------------", `
-        "--------", `
-        "------", `
-        "-----------", `
-        "-------", `
-        "--------", `
-        "--------------" `
-        )
-    foreach ($result in $results) {
-        $color = if ($result.CorrectSetting -eq "Y") { "Green" } else { "Red" }
-        Write-Host ($tableLayout -f `
-        $result.LogFile, `
-        $result.CurrentLogSize, `
-        $result.MaxLogSize, `
-        $result.Default, `
-        $result.Recommended, `
-        $result.IsLogFull, `
-        $result.LogMode, `
-        $result.CorrectSetting `
-        ) -ForegroundColor $color
-    }
-
-    if ($missingLogs.Count -gt 0) {
-        Write-Host ""
-        Write-Host "Skipped $($missingLogs.Count) log(s) that do not exist on this machine:" -ForegroundColor DarkYellow
-        $missingLogs | ForEach-Object { Write-Host "  - $_" -ForegroundColor DarkYellow }
-    }
-
+    param([string]$LogProfile = 'wela-source-2.2.0')
+    if (-not (TestWindows)) { throw "'audit-filesize' reads Windows event logs and can only run on Windows." }
+    $results = @(Get-WelaEventLogAudit -Profile $LogProfile)
+    $results | Format-Table Log, ReadStatus, CurrentMaximumMiB, MinimumBytes, SizeStatus, CurrentMode, RecommendedMode, ModeStatus -AutoSize | Out-Host
+    Write-Host 'Sizes use exact bytes (MiB = 1048576 bytes). Retention days: Unknown; measure event volume and verify collection/archive storage.'
+    Write-Host 'Mode recommendations are separate from size compliance. configure-eventlogs changes modes only with -ApplyLogMode.'
     $fileSizeCsv = Join-Path $script:ScriptRoot "WELA-FileSize-Result.csv"
-    $results | Export-Csv -Path $fileSizeCsv -NoTypeInformation
-    Write-Host ""
-    Write-Host "Audit file size result saved to: $fileSizeCsv"
+    $results | Export-Csv -LiteralPath $fileSizeCsv -NoTypeInformation -Encoding UTF8 -ErrorAction Stop
+    Write-Host "Event-log audit saved to: $fileSizeCsv"
 }
 
 
@@ -1428,37 +1329,8 @@ function ConfigureAuditSettings {
     $context = New-WelaConfigurationContext -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath
     if (-not $DryRun) { Write-Host "Recovery journal: $($context.BackupPath)" }
 
-    foreach ($log in @('Security', 'Microsoft-Windows-PowerShell/Operational', 'Windows PowerShell')) {
-        Set-WelaEventLogControl -Context $context -Log $log -Property MaximumSizeInBytes -Desired 1073741824
-    }
-    $mediumLogs = @(
-        "System",
-        "Application",
-        "Microsoft-Windows-Windows Defender/Operational",
-        "Microsoft-Windows-Bits-Client/Operational",
-        "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall",
-        "Microsoft-Windows-NTLM/Operational",
-        "Microsoft-Windows-Security-Mitigations/KernelMode",
-        "Microsoft-Windows-Security-Mitigations/UserMode",
-        "Microsoft-Windows-PrintService/Admin",
-        "Microsoft-Windows-PrintService/Operational",
-        "Microsoft-Windows-SmbClient/Security",
-        "Microsoft-Windows-AppLocker/MSI and Script",
-        "Microsoft-Windows-AppLocker/EXE and DLL",
-        "Microsoft-Windows-AppLocker/Packaged app-Deployment",
-        "Microsoft-Windows-AppLocker/Packaged app-Execution",
-        "Microsoft-Windows-CodeIntegrity/Operational",
-        "Microsoft-Windows-Crypto-DPAPI/Debug",
-        "Microsoft-Windows-Diagnosis-Scripted/Operational",
-        "Microsoft-Windows-DriverFrameworks-UserMode/Operational",
-        "Microsoft-Windows-WMI-Activity/Operational",
-        "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational",
-        "Microsoft-Windows-TaskScheduler/Operational"
-    )
-
-    foreach ($log in $mediumLogs) {
-        Set-WelaEventLogControl -Context $context -Log $log -Property MaximumSizeInBytes -Desired 134217728
-    }
+    # Audit and configure consume the same default size thresholds; modes stay unchanged.
+    Set-WelaEventLogProfileControls -Context $context -Profile 'wela-source-2.2.0'
     foreach ($log in @('Microsoft-Windows-TaskScheduler/Operational', 'Microsoft-Windows-DriverFrameworks-UserMode/Operational', 'Microsoft-Windows-Crypto-DPAPI/Debug')) {
         Set-WelaEventLogControl -Context $context -Log $log -Property IsEnabled -Desired $true
     }
@@ -1758,7 +1630,10 @@ Usage:
   # -Profile changes advanced audit policy ONLY. Optional controls need -IncludeOptional.
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
-  ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
+  ./WELA.ps1 eventlog-profiles                          # List size/mode profiles (separate from -Profile)
+  ./WELA.ps1 audit-filesize -LogProfile wela-source-2.2.0 # Audit live sizes/modes, save to CSV
+  ./WELA.ps1 configure-eventlogs -LogProfile asd-source-2021-10 -DryRun
+  ./WELA.ps1 configure-eventlogs -LogProfile asd-collector-archive-2021-10 -ApplyLogMode # Explicit archive choice
   ./WELA.ps1 configure -Baseline YamatoSecurity          # Configure audit settings based on the specified baseline
   ./WELA.ps1 configure -Baseline YamatoSecurity -Auto    # Configure audit settings automatically without prompts
   ./WELA.ps1 configure-sacl                              # Add targeted File System/Registry audit SACLs (ASEP keys + sensitive files) needed by the rules, without global auditing
@@ -1776,8 +1651,17 @@ Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 # Reject unsupported dry-run requests before reaching any command's mutation path.
-if ($DryRun -and $Cmd -ne 'configure') {
-    throw "-DryRun is supported only by configure (including configure -Profile). No command was run."
+if ($DryRun -and $Cmd -notin @('configure', 'configure-eventlogs')) {
+    throw "-DryRun is supported only by configure (including configure -Profile) and configure-eventlogs. No command was run."
+}
+if ($Profile -and $Cmd -in @('eventlog-profiles', 'audit-filesize', 'configure-eventlogs')) {
+    throw '-Profile selects advanced audit policy only. Use -LogProfile for event-log size/mode settings.'
+}
+if ($LogProfile -and $Cmd -notin @('audit-filesize', 'configure-eventlogs')) {
+    throw '-LogProfile is supported only by audit-filesize and configure-eventlogs.'
+}
+if (($ResizeLogs -or $ApplyLogMode) -and $Cmd -ne 'configure-eventlogs') {
+    throw '-ResizeLogs and -ApplyLogMode require configure-eventlogs. No command was run.'
 }
 
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
@@ -1810,21 +1694,38 @@ switch ($Cmd.ToLower()) {
         }
         AuditLogSetting -outType $OutType -Baseline $Baseline -debug:$Debug
     }
+    "eventlog-profiles" {
+        (Import-WelaEventLogProfiles).profiles | Select-Object id, kind, scope, note | Format-List
+    }
     "audit-filesize" {
-        if ($Help){
-            Write-Host "Audit current Windows Event Log file sizes"
-            Write-Host ""
-            Write-Host "Usage: ./WELA.ps1 audit-filesize"
-            Write-Host ""
-            Write-Host "Note: the recommended sizes are the same for every baseline, so -Baseline is not required."
-            Write-Host ""
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 audit-filesize [-LogProfile <id>]'
+            Write-Host 'Read live sizes and retention modes; list IDs with eventlog-profiles. Default: wela-source-2.2.0.'
             return
         }
-        if (-not [string]::IsNullOrEmpty($Baseline) -and $Baseline -ne "YamatoSecurity") {
-            Write-Host "Note: audit-filesize uses the same recommended sizes for every baseline; '-Baseline $Baseline' is ignored." -ForegroundColor DarkYellow
-            Write-Host ""
+        if ($Baseline -and $Baseline -ne 'YamatoSecurity') { throw 'Use -LogProfile for source-specific event-log sizes; -Baseline does not select a log profile.' }
+        if (-not $LogProfile) { $LogProfile = 'wela-source-2.2.0' }
+        AuditFileSize -LogProfile $LogProfile
+    }
+    "configure-eventlogs" {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 configure-eventlogs [-LogProfile <id>] [-ApplyLogMode] [-ResizeLogs] [-Auto] [-DryRun] [-BackupPath <new-directory>] [-ResultsPath <json-file>]'
+            Write-Host 'Default: wela-source-2.2.0, minimum sizes, modes unchanged. -ResizeLogs explicitly permits shrinking; -ApplyLogMode explicitly applies circular source or collector archive behavior.'
+            Write-Host 'This command changes only event-log size/mode. It does not enable channels, configure forwarding or establish retention days.'
+            return
         }
-        AuditFileSize
+        if ($Baseline) { throw 'configure-eventlogs uses -LogProfile, not -Baseline.' }
+        if (-not (TestWindows)) { throw 'configure-eventlogs requires Windows.' }
+        if (-not (TestAdministrator)) { throw 'configure-eventlogs requires Administrator privileges.' }
+        if (-not $LogProfile) { $LogProfile = 'wela-source-2.2.0' }
+        try {
+            $report = Invoke-WelaEventLogConfiguration -Profile $LogProfile -Auto:$Auto -DryRun:$DryRun -ResizeLogs:$ResizeLogs -ApplyLogMode:$ApplyLogMode -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode -ne 0) { exit $report.ExitCode }
+        } catch {
+            Write-Host "[Failed] Event-log configuration aborted: $_" -ForegroundColor Red
+            exit 1
+        }
     }
 
     "configure" {
