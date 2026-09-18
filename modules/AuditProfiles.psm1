@@ -240,10 +240,14 @@ function Invoke-WelaAuditProfilePlan {
                 } catch { $status = 'Failed'; $errorText = $_.Exception.Message; $effective = $null }
             } else { $status = 'Skipped' }
         }
-        [pscustomobject]@{ id = $policy.id; guid = $policy.guid; mode = $policy.mode; beforeMask = $initial; targetMask = $target; effectiveMask = $effective; status = $status; error = $errorText }
+        [pscustomobject]@{
+            id = $policy.id; guid = $policy.guid; mode = $policy.mode
+            beforeMask = $initial; targetMask = $target; effectiveMask = $effective; status = $status; error = $errorText
+            prerequisites = $policy.prerequisites; evidence = $policy.evidence; sourceIds = @($policy.sourceIds)
+        }
     }
     [pscustomobject]@{
-        profile = $Plan.profile; scope = $Plan.scope; role = $Plan.role; build = $Plan.build
+        profile = $Plan.profile; version = $Plan.version; scope = $Plan.scope; role = $Plan.role; build = $Plan.build
         schemaSha256 = $Plan.schemaSha256; provenance = $Plan.provenance
         success = (@($results | Where-Object { $_.status -eq 'Failed' }).Count -eq 0)
         results = @($results)

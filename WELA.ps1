@@ -295,6 +295,15 @@ function Get-WelaSelectedContext {
     Get-WelaHostContext
 }
 
+function Show-WelaAuditProfilePrerequisites {
+    param($Plan)
+    foreach ($policy in $Plan.policies) {
+        if ($policy.prerequisites -and ($policy.mode -in @('exact', 'minimum') -or ($policy.mode -eq 'optional' -and $Plan.includeOptional))) {
+            Write-Host "Prerequisite - $($policy.id): $($policy.prerequisites)" -ForegroundColor DarkYellow
+        }
+    }
+}
+
 function Invoke-WelaProfileCommand {
     param([string]$Command)
     if ($script:Baseline) { throw "Use -Profile or -Baseline, not both. Versioned profiles cover advanced audit policy only." }
@@ -311,6 +320,7 @@ function Invoke-WelaProfileCommand {
     $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional
     Write-Host "Profile: $($plan.profile); role: $($plan.role); build: $($plan.build)"
     Write-Host "Scope: advanced audit policy only. Channels, command-line capture, PowerShell, NTLM, SACLs, CA AuditFilter and forwarding are separate."
+    Show-WelaAuditProfilePrerequisites -Plan $plan
     $result = $plan
     if ($Command -eq 'configure') {
         if (-not (TestAdministrator)) { throw "Configuring advanced audit policy requires Administrator privileges." }
@@ -1427,6 +1437,7 @@ function ConfigureAuditSettings {
     }
 
     # Both audit display and mutation use the versioned role-aware profile.
+    Show-WelaAuditProfilePrerequisites -Plan $profilePlan
     Set-WelaProfileAuditControls -Context $context -Plan $profilePlan
     Set-WelaCertificateAuditControl -Context $context
     Complete-WelaConfiguration -Context $context -ResultsPath $ResultsPath -Plan $profilePlan
