@@ -102,6 +102,17 @@ Assert-Equal $script:writes 0 'Declining preserves policy'
 $script:response = ''
 Set-WelaDomainNtlmAudit
 Assert-Equal $script:value 7 'Confirming applies policy'
+foreach ($confirmation in @('y', 'Y')) {
+    Reset-Policy 2
+    $script:response = $confirmation
+    Set-WelaDomainNtlmAudit
+    Assert-Equal $script:value 7 "Confirmation '$confirmation' applies policy"
+    Assert-Equal $script:writes 1 "Confirmation '$confirmation' writes once"
+}
+Reset-Policy 2
+$script:response = 'N'
+Set-WelaDomainNtlmAudit
+Assert-Equal $script:writes 0 'Uppercase refusal preserves policy'
 Reset-Policy 2
 $script:writeFails = $true
 Assert-Throws { Set-WelaDomainNtlmAudit -Auto } 'Write failure propagates'
