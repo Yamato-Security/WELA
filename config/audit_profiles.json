@@ -1,0 +1,4944 @@
+{
+  "schemaVersion": 1,
+  "description": "Versioned advanced audit-policy profiles. Mask bits: success=1, failure=2. Omission and Not Configured preserve effective auditpol state; neither removes a GPO.",
+  "sources": {
+    "wela": {
+      "title": "WELA configure source, 2.2.0 development snapshot",
+      "version": "8ef938f0966e86adc527395f50f907c43e843d1e",
+      "url": "https://github.com/Yamato-Security/WELA/blob/8ef938f0966e86adc527395f50f907c43e843d1e/WELA.ps1#L1322"
+    },
+    "ms-defaults": {
+      "title": "Microsoft Advanced Audit Policy Configuration defaults (documentary reference)",
+      "version": "reviewed-2026-09-18",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings"
+    },
+    "ms-audit": {
+      "title": "Microsoft Audit Policy Recommendations",
+      "version": "reviewed-2026-09-18",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/audit-policy-recommendations"
+    },
+    "ms-sct": {
+      "title": "Microsoft Security Compliance Toolkit Policy Analyzer files",
+      "version": "24H2 / 25H2 / Server 2022 / Server 2025 v2602",
+      "url": "https://www.microsoft.com/en-us/download/details.aspx?id=55319"
+    },
+    "ms-wef": {
+      "title": "Microsoft WEF intrusion detection, Appendix A minimum audit policy",
+      "version": "reviewed-2026-09-18",
+      "url": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/use-windows-event-forwarding-to-assist-in-intrusion-detection#appendix-a---minimum-recommended-minimum-audit-policy"
+    },
+    "ms-identity": {
+      "title": "Microsoft Defender for Identity Windows event collection prerequisites",
+      "version": "reviewed-2026-09-18",
+      "url": "https://learn.microsoft.com/en-us/defender-for-identity/deploy/configure-windows-event-collection"
+    },
+    "cis-client": {
+      "title": "CIS Microsoft Windows 11 Enterprise Benchmark",
+      "version": "4.0.0 (historical; not current CIS)",
+      "url": "https://rayasec.com/wp-content/uploads/CIS-Benchmark/Microsoft-Windows-Desktop/CIS_Microsoft_Windows_11_Enterprise_Benchmark_v4.0.0.pdf"
+    },
+    "cis-server": {
+      "title": "CIS Microsoft Windows Server 2022 Benchmark",
+      "version": "4.0.0 (historical; not current CIS)",
+      "url": "https://rayasec.com/wp-content/uploads/CIS-Benchmark/Microsoft-Windows-Server/CIS_Microsoft_Windows_Server_2022_Benchmark_v4.0.0.pdf"
+    },
+    "asd": {
+      "title": "ASD Windows event logging and forwarding (native fallback)",
+      "version": "2021-10-06",
+      "url": "https://www.cyber.gov.au/business-government/detecting-responding-to-threats/event-logging/windows-event-logging-and-forwarding"
+    }
+  },
+  "catalog": [
+    {
+      "id": "Credential Validation",
+      "guid": "0CCE923F-69AE-11D9-BED3-505054503030",
+      "category": "Account Logon",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Kerberos Authentication Service",
+      "guid": "0CCE9242-69AE-11D9-BED3-505054503030",
+      "category": "Account Logon",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Kerberos Service Ticket Operations",
+      "guid": "0CCE9240-69AE-11D9-BED3-505054503030",
+      "category": "Account Logon",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Other Account Logon Events",
+      "guid": "0CCE9241-69AE-11D9-BED3-505054503030",
+      "category": "Account Logon",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Application Group Management",
+      "guid": "0CCE9239-69AE-11D9-BED3-505054503030",
+      "category": "Account Management",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Computer Account Management",
+      "guid": "0CCE9236-69AE-11D9-BED3-505054503030",
+      "category": "Account Management",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Distribution Group Management",
+      "guid": "0CCE9238-69AE-11D9-BED3-505054503030",
+      "category": "Account Management",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Other Account Management Events",
+      "guid": "0CCE923A-69AE-11D9-BED3-505054503030",
+      "category": "Account Management",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Security Group Management",
+      "guid": "0CCE9237-69AE-11D9-BED3-505054503030",
+      "category": "Account Management",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "User Account Management",
+      "guid": "0CCE9235-69AE-11D9-BED3-505054503030",
+      "category": "Account Management",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "DPAPI Activity",
+      "guid": "0CCE922D-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Plug and Play Events",
+      "guid": "0CCE9248-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Process Creation",
+      "guid": "0CCE922B-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": "Command-line payload requires ProcessCreationIncludeCmdLine_Enabled. This profile only configures audit policy."
+    },
+    {
+      "id": "Process Termination",
+      "guid": "0CCE922C-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "RPC Events",
+      "guid": "0CCE922E-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Token Right Adjusted Events",
+      "guid": "0CCE924A-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Detailed Directory Service Replication",
+      "guid": "0CCE923E-69AE-11D9-BED3-505054503030",
+      "category": "DS Access",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Directory Service Access",
+      "guid": "0CCE923B-69AE-11D9-BED3-505054503030",
+      "category": "DS Access",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": "A matching AD object SACL is required. This profile does not create SACLs."
+    },
+    {
+      "id": "Directory Service Changes",
+      "guid": "0CCE923C-69AE-11D9-BED3-505054503030",
+      "category": "DS Access",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": "A matching AD object SACL is required. This profile does not create SACLs."
+    },
+    {
+      "id": "Directory Service Replication",
+      "guid": "0CCE923D-69AE-11D9-BED3-505054503030",
+      "category": "DS Access",
+      "roles": [
+        "DomainController"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Account Lockout",
+      "guid": "0CCE9217-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Group Membership",
+      "guid": "0CCE9249-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "IPsec Extended Mode",
+      "guid": "0CCE921A-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "IPsec Main Mode",
+      "guid": "0CCE9218-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "IPsec Quick Mode",
+      "guid": "0CCE9219-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Logoff",
+      "guid": "0CCE9216-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Logon",
+      "guid": "0CCE9215-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Network Policy Server",
+      "guid": "0CCE9243-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Other Logon/Logoff Events",
+      "guid": "0CCE921C-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Special Logon",
+      "guid": "0CCE921B-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "User/Device Claims",
+      "guid": "0CCE9247-69AE-11D9-BED3-505054503030",
+      "category": "Logon/Logoff",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Application Generated",
+      "guid": "0CCE9222-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Central Access Policy Staging",
+      "guid": "0CCE9246-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Certification Services",
+      "guid": "0CCE9221-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "ADCS"
+      ],
+      "prerequisites": "The CA AuditFilter must also select the events. This profile does not configure AuditFilter."
+    },
+    {
+      "id": "Detailed File Share",
+      "guid": "0CCE9244-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "File Share",
+      "guid": "0CCE9224-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "File System",
+      "guid": "0CCE921D-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": "A matching file/folder SACL is required. This profile does not create SACLs."
+    },
+    {
+      "id": "Filtering Platform Connection",
+      "guid": "0CCE9226-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Filtering Platform Packet Drop",
+      "guid": "0CCE9225-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Handle Manipulation",
+      "guid": "0CCE9223-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": "A matching object SACL is required. This profile does not create SACLs."
+    },
+    {
+      "id": "Kernel Object",
+      "guid": "0CCE921F-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": "A matching kernel-object SACL is required; enabling the subcategory alone does not generate object events."
+    },
+    {
+      "id": "Other Object Access Events",
+      "guid": "0CCE9227-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Registry",
+      "guid": "0CCE921E-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": "A matching registry SACL is required. This profile does not create SACLs."
+    },
+    {
+      "id": "Removable Storage",
+      "guid": "0CCE9245-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "SAM",
+      "guid": "0CCE9220-69AE-11D9-BED3-505054503030",
+      "category": "Object Access",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Audit Policy Change",
+      "guid": "0CCE922F-69AE-11D9-BED3-505054503030",
+      "category": "Policy Change",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Authentication Policy Change",
+      "guid": "0CCE9230-69AE-11D9-BED3-505054503030",
+      "category": "Policy Change",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Authorization Policy Change",
+      "guid": "0CCE9231-69AE-11D9-BED3-505054503030",
+      "category": "Policy Change",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Filtering Platform Policy Change",
+      "guid": "0CCE9233-69AE-11D9-BED3-505054503030",
+      "category": "Policy Change",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "MPSSVC Rule-Level Policy Change",
+      "guid": "0CCE9232-69AE-11D9-BED3-505054503030",
+      "category": "Policy Change",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Other Policy Change Events",
+      "guid": "0CCE9234-69AE-11D9-BED3-505054503030",
+      "category": "Policy Change",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Non Sensitive Privilege Use",
+      "guid": "0CCE9229-69AE-11D9-BED3-505054503030",
+      "category": "Privilege Use",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Other Privilege Use Events",
+      "guid": "0CCE922A-69AE-11D9-BED3-505054503030",
+      "category": "Privilege Use",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Sensitive Privilege Use",
+      "guid": "0CCE9228-69AE-11D9-BED3-505054503030",
+      "category": "Privilege Use",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "IPsec Driver",
+      "guid": "0CCE9213-69AE-11D9-BED3-505054503030",
+      "category": "System",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Other System Events",
+      "guid": "0CCE9214-69AE-11D9-BED3-505054503030",
+      "category": "System",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Security State Change",
+      "guid": "0CCE9210-69AE-11D9-BED3-505054503030",
+      "category": "System",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "Security System Extension",
+      "guid": "0CCE9211-69AE-11D9-BED3-505054503030",
+      "category": "System",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    },
+    {
+      "id": "System Integrity",
+      "guid": "0CCE9212-69AE-11D9-BED3-505054503030",
+      "category": "System",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "prerequisites": ""
+    }
+  ],
+  "profiles": [
+    {
+      "id": "wela-2.2.0",
+      "version": "wela-2.2.0",
+      "sourceIds": [
+        "wela"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 22000,
+          "maxBuild": 26200
+        },
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {
+        "Credential Validation": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Kerberos Authentication Service": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Kerberos Service Ticket Operations": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Computer Account Management": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Distribution Group Management": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Account Management Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Security Group Management": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "User Account Management": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Plug and Play Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Process Creation": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Process Termination": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "RPC Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Directory Service Access": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Directory Service Changes": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Account Lockout": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Logoff": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Logon": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Logon/Logoff Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Special Logon": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Certification Services": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "File Share": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Detailed File Share": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Filtering Platform Connection": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Object Access Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Removable Storage": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "SAM": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Audit Policy Change": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Authentication Policy Change": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Policy Change Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Sensitive Privilege Use": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Security State Change": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Security System Extension": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "System Integrity": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other System Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "File System": {
+          "mode": "optional",
+          "mask": 3,
+          "note": "Opt-in subcategory prerequisite only. Use configure-sacl separately for targeted file/registry SACLs."
+        },
+        "Registry": {
+          "mode": "optional",
+          "mask": 3,
+          "note": "Opt-in subcategory prerequisite only. Use configure-sacl separately for targeted file/registry SACLs."
+        },
+        "Handle Manipulation": {
+          "mode": "optional",
+          "mask": 3,
+          "note": "Opt-in subcategory prerequisite only. Use configure-sacl separately for targeted file/registry SACLs."
+        }
+      },
+      "roleOverrides": {},
+      "note": "Shared replacement for the 34-policy configure list. Policies irrelevant to the selected role are not applied. The three targeted SACL prerequisites are opt-in."
+    },
+    {
+      "id": "windows-defaults-reviewed-2026-09",
+      "version": "windows-defaults-reviewed-2026-09",
+      "sourceIds": [
+        "ms-defaults"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 22000,
+          "maxBuild": 26200
+        },
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "Client": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft says Not configured; effective state modeled as no auditing, must validate."
+          },
+          "Other Account Logon Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Computer Account Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Distribution Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Account Management Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "DPAPI Activity": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Termination": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "RPC Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Token Right Adjusted Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Detailed Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Access": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Directory Service Changes": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default setting: Success ."
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Extended Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Main Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Quick Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Logoff": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft audit-policy-recommendations footnote: since Windows 10 1809, Logon defaults to Success and Failure. Older per-setting prose and WELA metadata disagree."
+          },
+          "Network Policy Server": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success"
+          },
+          "User/Device Claims": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Generated": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Central Access Policy Staging": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Certification Services": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File System": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Connection": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Packet Drop": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Handle Manipulation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Kernel Object": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Registry": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "SAM": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authorization Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Filtering Platform Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Non Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Privilege Use Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          }
+        },
+        "MemberServer": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft says Not configured; effective state modeled as no auditing, must validate."
+          },
+          "Other Account Logon Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Computer Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Distribution Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Account Management Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "DPAPI Activity": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Termination": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "RPC Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Token Right Adjusted Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Detailed Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Access": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Directory Service Changes": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default setting: Success ."
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Extended Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Main Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Quick Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Logoff": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft audit-policy-recommendations footnote: since Windows 10 1809, Logon defaults to Success and Failure. Older per-setting prose and WELA metadata disagree."
+          },
+          "Network Policy Server": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success"
+          },
+          "User/Device Claims": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Generated": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Central Access Policy Staging": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Certification Services": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File System": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Connection": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Packet Drop": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Handle Manipulation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Kernel Object": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Registry": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "SAM": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authorization Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Filtering Platform Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Non Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Privilege Use Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          }
+        },
+        "DomainController": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft says Not configured; effective state modeled as no auditing, must validate."
+          },
+          "Other Account Logon Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Computer Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Distribution Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Account Management Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "DPAPI Activity": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Termination": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "RPC Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Token Right Adjusted Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Detailed Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Access": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Directory Service Changes": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default setting: Success ."
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Extended Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Main Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Quick Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Logoff": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft audit-policy-recommendations footnote: since Windows 10 1809, Logon defaults to Success and Failure. Older per-setting prose and WELA metadata disagree."
+          },
+          "Network Policy Server": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success"
+          },
+          "User/Device Claims": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Generated": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Central Access Policy Staging": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Certification Services": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File System": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Connection": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Packet Drop": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Handle Manipulation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Kernel Object": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Registry": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "SAM": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authorization Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Filtering Platform Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Non Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Privilege Use Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          }
+        },
+        "ADCS": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft says Not configured; effective state modeled as no auditing, must validate."
+          },
+          "Other Account Logon Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Computer Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Distribution Group Management": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Account Management Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "DPAPI Activity": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Process Termination": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "RPC Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Token Right Adjusted Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Detailed Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Access": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default on Server editions: Success ."
+          },
+          "Directory Service Changes": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Directory Service Replication": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default setting: Success ."
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Extended Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Main Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "IPsec Quick Mode": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Logoff": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft audit-policy-recommendations footnote: since Windows 10 1809, Logon defaults to Success and Failure. Older per-setting prose and WELA metadata disagree."
+          },
+          "Network Policy Server": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success"
+          },
+          "User/Device Claims": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Application Generated": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Central Access Policy Staging": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Certification Services": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "File System": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Connection": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Filtering Platform Packet Drop": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Handle Manipulation": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Kernel Object": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Registry": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "SAM": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Authorization Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Filtering Platform Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Non Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "Other Privilege Use Events": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Modeled no-auditing starting point; verify effective auditpol on target image."
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "WELA default metadata; cross-checked where Microsoft explicitly states a value; not measured."
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success ."
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 0,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: No Auditing ."
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "note": "Microsoft Advanced Audit Policy Configuration: Default: Success and Failure ."
+          }
+        }
+      },
+      "referenceOnly": true,
+      "note": "Documentary model, not an OS reset profile. Unconfigured policy and effective disabled state are not interchangeable; validate actual installation and domain GPO. Applying this reference is prohibited."
+    },
+    {
+      "id": "microsoft-sct-win11-24h2",
+      "version": "microsoft-sct-win11-24h2",
+      "sourceIds": [
+        "ms-sct"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 26100,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "Client": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 24H2 - Computer"
+          }
+        }
+      }
+    },
+    {
+      "id": "microsoft-sct-win11-25h2",
+      "version": "microsoft-sct-win11-25h2",
+      "sourceIds": [
+        "ms-sct"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 26200,
+          "maxBuild": 26200
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "Client": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows 11 25H2 - Computer"
+          }
+        }
+      }
+    },
+    {
+      "id": "microsoft-sct-server2022",
+      "version": "microsoft-sct-server2022",
+      "sourceIds": [
+        "ms-sct"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 20348
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "MemberServer": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          }
+        },
+        "DomainController": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Computer Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Other Account Management Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Directory Service Access": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Directory Service Changes": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Domain Controller"
+          }
+        },
+        "ADCS": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2022 - Member Server"
+          }
+        }
+      }
+    },
+    {
+      "id": "microsoft-sct-server2025-2602",
+      "version": "microsoft-sct-server2025-2602",
+      "sourceIds": [
+        "ms-sct"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 26100,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "MemberServer": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Authorization Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          }
+        },
+        "DomainController": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Computer Account Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Other Account Management Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Directory Service Access": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Directory Service Changes": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Authorization Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Domain Controller"
+          }
+        },
+        "ADCS": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Security Group Management": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Plug and Play Events": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Process Creation": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Account Lockout": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Group Membership": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Special Logon": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Detailed File Share": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Audit Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Authentication Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Authorization Policy Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other Policy Change Events": {
+            "mode": "exact",
+            "mask": 2,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Security State Change": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "Security System Extension": {
+            "mode": "exact",
+            "mask": 1,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "MSFT Windows Server 2025 v2602 - Member Server"
+          }
+        }
+      }
+    },
+    {
+      "id": "microsoft-stronger-reviewed-2026-09",
+      "version": "microsoft-stronger-reviewed-2026-09",
+      "sourceIds": [
+        "ms-audit"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 22000,
+          "maxBuild": 26200
+        },
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {
+        "Credential Validation": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Kerberos Authentication Service": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Kerberos Service Ticket Operations": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Other Account Logon Events": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Computer Account Management": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Other Account Management Events": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Security Group Management": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "User Account Management": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "DPAPI Activity": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Process Creation": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Account Lockout": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "IPsec Main Mode": {
+          "mode": "optional",
+          "mask": 3,
+          "note": "Only if IPsec is in use; operator must opt in."
+        },
+        "Logoff": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "Special Logon": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Audit Policy Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Authentication Policy Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "MPSSVC Rule-Level Policy Change": {
+          "mode": "unchanged",
+          "note": "Source table does not distinguish success/failure; deliberately not inferred."
+        },
+        "IPsec Driver": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Security State Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Security System Extension": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "System Integrity": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Directory Service Access": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Directory Service Changes": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Logon": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Other Logon/Logoff Events": {
+          "mode": "minimum",
+          "mask": 3
+        }
+      },
+      "roleOverrides": {},
+      "note": "Stronger recommendation column, interpreted as minimum enabled flags; conditional IPsec is opt-in. Unspecified flags are preserved."
+    },
+    {
+      "id": "microsoft-wef-reviewed-2026-09",
+      "version": "microsoft-wef-reviewed-2026-09",
+      "sourceIds": [
+        "ms-wef"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 22000,
+          "maxBuild": 26200
+        },
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {
+        "Credential Validation": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Security Group Management": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "User Account Management": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Computer Account Management": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Other Account Management Events": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Process Creation": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "Process Termination": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "User/Device Claims": {
+          "mode": "not-configured"
+        },
+        "IPsec Extended Mode": {
+          "mode": "not-configured"
+        },
+        "IPsec Quick Mode": {
+          "mode": "not-configured"
+        },
+        "Logon": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Logoff": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "Other Logon/Logoff Events": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Special Logon": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Account Lockout": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "Application Generated": {
+          "mode": "not-configured"
+        },
+        "File Share": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "File System": {
+          "mode": "not-configured"
+        },
+        "Other Object Access Events": {
+          "mode": "not-configured"
+        },
+        "Registry": {
+          "mode": "not-configured"
+        },
+        "Removable Storage": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "Audit Policy Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "MPSSVC Rule-Level Policy Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Other Policy Change Events": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Authentication Policy Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Authorization Policy Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Sensitive Privilege Use": {
+          "mode": "not-configured"
+        },
+        "Security State Change": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "Security System Extension": {
+          "mode": "minimum",
+          "mask": 3
+        },
+        "System Integrity": {
+          "mode": "minimum",
+          "mask": 3
+        }
+      },
+      "roleOverrides": {},
+      "note": "Appendix A minimum policy only. Does not provision subscriptions, collector, channel permissions, SACLs or retention."
+    },
+    {
+      "id": "microsoft-identity-reviewed-2026-09",
+      "version": "microsoft-identity-reviewed-2026-09",
+      "sourceIds": [
+        "ms-identity"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "DomainController": {
+          "Credential Validation": {
+            "mode": "minimum",
+            "mask": 3
+          },
+          "Computer Account Management": {
+            "mode": "minimum",
+            "mask": 3
+          },
+          "Distribution Group Management": {
+            "mode": "minimum",
+            "mask": 3
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 3
+          },
+          "User Account Management": {
+            "mode": "minimum",
+            "mask": 3
+          },
+          "Directory Service Changes": {
+            "mode": "minimum",
+            "mask": 3
+          },
+          "Directory Service Access": {
+            "mode": "minimum",
+            "mask": 3
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 3
+          }
+        },
+        "ADCS": {
+          "Certification Services": {
+            "mode": "minimum",
+            "mask": 3
+          }
+        }
+      },
+      "note": "Advanced audit-policy subset only. AD SACLs, CA AuditFilter and other sensor prerequisites remain separate. This does not install any external sensor."
+    },
+    {
+      "id": "cis-win11-v4-l1",
+      "version": "cis-win11-v4-l1",
+      "sourceIds": [
+        "cis-client"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 22000,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "Client": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 437; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 440; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.2; printed page 442; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.3; printed page 444; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 448; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 450; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 453; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 455; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 457; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 459; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 461; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 463; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 466; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 468; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 470; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 472; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 475; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 477; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 479; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 481; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 484; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 487; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 491; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 494; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 496; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 498; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 500; L1"
+          }
+        }
+      },
+      "note": "Historical v4.0.0. L1/L2 may have identical advanced audit policies; PowerShell and other controls are outside this profile scope."
+    },
+    {
+      "id": "cis-win11-v4-l2",
+      "version": "cis-win11-v4-l2",
+      "sourceIds": [
+        "cis-client"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 22000,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "Client": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 437; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 440; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.2; printed page 442; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.3; printed page 444; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 448; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 450; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 453; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 455; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 457; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 459; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 461; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 463; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 466; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 468; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 470; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 472; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 475; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 477; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 479; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 481; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 484; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 487; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 491; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 494; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 496; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 498; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 500; L1"
+          }
+        }
+      },
+      "note": "Historical v4.0.0. L1/L2 may have identical advanced audit policies; PowerShell and other controls are outside this profile scope."
+    },
+    {
+      "id": "cis-server2022-v4-l1",
+      "version": "cis-server2022-v4-l1",
+      "sourceIds": [
+        "cis-server"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 20348
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "MemberServer": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 391; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 398; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.5; printed page 407; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.6; printed page 410; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 414; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 416; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 424; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 426; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 428; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 430; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 432; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 434; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 437; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 439; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 441; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 443; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 446; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 448; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 450; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 452; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 455; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 458; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 462; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 465; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 467; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 469; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 471; L1"
+          }
+        },
+        "DomainController": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 391; L1"
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.2; printed page 393; L1"
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.3; printed page 395; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 398; L1"
+          },
+          "Computer Account Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.2; printed page 400; L1"
+          },
+          "Distribution Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.3; printed page 402; L1"
+          },
+          "Other Account Management Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.4; printed page 405; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.5; printed page 407; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.6; printed page 410; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 414; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 416; L1"
+          },
+          "Directory Service Access": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.4.1; printed page 419; L1"
+          },
+          "Directory Service Changes": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.4.2; printed page 421; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 424; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 426; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 428; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 430; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 432; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 434; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 437; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 439; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 441; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 443; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 446; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 448; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 450; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 452; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 455; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 458; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 462; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 465; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 467; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 469; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 471; L1"
+          }
+        },
+        "ADCS": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 391; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 398; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.5; printed page 407; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.6; printed page 410; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 414; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 416; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 424; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 426; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 428; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 430; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 432; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 434; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 437; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 439; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 441; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 443; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 446; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 448; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 450; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 452; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 455; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 458; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 462; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 465; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 467; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 469; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 471; L1"
+          }
+        }
+      },
+      "note": "Historical v4.0.0. L1/L2 may have identical advanced audit policies; PowerShell and other controls are outside this profile scope."
+    },
+    {
+      "id": "cis-server2022-v4-l2",
+      "version": "cis-server2022-v4-l2",
+      "sourceIds": [
+        "cis-server"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 20348
+        }
+      ],
+      "controls": {},
+      "roleOverrides": {
+        "MemberServer": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 391; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 398; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.5; printed page 407; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.6; printed page 410; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 414; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 416; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 424; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 426; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 428; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 430; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 432; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 434; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 437; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 439; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 441; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 443; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 446; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 448; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 450; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 452; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 455; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 458; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 462; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 465; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 467; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 469; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 471; L1"
+          }
+        },
+        "DomainController": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 391; L1"
+          },
+          "Kerberos Authentication Service": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.2; printed page 393; L1"
+          },
+          "Kerberos Service Ticket Operations": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.3; printed page 395; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 398; L1"
+          },
+          "Computer Account Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.2; printed page 400; L1"
+          },
+          "Distribution Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.3; printed page 402; L1"
+          },
+          "Other Account Management Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.4; printed page 405; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.5; printed page 407; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.6; printed page 410; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 414; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 416; L1"
+          },
+          "Directory Service Access": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.4.1; printed page 419; L1"
+          },
+          "Directory Service Changes": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.4.2; printed page 421; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 424; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 426; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 428; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 430; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 432; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 434; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 437; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 439; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 441; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 443; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 446; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 448; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 450; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 452; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 455; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 458; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 462; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 465; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 467; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 469; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 471; L1"
+          }
+        },
+        "ADCS": {
+          "Credential Validation": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.1.1; printed page 391; L1"
+          },
+          "Application Group Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.1; printed page 398; L1"
+          },
+          "Security Group Management": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.2.5; printed page 407; L1"
+          },
+          "User Account Management": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.2.6; printed page 410; L1"
+          },
+          "Plug and Play Events": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.1; printed page 414; L1"
+          },
+          "Process Creation": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.3.2; printed page 416; L1"
+          },
+          "Account Lockout": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.5.1; printed page 424; L1"
+          },
+          "Group Membership": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.2; printed page 426; L1"
+          },
+          "Logoff": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.3; printed page 428; L1"
+          },
+          "Logon": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.4; printed page 430; L1"
+          },
+          "Other Logon/Logoff Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.5.5; printed page 432; L1"
+          },
+          "Special Logon": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.5.6; printed page 434; L1"
+          },
+          "Detailed File Share": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.6.1; printed page 437; L1"
+          },
+          "File Share": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.2; printed page 439; L1"
+          },
+          "Other Object Access Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.3; printed page 441; L1"
+          },
+          "Removable Storage": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.6.4; printed page 443; L1"
+          },
+          "Audit Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.1; printed page 446; L1"
+          },
+          "Authentication Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.2; printed page 448; L1"
+          },
+          "Authorization Policy Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.7.3; printed page 450; L1"
+          },
+          "MPSSVC Rule-Level Policy Change": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.7.4; printed page 452; L1"
+          },
+          "Other Policy Change Events": {
+            "mode": "minimum",
+            "mask": 2,
+            "evidence": "17.7.5; printed page 455; L1"
+          },
+          "Sensitive Privilege Use": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.8.1; printed page 458; L1"
+          },
+          "IPsec Driver": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.1; printed page 462; L1"
+          },
+          "Other System Events": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.2; printed page 465; L1"
+          },
+          "Security State Change": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.3; printed page 467; L1"
+          },
+          "Security System Extension": {
+            "mode": "minimum",
+            "mask": 1,
+            "evidence": "17.9.4; printed page 469; L1"
+          },
+          "System Integrity": {
+            "mode": "exact",
+            "mask": 3,
+            "evidence": "17.9.5; printed page 471; L1"
+          }
+        }
+      },
+      "note": "Historical v4.0.0. L1/L2 may have identical advanced audit policies; PowerShell and other controls are outside this profile scope."
+    },
+    {
+      "id": "asd-native-2021-10",
+      "version": "asd-native-2021-10",
+      "sourceIds": [
+        "asd"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 22000,
+          "maxBuild": 26200
+        },
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {
+        "Computer Account Management": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Account Management Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Security Group Management": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "User Account Management": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Audit Policy Change": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Policy Change Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "System Integrity": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Logon": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Logon/Logoff Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Special Logon": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "File Share": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Other Object Access Events": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "File System": {
+          "mode": "optional",
+          "mask": 3
+        },
+        "Registry": {
+          "mode": "optional",
+          "mask": 3
+        },
+        "Kernel Object": {
+          "mode": "exact",
+          "mask": 3
+        },
+        "Account Lockout": {
+          "mode": "exact",
+          "mask": 2
+        },
+        "Group Membership": {
+          "mode": "exact",
+          "mask": 1
+        },
+        "Logoff": {
+          "mode": "exact",
+          "mask": 1
+        },
+        "Process Creation": {
+          "mode": "exact",
+          "mask": 1
+        },
+        "Process Termination": {
+          "mode": "exact",
+          "mask": 1
+        },
+        "Detailed File Share": {
+          "mode": "not-configured"
+        }
+      },
+      "roleOverrides": {},
+      "note": "Native fallback only. Sysmon excluded. File System and Registry are optional and require SACLs. Detailed File Share Not Configured preserves effective state; it does not disable auditing."
+    }
+  ]
+}

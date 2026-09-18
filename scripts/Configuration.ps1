@@ -90,7 +90,7 @@ function Invoke-WelaConfigurationControl {
 }
 
 function Complete-WelaConfiguration {
-    param($Context, [string]$ResultsPath)
+    param($Context, [string]$ResultsPath, $Plan)
     # A second read detects a value that was compliant earlier but changed during
     # this run. It does not establish whether GPO or another writer caused drift.
     foreach ($check in $Context.Checks) {
@@ -111,6 +111,14 @@ function Complete-WelaConfiguration {
         ExitCode = $(if ($failed) { 1 } else { 0 }); DryRun = $Context.DryRun
         BackupPath = $Context.BackupPath; Failed = $failed; Skipped = $skipped
         Results = @($Context.Results.ToArray())
+    }
+    if ($Plan) {
+        $report | Add-Member NoteProperty Profile $Plan.profile
+        $report | Add-Member NoteProperty Role $Plan.role
+        $report | Add-Member NoteProperty Build $Plan.build
+        $report | Add-Member NoteProperty SchemaSha256 $Plan.schemaSha256
+        $report | Add-Member NoteProperty Provenance $Plan.provenance
+        $report | Add-Member NoteProperty Scope $Plan.scope
     }
     if ($ResultsPath) {
         try { $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
@@ -232,12 +240,47 @@ function Get-WelaAuditPolicyMask {
 }
 
 function Set-WelaAuditPolicyControl {
-    param($Context, $Policy)
+    param($Context, $Policy, [ValidateRange(0, 3)][int]$Mask = 3,
+          [ValidateSet('exact', 'minimum')][string]$Mode = 'exact')
     $guid = $Policy.GUID
-    $read = { Get-WelaAuditPolicyMask -Guid $guid }.GetNewClosure()
-    $apply = { Invoke-WelaNative -FilePath 'auditpol.exe' -Arguments @('/set', "/subcategory:{$guid}", '/success:enable', '/failure:enable') }.GetNewClosure()
+    $observed = @{ Mask = $null }
+    $read = {
+        $observed.Mask = Get-WelaAuditPolicyMask -Guid $guid
+        return $observed.Mask
+    }.GetNewClosure()
+    $test = {
+        param($value)
+        if ($Mode -eq 'minimum') { return ($value -band $Mask) -eq $Mask }
+        return $value -eq $Mask
+    }.GetNewClosure()
+    $apply = {
+        # Minimum requirements preserve the flags observed immediately before journaling.
+        $target = if ($Mode -eq 'minimum') { $observed.Mask -bor $Mask } else { $Mask }
+        $success = if ($target -band 1) { 'enable' } else { 'disable' }
+        $failure = if ($target -band 2) { 'enable' } else { 'disable' }
+        Invoke-WelaNative -FilePath 'auditpol.exe' -Arguments @('/set', "/subcategory:{$guid}", "/success:$success", "/failure:$failure")
+    }.GetNewClosure()
     Invoke-WelaConfigurationControl -Context $Context -Id "AuditPolicy/$($Policy.Name)" -Kind AuditPolicy `
-        -Target @{ Guid = $guid } -Desired 3 -Read $read -Compliant { param($value) $value -eq 3 } -Apply $apply
+        -Target @{ Guid = $guid } -Desired @{ Mask = $Mask; Mode = $Mode } -Read $read -Compliant $test -Apply $apply
+}
+
+function Set-WelaProfileAuditControls {
+    param($Context, $Plan)
+    # The caller must complete Assert-WelaAuditProfileTarget before any mutations.
+    foreach ($policy in $Plan.policies) {
+        if ($policy.mode -notin @('exact', 'minimum') -and -not ($policy.mode -eq 'optional' -and $Plan.includeOptional)) { continue }
+        $mode = if ($policy.mode -eq 'minimum') { 'minimum' } else { 'exact' }
+        Set-WelaAuditPolicyControl -Context $Context -Policy @{ GUID = $policy.guid; Name = $policy.id } -Mask $policy.requiredMask -Mode $mode
+        $row = $Context.Results[$Context.Results.Count - 1]
+        $row | Add-Member NoteProperty Profile $Plan.profile
+        $row | Add-Member NoteProperty Role $Plan.role
+        $row | Add-Member NoteProperty Build $Plan.build
+        $row | Add-Member NoteProperty Mode $policy.mode
+        $row | Add-Member NoteProperty Prerequisites $policy.prerequisites
+        $row | Add-Member NoteProperty Evidence $policy.evidence
+        $row | Add-Member NoteProperty SourceIds $policy.sourceIds
+        $row | Add-Member NoteProperty Note $policy.note
+    }
 }
 
 function Set-WelaCertificateAuditControl {

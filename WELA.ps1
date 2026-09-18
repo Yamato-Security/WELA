@@ -3,6 +3,11 @@
     [string]$OutType = "std",
     [switch]$Debug,
     [string]$Baseline,
+    [string]$Profile,
+    [ValidateSet("Client", "MemberServer", "DomainController", "ADCS")][string]$Role,
+    [int]$Build,
+    [string]$PlanPath,
+    [switch]$IncludeOptional,
     [switch]$Auto,
     [ValidateSet("PreserveOrAudit", "Audit", "Deny")]
     [string]$OutgoingNtlmMode = "PreserveOrAudit",
@@ -23,6 +28,7 @@ $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
+Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -279,6 +285,50 @@ function GetBaselineNames {
     return @((GetBaselineConfig).baselines.PSObject.Properties.Name)
 }
 
+function Get-WelaSelectedContext {
+    if (($script:Role -and -not $script:Build) -or ($script:Build -and -not $script:Role)) {
+        throw "Specify both -Role and -Build, or neither to detect this Windows host."
+    }
+    if ($script:Role -and $script:Build) {
+        return [pscustomobject]@{ Role = $script:Role; Build = $script:Build }
+    }
+    Get-WelaHostContext
+}
+
+function Invoke-WelaProfileCommand {
+    param([string]$Command)
+    if ($script:Baseline) { throw "Use -Profile or -Baseline, not both. Versioned profiles cover advanced audit policy only." }
+    if (-not $script:Profile) { throw "Specify -Profile. Use './WELA.ps1 profiles' to list versioned profiles." }
+    $context = Get-WelaSelectedContext
+    $current = @{}
+    if (TestWindows) {
+        $actual = Get-WelaHostContext
+        if ($actual.Role -eq $context.Role -and $actual.Build -eq $context.Build) { $current = Get-WelaEffectiveAuditPolicy }
+        elseif ($Command -ne 'plan') { throw "Requested role/build does not match this Windows host." }
+        else { Write-Host "Planning for another role/build: effective state remains Unknown." }
+    }
+    elseif ($Command -ne 'plan') { throw "Audit and configure require Windows. Offline planning requires explicit -Role and -Build." }
+    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional
+    Write-Host "Profile: $($plan.profile); role: $($plan.role); build: $($plan.build)"
+    Write-Host "Scope: advanced audit policy only. Channels, command-line capture, PowerShell, NTLM, SACLs, CA AuditFilter and forwarding are separate."
+    $result = $plan
+    if ($Command -eq 'configure') {
+        if (-not (TestAdministrator)) { throw "Configuring advanced audit policy requires Administrator privileges." }
+        Assert-WelaAuditProfileTarget -Plan $plan -Context $actual -Current $current
+        $configurationContext = New-WelaConfigurationContext -Auto:$script:Auto -DryRun:$script:DryRun -BackupPath $script:BackupPath
+        Set-WelaProfileAuditControls -Context $configurationContext -Plan $plan
+        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan
+        $result.Results | Format-Table Id, Before, Desired, After, Status -AutoSize
+    } else {
+        $plan.policies | Format-Table id, mode, currentMask, requiredMask, action -AutoSize
+    }
+    if ($script:PlanPath) {
+        $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:PlanPath -Encoding UTF8 -ErrorAction Stop
+        Write-Host "Machine-readable result: $($script:PlanPath)"
+    }
+    if ($Command -eq 'configure' -and $result.ExitCode -ne 0) { throw "One or more advanced audit policies failed. See the effective-state results." }
+}
+
 function BuildAuditResult {
     param (
         [object[]] $all_rules,
@@ -299,8 +349,16 @@ function BuildAuditResult {
 
     $auditpol = GetAuditpol
     $auditResult = @()
+    $sharedPlan = $null
+    if ($baselineName -eq 'YamatoSecurity') {
+        $context = Get-WelaSelectedContext
+        $sharedPlan = Get-WelaAuditProfilePlan -Profile 'wela-2.2.0' -Role $context.Role -Build $context.Build -IncludeOptional:$script:IncludeOptional
+        Write-Host "Advanced audit recommendations: $($sharedPlan.profile), role $($sharedPlan.role), build $($sharedPlan.build). Other controls use the existing baseline metadata."
+    }
 
     foreach ($item in $config.catalog) {
+        # The versioned profile owns all advanced-audit recommendations and canonical GUIDs.
+        if ($sharedPlan -and $item.currentSetting.type -eq 'auditpol') { continue }
         $setting = $settings.($item.id)
         if (-not $setting) {
             throw "Baseline '$baselineName' has no entry for catalog id '$($item.id)'."
@@ -383,6 +441,26 @@ function BuildAuditResult {
                 $setting.volume,
                 $setting.note
         )
+    }
+
+    if ($sharedPlan) {
+        foreach ($policy in $sharedPlan.policies) {
+            $rules = ApplyRules -rules $all_rules -guid $policy.guid
+            $current = if ($auditpol.ContainsKey($policy.guid)) { $auditpol[$policy.guid] } else { 'Unknown' }
+            if ($policy.mode -ne 'not-applicable' -and $enabledguid -contains $policy.guid) {
+                $rules | ForEach-Object { $_.applicable = $true }
+            }
+            if ($policy.mode -in @('exact', 'minimum') -and $policy.requiredMask -ne 0) {
+                $rules | ForEach-Object { $_.ideal = $true }
+            }
+            $legacyItem = $config.catalog | Where-Object { $_.subCategory -eq $policy.id -and $_.currentSetting.type -eq 'auditpol' } | Select-Object -First 1
+            $legacy = if ($legacyItem) { $settings.($legacyItem.id) } else { $null }
+            $defaultSetting = if ($legacy) { $legacy.defaultSetting } else { '' }
+            $volume = if ($legacy) { $legacy.volume } else { '' }
+            $note = (@($policy.prerequisites, $policy.note) | Where-Object { $_ }) -join ' '
+            $auditResult += [WELA]::New("Security Advanced ($($policy.category))", $policy.id, $current, [array]$rules,
+                $defaultSetting, $policy.recommendation, $volume, $note)
+        }
     }
 
     # どのカテゴリにも該当しなかったルールを取りこぼさない。
@@ -1280,6 +1358,11 @@ function ConfigureAuditSettings {
     if (-not (TestAdministrator)) { throw 'This script requires Administrator privileges.' }
     # Never use the debug cache to decide whether mutating controls are compliant.
     if ($Debug) { Write-Host 'configure always reads live state; the auditpol debug cache is not used.' -ForegroundColor Yellow }
+    # Reject unsupported roles/builds or unknown required policies before any writes.
+    $hostContext = Get-WelaHostContext
+    $effectivePolicy = Get-WelaEffectiveAuditPolicy
+    $profilePlan = Get-WelaAuditProfilePlan -Profile 'wela-2.2.0' -Role $hostContext.Role -Build $hostContext.Build -Current $effectivePolicy -IncludeOptional:$script:IncludeOptional
+    Assert-WelaAuditProfileTarget -Plan $profilePlan -Context $hostContext -Current $effectivePolicy
     $context = New-WelaConfigurationContext -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath
     if (-not $DryRun) { Write-Host "Recovery journal: $($context.BackupPath)" }
 
@@ -1343,48 +1426,10 @@ function ConfigureAuditSettings {
         ) -Auto:$Auto -Context $context
     }
 
-    $auditPolicies = @(
-        @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "0CCE923F-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "0CCE9242-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Logon"; Name = "Kerberos Service Ticket Operations"; GUID = "0CCE9240-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Computer Account Management"; GUID = "0CCE9236-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Distribution Group Management"; GUID = "0CCE9238-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Other Account Management Events"; GUID = "0CCE923A-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Security Group Management"; GUID = "0CCE9237-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "User Account Management"; GUID = "0CCE9235-69AE-11D9-BED3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "Plug and Play"; GUID = "0cce9248-69ae-11d9-bed3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "Process Creation"; GUID = "0CCE922B-69AE-11D9-BED3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "Process Termination"; GUID = "0CCE922C-69AE-11D9-BED3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "RPC Events"; GUID = "0CCE922E-69AE-11D9-BED3-505054503030"},
-        @{Category = "DS Access"; Name = "Directory Service Access"; GUID = "0CCE923B-69AE-11D9-BED3-505054503030"},
-        @{Category = "DS Access"; Name = "Directory Service Changes"; GUID = "0CCE923C-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Account Lockout"; GUID = "0CCE9217-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Logoff"; GUID = "0CCE9216-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Logon"; GUID = "0CCE9215-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Other Logon/Logoff Events"; GUID = "0CCE921C-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Special Logon"; GUID = "0CCE921B-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Certification Services"; GUID = "0CCE9221-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "File Share"; GUID = "0CCE9224-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Detailed File Share"; GUID = "0CCE9244-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Filtering Platform Connection"; GUID = "0CCE9226-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Other Object Access Events"; GUID = "0CCE9227-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Removable Storage"; GUID = "0CCE9245-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "SAM"; GUID = "0CCE9220-69AE-11D9-BED3-505054503030"},
-        @{Category = "Policy Change"; Name = "Audit Policy Change"; GUID = "0CCE922F-69AE-11D9-BED3-505054503030"},
-        @{Category = "Policy Change"; Name = "Authentication Policy Change"; GUID = "0CCE9230-69AE-11D9-BED3-505054503030"},
-        @{Category = "Policy Change"; Name = "Other Policy Change Events"; GUID = "0CCE9234-69AE-11D9-BED3-505054503030"},
-        @{Category = "Privilege Use"; Name = "Sensitive Privilege Use"; GUID = "0CCE9228-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "Security State Change"; GUID = "0CCE9210-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "Security System Extension"; GUID = "0CCE9211-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "System Integrity"; GUID = "0CCE9212-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "Other System Events"; GUID = "0CCE9214-69AE-11D9-BED3-505054503030"}
-    )
-
-    foreach ($policy in $auditPolicies) {
-        Set-WelaAuditPolicyControl -Context $context -Policy $policy
-    }
+    # Both audit display and mutation use the versioned role-aware profile.
+    Set-WelaProfileAuditControls -Context $context -Plan $profilePlan
     Set-WelaCertificateAuditControl -Context $context
-    Complete-WelaConfiguration -Context $context -ResultsPath $ResultsPath
+    Complete-WelaConfiguration -Context $context -ResultsPath $ResultsPath -Plan $profilePlan
 }
 
 $logo = @"
@@ -1643,6 +1688,11 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
+  ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
+  ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
+  ./WELA.ps1 configure -Profile asd-native-2021-10 -PlanPath result.json -Auto
+  # -Profile changes advanced audit policy ONLY. Optional controls need -IncludeOptional.
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
   ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
@@ -1662,7 +1712,17 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
+    Invoke-WelaProfileCommand -Command $Cmd.ToLower()
+    return
+}
+
 switch ($Cmd.ToLower()) {
+    "profiles" {
+        (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List
+    }
+    "plan" { Invoke-WelaProfileCommand -Command 'plan' }
+    "audit" { Invoke-WelaProfileCommand -Command 'audit' }
     "audit-settings"  {
         if ($Help -or [string]::IsNullOrEmpty($Baseline)){
             Write-Host "Audit current Windows Event Log settings and compare with baseline"

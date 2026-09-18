@@ -42,6 +42,8 @@ Windows event logs are a vital source of information for Digital Forensics and I
 (DFIR) — WELA checks your audit policy and log file sizes against best-practice guidelines and
 real-world Sigma-rule detectability, and can apply the recommended settings for you.
 
+Advanced audit policy can also use [versioned WELA, Microsoft, CIS and ASD profiles](docs/audit-profiles.md) for shared audit, plan and configure behavior. Profiles cover advanced audit policy only.
+
 ## 📖 Documentation
 
 All documentation now lives on a dedicated, searchable, multi-language site:
