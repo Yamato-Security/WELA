@@ -55,6 +55,8 @@
 
 **新機能:**
 
+- `applocker-readiness` を追加し、AppLocker のポリシー、強制モード、Application Identity サービス、チャネルを確認できるようにしました。空のローカルポリシーには指定した監査専用 XML を検証してインポートできます。既存の強制ポリシーや管理対象ホストでは変更を拒否し、CSP とイベント生成の未検証状態を明示します。 (issue #381) (@Shirofune-Security)
+
 - MITRE ATT&CK Navigatorヒートマップに対応した。 (#11) (@fukusuket)
 - Windows設定を様々なベースラインに構成するための`configure`コマンドを追加した。 (#12) (@fukusuket)
 - Defender for Identityの必要なログに対応した。 (#114) (@fukusuket)

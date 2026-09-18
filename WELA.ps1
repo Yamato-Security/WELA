@@ -22,6 +22,8 @@
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
     [string]$HtmlPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
+    [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
+    [string]$AppLockerPolicyPath,
     [switch]$Help
 )
 
@@ -38,6 +40,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
@@ -1673,6 +1676,8 @@ Usage:
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
+  ./WELA.ps1 applocker-readiness -AppLockerAction Plan -AppLockerPolicyPath operator-audit.xml
   # SMB auditing is opt-in and never changes signing/encryption requirements or guest access.
   ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
   ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
@@ -1703,10 +1708,10 @@ Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 # Reject unsupported dry-run requests before reaching any command's mutation path.
-if ($DryRun -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure and smb-auditing -SmbAction Configure. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure smb-auditing -SmbAction Configure, and applocker-readiness -AppLockerAction Import. No command was run."
 }
 if ($Profile -and $Cmd -in @('eventlog-profiles', 'audit-filesize', 'configure-eventlogs')) {
     throw '-Profile selects advanced audit policy only. Use -LogProfile for event-log size/mode settings.'
@@ -1749,6 +1754,20 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] SMB auditing: $_" -ForegroundColor Red; exit 1 }
+    }
+    "applocker-readiness" {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 applocker-readiness [-AppLockerAction Audit|Plan|Import] [-AppLockerPolicyPath operator.xml] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            return
+        }
+        if ($AppLockerAction -eq 'Import' -and -not (TestAdministrator)) { throw 'AppLocker policy import requires Administrator privileges.' }
+        $report = Invoke-WelaAppLockerCommand -Action $AppLockerAction -PolicyPath $AppLockerPolicyPath -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        if ($report.PSObject.Properties['Assessment']) {
+            $report.Assessment.Collections | Format-Table Type, EnforcementMode, RuleCount, PrerequisiteState, GenerationReadiness -AutoSize
+            Write-Host 'GP observations only; CSP policies and actual event generation remain unverified.' -ForegroundColor Yellow
+            if ($report.ImportBlocker) { Write-Host "Import blocked: $($report.ImportBlocker)" -ForegroundColor Yellow }
+        } else { $report.Results | Format-Table Id, Status, Diagnostic -AutoSize }
+        if ($report.ExitCode -ne 0) { throw 'AppLocker assessment/import failed; see structured results.' }
     }
     "profiles" {
         (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List

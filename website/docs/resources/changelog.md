@@ -57,6 +57,8 @@
 
 **New Features:**
 
+- Added `applocker-readiness` to inspect native policy collections, enforcement, Application Identity and channels, plus a guarded operator-supplied audit-only import for empty local policies. Existing enforcement and managed hosts block import; GP/CSP visibility and event-generation gaps remain explicit. (issue #381) (@Shirofune-Security)
+
 - Support for MITRE ATT&CK Navigator heatmaps. (#11) (@fukusuket)
 - Added a `configure` command to configure Windows settings to various baselines. (#12) (@fukusuket)
 - Support for Defender for Identity required logs. (#114) (@fukusuket)
