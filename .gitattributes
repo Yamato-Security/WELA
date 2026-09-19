@@ -2,3 +2,14 @@
 /config/security_rules.json text eol=lf
 /config/eid_subcategory_mapping.csv text eol=lf
 /config/rule_eligibility_manifest.json text eol=lf
+
+# Exact-context default evidence pins these source/collector bytes.
+/config/baselines.json text eol=lf
+/config/audit_profiles.json text eol=lf
+/config/control_applicability.json text eol=lf
+/scripts/ControlApplicability.ps1 text eol=lf
+/scripts/Configuration.ps1 text eol=lf
+/modules/NativeProviders.psm1 text eol=lf
+/modules/AuditProfiles.psm1 text eol=lf
+# Full upstream rule artifacts retain their exact pinned bytes on every platform.
+/config/provider_rule_sources/*.yml -text whitespace=-blank-at-eol

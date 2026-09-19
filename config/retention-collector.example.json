@@ -1,0 +1,17 @@
+{
+  "SchemaVersion": 1,
+  "Role": "Collector",
+  "Channels": ["ForwardedEvents"],
+  "SampleWindowMinutes": 60,
+  "MaxEventsPerChannel": 1000,
+  "StaleAfterMinutes": 60,
+  "ProjectionDays": 30,
+  "SubscriptionIds": ["WELA Native Security Example"],
+  "Archive": {
+    "DeclaredRetentionMonths": 18,
+    "PolicyEvidence": "Example declaration only; replace with the approved policy and external archive evidence reference.",
+    "Directory": null,
+    "MaxFiles": 10,
+    "ReaderSids": []
+  }
+}
