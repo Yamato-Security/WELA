@@ -94,7 +94,15 @@ namespace Wela.SelectedSacl {
    if(handle==IntPtr.Zero)throw new ObjectDisposedException("Target");
    // BACKUP_SECURITY_INFORMATION reads every descriptor section, including labels/resource/CAP ACEs.
    IntPtr owner,group,dacl,sacl,descriptor;uint error=GetSecurityInfo(handle,objectType,0x00010000,out owner,out group,out dacl,out sacl,out descriptor);
-   if(error!=0)throw new Win32Exception((int)error);
+   if(error!=0) {
+    // Read-only diagnostics retain the failure; never substitute a partial descriptor.
+    StringBuilder detail=new StringBuilder("GetSecurityInfo BACKUP failed for "+kind+" ("+error+"). Section query results:");
+    foreach(uint requested in new uint[] {1,4,8,16,32,64,128,256,31,511}) {
+     IntPtr o,g,d,a,sd;uint result=GetSecurityInfo(handle,objectType,requested,out o,out g,out d,out a,out sd);
+     if(result==0&&sd!=IntPtr.Zero)LocalFree(sd);detail.Append(" "+requested+"="+result);
+    }
+    throw new Win32Exception((int)error,detail.ToString());
+   }
    byte[] bytes;
    try {uint length=GetSecurityDescriptorLength(descriptor);if(length<20||length>1048576)throw new InvalidOperationException("Invalid descriptor size.");bytes=new byte[length];Marshal.Copy(descriptor,bytes,0,(int)length);}
    finally {LocalFree(descriptor);}

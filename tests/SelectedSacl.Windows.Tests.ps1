@@ -28,6 +28,7 @@ try {
     foreach($guid in $policyGuids){Set-WelaEffectiveAuditPolicy -Guid $guid -Mask 1 -Mode minimum}
     $snapshots=@{}
     foreach($definition in @($fileDefinition,$regDefinition)){
+        Write-Host ("Reading full native descriptor for owned "+$definition.Kind+" fixture.")
         $before=Get-WelaSelectedSaclSnapshot $definition
         $ace=Get-WelaSelectedSaclAce $definition $before
         Assert (-not(Test-WelaSelectedSaclAce $before $ace)) 'Fresh owned target has no requested audit ACE.'
