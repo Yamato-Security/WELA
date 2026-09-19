@@ -4,6 +4,7 @@
 
 **Improvements:**
 
+- Added explicit CIS v4.0.0 Level 2 Windows PowerShell 5.1 transcription audit, plan and configure actions. An operator-selected existing output directory is checked and reported separately from policy; typed canonical registry writes are journaled, verified through shared 32/64-bit views and checked for drift while preserving invocation-header preferences. No ACL/share/retention changes or automatic Sigma EVTX credit are introduced; disposable native transcript tests restore original policy, and central authorization/collection remains a deployment check. (#405) (@Shirofune-Security)
 - Preserved LDAP 1644 diagnostics during normal configuration instead of automatically enabling Field Engineering level 5 on DCs. Added explicit `ldap-diagnostics` audit/plan/configure modes for preservation, tunable diagnostics and MDI legacy cleanup, with role/build checks, typed recovery snapshots, race guards, ordered readback and final drift checks. LDAP-only options are rejected before unrelated profile commands can run. Generated events, volume and forwarding remain isolated-DC validation. (#404) (@Shirofune-Security)
 - Corrected the legacy Token Right Adjusted Events GUID so RPC and token auditing are assessed independently in every baseline. Added runtime catalog identity/alias checks and a read-only, fingerprinted EventID mapping review that preserves ambiguous, category-only and unknown candidates without detection credit. (#403) (@Shirofune-Security)
 
