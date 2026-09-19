@@ -8,6 +8,17 @@ function Refresh-DisposableComputerPolicy {
  $process=[Diagnostics.Process]::Start($info)
  try {if(-not $process.WaitForExit(60000)){$process.Kill();throw 'Disposable computer policy refresh exceeded 60 seconds.'};if($process.ExitCode -ne 0){throw ('Disposable computer policy refresh failed: '+$process.ExitCode)}} finally {$process.Dispose()}
 }
+function Run-DisposablePolicyConverter {
+ $started=[DateTime]::UtcNow;$deadline=$started.AddSeconds(30)
+ Start-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
+ do {
+  $task=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
+  $info=Get-ScheduledTaskInfo -InputObject $task -ErrorAction Stop
+  if($task.State -ne 'Running' -and $info.LastRunTime.ToUniversalTime() -ge $started.AddSeconds(-1)){if($info.LastTaskResult -ne 0){throw ('Native policy conversion failed: '+$info.LastTaskResult)};return}
+  Start-Sleep -Milliseconds 200
+ }while([DateTime]::UtcNow -lt $deadline)
+ throw 'Native policy conversion did not complete within thirty seconds.'
+}
 $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/Configuration.ps1"
 . "$repo/scripts/AppLockerReadiness.ps1"
@@ -15,6 +26,11 @@ $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/AppLockerProbe.ps1"
 $root=Join-Path $env:RUNNER_TEMP ('wela-applocker-native-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $root
 Write-Host ('Native fixture process session: '+[Diagnostics.Process]::GetCurrentProcess().SessionId)
+$converter=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
+$converterBefore=Export-ScheduledTask -InputObject $converter -ErrorAction Stop
+$converterDisabled=$converter.State -eq 'Disabled';$converterChanged=$false
+$actions=@($converter.Actions)
+if($converter.State -notin @('Disabled','Ready') -or $actions.Count -ne 1 -or [Environment]::ExpandEnvironmentVariables($actions[0].Execute).Trim('"') -ine (Join-Path ([Environment]::SystemDirectory) 'appidpolicyconverter.exe') -or $actions[0].Arguments){throw ('Only the unchanged native PolicyConverter action is permitted: '+($actions|ConvertTo-Json -Depth 8))}
 $before=Get-WelaAppLockerReadiness
 if($before.Host.PartOfDomain -or $before.Management.Status -ne 'Observed' -or $before.LocalPolicy.Status -ne 'Observed' -or $before.EffectiveGpPolicy.Status -ne 'Observed' -or $before.LocalPolicy.Policy.TotalRules -ne 0 -or $before.EffectiveGpPolicy.Policy.TotalRules -ne 0 -or $before.LocalPolicy.Policy.HasUnknownPolicyData -or $before.EffectiveGpPolicy.Policy.HasUnknownPolicyData){Write-Host ($before | ConvertTo-Json -Depth 16);throw 'Disposable test requires empty, understood local/effective policies on a non-domain disposable host.'}
 $backup=Join-Path $root 'policy-before.xml';[IO.File]::WriteAllText($backup,$before.LocalPolicy.Policy.Xml)
@@ -32,7 +48,9 @@ try {
  if($before.Service.StartMode -eq 'Disabled'){throw 'Test will not change protected AppIDSvc startup mode.'}
  if($before.Service.State -ne 'Running'){Start-Service AppIDSvc -ErrorAction Stop}
  $log.IsEnabled=$true;$log.SaveChanges()
+ if($converterDisabled){$converterChanged=$true;$null=Enable-ScheduledTask -InputObject $converter -ErrorAction Stop}
  Refresh-DisposableComputerPolicy
+ Run-DisposablePolicyConverter
  $applied=$false;$applyDeadline=[DateTime]::UtcNow.AddSeconds(30)
  do {
   $records=@()
@@ -63,7 +81,8 @@ try {
 }
 finally {
  if($touched){
-  try {Set-AppLockerPolicy -XmlPolicy $backup -ErrorAction Stop;Refresh-DisposableComputerPolicy;$restored=Get-WelaAppLockerPolicySnapshot Local;if((Get-WelaAppLockerXmlKey $restored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.LocalPolicy.Policy.Xml)){throw 'Local policy restoration differs'}}catch{$cleanup+=$_.Exception.Message}
+  try {Set-AppLockerPolicy -XmlPolicy $backup -ErrorAction Stop;Refresh-DisposableComputerPolicy;if($converterChanged -or -not $converterDisabled){Run-DisposablePolicyConverter};$restored=Get-WelaAppLockerPolicySnapshot Local;if((Get-WelaAppLockerXmlKey $restored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.LocalPolicy.Policy.Xml)){throw 'Local policy restoration differs'}}catch{$cleanup+=$_.Exception.Message}
+  try {if($converterChanged){$null=Disable-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop};$taskAfter=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop;if((Export-ScheduledTask -InputObject $taskAfter -ErrorAction Stop) -cne $converterBefore){throw 'Native PolicyConverter task definition was not restored'}}catch{$cleanup+=$_.Exception.Message}
   try {$log.IsEnabled=$enabled;$log.SaveChanges();$verify=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new($log.LogName);try{if($verify.IsEnabled -ne $enabled){throw 'Channel restoration differs'}}finally{$verify.Dispose()}}catch{$cleanup+=$_.Exception.Message}
   if($before.Service.State -ne 'Running') {try {Stop-Service AppIDSvc -ErrorAction Stop}catch{Write-Host 'Protected AppIDSvc could not stop; startup mode was untouched. The disposable hosted VM is discarded after this job.'}}
   $afterService=Get-WelaAppLockerService;if($afterService.StartMode -ne $before.Service.StartMode){$cleanup+='AppIDSvc startup mode changed'}
