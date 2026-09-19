@@ -59,6 +59,26 @@ function Invoke-WelaNative {
 $oldOS=$env:OS
 try {
  $env:OS='Windows_NT';Reset
+ # Exercise the real import boundary: a same-named test stub must not hide a
+ # missing export used by the public provider-pack script.
+ $nativeModule=Get-Module NativeProviders
+ Assert ($nativeModule.ExportedCommands.ContainsKey('Get-WelaNativeService')) 'Service observations required by packs are exported to the calling script.'
+ & $nativeModule {
+  $script:packServiceFixture='Running'
+  function script:Get-Service {
+   [CmdletBinding()]param($Name)
+   if($script:packServiceFixture -eq 'Absent'){$PSCmdlet.ThrowTerminatingError([Management.Automation.ErrorRecord]::new([Exception]::new('No such service'),'NoServiceFoundForGivenName','ObjectNotFound',$Name))}
+   if($script:packServiceFixture -eq 'Denied'){throw [UnauthorizedAccessException]::new('Service read denied')}
+   [pscustomobject]@{Status=$script:packServiceFixture}
+  }
+ }
+ try {
+  foreach($pair in @(@('Running','Running'),@('Absent','Not installed'),@('Denied','Unknown'))) {
+   & $nativeModule {param($value) $script:packServiceFixture=$value} $pair[0]
+   $service=NativeProviders\Get-WelaNativeService -Name DNS
+   Assert ($service.Name -eq 'DNS' -and $service.State -eq $pair[1]) 'Public service reader distinguishes installed, absent and denied observations without leaking an error.'
+  }
+ } finally {& $nativeModule {Remove-Item Function:\Get-Service}}
  Assert ($catalog.packs.Count -eq 7 -and $catalog.ruleReviews.Count -eq 15) 'Seven explicit packs retain fifteen pinned full native rule definitions.'
  $list=Invoke-WelaProviderPackCommand
  Assert ($list.ReadyRules -eq 0 -and $f.ProviderReads -eq 0) 'List is definitions only, with no host reads or detection credit.'

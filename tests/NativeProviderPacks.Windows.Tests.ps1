@@ -18,13 +18,16 @@ $shell=(Get-Process -Id $PID).Path
 $invoker=Join-Path $OutputDirectory 'invoke-read-only.ps1'
 $escapedRepo=$repo.Replace("'","''");$escapedPath=$path.Replace("'","''")
 @"
+`$ErrorActionPreference='Stop'
+`$global:LASTEXITCODE=0
 & '$escapedRepo/WELA.ps1' provider-packs -ProviderAction Plan -ProviderPack @('dns-client','dns-server-audit','dns-server-analytical','dns-server-classic','capi2','winrm','rdp-client') -ResultsPath '$escapedPath'
+exit `$global:LASTEXITCODE
 "@ | Set-Content -LiteralPath $invoker -Encoding UTF8
 $oldPreference=$ErrorActionPreference;$ErrorActionPreference='Continue'
 & $shell -NoProfile -File $invoker
 $code=$LASTEXITCODE;$ErrorActionPreference=$oldPreference
 $r=Get-Content -LiteralPath $path -Raw -ErrorAction Stop|ConvertFrom-Json
-Assert ($code -eq $r.ExitCode -and $code -in @(0,1)) 'Real public CLI exit agrees with reported unavailable/manual prerequisites.'
+Assert ($code -eq $r.ExitCode -and $code -in @(0,1)) "Real public CLI exit ($code) agrees with reported unavailable/manual prerequisites ($($r.ExitCode))."
 Assert ($r.Action -eq 'Plan' -and $r.ControlsPlan.Count -eq 7 -and $r.ReadyRules -eq 0) 'Actual plan retains all selected packs and no readiness credit.'
 Assert (@($r.ControlsPlan|Where-Object {$_.ProviderEvidence.Schema.State -eq 'Observed'}).Count -gt 0) 'At least one real Windows provider manifest must be read successfully.'
 $dns=@($r.ControlsPlan|Where-Object {$_.Pack.id -eq 'dns-client'})[0]
