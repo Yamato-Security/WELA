@@ -57,8 +57,8 @@ function Get-WelaRecoveryHost {
     if (-not (Test-WelaDefaultContextComplete $context)) {throw 'Actual host context is incomplete.'}
     $machine=Get-WelaRegistryState 'HKLM:\SOFTWARE\Microsoft\Cryptography' MachineGuid
     $parsed=[guid]::Empty
-    if (-not $machine.ValueExists -or $machine.Type -ne 'String' -or -not [guid]::TryParse([string]$machine.Value,[ref]$parsed) -or $parsed -eq [guid]::Empty -or -not $env:COMPUTERNAME) {throw 'Actual machine identity is unavailable.'}
-    [pscustomobject][ordered]@{Computer=$env:COMPUTERNAME;MachineGuid=$parsed.ToString();ContextKey=(Get-WelaDefaultContextKey $context)}
+    if (-not $machine.ValueExists -or $machine.Type -ne 'String' -or -not [guid]::TryParse([string]$machine.Value,[ref]$parsed) -or $parsed -eq [guid]::Empty -or -not [Environment]::MachineName) {throw 'Actual machine identity is unavailable.'}
+    [pscustomobject][ordered]@{Computer=[Environment]::MachineName;MachineGuid=$parsed.ToString();ContextKey=(Get-WelaDefaultContextKey $context)}
 }
 function Get-WelaRecoveryKey {param($Value) ConvertTo-Json -InputObject $Value -Depth 20 -Compress}
 function Assert-WelaRecoveryMask {param($Value) if (($Value -isnot [int] -and $Value -isnot [long]) -or $Value -notin @(0,1,2,3)) {throw 'Audit mask must be an integer 0..3.'}}
