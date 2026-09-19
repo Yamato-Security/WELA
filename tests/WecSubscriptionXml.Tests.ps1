@@ -1,6 +1,10 @@
 $ErrorActionPreference='Stop';$repo=Split-Path $PSScriptRoot -Parent
 Import-Module "$repo/modules/WefSubscriptions.psm1" -Force
-if(-not ('Wela.WecXml.Reader' -as [type])){Add-Type -Path "$repo/modules/WecSubscriptionXml.cs" -ErrorAction Stop}
+if(-not ('Wela.WecXml.Reader' -as [type])){
+ $compile=@{Path="$repo/modules/WecSubscriptionXml.cs";ErrorAction='Stop'}
+ if($PSVersionTable.PSEdition -eq 'Desktop'){$compile.ReferencedAssemblies=@('System.dll','System.Core.dll','System.Xml.dll')}
+ Add-Type @compile
+}
 $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Reject([scriptblock]$Action){$failed=$false;try{&$Action|Out-Null}catch{$failed=$true};Assert $failed 'Invalid native XML bytes/identity must fail'}
