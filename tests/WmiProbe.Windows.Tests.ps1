@@ -22,6 +22,7 @@ Initialize-WelaWmiProbeNative
 $originalToken=[Wela.WmiProbe.Native]::Snapshot()
 $namespaceName='WelaReadTest_'+[guid]::NewGuid().ToString('N');$namespace='root\'+$namespaceName
 $private=New-WelaArrivalOutput (Join-Path ([IO.Path]::GetTempPath()) ('wela-wmi-native-'+[guid]::NewGuid().ToString('N'))) $PSScriptRoot
+try{$null=[Wela.WmiProbe.Native]::Snapshot();Write-Host 'Token remains equivalent immediately after private output creation.'}catch{Write-Host ('Native token diagnostic after private output creation: '+$_.Exception.Message)}
 $created=$false;$instance=$null;$factory=$null;$failure=$null;$cleanupErrors=@()
 try{
     Initialize-WelaWmiInterop

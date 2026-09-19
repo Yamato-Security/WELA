@@ -47,6 +47,15 @@ namespace Wela.WmiProbe {
    for(int i=0;i<a.Privileges.Length;i++)if(a.Privileges[i].Luid!=b.Privileges[i].Luid||a.Privileges[i].Attributes!=b.Privileges[i].Attributes)return false;
    return true;
   }
+  static string Difference(Token a,Token b) {
+   if(a.Sid!=b.Sid)return "user SID differs";
+   if(a.AuthenticationId!=b.AuthenticationId)return "logon LUID differs";
+   if(a.Groups.Length!=b.Groups.Length)return "group count differs";
+   for(int i=0;i<a.Groups.Length;i++)if(a.Groups[i].Sid!=b.Groups[i].Sid||a.Groups[i].Attributes!=b.Groups[i].Attributes)return "group "+a.Groups[i].Sid+" process="+a.Groups[i].Attributes+" effective="+b.Groups[i].Attributes;
+   if(a.Privileges.Length!=b.Privileges.Length)return "privilege count differs";
+   for(int i=0;i<a.Privileges.Length;i++)if(a.Privileges[i].Luid!=b.Privileges[i].Luid||a.Privileges[i].Attributes!=b.Privileges[i].Attributes)return "privilege "+a.Privileges[i].Luid+" process="+a.Privileges[i].Attributes+" effective="+b.Privileges[i].Attributes;
+   return "unknown difference";
+  }
   [DllImport("advapi32.dll")] static extern bool IsTokenRestricted(IntPtr token);
   public static Token Snapshot() {
    IntPtr thread=IntPtr.Zero,process=IntPtr.Zero;
@@ -57,7 +66,7 @@ namespace Wela.WmiProbe {
     Token primary=ReadToken(process,"Process");
     if(thread==IntPtr.Zero)return primary;
     Token effective=ReadToken(thread,"EquivalentSelfThread");
-    if(!Equivalent(primary,effective))throw new InvalidOperationException("Effective thread token differs from the process token; an ordinary child cannot preserve this caller context.");
+    if(!Equivalent(primary,effective))throw new InvalidOperationException("Effective thread token differs from the process token ("+Difference(primary,effective)+"); an ordinary child cannot preserve this caller context.");
     return effective;
    } finally {if(process!=IntPtr.Zero)CloseHandle(process);if(thread!=IntPtr.Zero)CloseHandle(thread);}
   }
