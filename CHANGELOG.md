@@ -4,6 +4,7 @@
 
 **Improvements:**
 
+- Added versioned advanced audit-policy profiles shared by `audit-settings`, `plan` and `configure`: 59 subcategories and 14 profiles covering WELA, documented Windows defaults, Microsoft, reviewed CIS v4.0.0 and ASD native guidance. Profiles support role/build validation, offline planning and JSON exports with sources and prerequisites. Exact, minimum, optional, unchanged, Not Configured and not-applicable settings remain distinct. Windows defaults are reference-only; profile scope is advanced Security audit policy. (#390) (@Shirofune-Security)
 - Added six native Windows audit subcategories to WELA's profile: Group Membership and Authorization Policy Change (Success), plus Application Group Management, MPSSVC Rule-Level Policy Change, IPsec Driver and Kernel Object (Success and Failure). Source-specific profiles retain their own audit settings and prerequisites; Kernel Object events require matching object SACLs, which this change does not create. (#391) (@Shirofune-Security)
 - Added `-DryRun` and `-ResultsPath` to `configure` and `configure -Profile` to preview changes without modifying Windows settings and export per-control results as JSON. Commands that do not support `-DryRun` reject it before running. (#392) (@Shirofune-Security)
 - Added `-BackupPath` and a recovery journal that records each control's previous state before making changes, with a documented manual recovery procedure. (#392) (@Shirofune-Security)

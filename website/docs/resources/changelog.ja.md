@@ -7,6 +7,7 @@
 
 **改善:**
 
+- `audit-settings`、`plan`、`configure`で共有するバージョン付きの詳細監査ポリシープロファイルを追加した。59のサブカテゴリと14のプロファイルで、WELA、文書に基づくWindows既定値、Microsoft、確認済みのCIS v4.0.0、ASDのWindows標準機能向け監査ガイドに対応する。ホストの役割とビルドの検証、オフラインでの設定計画、出典と前提条件を含むJSON出力をサポートする。完全一致、最低限、任意、変更なし、未構成、適用対象外を区別する。Windows既定値は参照専用で、プロファイルの対象はSecurityログの詳細監査ポリシーに限定される。 (#390) (@Shirofune-Security)
 - WELAのプロファイルにWindows標準の監査サブカテゴリを6つ追加した。Group MembershipとAuthorization Policy Changeは成功、Application Group Management、MPSSVC Rule-Level Policy Change、IPsec Driver、Kernel Objectは成功と失敗を監査する。各ガイドに対応するプロファイルでは、それぞれの監査設定と前提条件を維持する。Kernel Objectのイベント生成には対象オブジェクトに適切なSACLが必要であり、この変更ではそのSACLを作成しない。 (#391) (@Shirofune-Security)
 - `configure`と`configure -Profile`に`-DryRun`と`-ResultsPath`を追加し、Windows設定を変更せずに変更内容を確認し、設定項目ごとの結果をJSONで出力できるようにした。`-DryRun`に対応していないコマンドは、実行前にエラーで停止する。 (#392) (@Shirofune-Security)
 - `-BackupPath`と、各設定項目の変更前の状態を記録する復旧用ジャーナルを追加し、手動での復旧手順を文書化した。 (#392) (@Shirofune-Security)
