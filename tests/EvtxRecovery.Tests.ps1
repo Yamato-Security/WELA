@@ -25,6 +25,10 @@ try {
     $fixture=New-WelaEvtxFixture (Join-Path $temp 'source')
     $source=Import-WelaEvtxProbe $fixture.Directory
     Assert ($source.Event.Computer -eq 'source01.lab.test' -and $source.Files.Count -eq 5) 'Completed native-shaped source bundle validates with all hashes'
+    $fractional=New-WelaEvtxFixture (Join-Path $temp 'fractional-zeroes') -Timestamp ([datetime]::SpecifyKind([datetime]'2025-01-02T03:04:05.1234500',[DateTimeKind]::Utc))
+    $fractionalSource=Import-WelaEvtxProbe $fractional.Directory
+    Assert ($fractionalSource.Manifest.BeforeState.capturedAtUtc -is [string] -and $fractionalSource.Manifest.BeforeState.capturedAtUtc.EndsWith('.1234500Z')) 'Fixture retains fractional timestamp zeroes as strings in embedded metadata'
+    Assert ($fractionalSource.Files.Count -eq 5) 'Deterministic fractional-zero fixture passes the unchanged strict bundle importer'
     foreach($case in @('hash','extra','duplicate-json','bad-status','embedded','typed','missing-mask','source-drift','time','process-command','unknown-field','bad-kind','duplicate-artifact')) {
         $dir=Join-Path $temp $case;Copy-Item $fixture.Directory $dir -Recurse
         $m=Clone $fixture.Manifest

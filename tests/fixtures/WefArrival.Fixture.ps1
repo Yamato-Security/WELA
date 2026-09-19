@@ -1,7 +1,7 @@
 # Synthetic source/collector data only. No native event generation or telemetry claim.
 function New-WelaArrivalFixture {
-    param([string]$Directory)
-    $now=[DateTime]::UtcNow.AddSeconds(-5)
+    param([string]$Directory,[datetime]$Timestamp=([DateTime]::UtcNow.AddSeconds(-5)))
+    $now=$Timestamp
     $hostState=[pscustomobject][ordered]@{Status='Observed';Build=20348;UBR=4000;Edition='ServerDatacenter';ProductType=3;DomainRole=3;DomainJoined=$true;Domain='lab.test';Architecture='64-bit';ProcessorArchitecture=9;InstalledRoles=@('Web-Server');RolesStatus='Observed';Diagnostic=''}
     $policies=@{};foreach ($p in (Import-WelaAuditProfiles).catalog) {$policies[$p.guid]=0};$policies['0cce922b-69ae-11d9-bed3-505054503030']=1
     $state=[pscustomobject][ordered]@{capturedAtUtc=$now.AddSeconds(-2).ToString('o');context=[pscustomobject]@{computer='source01';role='MemberServer';build=20348;patch='20348.4000';domainJoined=$true;installedRoles=@('Web-Server')};hostObservation=$hostState;auditPolicies=$policies;auditPrecedence=[pscustomobject]@{KeyExists=$true;ValueExists=$true;Value=1;Type='DWord'};commandLineCapture=[pscustomobject]@{KeyExists=$true;ValueExists=$true;Value=1;Type='DWord'};securityChannelEnabled=$true}
@@ -13,7 +13,7 @@ function New-WelaArrivalFixture {
 "@
     $null=New-Item -ItemType Directory -Path $Directory
     $artifacts=@();foreach ($entry in @(@('before-state.json',$before),@('after-state.json',$after),@('process.json',($process|ConvertTo-Json -Depth 6)),@('event.xml',$xml))) {$artifacts+=Write-WelaProbeArtifact $Directory $entry[0] $entry[1]}
-    $manifest=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaNativeProbeComponents';Probe='security-4688-command-line-v1';Action='Run';Status='NativeEventObserved';ExitCode=0;GeneratedUtc=$now.AddSeconds(-3).ToString('o');PolicyChanges=0;ReadyRuleCredit=0;Scope='Synthetic test fixture';RequiredEvidence=@('Reviewed complete rule and normalization','Backend ingestion','Translated query and successful query result');BeforeState=(ConvertFrom-Json $before);AfterState=(ConvertFrom-Json $after);Process=$process;Artifacts=$artifacts;Diagnostic='';OutputPath=$Directory}
+    $manifest=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaNativeProbeComponents';Probe='security-4688-command-line-v1';Action='Run';Status='NativeEventObserved';ExitCode=0;GeneratedUtc=$now.AddSeconds(-3).ToString('o');PolicyChanges=0;ReadyRuleCredit=0;Scope='Synthetic test fixture';RequiredEvidence=@('Reviewed complete rule and normalization','Backend ingestion','Translated query and successful query result');BeforeState=(ConvertFrom-WelaArrivalJson $before);AfterState=(ConvertFrom-WelaArrivalJson $after);Process=$process;Artifacts=$artifacts;Diagnostic='';OutputPath=$Directory}
     $null=Write-WelaProbeArtifact $Directory 'manifest.json' ($manifest|ConvertTo-Json -Depth 20)
     [pscustomobject]@{Directory=$Directory;Xml=$xml;Host=$hostState;Process=$process;Manifest=$manifest}
 }
