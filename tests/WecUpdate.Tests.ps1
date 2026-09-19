@@ -34,6 +34,9 @@ function New-WelaWecUpdateEdit {
 }
 try {
  $before=Get-WelaWecUpdateDefinition $base @($sid);Assert ($before.Id -ceq $id) 'Original parsed'
+ $formatted=$query.Replace('><',">`r`n  <")
+ Assert ((ConvertFrom-WelaWefQuery $formatted).Key -ceq (ConvertFrom-WelaWefQuery $query).Key) 'Formatted native query XML preserves semantic selection'
+ Assert ((ConvertFrom-WelaWefQuery $formatted.Replace('4625','4624')).Key -cne (ConvertFrom-WelaWefQuery $query).Key) 'Different event selection changes the semantic key'
  Reject {Get-WelaWecUpdateDefinition ($base.Replace('<Enabled>false','<Enabled>true')) @($sid)} 'disabled'
  Reject {Get-WelaWecUpdateDefinition $base @('S-1-1-0')} 'SID'
  Reject {ConvertFrom-WelaWefQuery ($query.Replace('Security','Microsoft-Windows-Sysmon/Operational'))} 'Sysmon'

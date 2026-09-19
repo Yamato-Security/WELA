@@ -14,6 +14,8 @@ namespace Wela.WecUpdate {
   [DllImport("wecapi.dll",SetLastError=true)] [return:MarshalAs(UnmanagedType.Bool)] static extern bool EcSaveSubscription(IntPtr handle,uint flags);
   [DllImport("wecapi.dll",SetLastError=true)] [return:MarshalAs(UnmanagedType.Bool)] static extern bool EcClose(IntPtr handle);
   IntPtr handle; readonly string name,oldQuery,oldDescription;
+  public string OriginalQuery {get{return oldQuery;}}
+  public string OriginalDescription {get{return oldDescription;}}
   static object Read(IntPtr h,int property) {
    uint size=16;
    for(int attempt=0;attempt<3;attempt++) {
@@ -39,11 +41,11 @@ namespace Wela.WecUpdate {
    if((bool)Read(h,0))throw new InvalidOperationException("Subscription must remain disabled.");
    if(!String.Equals((string)Read(h,10),oldQuery,StringComparison.Ordinal)||!String.Equals((string)Read(h,6),oldDescription,StringComparison.Ordinal))throw new InvalidOperationException("Native query/description changed since review.");
   }
-  public Edit(string id,string expectedQuery,string expectedDescription) {
+  public Edit(string id) {
    if(String.IsNullOrWhiteSpace(id)||id.Length>128||id.IndexOf('\0')>=0)throw new ArgumentException("Invalid subscription ID.");
-   name=id;oldQuery=expectedQuery;oldDescription=expectedDescription;
+   name=id;
    handle=EcOpenSubscription(name,3,2);if(handle==IntPtr.Zero)throw new Win32Exception(Marshal.GetLastWin32Error());
-   try{Check(handle);}catch{Dispose();throw;}
+   try{oldQuery=(string)Read(handle,10);oldDescription=(string)Read(handle,6);Check(handle);}catch{Dispose();throw;}
   }
   void Set(int property,string text) {
    if(text==null||text.Length>262144||text.IndexOf('\0')>=0)throw new ArgumentException("Invalid bounded string property.");

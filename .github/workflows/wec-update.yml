@@ -19,7 +19,9 @@ jobs:
       - name: Guard and failure fixtures in Windows PowerShell 5.1
         if: matrix.engine == 'powershell'
         shell: powershell
-        run: ./tests/WecUpdate.Tests.ps1
+        run: |
+          ./tests/WecUpdate.Tests.ps1
+          ./tests/WecUpdate.Cli.Tests.ps1
       - name: Actual disabled-subscription updates in Windows PowerShell 5.1
         if: matrix.engine == 'powershell'
         shell: powershell
@@ -27,7 +29,9 @@ jobs:
       - name: Guard and failure fixtures in PowerShell 7
         if: matrix.engine == 'pwsh'
         shell: pwsh
-        run: ./tests/WecUpdate.Tests.ps1
+        run: |
+          ./tests/WecUpdate.Tests.ps1
+          ./tests/WecUpdate.Cli.Tests.ps1
       - name: Actual disabled-subscription updates in PowerShell 7
         if: matrix.engine == 'pwsh'
         shell: pwsh

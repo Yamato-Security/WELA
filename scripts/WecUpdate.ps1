@@ -60,7 +60,13 @@ function New-WelaWecUpdateEdit {
     $path=Join-Path $PSScriptRoot 'WecUpdateNative.cs';$hash=(Get-FileHash -LiteralPath $path -Algorithm SHA256 -ErrorAction Stop).Hash
     if(-not('Wela.WecUpdate.Edit' -as [type])){Add-Type -Path $path -ErrorAction Stop;$script:WelaWecUpdateNativeHash=$hash}
     if($script:WelaWecUpdateNativeHash -cne $hash){throw 'Loaded native updater differs from its current source; start a fresh process.'}
-    [Wela.WecUpdate.Edit]::new($Before.Id,$Before.QueryXml,$Before.Description)
+    $edit=[Wela.WecUpdate.Edit]::new($Before.Id)
+    try {
+        # wecutil formats the embedded query XML. Compare its validated semantic
+        # key here; the native handle keeps exact raw strings for its fresh save guard.
+        if((ConvertFrom-WelaWefQuery $edit.OriginalQuery).Key -cne $Before.QueryKey -or $edit.OriginalDescription -cne $Before.Description){throw 'Native handle query/description differ from the reviewed definition.'}
+        return $edit
+    }catch{$edit.Dispose();throw}
 }
 function Assert-WelaWecUpdatePlan {
     param($Plan)
