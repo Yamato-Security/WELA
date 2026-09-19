@@ -37,6 +37,9 @@ try {
     [Runtime.InteropServices.Marshal]::WriteInt32($buffer,8,0)
     [Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,0)
     Assert (([Wela.WecRuntime.Native]::Decode($buffer,16,2)).State -eq 'NotAvailable') 'Null is distinct from a successful nonempty property.'
+    [Runtime.InteropServices.Marshal]::WriteInt32($buffer,8,12345)
+    $nativeNull=[Wela.WecRuntime.Native]::Decode($buffer,16,4)
+    Assert ($nativeNull.State -eq 'NotAvailable' -and $nativeNull.Count -eq 0) 'Native null ignores unused count/union storage, which Windows need not initialize.'
 } finally {[Runtime.InteropServices.Marshal]::FreeHGlobal($buffer)}
 foreach ($property in @(0,1)) {
     Throws {ConvertTo-WelaWecRuntimeField (NativeValue 2 '2') $property} 'UInt32'

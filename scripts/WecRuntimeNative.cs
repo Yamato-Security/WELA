@@ -30,7 +30,8 @@ namespace Wela.WecRuntime {
    if(buffer==IntPtr.Zero||size<16||size>MaximumBytes||property<0||property>6)throw new InvalidOperationException("Invalid runtime buffer or property.");
    uint count=unchecked((uint)Marshal.ReadInt32(buffer,8));uint type=unchecked((uint)Marshal.ReadInt32(buffer,12));
    Value value=new Value {NativeType=type,Count=count};
-   if(type==0) {if(count!=0)throw new InvalidOperationException("Null runtime variant has a nonzero count.");value.State="NotAvailable";return value;}
+   // Count and union storage have no meaning for EcVarTypeNull; Windows may leave them untouched.
+   if(type==0) {value.Count=0;value.State="NotAvailable";return value;}
    uint expected=property==0||property==1?2U:property==2?4U:property==5?132U:3U;
    if(type!=expected)throw new InvalidOperationException("Unexpected EC_VARIANT type for runtime property.");
    if(type==2) {value.Data=unchecked((uint)Marshal.ReadInt32(buffer));}
