@@ -29,3 +29,12 @@ scripts/WecUpdateNative.cs text eol=lf
 modules/WefSubscriptions.psm1 text eol=lf
 tests/WecUpdate*.ps1 text eol=lf
 modules/WecSubscriptionXml.cs text eol=lf
+# DNS analytical receipts pin the catalog and lifecycle implementation bytes.
+/config/native_provider_packs.json text eol=lf
+/scripts/NativeProviderPacks.ps1 text eol=lf
+/scripts/DnsAnalytical.ps1 text eol=lf
+/scripts/DnsAnalyticalArchive.cs text eol=lf
+# Native WEC XML reader source identity remains identical across checkouts.
+/modules/WecSubscriptionXml.cs text eol=lf
+scripts/AppLockerProbe.ps1 text eol=lf
+tests/AppLockerProbe*.ps1 text eol=lf
