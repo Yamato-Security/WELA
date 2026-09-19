@@ -13,6 +13,7 @@ function Reset-Fixture {
     $script:values=@{}; $script:types=@{}; $script:writes=@(); $script:journal=$null
     $script:hostStatus='Supported'; $script:build=22631; $script:product=1
     $script:channel='Enabled'; $script:logMode='Circular'; $script:admxError=$false
+    $script:policyDrift=$false; $script:postWriteReads=0
     $script:readError=$false; $script:writeError=$false; $script:ignored=$false; $script:race=$false
 }
 function Get-WelaNotificationHost { [pscustomobject]@{Status=$script:hostStatus;Build=$script:build;ProductType=$script:product;Diagnostic='fixture'} }
@@ -23,6 +24,7 @@ function Get-WelaOneSettingsDefinitionEvidence {
 function Get-WelaRegistryState {
     param($Path,$Name)
     if ($script:readError) { throw 'read denied' }
+    if ($script:policyDrift -and $script:writes.Count -gt 0 -and $Name -eq 'EnableOneSettingsAuditing') { $script:postWriteReads++; if ($script:postWriteReads -ge 2) { $script:values[$Name]=0 } }
     if ($script:race -and $script:journal -and (Test-Path $script:journal)) { $script:values[$Name]=0; $script:types[$Name]='DWord' }
     [pscustomobject]@{KeyExists=$true;ValueExists=$script:values.ContainsKey($Name);Value=$script:values[$Name];Type=$script:types[$Name]}
 }
@@ -110,6 +112,18 @@ try {
     $context=New-FixtureContext -DryRun
     $report=Invoke-WelaNotificationCommand -Action Configure -Control OneSettings -EnablePrivacyChannel -Auto -BackupPath $context.BackupPath
     Assert ($report.ExitCode -eq 1 -and $script:channelCalls -eq 0) 'Failed policy must not enable the channel.'
+    Reset-Fixture; $script:channelCalls=0; $script:policyDrift=$true
+    $context=New-FixtureContext -DryRun
+    $resultPath=Join-Path ([IO.Path]::GetTempPath()) ('wela-notification-export-'+[guid]::NewGuid().ToString('N')+'.json')
+    $script:cleanup+=$resultPath
+    $report=Invoke-WelaNotificationCommand -Action Configure -Control OneSettings -EnablePrivacyChannel -Auto -BackupPath $context.BackupPath -ResultsPath $resultPath
+    $export=Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
+    Assert ($report.ExitCode -eq 1 -and $script:channelCalls -eq 0) 'OneSettings drift to zero blocks the dependent channel action.'
+    Assert ($export.ExitCode -eq 1 -and @($export.Results | Where-Object Id -eq 'AuditNotifications/PrivacyChannelDependency').Count -eq 1) 'Dependency failure retains final drift results and JSON export.'
+    Reset-Fixture; $script:channelCalls=0
+    $context=New-FixtureContext -DryRun
+    $report=Invoke-WelaNotificationCommand -Action Configure -Control OneSettings -EnablePrivacyChannel -Auto -DryRun -BackupPath $context.BackupPath
+    Assert ($report.ExitCode -eq 0 -and $script:channelCalls -eq 1 -and $script:writes.Count -eq 0) 'Dry-run may preview a channel after a policy change that has not been written.'
     $exe=(Get-Process -Id $PID).Path
     $ErrorActionPreference='Continue'
     try { $output=& $exe -NoProfile -File (Join-Path $root 'WELA.ps1') configure -Profile wela-2.2.0 -NotificationControl SecurityWarning 2>&1; $code=$LASTEXITCODE } finally { $ErrorActionPreference='Stop' }

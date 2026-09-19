@@ -1798,6 +1798,10 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -eq 'audit-notifications' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','NotificationAction','NotificationControl','WarningPercent','EnablePrivacyChannel','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
+    throw 'audit-notifications accepts only notification, consent/dry-run, recovery and JSON output options. No command was run.'
+}
+
 if ($Cmd -ne 'audit-notifications' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('NotificationAction','NotificationControl','WarningPercent','EnablePrivacyChannel') }).Count) {
     throw 'Notification options require audit-notifications. No command was run.'
 }
@@ -1838,7 +1842,7 @@ if ($DryRun -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, and ldap-diagnostics -LdapAction Configure. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, and audit-notifications -NotificationAction Configure. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'

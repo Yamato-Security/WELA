@@ -150,12 +150,20 @@ function Invoke-WelaNotificationCommand {
             $policy=@($context.Results | Where-Object Id -eq 'AuditNotifications/OneSettings')[0]
             if ($policy.Status -in @('AlreadyCompliant','Applied') -or ($DryRun -and $policy.Status -eq 'Skipped' -and $policy.Diagnostic -like 'Dry run:*')) {
                 # Recheck the complete producer prerequisites before any channel action.
-                $fresh=Get-WelaNotificationSnapshot $one.Definition
-                if ($fresh.Status -ne 'Supported') { throw 'Privacy channel prerequisites changed after policy configuration.' }
-                Set-WelaNativeChannelControls -Context $context -Plan $channelPlan -Profile 'audit-notifications'
+                try {
+                    $fresh=Get-WelaNotificationSnapshot $one.Definition
+                    if ($fresh.Status -ne 'Supported' -or (-not $DryRun -and
+                        (-not $fresh.Policy.ValueExists -or $fresh.Policy.Type -ne 'DWord' -or $fresh.Policy.Value -ne 1))) {
+                        throw 'Privacy channel prerequisites changed or OneSettings policy is no longer enabled; dependent channel action refused.'
+                    }
+                    Set-WelaNativeChannelControls -Context $context -Plan $channelPlan -Profile 'audit-notifications'
+                } catch {
+                    # Keep the policy journal, final drift check and JSON export available.
+                    $context.Results.Add([pscustomobject]@{Id='AuditNotifications/PrivacyChannelDependency';Kind='NativeChannel';Target=$one.Definition.Channel;Desired='Enable after verified OneSettings policy';Before=$fresh;After=$null;Status='Failed';Diagnostic=$_.Exception.Message})
+                }
             }
         }
-        $report=Complete-WelaConfiguration -Context $context -SuccessMessage 'Selected registry/channel settings verified; generated warnings/events and forwarding remain unverified.'
+        $report=Complete-WelaConfiguration -Context $context -SuccessMessage 'Notification configuration finished. Applied/AlreadyCompliant rows verify settings; skipped rows do not. Events and forwarding remain unverified.'
         $report.Scope='audit-notifications'
     }
     $report | Add-Member NoteProperty Action $Action
