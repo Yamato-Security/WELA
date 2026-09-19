@@ -39,6 +39,8 @@
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
     [string[]]$WmiNamespace,
     [switch]$WmiIncludeChildren,
+    [ValidateSet('Audit', 'Plan', 'Configure')][string]$TranscriptionAction = 'Audit',
+    [string]$TranscriptDirectory,
     [switch]$Help
 )
 
@@ -58,6 +60,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
@@ -1716,6 +1719,7 @@ Usage:
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
   ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
   ./WELA.ps1 applocker-readiness -AppLockerAction Plan -AppLockerPolicyPath operator-audit.xml
   # SMB auditing is opt-in and never changes signing/encryption requirements or guest access.
@@ -1766,6 +1770,10 @@ if ($PSBoundParameters.ContainsKey('SaclMode') -and
     throw '-SaclMode requires -Profile with plan, audit, audit-settings or configure. It does not control configure-sacl. No command was run.'
 }
 # Reject unsupported dry-run requests before reaching any command's mutation path.
+if ($Cmd -ne 'powershell-transcription' -and
+    ($PSBoundParameters.ContainsKey('TranscriptionAction') -or $PSBoundParameters.ContainsKey('TranscriptDirectory'))) {
+    throw 'Transcription options require the dedicated powershell-transcription command. No command was run.'
+}
 if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
     $_ -in @('AdSaclAction', 'AdServer', 'AdSaclProfile', 'AdObjectDn', 'AdReceiptPath')
 }).Count) {
@@ -1774,11 +1782,12 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
+    -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
     -not ($Cmd -eq 'channel-settings' -and $ChannelAction -eq 'Configure') -and
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1872,6 +1881,19 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] SMB auditing: $_" -ForegroundColor Red; exit 1 }
+    }
+    'powershell-transcription' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 powershell-transcription [-TranscriptionAction Audit|Plan|Configure] [-TranscriptDirectory absolute-existing-directory] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Explicit CIS v4.0.0 Level 2 option for Windows PowerShell 5.1. Plan/Configure require an operator-reviewed output directory; ACLs, quotas and retention are not changed. Text transcripts provide no automatic Sigma EVTX credit. See docs/powershell-transcription.md.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'powershell-transcription is an explicit Level 2 option; -Profile and -Baseline select separate Security audit policies.' }
+        try {
+            $report = Invoke-WelaTranscriptCommand -Action $TranscriptionAction -OutputDirectory $TranscriptDirectory -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] PowerShell transcription: $_" -ForegroundColor Red; exit 1 }
     }
     'ad-object-sacl' {
         if ($Help) {
