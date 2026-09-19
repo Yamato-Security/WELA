@@ -98,8 +98,8 @@ namespace Wela.SelectedSacl {
     // Read-only diagnostics retain the failure; never substitute a partial descriptor.
     StringBuilder detail=new StringBuilder("GetSecurityInfo BACKUP failed for "+kind+" ("+error+"). Section query results:");
     foreach(uint requested in new uint[] {1,4,8,16,32,64,128,256,31,511}) {
-     IntPtr o,g,d,a,sd;uint result=GetSecurityInfo(handle,objectType,requested,out o,out g,out d,out a,out sd);
-     if(result==0&&sd!=IntPtr.Zero)LocalFree(sd);detail.Append(" "+requested+"="+result);
+     IntPtr o,g,d,a,probeDescriptor;uint result=GetSecurityInfo(handle,objectType,requested,out o,out g,out d,out a,out probeDescriptor);
+     if(result==0&&probeDescriptor!=IntPtr.Zero)LocalFree(probeDescriptor);detail.Append(" "+requested+"="+result);
     }
     throw new Win32Exception((int)error,detail.ToString());
    }
