@@ -110,6 +110,11 @@ try {
     }while([DateTime]::UtcNow -lt $deadline)
     if($matched.Count -ne 2){
         $events|ForEach-Object{$_.ToXml()}|Set-Content -LiteralPath (Join-Path $privateRoot 'unmatched-request-events.xml') -Encoding UTF8
+        # This workgroup CA and query window belong solely to the disposable
+        # test; emit bounded diagnostics before the hosted VM is discarded.
+        $expected|ConvertTo-Json -Depth 5|Write-Host
+        Write-Host "Native 4886/4889 records in bounded window: $($events.Count); matched: $($matched.Count)."
+        $events|ForEach-Object{Write-Host $_.ToXml()}
         throw 'Both correlated native 4886 and4889 XML events were not observed. Raw bounded diagnostics retained locally.'
     }
     if((Get-WelaAdcsStateKey (Get-WelaAdcsSnapshot)) -cne $stableKey){throw 'CA identity/policy/service drifted while collecting native request events.'}
