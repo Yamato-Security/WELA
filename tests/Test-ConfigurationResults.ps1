@@ -171,42 +171,17 @@ try {
     $global:LASTEXITCODE = 0
     Assert ($childExit -eq 1) 'The actual configure dispatcher returns nonzero for a failed control report'
 
-    # CA-specific wrapper: registry read succeeds, certutil succeeds, restart
-    # fails. All APIs below are mocks, including Test-Path for the mock CA only.
-    $realTestPath = (Get-Command Test-Path).Name
-    function global:Test-Path {
-        param($LiteralPath, $Path, $ErrorAction)
-        if ($LiteralPath -like 'HKLM:*') { return $true }
-        Microsoft.PowerShell.Management\Test-Path -LiteralPath $(if ($LiteralPath) { $LiteralPath } else { $Path })
-    }
-    function global:Get-ItemProperty { param($LiteralPath, $Name, $ErrorAction) [pscustomobject]@{ Active = 'MockCA' } }
-    function global:Join-Path {
-        param($Path, $ChildPath)
-        if ($Path -like 'HKLM:*') { return "$Path\$ChildPath" }
-        Microsoft.PowerShell.Management\Join-Path -Path $Path -ChildPath $ChildPath
-    }
-    $script:filter = 0; $script:restartCalls = 0; $script:filterType = 'DWord'
-    function global:Get-WelaRegistryState { param($Path, $Name) [pscustomobject]@{ ValueExists = $true; Value = $script:filter; Type = $script:filterType; KeyExists = $true } }
-    function global:Get-Service { param($Name, $ErrorAction) [pscustomobject]@{ Status = 'Running' } }
-    function global:Restart-Service { param($Name, [switch]$Force, $ErrorAction) $script:restartCalls++; throw 'Injected CertSvc restart failure' }
-    function global:Invoke-WelaNative { param($FilePath, $Arguments) $script:filter = 127; [pscustomobject]@{ ExitCode = 0; Diagnostic = 'mock certutil' } }
+    # The legacy wrapper delegates to the same guarded CA engine as the dedicated
+    # command. Actual identity/prerequisite/write/restart cases have focused tests
+    # in AdcsAuditing.Tests.ps1 and the disposable native CA workflow.
+    $script:forwardedContext = $null
+    function global:Invoke-WelaLegacyAdcsControl { param($Context) $script:forwardedContext = $Context }
     $c = New-TestContext
     Set-WelaCertificateAuditControl $c
-    $r = Complete-WelaConfiguration $c
-    Assert ($r.ExitCode -eq 1 -and $r.Results[0].Diagnostic -match 'restart failure') 'CA restart failure cannot report success even when registry now equals 127'
-    $script:filter = 0; $script:restartCalls = 0
-    function global:Invoke-WelaNative { param($FilePath, $Arguments) throw 'certutil failed (exit: 5)' }
-    $c = New-TestContext
-    Set-WelaCertificateAuditControl $c
-    Assert ($c.Results[0].Status -eq 'Failed' -and $script:restartCalls -eq 0) 'Failed certutil never restarts the CA'
+    Assert ([object]::ReferenceEquals($c, $script:forwardedContext)) 'Legacy CA forwards its existing prompt/Auto/recovery context to the shared engine'
     $c = New-TestContext -DryRun
     Set-WelaCertificateAuditControl $c
-    Assert ($c.Results[0].Status -eq 'Skipped' -and $script:restartCalls -eq 0) 'CA dry run never writes or restarts'
-
-    $script:filter = '127'; $script:filterType = 'String'
-    $c = New-TestContext -DryRun
-    Set-WelaCertificateAuditControl $c
-    Assert ($c.Results[0].Status -eq 'Skipped') 'REG_SZ 127 is not accepted as a compliant CA DWORD AuditFilter'
+    Assert ($script:forwardedContext.DryRun) 'Legacy CA forwards dry-run without a separate native implementation'
 
     Write-Host "$script:passed configuration-result regression assertions passed. No Windows settings changed."
 } finally {

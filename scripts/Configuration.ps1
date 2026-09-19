@@ -108,7 +108,7 @@ function Invoke-WelaConfigurationControl {
 
 function Complete-WelaConfiguration {
     param($Context, [string]$ResultsPath, $Plan,
-          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only", "windows-powershell-transcription-policy-only", "wef-source-configuration-only", "wec-collector-subscriptions-only", "audit-integrity-local-policy-only")]
+          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only", "windows-powershell-transcription-policy-only", "wef-source-configuration-only", "wec-collector-subscriptions-only", "audit-integrity-local-policy-only", "adcs-audit-settings-only")]
           [string]$Scope = "native-windows-configuration",
           [string]$SuccessMessage = 'Configuration completed; all requested controls verified.')
     if ($Context.PSObject.Properties['CustomProfileGuard']) {
@@ -450,38 +450,9 @@ function Set-WelaAuditPrecedenceControl {
 
 function Set-WelaCertificateAuditControl {
     param($Context)
-    $root = 'HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration'
-    try {
-        if (-not (Test-Path -LiteralPath $root -ErrorAction Stop)) {
-            $Context.Results.Add([pscustomobject]@{ Id = 'ADCS/AuditFilter'; Kind = 'CertificateService'; Target = $root; Desired = 127; Before = $null; After = $null; Status = 'Skipped'; Diagnostic = 'No configured local CA.' })
-            return
-        }
-        $caName = (Get-ItemProperty -LiteralPath $root -Name Active -ErrorAction Stop).Active
-        if (-not $caName) { throw 'CA configuration has no active CA name.' }
-        $path = Join-Path $root $caName
-        $state = @{ Path = $path }
-        $read = {
-            param($state)
-            [pscustomobject]@{
-                Registry = Get-WelaRegistryState -Path $state.Path -Name AuditFilter
-                ServiceStatus = (Get-Service -Name CertSvc -ErrorAction Stop).Status.ToString()
-            }
-        }
-        $test = { param($value) $value.Registry.ValueExists -and $value.Registry.Value -eq 127 -and $value.Registry.Type -eq 'DWord' -and $value.ServiceStatus -eq 'Running' }
-        $apply = {
-            $state = Get-Service -Name CertSvc -ErrorAction Stop
-            if ($state.Status -ne 'Running') { throw 'CertSvc is not running; refusing to start a previously stopped CA. Start it deliberately before retrying.' }
-            Invoke-WelaNative -FilePath 'certutil.exe' -Arguments @('-setreg', 'CA\AuditFilter', '127')
-            Restart-Service -Name CertSvc -Force -ErrorAction Stop
-            $service = Get-Service -Name CertSvc -ErrorAction Stop
-            $service.WaitForStatus([System.ServiceProcess.ServiceControllerStatus]::Running, [TimeSpan]::FromSeconds(30))
-        }
-        Invoke-WelaConfigurationControl -Context $Context -Id 'ADCS/AuditFilter' -Kind CertificateService `
-            -Target @{ Path = $path; Name = 'AuditFilter'; Service = 'CertSvc' } -Desired 127 `
-            -Read $read -Compliant $test -Apply $apply -Description 'Set AuditFilter=127 and restart Certificate Services.' -CallbackState $state
-    } catch {
-        $Context.Results.Add([pscustomobject]@{ Id = 'ADCS/AuditFilter'; Kind = 'CertificateService'; Target = $root; Desired = 127; Before = $null; After = $null; Status = 'Failed'; Diagnostic = $_.ToString() })
-    }
+    # Existing configure prompt/Auto covers its historical set-and-restart action.
+    # The shared CA engine verifies identity and prerequisites before every write.
+    Invoke-WelaLegacyAdcsControl -Context $Context
 }
 
 function Set-WelaNtlmConfigurationControl {
