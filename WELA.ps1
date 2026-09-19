@@ -65,6 +65,8 @@
     [switch]$EnablePrivacyChannel,
     [string]$ScoreProfile,
     [string]$ScoreEvidencePath,
+    [ValidateSet('Review','Plan','Create')][string]$GpoCreateAction = 'Review',
+    [string]$GpoCreateConfigPath,
     [ValidateSet('Plan','Export','Verify')][string]$GpoAction = 'Plan',
     [string]$GpoProfile,
     [string]$GpoOutputPath,
@@ -142,6 +144,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
 . (Join-Path $ScriptRoot "scripts/EvtxRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1838,6 +1841,7 @@ function Get-WelaUserProfiles {
 $usage = @"
 Usage:
   ./WELA.ps1 targeted-sacl -Help  # Selected existing local SACL targets; read-only by default
+  ./WELA.ps1 gpo-create -Help    # Create only a new disabled, unlinked GPO from reviewed genuine backup
   ./WELA.ps1 gpo-package -GpoAction Plan -GpoProfile wela-2.2.0 -Role Client -Build 26100
   ./WELA.ps1 gpo-package -GpoAction Export -GpoProfile wela-2.2.0 -Role Client -Build 26100 -GpoOutputPath .\audit-components
   ./WELA.ps1 gpo-package -GpoAction Verify -GpoOutputPath .\audit-components
@@ -1938,6 +1942,9 @@ if ($Cmd -eq 'score' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @
     throw 'score accepts only score, scenario, optional-selection and report options. No command was run.'
 }
 
+if ($Cmd -ne 'gpo-create' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('GpoCreateAction','GpoCreateConfigPath')}).Count) {throw 'GPO creation options require gpo-create. No command was run.'}
+if ($Cmd -eq 'gpo-create' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','GpoCreateAction','GpoCreateConfigPath','Auto','DryRun','BackupPath','Help')}).Count) {throw 'gpo-create accepts only its dedicated config/action and consent/recovery options. No command was run.'}
+
 if ($Cmd -ne 'gpo-package' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('GpoAction','GpoProfile','GpoOutputPath','GpoMinimumMode') }).Count) {
     throw 'GPO package options require gpo-package. No command was run.'
 }
@@ -2028,7 +2035,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -2087,6 +2094,12 @@ switch ($Cmd.ToLower()) {
         Export-WelaAuditScore -Report $report -ResultsPath $ResultsPath -HtmlPath $HtmlPath
         $report.Configuration | Select-Object Label,Numerator,Denominator,Percent,Unknown | Format-List
         $report.Readiness | Select-Object Label,Numerator,Denominator,Percent,Ready,ApplicableUniqueRules | Format-List
+    }
+    'gpo-create' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 gpo-create [-GpoCreateAction Review|Plan|Create] -GpoCreateConfigPath .\gpo-create.json [-Auto] [-DryRun] [-BackupPath new-local-directory]. Review verifies a genuine native backup against a WELA package; Plan/Create require its reviewed fingerprint. Create makes only a NEW disabled, unlinked GPO on the pinned writable DC. No existing GPO overwrite, linking, enabling or automatic deletion. See docs/gpo-creation.md.'; return }
+        $report=Invoke-WelaGpoCreateCommand -Action $GpoCreateAction -ConfigPath $GpoCreateConfigPath -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath
+        $report | ConvertTo-Json -Depth 22 | Write-Output
+        if ($report.ExitCode) { exit $report.ExitCode }; return
     }
     'gpo-package' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 gpo-package [-GpoAction Plan|Export|Verify] [-GpoProfile profile-id -Role Client|MemberServer|DomainController|ADCS -Build number] [-GpoMinimumMode Reject|PromoteToBoth] [-IncludeOptional] [-GpoOutputPath directory] [-DryRun]. Export requires a fresh directory. These are offline components, not an importable GPO backup. See docs/gpo-audit-packages.md.'; return }
