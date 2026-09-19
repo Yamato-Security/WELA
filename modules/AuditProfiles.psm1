@@ -1,5 +1,6 @@
 # Requires Windows PowerShell 5.1 or PowerShell 7. No Windows dependency for schema/planning.
 Set-StrictMode -Version 2.0
+. (Join-Path $PSScriptRoot '../scripts/CustomAuditProfiles.ps1')
 
 function Get-WelaProperty {
     param($Object, [string]$Name, $Default = $null)
@@ -68,9 +69,10 @@ function Get-WelaAuditProfilePlan {
         [Parameter(Mandatory)][ValidateSet('Client', 'MemberServer', 'DomainController', 'ADCS')][string]$Role,
         [Parameter(Mandatory)][ValidateRange(1, 999999)][int]$Build,
         [hashtable]$Current = @{}, [switch]$IncludeOptional,
-        [string]$Path = (Join-Path $PSScriptRoot '../config/audit_profiles.json')
+        [string]$Path = (Join-Path $PSScriptRoot '../config/audit_profiles.json'),
+        [switch]$CustomFile
     )
-    $data = Import-WelaAuditProfiles -Path $Path
+    $data = if ($CustomFile) { Import-WelaCustomAuditProfiles -Path $Path } else { Import-WelaAuditProfiles -Path $Path }
     $selected = @($data.profiles | Where-Object { $_.id -eq $Profile })
     if ($selected.Count -ne 1) { throw "Unknown audit profile '$Profile'. Use -Cmd profiles to list profiles." }
     $selected = $selected[0]
@@ -111,13 +113,19 @@ function Get-WelaAuditProfilePlan {
     }
     $sourceIds = @($rows | ForEach-Object { $_.sourceIds } | Select-Object -Unique)
     $sources = foreach ($id in $sourceIds) { [pscustomobject]@{ id = $id; source = $data.sources.$id } }
-    [pscustomobject][ordered]@{
+    $plan = [pscustomobject][ordered]@{
         schemaVersion = 1; profile = $selected.id; version = $selected.version
         scope = $selected.scope; role = $Role; build = $Build; includeOptional = [bool]$IncludeOptional
         referenceOnly = [bool](Get-WelaProperty $selected 'referenceOnly' $false)
         generatedUtc = [DateTime]::UtcNow.ToString('o'); schemaSha256 = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash
         note = Get-WelaProperty $selected 'note' ''; provenance = @($sources); policies = @($rows)
     }
+    if ($CustomFile) {
+        $plan.schemaSha256 = $data.customSource.Sha256
+        $plan | Add-Member NoteProperty CustomProfileSource $data.customSource
+        Assert-WelaCustomProfileSource $data.customSource
+    }
+    return $plan
 }
 
 function Get-WelaEffectiveAuditPolicy {
@@ -244,6 +252,7 @@ function Get-WelaHostContext {
 function Assert-WelaAuditProfileTarget {
     [CmdletBinding()]
     param([Parameter(Mandatory)]$Plan, [Parameter(Mandatory)]$Context, [Parameter(Mandatory)]$Current)
+    if ($Plan.PSObject.Properties['CustomProfileSource']) { Assert-WelaCustomProfileSource $Plan.CustomProfileSource }
     if ($Plan.referenceOnly) { throw 'Windows defaults are a reference, not an apply/restore profile.' }
     if ($Context.Role -ne $Plan.role -or $Context.Build -ne $Plan.build) { throw 'Plan role/build does not match the actual Windows host.' }
     if ($Current -isnot [hashtable]) { throw 'Effective policy reader did not return a GUID-to-mask map.' }
@@ -261,6 +270,7 @@ function Invoke-WelaAuditProfilePlan {
         [scriptblock]$WritePolicy,
         [scriptblock]$ReadContext = { Get-WelaHostContext }
     )
+    if ($Plan.PSObject.Properties['CustomProfileSource']) { Assert-WelaCustomProfileSource $Plan.CustomProfileSource }
     $hostContext = & $ReadContext
     $before = & $ReadPolicy
     Assert-WelaAuditProfileTarget -Plan $Plan -Context $hostContext -Current $before
@@ -268,6 +278,7 @@ function Invoke-WelaAuditProfilePlan {
     $results = foreach ($policy in $selected) {
         $initial = $null; $effective = $null; $target = $null; $errorText = $null; $status = 'No change'
         try {
+            if ($Plan.PSObject.Properties['CustomProfileSource']) { Assert-WelaCustomProfileSource $Plan.CustomProfileSource }
             # Whole-plan preflight is not a current-state cache: re-read immediately before each control.
             $fresh = & $ReadPolicy
             if ($fresh -isnot [hashtable] -or -not $fresh.ContainsKey($policy.guid) -or $null -eq $fresh[$policy.guid] -or $fresh[$policy.guid] -notin @(0, 1, 2, 3)) { throw 'Current audit policy became unknown before application.' }
@@ -276,6 +287,11 @@ function Invoke-WelaAuditProfilePlan {
             $target = if ($isMinimum) { [int]$initial -bor [int]$policy.requiredMask } else { [int]$policy.requiredMask }
             if ($initial -ne $target) {
                 if ($PSCmdlet.ShouldProcess($policy.id, "Set audit policy to $(Format-WelaAuditMask $target)")) {
+                    if ($Plan.PSObject.Properties['CustomProfileSource']) {
+                        Assert-WelaCustomProfileSource $Plan.CustomProfileSource
+                        $freshContext = & $ReadContext
+                        if ($freshContext.Role -ne $Plan.role -or $freshContext.Build -ne $Plan.build) { throw 'Custom profile target changed before application.' }
+                    }
                     $writeMode = if ($isMinimum) { 'minimum' } else { 'exact' }
                     if ($WritePolicy) {
                         # Existing two-argument test providers retain their merged-mask contract.
@@ -286,6 +302,7 @@ function Invoke-WelaAuditProfilePlan {
                         Set-WelaEffectiveAuditPolicy -Guid $policy.guid -Mask $writeMask -Mode $writeMode
                     }
                     $verified = & $ReadPolicy
+                    if ($Plan.PSObject.Properties['CustomProfileSource']) { Assert-WelaCustomProfileSource $Plan.CustomProfileSource }
                     $effective = if ($verified -is [hashtable] -and $verified.ContainsKey($policy.guid)) { $verified[$policy.guid] } else { $null }
                     if ($null -eq $effective -or $effective -notin @(0, 1, 2, 3)) { throw 'Effective policy is unknown after application.' }
                     $matches = if ($isMinimum) { ([int]$effective -band [int]$policy.requiredMask) -eq [int]$policy.requiredMask } else { $effective -eq $target }
@@ -308,4 +325,4 @@ function Invoke-WelaAuditProfilePlan {
     }
 }
 
-Export-ModuleMember -Function Import-WelaAuditProfiles, Format-WelaAuditMask, Get-WelaAuditProfilePlan, Get-WelaEffectiveAuditPolicy, Set-WelaEffectiveAuditPolicy, Get-WelaHostContext, Assert-WelaAuditProfileTarget, Invoke-WelaAuditProfilePlan
+Export-ModuleMember -Function Import-WelaAuditProfiles, Import-WelaCustomAuditProfiles, Assert-WelaCustomProfileSource, Format-WelaAuditMask, Get-WelaAuditProfilePlan, Get-WelaEffectiveAuditPolicy, Set-WelaEffectiveAuditPolicy, Get-WelaHostContext, Assert-WelaAuditProfileTarget, Invoke-WelaAuditProfilePlan

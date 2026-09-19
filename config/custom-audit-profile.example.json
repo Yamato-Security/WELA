@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "kind": "WelaCustomAuditProfiles",
+  "catalog": [
+    {
+      "id": "Process Creation",
+      "guid": "0CCE922B-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking"
+    },
+    {
+      "id": "Process Termination",
+      "guid": "0CCE922C-69AE-11D9-BED3-505054503030",
+      "category": "Detailed Tracking"
+    },
+    {
+      "id": "Detailed File Share",
+      "guid": "0CCE9244-69AE-11D9-BED3-505054503030",
+      "category": "Object Access"
+    },
+    {
+      "id": "File System",
+      "guid": "0CCE921D-69AE-11D9-BED3-505054503030",
+      "category": "Object Access"
+    }
+  ],
+  "sources": {
+    "organization": {
+      "title": "Example organization audit standard (replace with your reviewed source)",
+      "version": "1.0",
+      "url": "https://example.invalid/security/audit-standard"
+    }
+  },
+  "profiles": [
+    {
+      "id": "custom-example",
+      "version": "1.0",
+      "sourceIds": [
+        "organization"
+      ],
+      "omitted": "unchanged",
+      "scope": "advanced-audit-policy-only",
+      "appliesTo": [
+        {
+          "roles": [
+            "Client"
+          ],
+          "minBuild": 26100,
+          "maxBuild": 26200
+        },
+        {
+          "roles": [
+            "MemberServer",
+            "DomainController",
+            "ADCS"
+          ],
+          "minBuild": 20348,
+          "maxBuild": 26100
+        }
+      ],
+      "controls": {
+        "Process Creation": {
+          "mode": "minimum",
+          "mask": 1
+        },
+        "File System": {
+          "mode": "optional",
+          "mask": 3
+        },
+        "Detailed File Share": {
+          "mode": "not-configured"
+        },
+        "Process Termination": {
+          "mode": "exact",
+          "mask": 1
+        }
+      },
+      "roleOverrides": {},
+      "note": "Example only: review before configuring. File System needs matching SACLs."
+    }
+  ]
+}
