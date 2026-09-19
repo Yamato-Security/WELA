@@ -1,0 +1,37 @@
+name: Guarded audit recovery
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/AuditRecovery.ps1'
+      - 'scripts/ControlApplicability.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'modules/AuditProfiles.psm1'
+      - 'tests/AuditRecovery*'
+      - '.github/workflows/audit-recovery.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-recovery:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Synthetic rejection regressions in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AuditRecovery.Tests.ps1
+      - name: Native completed-journal recovery with safety restoration
+        shell: powershell
+        run: ./tests/AuditRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Synthetic rejection regressions in PowerShell 7
+        shell: pwsh
+        run: ./tests/AuditRecovery.Tests.ps1
+      - name: Native recovery from PowerShell 7 with restoration
+        shell: pwsh
+        run: ./tests/AuditRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
