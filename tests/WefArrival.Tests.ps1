@@ -31,7 +31,7 @@ try {
         switch($case){
             'hash'{Add-Content (Join-Path $dir 'event.xml') 'tampered'}
             'extra'{Set-Content (Join-Path $dir 'extra.txt') 'extra'}
-            'duplicate-json'{$t=Get-Content (Join-Path $dir 'manifest.json') -Raw;$t=$t -replace '"SchemaVersion": 1,','"SchemaVersion": 1, "SchemaVersion": 1,';[IO.File]::WriteAllText((Join-Path $dir 'manifest.json'),$t)}
+            'duplicate-json'{$text=ConvertTo-Json -InputObject $m -Depth 24 -Compress;$t=$text.Replace('"SchemaVersion":1,','"SchemaVersion":1,"SchemaVersion":1,');Assert ($t -cne $text) 'Duplicate-key fixture changed input';[IO.File]::WriteAllText((Join-Path $dir 'manifest.json'),$t)}
             'bad-status'{$m.Status='Unverified';Save (Join-Path $dir 'manifest.json') $m}
             'embedded'{$m.BeforeState.context.computer='different';Save (Join-Path $dir 'manifest.json') $m}
             'typed'{$m.BeforeState.auditPrecedence.Value='1';Update-Source $dir 'before-state.json' $m.BeforeState}
