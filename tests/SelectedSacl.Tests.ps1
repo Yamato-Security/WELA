@@ -27,7 +27,7 @@ $script:states=@{};$script:writes=0;$script:scenario='';$script:currentPlan='';$
 function Reset-State {
     $script:hostKey='fixture-host';$script:writes=0;$script:scenario=''
     foreach($item in @($reg,$file)){
-        $script:states[$item.Definition.Path]=[pscustomobject]@{Path=$item.Definition.Path;Kind=$item.Definition.Kind;Identity=$item.Id;IsDirectory=$false;DescriptorBase64=('before-'+$item.Id);Owner='S-1-5-18';Group='S-1-5-18';DaclBase64='retained-dacl';ControlFlags=32788;Aces=@([pscustomobject]@{Binary='Aa==';Type=17;Flags=0;Mask=0;Sid=$null;Ordinary=$false})}
+        $script:states[$item.Definition.Path]=[pscustomobject]@{SecurityInformation=511;DescriptorScope='WinSDK-defined sections 0x1ff; future sections unobserved';Path=$item.Definition.Path;Kind=$item.Definition.Kind;Identity=$item.Id;IsDirectory=$false;DescriptorBase64=('before-'+$item.Id);Owner='S-1-5-18';Group='S-1-5-18';DaclBase64='retained-dacl';ControlFlags=32788;Aces=@([pscustomobject]@{Binary='Aa==';Type=17;Flags=0;Mask=0;Sid=$null;Ordinary=$false})}
     }
 }
 function Get-WelaSelectedSaclSources {
@@ -116,6 +116,8 @@ try {
     Throws {Read-WelaSelectedSaclPlan $script:currentPlan} 'Duplicate|colliding'
     Reset-State;$snapshot=Get-WelaSelectedSaclSnapshot $reg.Definition
     Throws {Get-WelaSelectedSaclAce $reg.Definition $snapshot} 'IncludeChildren'
+    $incomplete=Clone $snapshot;$incomplete.SecurityInformation=31
+    Throws {Get-WelaSelectedSaclSnapshotKey $incomplete} 'observation scope'
     $noInheritance=Clone $reg.Definition;$noInheritance.Inheritance='None'
     $existing=Clone $snapshot;$existing.Aces[0].Flags=66
     Throws {Get-WelaSelectedSaclAce $noInheritance $existing} 'existing SACL inheritance'
@@ -149,7 +151,8 @@ try {
     $exe=(Get-Process -Id $PID).Path
     foreach($arguments in @(@('configure','-TargetSaclAction','Audit'),@('targeted-sacl','-Profile','wela-2.2.0'),@('targeted-sacl','-DryRun'))){
         $ErrorActionPreference='Continue';try{$output=& $exe -NoProfile -File (Join-Path $root 'WELA.ps1') @arguments 2>&1;$code=$LASTEXITCODE}finally{$ErrorActionPreference='Stop'}
-        Assert ($code -ne 0 -and ($output -join ' ') -match 'No command was run') 'Public guards refuse unrelated commands and ignored DryRun.'
+        $plain=($output -join ' ') -replace '\x1b\[[0-9;]*[A-Za-z]','' -replace '[|\r\n]',' '
+        Assert ($code -ne 0 -and $plain -match 'No\s+command\s+was\s+run') 'Public guards refuse unrelated commands and ignored DryRun.'
     }
     Write-Host "PASS: $script:count selected-SACL mocked assertions. Native target reads/writes are replaced; no machine ACL or policy mutations."
 }finally{Remove-Item -LiteralPath $temp -Recurse -Force}

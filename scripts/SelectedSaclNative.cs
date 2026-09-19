@@ -13,7 +13,7 @@ namespace Wela.SelectedSacl {
  public sealed class Snapshot {
   public string Path; public string Kind; public string Identity; public bool IsDirectory;
   public string DescriptorBase64; public string Owner; public string Group; public string DaclBase64;
-  public int ControlFlags; public Ace[] Aces;
+  public int ControlFlags; public int SecurityInformation; public string DescriptorScope; public Ace[] Aces;
  }
  public sealed class Privilege : IDisposable {
   [StructLayout(LayoutKind.Sequential)] struct Luid { public uint Low; public int High; }
@@ -92,17 +92,12 @@ namespace Wela.SelectedSacl {
   static string Bytes(GenericAce ace){byte[] bytes=new byte[ace.BinaryLength];ace.GetBinaryForm(bytes,0);return Convert.ToBase64String(bytes);}
   public Snapshot Read() {
    if(handle==IntPtr.Zero)throw new ObjectDisposedException("Target");
-   // BACKUP_SECURITY_INFORMATION reads every descriptor section, including labels/resource/CAP ACEs.
-   IntPtr owner,group,dacl,sacl,descriptor;uint error=GetSecurityInfo(handle,objectType,0x00010000,out owner,out group,out dacl,out sacl,out descriptor);
-   if(error!=0) {
-    // Read-only diagnostics retain the failure; never substitute a partial descriptor.
-    StringBuilder detail=new StringBuilder("GetSecurityInfo BACKUP failed for "+kind+" ("+error+"). Section query results:");
-    foreach(uint requested in new uint[] {1,4,8,16,32,64,128,256,31,511}) {
-     IntPtr o,g,d,a,probeDescriptor;uint result=GetSecurityInfo(handle,objectType,requested,out o,out g,out d,out a,out probeDescriptor);
-     if(result==0&&probeDescriptor!=IntPtr.Zero)LocalFree(probeDescriptor);detail.Append(" "+requested+"="+result);
-    }
-    throw new Win32Exception((int)error,detail.ToString());
-   }
+   // Explicit current SDK section union: owner/group/DACL/audit/label/resource/CAP/trust/access-filter.
+   // BACKUP_SECURITY_INFORMATION itself returns ACCESS_DENIED on the tested file handles;
+   // do not acquire broader privileges or silently retry with an incomplete section subset.
+   const uint securityInformation=0x000001ff;
+   IntPtr owner,group,dacl,sacl,descriptor;uint error=GetSecurityInfo(handle,objectType,securityInformation,out owner,out group,out dacl,out sacl,out descriptor);
+   if(error!=0)throw new Win32Exception((int)error,"GetSecurityInfo explicit sections 0x1ff failed for "+kind+" ("+error+").");
    byte[] bytes;
    try {uint length=GetSecurityDescriptorLength(descriptor);if(length<20||length>1048576)throw new InvalidOperationException("Invalid descriptor size.");bytes=new byte[length];Marshal.Copy(descriptor,bytes,0,(int)length);}
    finally {LocalFree(descriptor);}
@@ -114,7 +109,7 @@ namespace Wela.SelectedSacl {
    string identity;bool directory=false;
    if(kind=="FileSystem") {FileInfo info;if(!GetFileInformationByHandle(handle,out info))throw new Win32Exception(Marshal.GetLastWin32Error());directory=(info.Attributes&16)!=0;identity=info.Volume+":"+info.IndexHigh+":"+info.IndexLow+":"+info.Created;}
    else {long written;int result=RegQueryInfoKey(handle,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,out written);if(result!=0)throw new Win32Exception(result);identity=path+":"+written;}
-   return new Snapshot {Path=path,Kind=kind,Identity=identity,IsDirectory=directory,DescriptorBase64=Convert.ToBase64String(bytes),Owner=sd.Owner==null?null:sd.Owner.Value,Group=sd.Group==null?null:sd.Group.Value,DaclBase64=Bytes(sd.DiscretionaryAcl),ControlFlags=(int)sd.ControlFlags,Aces=entries.ToArray()};
+   return new Snapshot {SecurityInformation=(int)securityInformation,DescriptorScope="WinSDK-defined sections 0x1ff; future sections unobserved",Path=path,Kind=kind,Identity=identity,IsDirectory=directory,DescriptorBase64=Convert.ToBase64String(bytes),Owner=sd.Owner==null?null:sd.Owner.Value,Group=sd.Group==null?null:sd.Group.Value,DaclBase64=Bytes(sd.DiscretionaryAcl),ControlFlags=(int)sd.ControlFlags,Aces=entries.ToArray()};
   }
   public Snapshot Add(string expectedIdentity,string expectedDescriptor,string sid,int mask,int flags) {
    Snapshot before=Read();if(before.Identity!=expectedIdentity||before.DescriptorBase64!=expectedDescriptor)throw new InvalidOperationException("Target changed after the recovery snapshot.");

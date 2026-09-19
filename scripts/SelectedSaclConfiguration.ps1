@@ -31,7 +31,8 @@ function Get-WelaSelectedSaclDefinitionKey {
 function Get-WelaSelectedSaclSnapshotKey {
     param($Snapshot)
     if($null -eq $Snapshot -or $Snapshot.IsDirectory -isnot [bool] -or ($Snapshot.ControlFlags -isnot [int] -and $Snapshot.ControlFlags -isnot [long])){throw 'Malformed reviewed native snapshot.'}
-    $fields=@($Snapshot.Path,$Snapshot.Kind,$Snapshot.Identity,[string]$Snapshot.IsDirectory,$Snapshot.DescriptorBase64,$Snapshot.Owner,$Snapshot.Group,$Snapshot.DaclBase64,[string]$Snapshot.ControlFlags)
+    if(($Snapshot.SecurityInformation -isnot [int] -and $Snapshot.SecurityInformation -isnot [long]) -or $Snapshot.SecurityInformation -ne 511 -or $Snapshot.DescriptorScope -cne 'WinSDK-defined sections 0x1ff; future sections unobserved'){throw 'Incomplete or unknown native descriptor observation scope.'}
+    $fields=@([string]$Snapshot.SecurityInformation,$Snapshot.DescriptorScope,$Snapshot.Path,$Snapshot.Kind,$Snapshot.Identity,[string]$Snapshot.IsDirectory,$Snapshot.DescriptorBase64,$Snapshot.Owner,$Snapshot.Group,$Snapshot.DaclBase64,[string]$Snapshot.ControlFlags)
     foreach($ace in $Snapshot.Aces){$fields+=@($ace.Binary,[string]$ace.Type,[string]$ace.Flags,[string]$ace.Mask,$ace.Sid,[string]$ace.Ordinary)}
     Get-WelaSelectedSaclHash $fields
 }
@@ -100,6 +101,7 @@ function Test-WelaSelectedSaclAce {
 }
 function Assert-WelaSelectedSaclPreserved {
     param($Before,$After,$Ace)
+    if($Before.SecurityInformation -ne $After.SecurityInformation -or $Before.DescriptorScope -cne $After.DescriptorScope){throw 'Native descriptor observation scope changed.'}
     if($Before.Owner -cne $After.Owner -or $Before.Group -cne $After.Group -or $Before.DaclBase64 -cne $After.DaclBase64 -or ($Before.ControlFlags -band (-bnot 16)) -ne ($After.ControlFlags -band (-bnot 16))){throw 'Non-SACL descriptor components or control flags changed.'}
     $counts=New-Object 'System.Collections.Generic.Dictionary[string,int]' ([StringComparer]::Ordinal)
     foreach($entry in $After.Aces){if(-not $counts.ContainsKey($entry.Binary)){$counts[$entry.Binary]=0};$counts[$entry.Binary]++}

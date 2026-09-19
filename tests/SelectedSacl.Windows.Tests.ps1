@@ -30,6 +30,7 @@ try {
     foreach($definition in @($fileDefinition,$regDefinition)){
         Write-Host ("Reading full native descriptor for owned "+$definition.Kind+" fixture.")
         $before=Get-WelaSelectedSaclSnapshot $definition
+        Assert ($before.SecurityInformation -eq 511 -and $before.DescriptorScope -match 'future sections unobserved') 'Native receipt records all current SDK sections with its bounded observation scope.'
         $ace=Get-WelaSelectedSaclAce $definition $before
         Assert (-not(Test-WelaSelectedSaclAce $before $ace)) 'Fresh owned target has no requested audit ACE.'
         Assert-WelaSelectedSaclPrerequisites $definition $ace
