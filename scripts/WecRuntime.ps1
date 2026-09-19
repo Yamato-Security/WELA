@@ -6,7 +6,9 @@ function Initialize-WelaWecRuntimeNative {
 function Read-WelaWecRuntimeValue {
     param([string]$Id,[AllowNull()][string]$Source,[int]$Property)
     Initialize-WelaWecRuntimeNative
-    [Wela.WecRuntime.Native]::Read($Id,$(if ($Source) {$Source} else {$null}),$Property)
+    # PowerShell converts $null to an empty .NET string; the native API requires
+    # a genuine null pointer to select subscription-level status.
+    [Wela.WecRuntime.Native]::Read($Id,$(if ($Source) {$Source} else {[NullString]::Value}),$Property)
 }
 function ConvertTo-WelaWecRuntimeField {
     param($Value,[int]$Property)
