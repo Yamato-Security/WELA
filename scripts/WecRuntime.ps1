@@ -15,7 +15,7 @@ function ConvertTo-WelaWecRuntimeField {
     $row=[pscustomobject]@{Status=$Value.State;NativeType=$Value.NativeType;ErrorCode=$Value.ErrorCode;Value=$null;RawFileTime=$null;Diagnostic=$Value.Diagnostic}
     if ($Value.State -notin @('Observed','NotAvailable','Unknown')) {throw 'Invalid native observation status.'}
     if ($Value.State -ne 'Observed') {
-        if ($Value.State -eq 'NotAvailable' -and $Property -in @(0,1)) {$row.Status='Unknown';$row.Diagnostic='Required native activity/error value is unavailable.'}
+        if ($Value.State -eq 'NotAvailable' -and $Property -in @(0,1,5)) {$row.Status='Unknown';$row.Diagnostic='Required native activity/error/source-inventory value is unavailable.'}
         return $row
     }
     switch ($Property) {
@@ -63,7 +63,8 @@ function Get-WelaWecRuntimeDefinition {
     param([string]$Id)
     $native=Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('gs',$Id,'/f:xml')
     if ($native.ExitCode -ne 0) {throw 'Native subscription definition read failed.'}
-    $xml=[string]::Concat($native.Diagnostic);$doc=Read-WelaWefXml $xml
+     $xml=[string]::Concat($native.Diagnostic)
+    try {$doc=Read-WelaWefXml $xml} catch {throw ('Native definition XML read failed; initial UTF-16 code units: '+((@($xml.ToCharArray() | Select-Object -First 12) | ForEach-Object {[int]$_}) -join ',')+'. '+$_.Exception.Message)}
     $ns=New-Object Xml.XmlNamespaceManager($doc.NameTable);$ns.AddNamespace('s','http://schemas.microsoft.com/2006/03/windows/events/subscription')
     $fields=@{}
     foreach ($name in @('SubscriptionId','SubscriptionType','Enabled','Query')) {
@@ -88,7 +89,6 @@ function Get-WelaWecRuntime {
         $report.SourceInventory=[pscustomobject]@{Observation=$inventory;AfterObservation=$null;Meaning=$(if ($report.DefinitionBefore.Type -eq 'SourceInitiated') {'Sources the collector heard from in the past 30 days; persistent across reboot. This is not a current connection count.'} else {'Configured event sources, not a current connection count.'});ReportedCount=$null;QueriedCount=0}
         $sources=@()
         if ($inventory.Status -eq 'Observed') {$sources=@($inventory.Value);$report.SourceInventory.ReportedCount=$sources.Count}
-        elseif ($inventory.Status -eq 'NotAvailable') {$report.SourceInventory.ReportedCount=0}
         $seen=@{}
         foreach ($source in $sources) {if ($source -isnot [string] -or [string]::IsNullOrWhiteSpace($source) -or $source.Length -gt 32768 -or $source -match '[\x00-\x1f]' -or $seen.ContainsKey($source)) {throw 'Invalid or duplicate native source identity.'};$seen[$source]=$true}
         $report.Capped=$sources.Count -gt $MaximumSources
@@ -97,7 +97,7 @@ function Get-WelaWecRuntime {
         $afterInventory=ConvertTo-WelaWecRuntimeField (Read-WelaWecRuntimeValue $Id $null 5) 5
         $report.SourceInventory.AfterObservation=$afterInventory
         $afterSources=if ($afterInventory.Status -eq 'Observed') {@($afterInventory.Value | Sort-Object)} else {@()}
-        if ($afterInventory.Status -eq 'Unknown' -or (ConvertTo-Json -InputObject @($sources | Sort-Object) -Compress) -cne (ConvertTo-Json -InputObject @($afterSources) -Compress)) {$report.SourceListChanged=$true}
+        if ($afterInventory.Status -ne $inventory.Status -or $afterInventory.Status -eq 'Unknown' -or (ConvertTo-Json -InputObject @($sources | Sort-Object) -Compress) -cne (ConvertTo-Json -InputObject @($afterSources) -Compress)) {$report.SourceListChanged=$true}
         $report.DefinitionAfter=Get-WelaWecRuntimeDefinition $Id
         $report.CollectorAfter=Get-WelaWecRuntimeContext
         if ($report.DefinitionAfter.Key -cne $report.DefinitionBefore.Key -or (ConvertTo-Json $report.CollectorBefore -Depth 16 -Compress) -cne (ConvertTo-Json $report.CollectorAfter -Depth 16 -Compress)) {throw 'Collector identity/context or subscription definition changed during observation.'}

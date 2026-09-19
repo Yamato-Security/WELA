@@ -41,8 +41,8 @@ try {
     $nativeNull=[Wela.WecRuntime.Native]::Decode($buffer,16,4)
     Assert ($nativeNull.State -eq 'NotAvailable' -and $nativeNull.Count -eq 0) 'Native null ignores unused count/union storage, which Windows need not initialize.'
 } finally {[Runtime.InteropServices.Marshal]::FreeHGlobal($buffer)}
-foreach ($property in @(0,1)) {
-    Throws {ConvertTo-WelaWecRuntimeField (NativeValue 2 '2') $property} 'UInt32'
+foreach ($property in @(0,1,5)) {
+    if ($property -in @(0,1)) {Throws {ConvertTo-WelaWecRuntimeField (NativeValue 2 '2') $property} 'UInt32'}
     $nullValue=[pscustomobject]@{State='NotAvailable';NativeType=0;ErrorCode=0;Diagnostic=''}
     Assert ((ConvertTo-WelaWecRuntimeField $nullValue $property).Status -eq 'Unknown') 'Missing mandatory runtime values cannot make a complete observation.'
 }
@@ -77,6 +77,7 @@ function Read-WelaWecRuntimeValue {
         2 {NativeValue 4 'Lokalisierte Nachricht <script>'}
         5 {
             $script:inventoryReads++
+            if ($script:scenario -eq 'null-inventory' -or ($script:scenario -eq 'null-after-inventory' -and $script:inventoryReads -gt 1)) {return [pscustomobject]@{State='NotAvailable';NativeType=0;ErrorCode=0;Count=0;Data=$null;Diagnostic=''}}
             $sources=@('source1','source2')
             if ($script:scenario -eq 'empty') {$sources=@()}
             if ($script:scenario -eq 'duplicate') {$sources=@('source1','SOURCE1')}
@@ -96,10 +97,12 @@ try {
         if ($case -eq 'trying') {Assert ($report.Subscription.Activity -eq 'Trying' -and $report.Subscription.Fields.LastError.Value -eq 1722) 'Trying and numeric native failure remain visible despite successful reads.'}
         if ($case -eq 'empty') {Assert ($report.SourceInventory.ReportedCount -eq 0 -and $report.Sources.Count -eq 0) 'Empty source array is an observed empty inventory, never active sources.'}
     }
-    foreach ($case in @('field-denied','one-source-denied','definition-drift','context-drift','source-drift','duplicate')) {
+    foreach ($case in @('field-denied','one-source-denied','definition-drift','context-drift','source-drift','duplicate','null-inventory','null-after-inventory')) {
         Reset-Fixture;$script:scenario=$case;$report=Get-WelaWecRuntime 'Fixture'
         Assert ($report.Status -eq 'Partial') "$case cannot return complete observation."
         Assert ($null -ne $report.CollectorAfter) 'Partial observation retains actual final collector context.'
+        if ($case -eq 'null-inventory') {Assert ($null -eq $report.SourceInventory.ReportedCount -and $report.SourceInventory.Observation.Status -eq 'Unknown') 'Null inventory cannot be promoted to an observed zero-source result.'}
+        if ($case -eq 'null-after-inventory') {Assert ($report.SourceListChanged -and $report.SourceInventory.AfterObservation.Status -eq 'Unknown') 'Inventory becoming unavailable is explicit observation drift.'}
         if ($case -eq 'field-denied') {Assert ($report.Subscription.Fields.LastError.ErrorCode -eq 5 -and $report.Subscription.Fields.LastError.Status -eq 'Unknown') 'Native read error code is separate from subscription LastError value.'}
     }
     foreach ($case in @('definition-denied','context-denied')) {Reset-Fixture;$script:scenario=$case;$report=Get-WelaWecRuntime 'Fixture';Assert ($report.Status -eq 'Unknown' -and $script:nativeReads -eq 0) 'Unverified context/definition stops runtime queries.'}

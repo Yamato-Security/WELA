@@ -54,12 +54,14 @@ try {
     $missingReport=Get-WelaWecRuntime ($id+'-Missing')
     Assert ($missingReport.Status -eq 'Unknown' -and $null -eq $missingReport.Subscription) 'Public observation cannot promote an absent subscription.'
     Write-Host "PASS: $script:checks actual read-only runtime assertions against an owned disabled subscription. No event source, connection or arrival is claimed."
-} finally {
+} catch {Write-Host ('Primary native fixture failure: '+$_.Exception.Message);throw} finally {
     $errors=@()
     try {
         if ($created -and @(Subscriptions) -contains $id) {
             $raw=(Invoke-WelaNative 'wecutil.exe' @('gs',$id,'/f:xml')).Diagnostic
-            $doc=Read-WelaWefXml ([string]::Concat($raw));$ns=New-Object Xml.XmlNamespaceManager($doc.NameTable);$ns.AddNamespace('s','http://schemas.microsoft.com/2006/03/windows/events/subscription')
+            $text=[string]::Concat($raw)
+            try {$doc=Read-WelaWefXml $text} catch {throw ('Cleanup definition XML prefix code units: '+((@($text.ToCharArray() | Select-Object -First 12) | ForEach-Object {[int]$_}) -join ',')+'. '+$_.Exception.Message)}
+            $ns=New-Object Xml.XmlNamespaceManager($doc.NameTable);$ns.AddNamespace('s','http://schemas.microsoft.com/2006/03/windows/events/subscription')
             $descriptions=@($doc.SelectNodes('/s:Subscription/s:Description',$ns))
             if ($descriptions.Count -ne 1 -or $descriptions[0].InnerText -cne $description) {throw 'Fixture ownership changed; refusing deletion.'}
             $null=Invoke-WelaNative 'wecutil.exe' @('ds',$id)
