@@ -1,4 +1,14 @@
 # Reviewed, existing-only updates of disabled source-initiated subscriptions.
+function Write-WelaWecUpdateArtifact {
+    param([string]$Root,[string]$Name,[string]$Text)
+    $null=Resolve-WelaArrivalPath $Root
+    $bytes=[Text.UTF8Encoding]::new($false).GetBytes($Text);$path=Join-Path $Root $Name
+    $stream=[IO.File]::Open($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+    try {$stream.Write($bytes,0,$bytes.Length);$stream.Flush($true);$stream.Position=0;$sha=[Security.Cryptography.SHA256]::Create();try{$readback=([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}}finally{$stream.Dispose()}
+    $hash=Get-WelaArrivalHash $bytes
+    if($readback -cne $hash){throw 'Update artifact readback differs.'}
+    [pscustomobject]@{Name=$Name;Sha256=$hash;Bytes=$bytes.Length}
+}
 function Get-WelaWecUpdateContext {
     if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw '64-bit native Windows is required.'}
     $hostState=Get-WelaDefaultContext
@@ -12,7 +22,7 @@ function Get-WelaWecUpdateContext {
 function Get-WelaWecUpdateSources {
     $root=Split-Path $PSScriptRoot -Parent
     $sources=[ordered]@{}
-    foreach($name in @('scripts/WecUpdate.ps1','scripts/WecUpdateNative.cs','modules/WefSubscriptions.psm1')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $root $name) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+    foreach($name in @('scripts/WecUpdate.ps1','scripts/WecUpdateNative.cs','modules/WefSubscriptions.psm1','scripts/Configuration.ps1','scripts/ControlApplicability.ps1','scripts/WefArrival.ps1','modules/AuditProfiles.psm1')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $root $name) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
     $sources|ConvertTo-Json -Compress
 }
 function Read-WelaWecUpdateFile {
@@ -47,7 +57,9 @@ function Read-WelaWecUpdateDefinition {
 }
 function New-WelaWecUpdateEdit {
     param($Before)
-    if(-not('Wela.WecUpdate.Edit' -as [type])){Add-Type -Path (Join-Path $PSScriptRoot 'WecUpdateNative.cs') -ErrorAction Stop}
+    $path=Join-Path $PSScriptRoot 'WecUpdateNative.cs';$hash=(Get-FileHash -LiteralPath $path -Algorithm SHA256 -ErrorAction Stop).Hash
+    if(-not('Wela.WecUpdate.Edit' -as [type])){Add-Type -Path $path -ErrorAction Stop;$script:WelaWecUpdateNativeHash=$hash}
+    if($script:WelaWecUpdateNativeHash -cne $hash){throw 'Loaded native updater differs from its current source; start a fresh process.'}
     [Wela.WecUpdate.Edit]::new($Before.Id,$Before.QueryXml,$Before.Description)
 }
 function Assert-WelaWecUpdatePlan {
@@ -80,7 +92,7 @@ function Invoke-WelaWecUpdate {
             Assert-WelaWecUpdatePlan $plan
             if((Read-WelaWecUpdateFile $QueryPath 524288).Hash -cne $sourceInput.Hash){throw 'Desired query input changed during planning.'}
             if((Read-WelaWecUpdateDefinition $Id $SourceSids).WholeKey -cne $before.WholeKey -or ((Get-WelaWecUpdateContext|ConvertTo-Json -Depth 16 -Compress) -cne $contextKey)){throw 'Host or subscription drift during planning.'}
-            $artifact=Write-WelaArrivalArtifact $output 'plan.json' ($plan|ConvertTo-Json -Depth 20);$report.Artifacts+=$artifact;$report.PlanHash=$artifact.Sha256;$report.Status='ReviewRequired';$report.ExitCode=0
+            $artifact=Write-WelaWecUpdateArtifact $output 'plan.json' ($plan|ConvertTo-Json -Depth 20);$report.Artifacts+=$artifact;$report.PlanHash=$artifact.Sha256;$report.Status='ReviewRequired';$report.ExitCode=0
         }else{
             if($sourceInput.Hash -cne $PlanHash){throw 'Reviewed plan hash differs from the selected file bytes.'}
             $plan=ConvertFrom-WelaArrivalJson $sourceInput.Text;Assert-WelaWecUpdatePlan $plan;$report.PlanHash=$sourceInput.Hash
@@ -89,21 +101,21 @@ function Invoke-WelaWecUpdate {
             $current=Read-WelaWecUpdateDefinition $plan.Id $plan.SourceSids
             if($current.WholeKey -cne $before.WholeKey){throw 'Current subscription differs from the reviewed complete definition.'}
             $query=ConvertFrom-WelaWefQuery $plan.QueryXml
-            $report.Artifacts+=Write-WelaArrivalArtifact $output 'reviewed-plan.json' $sourceInput.Text
+            $report.Artifacts+=Write-WelaWecUpdateArtifact $output 'reviewed-plan.json' $sourceInput.Text
             if($current.QueryKey -ceq $query.Key -and $current.Description -ceq $plan.Description){$report.Status='AlreadyMatches';$report.ExitCode=0}else{
                 $edit=New-WelaWecUpdateEdit $before
-                $report.Artifacts+=Write-WelaArrivalArtifact $output 'before-save.json' ([ordered]@{Status='Pending';RecordedUtc=[DateTime]::UtcNow.ToString('o');Context=$context;BeforeXml=$before.Xml;DesiredQuery=$plan.QueryXml;DesiredDescription=$plan.Description;PlanHash=$sourceInput.Hash}|ConvertTo-Json -Depth 20)
+                $report.Artifacts+=Write-WelaWecUpdateArtifact $output 'before-save.json' ([ordered]@{Status='Pending';RecordedUtc=[DateTime]::UtcNow.ToString('o');Context=$context;BeforeXml=$before.Xml;DesiredQuery=$plan.QueryXml;DesiredDescription=$plan.Description;PlanHash=$sourceInput.Hash}|ConvertTo-Json -Depth 20)
                 if((Read-WelaWecUpdateFile $PlanPath).Hash -cne $PlanHash -or (Get-WelaWecUpdateSources) -cne $sources -or ((Get-WelaWecUpdateContext|ConvertTo-Json -Depth 16 -Compress) -cne $contextKey) -or (Read-WelaWecUpdateDefinition $plan.Id $plan.SourceSids).WholeKey -cne $before.WholeKey){throw 'Plan, code, context or complete subscription changed immediately before save.'}
                 $report.NativeSaveAttempted=$true;$edit.Save($plan.QueryXml,$plan.Description)
                 $report.Status='SavedAwaitingReadback'
             }
             $after=Read-WelaWecUpdateDefinition $plan.Id $plan.SourceSids;$report.After=$after
-            $report.Artifacts+=Write-WelaArrivalArtifact $output 'after.xml' $after.Xml
+            $report.Artifacts+=Write-WelaWecUpdateArtifact $output 'after.xml' $after.Xml
             if($after.QueryKey -cne $query.Key -or $after.Description -cne $plan.Description -or $after.PreservedKey -cne $before.PreservedKey -or ((Get-WelaWecUpdateContext|ConvertTo-Json -Depth 16 -Compress) -cne $contextKey) -or (Get-WelaWecUpdateSources) -cne $sources -or (Read-WelaWecUpdateFile $PlanPath).Hash -cne $PlanHash){throw 'Readback, preserved configuration, context, plan or implementation differs after operation.'}
             if($report.NativeSaveAttempted){$report.Status='UpdatedAndVerified'};$report.ExitCode=0
         }
     }catch{$report.Status=if($report.NativeSaveAttempted){'SaveAttemptedUnverified'}else{'Refused'};$report.ExitCode=1;$report.Diagnostic=$_.Exception.Message}
     finally{if($edit){$edit.Dispose()}}
-    $null=Write-WelaArrivalArtifact $output 'manifest.json' ($report|ConvertTo-Json -Depth 24)
+    $null=Write-WelaWecUpdateArtifact $output 'manifest.json' ($report|ConvertTo-Json -Depth 24)
     $report
 }
