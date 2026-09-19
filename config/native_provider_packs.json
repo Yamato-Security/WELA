@@ -1,0 +1,530 @@
+{
+  "schemaVersion": 1,
+  "id": "native-provider-packs-v1",
+  "reviewed": "2026-09-19",
+  "corpusSha256": "edffff132db9c9cd53d51db62b5bf7f9459d8bdcbbcac6ada806b2ca7881297f",
+  "ruleRepository": "https://github.com/Yamato-Security/hayabusa-rules",
+  "ruleCommit": "10d1b6dc3ec884daf04d736a7fc78bf2ee898664",
+  "buildFamilies": {
+    "Client": [
+      22000,
+      22621,
+      22631,
+      26100,
+      26200,
+      28000
+    ],
+    "Server": [
+      14393,
+      17763,
+      20348,
+      26100
+    ]
+  },
+  "buildSources": [
+    "https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information",
+    "https://learn.microsoft.com/en-us/windows/release-health/windows-server-release-info"
+  ],
+  "packs": [
+    {
+      "id": "dns-client",
+      "provider": "Microsoft-Windows-DNS-Client",
+      "channel": "Microsoft-Windows-DNS-Client/Operational",
+      "mode": "Configure",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "requiredService": null,
+      "minimumBytes": 33554432,
+      "sizeBasis": "WELA opt-in floor, not a Microsoft baseline requirement",
+      "allowedChannelTypes": [
+        "Administrative",
+        "Operational"
+      ],
+      "events": [
+        {
+          "id": 3008,
+          "requiredFields": [
+            "QueryName"
+          ]
+        }
+      ],
+      "ruleIds": [
+        "2abf05fa-98f2-d00b-6a6a-12d07e55233e",
+        "e1b0fd63-1017-1597-ec08-3f9e1021e564",
+        "14b17417-8ae7-ff8e-fe36-28aaa337ccd5",
+        "ec3b018a-d4dd-2d51-4a63-50d078f737dd",
+        "9b3ffe56-a479-9b35-d590-9b94c2f7fa35",
+        "f0b3a5e9-e4ee-ed23-3b27-4dd30c5974c8"
+      ],
+      "source": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/use-windows-event-forwarding-to-assist-in-intrusion-detection",
+      "rights": "Administrator to configure; event-reader token access remains untested",
+      "enableCommand": "wevtutil sl \"Microsoft-Windows-DNS-Client/Operational\" /e:true"
+    },
+    {
+      "id": "dns-server-audit",
+      "provider": "Microsoft-Windows-DNSServer",
+      "channel": "Microsoft-Windows-DNSServer/Audit",
+      "mode": "Configure",
+      "roles": [
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "requiredService": "DNS",
+      "minimumBytes": 33554432,
+      "sizeBasis": "WELA opt-in floor, not a Microsoft baseline requirement",
+      "allowedChannelTypes": [
+        "Administrative",
+        "Operational"
+      ],
+      "events": [
+        {
+          "id": 515,
+          "requiredFields": []
+        },
+        {
+          "id": 516,
+          "requiredFields": []
+        },
+        {
+          "id": 519,
+          "requiredFields": []
+        }
+      ],
+      "ruleIds": [],
+      "source": "https://learn.microsoft.com/en-us/windows-server/networking/dns/dns-logging-and-diagnostics",
+      "rights": "Administrator to configure; event-reader token access remains untested",
+      "enableCommand": "wevtutil sl \"Microsoft-Windows-DNSServer/Audit\" /e:true"
+    },
+    {
+      "id": "dns-server-analytical",
+      "provider": "Microsoft-Windows-DNSServer",
+      "channel": "Microsoft-Windows-DNSServer/Analytical",
+      "mode": "ManualOnly",
+      "roles": [
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "requiredService": "DNS",
+      "minimumBytes": 33554432,
+      "sizeBasis": "WELA opt-in floor, not a Microsoft baseline requirement",
+      "allowedChannelTypes": [
+        "Administrative",
+        "Operational"
+      ],
+      "events": [
+        {
+          "id": 257,
+          "requiredFields": [
+            "QNAME"
+          ]
+        },
+        {
+          "id": 260,
+          "requiredFields": [
+            "QNAME"
+          ]
+        },
+        {
+          "id": 261,
+          "requiredFields": [
+            "QNAME"
+          ]
+        }
+      ],
+      "ruleIds": [
+        "6db38b96-3772-4cbf-a8ad-c65d8ac5134e",
+        "cd6eb342-9dcd-450d-b448-bebd97cb6e89",
+        "c8e0edae-2335-591c-7057-1ac58f03e06c"
+      ],
+      "source": "https://learn.microsoft.com/en-us/windows-server/networking/dns/dns-logging-and-diagnostics",
+      "rights": "Administrator to configure; event-reader token access remains untested",
+      "enableCommand": "Manual review only; no enable command is executed"
+    },
+    {
+      "id": "dns-server-classic",
+      "provider": "Microsoft-Windows-DNS-Server-Service",
+      "channel": "DNS Server",
+      "mode": "ManualOnly",
+      "roles": [
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "requiredService": "DNS",
+      "minimumBytes": 33554432,
+      "sizeBasis": "WELA opt-in floor, not a Microsoft baseline requirement",
+      "allowedChannelTypes": [
+        "Administrative",
+        "Operational"
+      ],
+      "events": [
+        {
+          "id": 150,
+          "requiredFields": []
+        },
+        {
+          "id": 770,
+          "requiredFields": []
+        },
+        {
+          "id": 771,
+          "requiredFields": []
+        },
+        {
+          "id": 6004,
+          "requiredFields": []
+        }
+      ],
+      "ruleIds": [
+        "04768e11-3acf-895f-9193-daae77c4678f",
+        "40077f9e-f597-1087-0c4f-8901d1a07af4"
+      ],
+      "source": "https://learn.microsoft.com/en-us/windows-server/networking/dns/dns-logging-and-diagnostics",
+      "rights": "Administrator to configure; event-reader token access remains untested",
+      "enableCommand": "Manual review only; no enable command is executed"
+    },
+    {
+      "id": "capi2",
+      "provider": "Microsoft-Windows-CAPI2",
+      "channel": "Microsoft-Windows-CAPI2/Operational",
+      "mode": "Configure",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "requiredService": null,
+      "minimumBytes": 102432768,
+      "sizeBasis": "Microsoft WEF Appendix C exact example; Windows rounding preserved",
+      "allowedChannelTypes": [
+        "Administrative",
+        "Operational"
+      ],
+      "events": [
+        {
+          "id": 70,
+          "requiredFields": []
+        }
+      ],
+      "ruleIds": [
+        "dadaca47-d760-88a9-fd35-cbe8a6237499"
+      ],
+      "source": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/use-windows-event-forwarding-to-assist-in-intrusion-detection",
+      "rights": "Administrator to configure; event-reader token access remains untested",
+      "enableCommand": "wevtutil sl \"Microsoft-Windows-CAPI2/Operational\" /e:true"
+    },
+    {
+      "id": "winrm",
+      "provider": "Microsoft-Windows-WinRM",
+      "channel": "Microsoft-Windows-WinRM/Operational",
+      "mode": "Configure",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "requiredService": null,
+      "minimumBytes": 33554432,
+      "sizeBasis": "WELA opt-in floor, not a Microsoft baseline requirement",
+      "allowedChannelTypes": [
+        "Administrative",
+        "Operational"
+      ],
+      "events": [
+        {
+          "id": 6,
+          "requiredFields": []
+        }
+      ],
+      "ruleIds": [
+        "4f321a68-176a-4f1d-873a-8793bc49e3b0"
+      ],
+      "source": "https://learn.microsoft.com/en-us/intune/intune-service/remote-actions/collect-diagnostics",
+      "rights": "Administrator to configure; event-reader token access remains untested",
+      "enableCommand": "wevtutil sl \"Microsoft-Windows-WinRM/Operational\" /e:true"
+    },
+    {
+      "id": "rdp-client",
+      "provider": "Microsoft-Windows-TerminalServices-ClientActiveXCore",
+      "channel": "Microsoft-Windows-TerminalServices-RDPClient/Operational",
+      "mode": "Configure",
+      "roles": [
+        "Client",
+        "MemberServer",
+        "DomainController",
+        "ADCS"
+      ],
+      "requiredService": null,
+      "minimumBytes": 33554432,
+      "sizeBasis": "WELA opt-in floor, not a Microsoft baseline requirement",
+      "allowedChannelTypes": [
+        "Administrative",
+        "Operational"
+      ],
+      "events": [
+        {
+          "id": 1024,
+          "requiredFields": []
+        },
+        {
+          "id": 1102,
+          "requiredFields": []
+        }
+      ],
+      "ruleIds": [
+        "512e70f5-bf70-4de1-9375-2174999a7f8d",
+        "1a850b71-6aef-4f31-a509-f31b2c778476"
+      ],
+      "source": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/use-windows-event-forwarding-to-assist-in-intrusion-detection",
+      "rights": "Administrator to configure; event-reader token access remains untested",
+      "enableCommand": "wevtutil sl \"Microsoft-Windows-TerminalServices-RDPClient/Operational\" /e:true"
+    }
+  ],
+  "ruleReviews": [
+    {
+      "id": "cd6eb342-9dcd-450d-b448-bebd97cb6e89",
+      "title": "Recursive DNS Request",
+      "path": "hayabusa/builtin/DNS-Server/DNS-ServerAnalytical_260_Info_DNS-Request.yml",
+      "sha256": "2e336af288931632cd497a2698bac73f9ae23272d1c9f450c53ee8adae57200a",
+      "localPath": "provider_rule_sources/cd6eb342-9dcd-450d-b448-bebd97cb6e89.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS-Server/Analytical"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "6db38b96-3772-4cbf-a8ad-c65d8ac5134e",
+      "title": "Recursive DNS Response",
+      "path": "hayabusa/builtin/DNS-Server/DNS-ServerAnalytical_261_Info_DNS-Response.yml",
+      "sha256": "cbc467af34fd99b3737fa4a8df2bdbed93ded59e96d2d477d962d1412ffd00cf",
+      "localPath": "provider_rule_sources/6db38b96-3772-4cbf-a8ad-c65d8ac5134e.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS-Server/Analytical"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "512e70f5-bf70-4de1-9375-2174999a7f8d",
+      "title": "RDP Conn Attempt",
+      "path": "hayabusa/builtin/TerminalServices-RDPClient_Op/RDP-Client_1024_Info_ConnAttempt.yml",
+      "sha256": "965cce3bb99985e323264f62cd01b6180c1e346ab3ec042a92041cbd2d788706",
+      "localPath": "provider_rule_sources/512e70f5-bf70-4de1-9375-2174999a7f8d.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-TerminalServices-RDPClient/Operational"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "1a850b71-6aef-4f31-a509-f31b2c778476",
+      "title": "RDP Attempt",
+      "path": "hayabusa/builtin/TerminalServices-RDPClient_Op/RDP-Client_1102_Info_ConnAttempt.yml",
+      "sha256": "289505628401ab76e2ba21154d8c79a406f12c8a9128e127f6371919341e1f2b",
+      "localPath": "provider_rule_sources/1a850b71-6aef-4f31-a509-f31b2c778476.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-TerminalServices-RDPClient/Operational"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "4f321a68-176a-4f1d-873a-8793bc49e3b0",
+      "title": "Win RM Session Created",
+      "path": "hayabusa/builtin/WinRM_Op/WinRM_6_Info_SessCreated.yml",
+      "sha256": "a1db69172b7a15030ca8f85e05dbee494568ddb84ec1a01ef9184c4f813e5006",
+      "localPath": "provider_rule_sources/4f321a68-176a-4f1d-873a-8793bc49e3b0.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-WinRM/Operational"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "selection_basic",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "dadaca47-d760-88a9-fd35-cbe8a6237499",
+      "title": "Certificate Private Key Acquired",
+      "path": "sigma/builtin/capi2/win_capi2_acquire_certificate_private_key.yml",
+      "sha256": "5c536cf6f6c72e6cc061f50ca8f57bc45675dffaa08fdad7808de71e78d79c3c",
+      "localPath": "provider_rule_sources/dadaca47-d760-88a9-fd35-cbe8a6237499.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-CAPI2/Operational"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "capi2 and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "2abf05fa-98f2-d00b-6a6a-12d07e55233e",
+      "title": "DNS Query for Anonfiles.com Domain - DNS Client",
+      "path": "sigma/builtin/dns_client/win_dns_client_anonymfiles_com.yml",
+      "sha256": "8e3a2a16879ae20c9f35a5775e0a3d80cbca7bed1b97bf7a854b66c865d369f2",
+      "localPath": "provider_rule_sources/2abf05fa-98f2-d00b-6a6a-12d07e55233e.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS Client Events/Operational"
+      ],
+      "requiredEventFields": [
+        "QueryName"
+      ],
+      "operators": [
+        "contains"
+      ],
+      "condition": "dns_client and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "f0b3a5e9-e4ee-ed23-3b27-4dd30c5974c8",
+      "title": "Suspicious Cobalt Strike DNS Beaconing - DNS Client",
+      "path": "sigma/builtin/dns_client/win_dns_client_mal_cobaltstrike.yml",
+      "sha256": "84d8b4abc29e83ba9bf33a5468d33abceb6002bb60bcf1311f0ea681d7bc280c",
+      "localPath": "provider_rule_sources/f0b3a5e9-e4ee-ed23-3b27-4dd30c5974c8.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS Client Events/Operational"
+      ],
+      "requiredEventFields": [
+        "QueryName"
+      ],
+      "operators": [
+        "contains",
+        "startswith"
+      ],
+      "condition": "dns_client and (selection_eid and 1 of selection_query_*)",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "14b17417-8ae7-ff8e-fe36-28aaa337ccd5",
+      "title": "DNS Query To MEGA Hosting Website - DNS Client",
+      "path": "sigma/builtin/dns_client/win_dns_client_mega_nz.yml",
+      "sha256": "cc8b3b8d7c41f194581e0dd17cbc41de6b18c041b75f1554c4e1fcc0e7c10b90",
+      "localPath": "provider_rule_sources/14b17417-8ae7-ff8e-fe36-28aaa337ccd5.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS Client Events/Operational"
+      ],
+      "requiredEventFields": [
+        "QueryName"
+      ],
+      "operators": [
+        "contains"
+      ],
+      "condition": "dns_client and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "9b3ffe56-a479-9b35-d590-9b94c2f7fa35",
+      "title": "DNS Query To Put.io - DNS Client",
+      "path": "sigma/builtin/dns_client/win_dns_client_put_io.yml",
+      "sha256": "d7c151d0b5392a179dfad761bafdf2807411251e37227beb2016304b38a36b58",
+      "localPath": "provider_rule_sources/9b3ffe56-a479-9b35-d590-9b94c2f7fa35.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS Client Events/Operational"
+      ],
+      "requiredEventFields": [
+        "QueryName"
+      ],
+      "operators": [
+        "contains"
+      ],
+      "condition": "dns_client and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "e1b0fd63-1017-1597-ec08-3f9e1021e564",
+      "title": "Query Tor Onion Address - DNS Client",
+      "path": "sigma/builtin/dns_client/win_dns_client_tor_onion.yml",
+      "sha256": "923596f2a5e1ef0ba41c2987a04d92c59cf3c0884ddf0d51a581c3a725d412e8",
+      "localPath": "provider_rule_sources/e1b0fd63-1017-1597-ec08-3f9e1021e564.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS Client Events/Operational"
+      ],
+      "requiredEventFields": [
+        "QueryName"
+      ],
+      "operators": [
+        "endswith"
+      ],
+      "condition": "dns_client and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "ec3b018a-d4dd-2d51-4a63-50d078f737dd",
+      "title": "DNS Query To Ufile.io - DNS Client",
+      "path": "sigma/builtin/dns_client/win_dns_client_ufile_io.yml",
+      "sha256": "cfeacb16c5641b3edd943aae3f9b4c39e02c0abe88b73cef659efdaf0987eba6",
+      "localPath": "provider_rule_sources/ec3b018a-d4dd-2d51-4a63-50d078f737dd.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS Client Events/Operational"
+      ],
+      "requiredEventFields": [
+        "QueryName"
+      ],
+      "operators": [
+        "contains"
+      ],
+      "condition": "dns_client and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "04768e11-3acf-895f-9193-daae77c4678f",
+      "title": "Failed DNS Zone Transfer",
+      "path": "sigma/builtin/dns_server/win_dns_server_failed_dns_zone_transfer.yml",
+      "sha256": "3fd1df00d972211dc8e5548e12fb04f555e50e264eee6ed051b84093ca1956a0",
+      "localPath": "provider_rule_sources/04768e11-3acf-895f-9193-daae77c4678f.yml",
+      "ruleChannels": [
+        "DNS Server"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "dns_server and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "40077f9e-f597-1087-0c4f-8901d1a07af4",
+      "title": "DNS Server Error Failed Loading the ServerLevelPluginDLL",
+      "path": "sigma/builtin/dns_server/win_dns_server_susp_server_level_plugin_dll.yml",
+      "sha256": "6cbcfbdd3add8ff3a1e6a800780b1a47d01f3b38afde3b9332184ea8f5689ae2",
+      "localPath": "provider_rule_sources/40077f9e-f597-1087-0c4f-8901d1a07af4.yml",
+      "ruleChannels": [
+        "DNS Server"
+      ],
+      "requiredEventFields": [],
+      "operators": [],
+      "condition": "dns_server and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    },
+    {
+      "id": "c8e0edae-2335-591c-7057-1ac58f03e06c",
+      "title": "GALLIUM Artefacts - Builtin",
+      "path": "sigma/builtin/emerging-threats/2020/TA/GALLIUM/win_dns_analytic_apt_gallium.yml",
+      "sha256": "224922dcbe19b4435f2e5fee7ebd08f6e748144b36a38490b69800dac4675e4d",
+      "localPath": "provider_rule_sources/c8e0edae-2335-591c-7057-1ac58f03e06c.yml",
+      "ruleChannels": [
+        "Microsoft-Windows-DNS-Server/Analytical"
+      ],
+      "requiredEventFields": [
+        "QNAME"
+      ],
+      "operators": [],
+      "condition": "dns_server_analytic and selection",
+      "nativeEligibility": "Conditional: event/backend adapter and repeatable evidence required"
+    }
+  ]
+}

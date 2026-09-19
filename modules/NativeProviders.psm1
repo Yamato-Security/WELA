@@ -187,7 +187,7 @@ function Export-WelaAuditAssessment {
             Note = 'Only evidence-qualified Ready rules are usable. Policy/channel matches are configuration estimates; missing full rule logic, fields, outcomes, SACL, ingestion or query evidence remains Conditional.'
         }
         Eligibility = $Eligibility
-        Results = @($Rows | Select-Object Category, SubCategory, CurrentSetting, DefaultSetting, RecommendedSetting, RuleCount, ChannelState, GenerationReadiness, NativeSources, Note)
+        Results = @($Rows | Select-Object Category, SubCategory, CurrentSetting, DefaultSetting, DefaultEvidence, LegacyDefaultHint, RecommendedSetting, RuleCount, ChannelState, GenerationReadiness, NativeSources, Note)
     }
     if ($ResultsPath) { $report | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
     if ($HtmlPath) {
@@ -208,4 +208,4 @@ function Export-WelaAuditAssessment {
     }
 }
 
-Export-ModuleMember -Function Get-WelaNativeChannel, Get-WelaNativeProvider, Get-WelaNativeSources, Get-WelaNativeSourceState, Export-WelaAuditAssessment
+Export-ModuleMember -Function Get-WelaNativeChannel, Get-WelaNativeService, Get-WelaNativeProvider, Get-WelaNativeSources, Get-WelaNativeSourceState, Export-WelaAuditAssessment
