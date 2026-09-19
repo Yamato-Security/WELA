@@ -1,4 +1,7 @@
-# CHANGELOG
+# 変更履歴
+
+!!! info "情報"
+    このページはプロジェクトの [`CHANGELOG.md`](https://github.com/Yamato-Security/WELA/blob/main/CHANGELOG-Japanese.md) を反映したものです。ダウンロードは [リリースページ](https://github.com/Yamato-Security/WELA/releases) をご覧ください。
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 

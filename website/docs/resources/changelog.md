@@ -1,4 +1,7 @@
-# CHANGELOG
+# Changelog
+
+!!! info
+    This page mirrors the project [`CHANGELOG.md`](https://github.com/Yamato-Security/WELA/blob/main/CHANGELOG.md). See the [Releases page](https://github.com/Yamato-Security/WELA/releases) for downloads.
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
