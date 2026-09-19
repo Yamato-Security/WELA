@@ -31,7 +31,16 @@ try {
  if($probe.ExitCode -or $probe.Status -ne 'NativeExeEventObserved' -or $probe.EventId -ne 8003){throw ($probe|ConvertTo-Json -Depth 24)}
  foreach($artifact in $probe.Artifacts){if((Get-FileHash (Join-Path $probe.OutputPath $artifact.Name)).Hash.ToLowerInvariant() -cne $artifact.Sha256){throw 'Artifact hash mismatch'}}
  Write-Host "Native AppLocker 8003 observed under PowerShell $($PSVersionTable.PSVersion), build $($probe.Before.Host.Build). Zero Sigma credit."
-} catch {$primary=$_;Write-Host $_;Get-ChildItem -LiteralPath $root -Recurse -Filter 'candidate-*.xml'|ForEach-Object {Write-Host ([IO.File]::ReadAllText($_.FullName))}}
+} catch {
+ $primary=$_;Write-Host $_
+ Get-ChildItem -LiteralPath $root -Recurse -Filter 'candidate-*.xml'|ForEach-Object {Write-Host ([IO.File]::ReadAllText($_.FullName))}
+ # Read-only diagnostic independent of the production XPath filter and parser.
+ try {
+  $recent=@(Get-WinEvent -LogName 'Microsoft-Windows-AppLocker/EXE and DLL' -MaxEvents 12 -ErrorAction Stop)
+  try {foreach($record in $recent){Write-Host ('Recent native channel XML: '+$record.ToXml())}} finally {foreach($record in $recent){$record.Dispose()}}
+ } catch {Write-Host ('Recent native channel read: '+$_.Exception.Message)}
+ Get-CimInstance Win32_SystemDriver -Filter "Name='AppID'" | Select-Object Name,State,StartMode | ConvertTo-Json | Write-Host
+}
 finally {
  if($touched){
   try {Set-AppLockerPolicy -XmlPolicy $backup -ErrorAction Stop;$restored=Get-WelaAppLockerPolicySnapshot Local;if((Get-WelaAppLockerXmlKey $restored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.LocalPolicy.Policy.Xml)){throw 'Local policy restoration differs'}}catch{$cleanup+=$_.Exception.Message}
