@@ -1,0 +1,38 @@
+name: Native retention health regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  retention-health:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Safe report fixtures in Windows PowerShell 5.1
+        shell: powershell
+        timeout-minutes: 3
+        run: ./tests/RetentionHealth.Tests.ps1
+      - name: Safe report fixtures in PowerShell 7
+        shell: pwsh
+        timeout-minutes: 3
+        run: ./tests/RetentionHealth.Tests.ps1
+      - name: Public CLI guards in Windows PowerShell 5.1
+        shell: powershell
+        timeout-minutes: 3
+        run: ./tests/RetentionHealth.Cli.Tests.ps1
+      - name: Public CLI guards in PowerShell 7
+        shell: pwsh
+        timeout-minutes: 3
+        run: ./tests/RetentionHealth.Cli.Tests.ps1
+      - name: Actual read-only native adapters in Windows PowerShell 5.1
+        shell: powershell
+        timeout-minutes: 3
+        run: ./tests/RetentionHealth.Windows.Tests.ps1
+      - name: Actual read-only native adapters in PowerShell 7
+        shell: pwsh
+        timeout-minutes: 3
+        run: ./tests/RetentionHealth.Windows.Tests.ps1

@@ -34,6 +34,8 @@
     [switch]$GrantEventLogReaders,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$WefAction = 'Audit',
     [string]$WefConfigPath,
+    [string]$RetentionConfigPath,
+    [string]$RetentionPreviousPath,
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
@@ -80,6 +82,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
+. (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1743,6 +1746,9 @@ Usage:
 
   ./WELA.ps1 wef-source -WefAction Plan -WefConfigPath source.json -ResultsPath source-plan.json
   ./WELA.ps1 wec-collector -WefAction Configure -WefConfigPath collector.json -DryRun
+
+  ./WELA.ps1 retention-health -ResultsPath source-retention.json
+  ./WELA.ps1 retention-health -RetentionConfigPath collector-health.json -HtmlPath retention.html
   # Native channels only; ACL changes require -GrantEventLogReaders. Forwarding identity access needs a separate test.
   ./WELA.ps1 wmi-auditing -WmiAction List
   ./WELA.ps1 wmi-auditing -WmiAction Plan -WmiNamespace root\cimv2 -ResultsPath wmi-plan.json
@@ -1801,6 +1807,12 @@ if (($PSBoundParameters.ContainsKey('AppLockerAction') -or $AppLockerPolicyPath)
 if (($PSBoundParameters.ContainsKey('WefAction') -or $PSBoundParameters.ContainsKey('WefConfigPath')) -and $Cmd -notin @('wef-source','wec-collector')) {
     throw '-WefAction and -WefConfigPath require wef-source or wec-collector. No command was run.'
 }
+if (($PSBoundParameters.ContainsKey('RetentionConfigPath') -or $PSBoundParameters.ContainsKey('RetentionPreviousPath')) -and $Cmd -ne 'retention-health') {
+    throw 'Retention options require retention-health. No command was run.'
+}
+if ($Cmd -eq 'retention-health' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','RetentionConfigPath','RetentionPreviousPath','ResultsPath','HtmlPath','Help') }).Count) {
+    throw 'retention-health is read-only and accepts only its config/previous report paths, ResultsPath, HtmlPath and Help. No command was run.'
+}
 if ($Cmd -eq 'applocker-readiness' -and ($Profile -or $Baseline)) {
     throw 'applocker-readiness uses its own operator-supplied policy, not -Profile or -Baseline. No command was run.'
 }
@@ -1858,6 +1870,18 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'retention-health' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 retention-health [-RetentionConfigPath operator.json] [-RetentionPreviousPath prior-local-report.json] [-ResultsPath report.json] [-HtmlPath report.html]'
+            Write-Host 'Read-only local native source/collector buffer, event-age, bounded XML rate, archive declaration/inventory, WEF and time evidence. Default: Source with Security/System/Application and no archive declaration. No retention-compliance or delivery claim. See docs/retention-health.md.'
+            return
+        }
+        try {
+            $report=Invoke-WelaRetentionHealth -ConfigPath $RetentionConfigPath -PreviousPath $RetentionPreviousPath -ResultsPath $ResultsPath -HtmlPath $HtmlPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] Retention health: $_" -ForegroundColor Red; exit 1 }
+    }
     'rule-eligibility' {
         if ($Profile -or $Baseline -or $Auto -or $PlanPath) { throw 'rule-eligibility reviews native rule metadata and optional lab artifacts; use -ResultsPath/-HtmlPath, not configuration options.' }
         $arguments = @{}
