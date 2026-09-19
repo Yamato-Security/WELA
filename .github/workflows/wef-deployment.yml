@@ -1,0 +1,36 @@
+name: Native WEF deployment regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wef-deployment:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Safe public command fixtures in Windows PowerShell 5.1
+        shell: powershell
+        timeout-minutes: 3
+        run: ./tests/WefDeployment.Tests.ps1
+      - name: Public CLI rejection checks in Windows PowerShell 5.1
+        shell: powershell
+        timeout-minutes: 3
+        run: ./tests/WefDeployment.Cli.Tests.ps1
+      - name: Safe public command fixtures in PowerShell 7
+        shell: pwsh
+        timeout-minutes: 3
+        run: ./tests/WefDeployment.Tests.ps1
+      - name: Public CLI rejection checks in PowerShell 7
+        shell: pwsh
+        timeout-minutes: 3
+        run: ./tests/WefDeployment.Cli.Tests.ps1
+      - name: Native read-only smoke in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/WefDeployment.Windows.Tests.ps1
+      - name: Native read-only smoke in PowerShell 7
+        shell: pwsh
+        run: ./tests/WefDeployment.Windows.Tests.ps1

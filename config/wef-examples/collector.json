@@ -1,0 +1,14 @@
+{
+  "SchemaVersion": 1,
+  "Role": "Collector",
+  "CollectorFqdn": "collector.example.test",
+  "CollectorUri": "http://collector.example.test:5985/wsman/SubscriptionManager/WEC",
+  "Authentication": "Kerberos",
+  "SourceSids": ["S-1-5-21-111-222-333-1234"],
+  "SubscriptionFiles": ["native-security.xml"],
+  "Hardening": "AssessOnly",
+  "ListenerAddress": "*",
+  "IngressRuleName": "Operator-WEC-Domain-5985",
+  "IngressLocalAddresses": ["192.0.2.10"],
+  "IngressRemoteAddresses": ["192.0.2.0/24"]
+}
