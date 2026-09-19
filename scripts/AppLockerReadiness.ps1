@@ -47,7 +47,7 @@ function ConvertFrom-WelaAppLockerXml {
     }
     if ($ForImport -and -not $collections.Count) { throw 'An empty policy cannot supply AppLocker generation prerequisites.' }
     if ($ForImport -and @($doc.SelectNodes('//*') | Where-Object { $_.NamespaceURI -or @($_.Attributes | Where-Object { $_.NamespaceURI }).Count }).Count) { throw 'Namespaced policy elements/attributes are not accepted for import.' }
-    [pscustomobject]@{ Xml=$doc.OuterXml; Collections=@($collections.ToArray()); EmptyPlaceholderCount=@($collections.ToArray() | Where-Object IsEmptyPlaceholder).Count; HasUnknownPolicyData=[bool]$unknownPolicyData; TotalRules=(@($collections.ToArray() | Measure-Object RuleCount -Sum)[0].Sum); HasEnforcement=(@($collections.ToArray() | Where-Object PotentialEnforcement).Count -gt 0) }
+    [pscustomobject]@{ Xml=$doc.OuterXml; Collections=@($collections.ToArray()); EmptyPlaceholderCount=@($collections.ToArray() | Where-Object IsEmptyPlaceholder).Count; HasUnknownPolicyData=[bool]$unknownPolicyData; TotalRules=[int](@($collections.ToArray() | Measure-Object RuleCount -Sum)[0].Sum); HasEnforcement=(@($collections.ToArray() | Where-Object PotentialEnforcement).Count -gt 0) }
 }
 
 function Get-WelaAppLockerHost {

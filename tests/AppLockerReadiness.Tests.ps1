@@ -9,6 +9,8 @@ $placeholderNodes = @('Exe','Dll','Msi','Script','Appx') | ForEach-Object { '<Ru
 $placeholders = '<AppLockerPolicy Version="1">' + ($placeholderNodes -join '') + '</AppLockerPolicy>'
 $unusedPlaceholders = '<AppLockerPolicy Version="1">' + (($placeholderNodes | Select-Object -Skip 1) -join '') + '</AppLockerPolicy>'
 $readbackPlaceholders = $xml.Replace('</AppLockerPolicy>', (($placeholderNodes | Select-Object -Skip 1) -join '') + '</AppLockerPolicy>')
+$emptyPolicy=ConvertFrom-WelaAppLockerXml -Xml '<AppLockerPolicy Version="1" />'
+Assert ($emptyPolicy.TotalRules -is [int] -and $emptyPolicy.TotalRules -eq 0) 'An understood empty policy reports zero rules, not an unknown null count.'
 $desired=ConvertFrom-WelaAppLockerXml -Xml $xml -ForImport
 Assert ($desired.TotalRules -eq 1 -and -not $desired.HasEnforcement) 'Audit-only rule must parse.'
 Assert ((Get-WelaAppLockerXmlKey $xml) -ceq (Get-WelaAppLockerXmlKey ($xml.Replace('Type="Exe" EnforcementMode="AuditOnly"', 'EnforcementMode="AuditOnly" Type="Exe"')))) 'Attribute ordering cannot change compliance.'

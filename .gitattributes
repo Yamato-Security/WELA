@@ -26,3 +26,5 @@
 
 # Native WEC XML reader source identity remains identical across checkouts.
 /modules/WecSubscriptionXml.cs text eol=lf
+scripts/AppLockerProbe.ps1 text eol=lf
+tests/AppLockerProbe*.ps1 text eol=lf
