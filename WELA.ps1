@@ -97,6 +97,8 @@
     [string]$RecoveryOutputPath,
     [string]$ArrivalProbePath,
     [string]$ArrivalOutputPath,
+    [string[]]$WecRuntimeId,
+    [ValidateRange(1,512)][int]$WecRuntimeMaximumSources=128,
     [switch]$Help
 )
 
@@ -119,6 +121,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeValidation.ps1")
 . (Join-Path $ScriptRoot "scripts/WefArrival.ps1")
+. (Join-Path $ScriptRoot "scripts/WecRuntime.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditNotifications.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
@@ -1837,6 +1840,7 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 wec-runtime -WecRuntimeId subscription-id -ResultsPath new-runtime.json
   ./WELA.ps1 targeted-sacl -Help  # Selected existing local SACL targets; read-only by default
   ./WELA.ps1 gpo-package -GpoAction Plan -GpoProfile wela-2.2.0 -Role Client -Build 26100
   ./WELA.ps1 gpo-package -GpoAction Export -GpoProfile wela-2.2.0 -Role Client -Build 26100 -GpoOutputPath .\audit-components
@@ -1962,6 +1966,12 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecRuntime*'}).Count) {
+    throw 'WecRuntime options require wec-runtime. No command was run.'
+}
+if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
+    throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
+}
 if ($Cmd -ne 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('ArrivalProbePath','ArrivalOutputPath')}).Count) {
     throw 'Arrival options require wef-arrival. No command was run.'
 }
@@ -2067,6 +2077,12 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'wec-runtime' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 wec-runtime -WecRuntimeId id1,id2 [-WecRuntimeMaximumSources 1..512] [-ResultsPath new.json]. Read-only local typed WEC activity/errors/times; historical source inventory is not a connection count. No arrival or Sigma claim. See docs/wec-runtime.md.';return}
+        $report=Invoke-WelaWecRuntime -Ids $WecRuntimeId -MaximumSources $WecRuntimeMaximumSources -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) {exit $report.ExitCode}
+    }
     'targeted-sacl' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 targeted-sacl -TargetSaclProfile profile-id [-TargetSaclId id,...] [-TargetSaclAction Audit|Plan] [-IncludeOptional] [-TargetSaclIncludeChildren] [-ResultsPath new-plan.json]. Configure requires -TargetSaclAction Configure -TargetSaclPlanPath reviewed.json -TargetSaclId same-ids [-TargetSaclIncludeChildren] [-IncludeOptional] [-DryRun] [-Auto] [-BackupPath new-directory] [-ResultsPath new-results.json]. Existing local targets only; see docs/selected-sacl-configuration.md.'; return }
         $report=Invoke-WelaSelectedSacl -Action $TargetSaclAction -Profile $TargetSaclProfile -Ids $TargetSaclId -PlanPath $TargetSaclPlanPath -IncludeOptional:$IncludeOptional -IncludeChildren:$TargetSaclIncludeChildren -DryRun:$DryRun -Auto:$Auto -BackupPath $BackupPath -ResultsPath $ResultsPath
