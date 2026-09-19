@@ -32,6 +32,7 @@ try{
     $createdPath=$instance.Put($options);$created=$true
     Assert ($createdPath.RelativePath -ieq ('__NAMESPACE.Name="'+$namespaceName+'"')) 'CreateOnly returned the exact owned namespace.'
     $before=Get-WelaWmiNamespaceSnapshot $namespace
+    Assert ((Get-WelaWmiProbeTokenKey ([Wela.WmiProbe.Native]::Snapshot())) -ceq (Get-WelaWmiProbeTokenKey $originalToken)) 'Real namespace descriptor read does not leave broader thread privileges.'
     $defs=@(Get-WelaWmiAuditDefinitions -Namespace 'root\default')
     $defs[0].Namespace=$namespace
     $config=New-WelaConfigurationContext -Auto -BackupPath (Join-Path $private 'sacl-before')
