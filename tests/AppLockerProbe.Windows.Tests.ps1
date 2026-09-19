@@ -14,6 +14,7 @@ $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/WefArrival.ps1"
 . "$repo/scripts/AppLockerProbe.ps1"
 $root=Join-Path $env:RUNNER_TEMP ('wela-applocker-native-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $root
+Write-Host ('Native fixture process session: '+[Diagnostics.Process]::GetCurrentProcess().SessionId)
 $before=Get-WelaAppLockerReadiness
 if($before.Host.PartOfDomain -or $before.Management.Status -ne 'Observed' -or $before.LocalPolicy.Status -ne 'Observed' -or $before.EffectiveGpPolicy.Status -ne 'Observed' -or $before.LocalPolicy.Policy.TotalRules -ne 0 -or $before.EffectiveGpPolicy.Policy.TotalRules -ne 0 -or $before.LocalPolicy.Policy.HasUnknownPolicyData -or $before.EffectiveGpPolicy.Policy.HasUnknownPolicyData){Write-Host ($before | ConvertTo-Json -Depth 16);throw 'Disposable test requires empty, understood local/effective policies on a non-domain disposable host.'}
 $backup=Join-Path $root 'policy-before.xml';[IO.File]::WriteAllText($backup,$before.LocalPolicy.Policy.Xml)
@@ -56,6 +57,9 @@ try {
   try {foreach($record in $recent){Write-Host ('Recent native channel XML: '+$record.ToXml())}} finally {foreach($record in $recent){$record.Dispose()}}
  } catch {Write-Host ('Recent native channel read: '+$_.Exception.Message)}
  Get-CimInstance Win32_SystemDriver -Filter "Name='AppID'" | Select-Object Name,State,StartMode | ConvertTo-Json | Write-Host
+ try {Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -ErrorAction Stop | Select-Object TaskName,State | ConvertTo-Json | Write-Host}catch{Write-Host ('AppID task read: '+$_.Exception.Message)}
+ try {$nativeLog=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('Microsoft-Windows-AppLocker/EXE and DLL');try{$nativeLog | Select-Object IsEnabled,LogType,ProviderLevel,ProviderKeywords,LogIsolation | ConvertTo-Json | Write-Host}finally{$nativeLog.Dispose()}}catch{Write-Host ('Channel metadata read: '+$_.Exception.Message)}
+ Write-Host ((Get-WelaAppLockerPolicySnapshot Effective) | ConvertTo-Json -Depth 12)
 }
 finally {
  if($touched){
