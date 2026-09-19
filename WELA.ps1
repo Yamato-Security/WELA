@@ -66,6 +66,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
+Import-Module (Join-Path $ScriptRoot "modules/AuditCatalog.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
@@ -336,7 +337,9 @@ function GetBaselineConfig {
     if (-not (Test-Path -Path $script:BaselineConfigPath)) {
         throw "Baseline config not found: $script:BaselineConfigPath"
     }
-    return Get-Content -Path $script:BaselineConfigPath -Raw | ConvertFrom-Json
+    $data = Get-Content -Path $script:BaselineConfigPath -Raw | ConvertFrom-Json
+    Assert-WelaAuditCatalog -Catalog $data.catalog -CanonicalCatalog (Import-WelaAuditProfiles).catalog
+    return $data
 }
 
 function GetBaselineNames {
