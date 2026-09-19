@@ -77,6 +77,10 @@
     [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
     [string]$ProbeOutputPath,
     [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
+    [ValidateSet('Export','Verify')][string]$EvtxAction = 'Verify',
+    [string]$EvtxProbePath,
+    [string]$EvtxArchivePath,
+    [string]$EvtxOutputPath,
     [switch]$Help
 )
 
@@ -118,6 +122,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
+. (Join-Path $ScriptRoot "scripts/EvtxRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -1908,6 +1913,9 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
     throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
 }
 
+if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
+if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
+
 if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ([string]::IsNullOrWhiteSpace($ProfileFile) -or $Cmd -notin @('profiles','plan','audit','audit-settings','configure')) { throw '-ProfileFile requires profiles, plan, audit, audit-settings or configure. No command was run.' }
     if ($Baseline -or ($Cmd -ne 'profiles' -and -not $Profile)) { throw '-ProfileFile requires an explicit -Profile and cannot be combined with -Baseline (profiles lists the file). No command was run.' }
@@ -2039,6 +2047,12 @@ switch ($Cmd.ToLower()) {
             $report | Select-Object Status,OutputPath,PayloadEmitted,ExitCode
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] Intune export: $_" -ForegroundColor Red; exit 1 }
+    }
+    'evtx-recovery' {
+        if ($Help) {Write-Host 'Usage: evtx-recovery -EvtxAction Export -EvtxProbePath validated-probe-directory -EvtxOutputPath new-directory; or -EvtxAction Verify -EvtxProbePath validated-probe-directory -EvtxArchivePath probe.evtx -EvtxOutputPath new-directory. No policy changes. See docs/evtx-recovery.md.';return}
+        $report=Invoke-WelaEvtxRecovery -Action $EvtxAction -ProbePath $EvtxProbePath -ArchivePath $EvtxArchivePath -OutputPath $EvtxOutputPath
+        $report
+        if ($report.ExitCode) {exit $report.ExitCode}
     }
     'native-validation' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 native-validation [-ProbeAction Plan|Run] [-ProbeOutputPath new-directory] [-ProbeTimeoutSeconds 1..30]. Plan reads prerequisites; Run launches a fixed benign cmd.exe probe and collects exact native Security 4688 XML. No policy changes or Sigma readiness credit. See docs/native-validation.md.'; return }
