@@ -77,6 +77,11 @@
     [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
     [string]$ProbeOutputPath,
     [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
+    [ValidateSet('Audit','Plan','Configure')][string]$TargetSaclAction = 'Audit',
+    [string]$TargetSaclProfile,
+    [string[]]$TargetSaclId,
+    [string]$TargetSaclPlanPath,
+    [switch]$TargetSaclIncludeChildren,
     [switch]$Help
 )
 
@@ -116,6 +121,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
+. (Join-Path $ScriptRoot "scripts/SelectedSaclConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
 
@@ -1812,6 +1818,7 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 targeted-sacl -Help  # Selected existing local SACL targets; read-only by default
   ./WELA.ps1 gpo-package -GpoAction Plan -GpoProfile wela-2.2.0 -Role Client -Build 26100
   ./WELA.ps1 gpo-package -GpoAction Export -GpoProfile wela-2.2.0 -Role Client -Build 26100 -GpoOutputPath .\audit-components
   ./WELA.ps1 gpo-package -GpoAction Verify -GpoOutputPath .\audit-components
@@ -1890,6 +1897,12 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'TargetSacl*' }).Count) {
+    throw 'TargetSacl options require targeted-sacl. No command was run.'
+}
+if ($Cmd -eq 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','TargetSaclAction','TargetSaclProfile','TargetSaclId','TargetSaclPlanPath','TargetSaclIncludeChildren','IncludeOptional','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
+    throw 'targeted-sacl accepts only selected-target, consent and report options. No command was run.'
+}
 if ($Cmd -ne 'score' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('ScoreProfile','ScoreEvidencePath') }).Count) {
     throw 'Scoring options require score. No command was run.'
 }
@@ -1976,7 +1989,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -1985,7 +1998,7 @@ if ($DryRun -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, provider-packs -ProviderAction Configure, audit-integrity -IntegrityAction Configure, and audit-notifications -NotificationAction Configure; gpo-package -GpoAction Export writes component files only. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, provider-packs -ProviderAction Configure, audit-integrity -IntegrityAction Configure, audit-notifications -NotificationAction Configure, and targeted-sacl -TargetSaclAction Configure; gpo-package -GpoAction Export writes component files only. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -2015,6 +2028,12 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'targeted-sacl' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 targeted-sacl -TargetSaclProfile profile-id [-TargetSaclId id,...] [-TargetSaclAction Audit|Plan] [-IncludeOptional] [-TargetSaclIncludeChildren] [-ResultsPath new-plan.json]. Configure requires -TargetSaclAction Configure -TargetSaclPlanPath reviewed.json -TargetSaclId same-ids [-TargetSaclIncludeChildren] [-IncludeOptional] [-DryRun] [-Auto] [-BackupPath new-directory] [-ResultsPath new-results.json]. Existing local targets only; see docs/selected-sacl-configuration.md.'; return }
+        $report=Invoke-WelaSelectedSacl -Action $TargetSaclAction -Profile $TargetSaclProfile -Ids $TargetSaclId -PlanPath $TargetSaclPlanPath -IncludeOptional:$IncludeOptional -IncludeChildren:$TargetSaclIncludeChildren -DryRun:$DryRun -Auto:$Auto -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
     'score' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 score -ScoreProfile profile-id [-Role role -Build build] [-IncludeOptional] [-ScoreEvidencePath evidence.json] [-ResultsPath new.json] [-HtmlPath new.html]. Explicit role/build is an offline scenario; omit both to observe this Windows host. Two separate measures, no overall security grade. See docs/audit-scoring.md.'; return }
         if (-not $ScoreProfile) { throw 'score requires an explicit -ScoreProfile. Use profiles to list built-in profiles.' }

@@ -30,3 +30,5 @@ Configured user-file paths beneath `AppData\Roaming` retain their complete relat
 ## Isolated Windows validation still required
 
 On a snapshot, save the plan and effective policy, apply an explicitly approved targeted SACL, perform a benign operation on a disposable registry key/file that inherits the selected rule, and match Security event XML (for example 4657/4663) to that object, subject and access mask. Check relevant 4656/4658 events separately if Handle Manipulation is needed. Verify forwarding at the collector where required. Repeat for loaded/unloaded users, redirected paths and relevant client/server roles. Preserve before/after ACLs and remove only disposable test objects. This PR's mocked tests and native read-only CI do not supply event-generation or forwarding evidence, so issue #373 remains open for that acceptance work.
+
+For explicitly selected existing local targets, see the separate [reviewed SACL configuration workflow](selected-sacl-configuration.md). Profile planning itself remains read-only, and the legacy `configure-sacl` command is unchanged.

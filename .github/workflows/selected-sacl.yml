@@ -1,0 +1,36 @@
+name: Selected native SACL configuration
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  selected-sacl:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Plan, selection, races and receipts on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/SelectedSacl.Tests.ps1
+      - name: Existing companion planning regressions on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/TargetedSaclPlanning.Tests.ps1
+      - name: Explicit disposable native targets and4657/4663 on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/SelectedSacl.Windows.Tests.ps1 -AllowDisposableSaclWrite
+      - name: Plan, selection, races and receipts on PowerShell 7
+        shell: pwsh
+        run: ./tests/SelectedSacl.Tests.ps1
+      - name: Existing companion planning regressions on PowerShell 7
+        shell: pwsh
+        run: ./tests/TargetedSaclPlanning.Tests.ps1
+      - name: Explicit disposable native targets and4657/4663 on PowerShell 7
+        shell: pwsh
+        run: ./tests/SelectedSacl.Windows.Tests.ps1 -AllowDisposableSaclWrite

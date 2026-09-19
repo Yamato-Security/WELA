@@ -89,7 +89,7 @@ function Resolve-WelaSaclUserFile {
 }
 
 function Get-WelaSaclTargetObservation {
-    param([string]$Path, [string]$Kind)
+    param([string]$Path, [string]$Kind, [switch]$SkipSaclRead)
     if (-not $Path -or $Path -match '%[^%]+%') { return [pscustomobject]@{ PathState = 'Unknown'; SaclReadState = 'Unknown'; Diagnostic = 'Target path is unresolved.' } }
     if ($Path.StartsWith('\\')) { return [pscustomobject]@{ PathState = 'RemoteNotInspected'; SaclReadState = 'Unknown'; Diagnostic = 'Network/redirected target requires assessment on the file server; planning does not authenticate to remote paths.' } }
     try {
@@ -116,6 +116,7 @@ function Get-WelaSaclTargetObservation {
         $state = if ($_.CategoryInfo.Category -eq 'ObjectNotFound') { 'Missing' } else { 'Inaccessible' }
         return [pscustomobject]@{ PathState = $state; SaclReadState = 'Unknown'; Diagnostic = $_.Exception.Message }
     }
+    if ($SkipSaclRead) { return [pscustomobject]@{ PathState = 'Exists'; SaclReadState = 'Not read'; Diagnostic = 'Path preflight only; selected SACL adapter reads security through its native handle.' } }
     try {
         $acl = Get-Acl -LiteralPath $Path -Audit -ErrorAction Stop
         [pscustomobject]@{ PathState = 'Exists'; SaclReadState = 'Readable'; SaclProtected = $acl.AreAuditRulesProtected; Diagnostic = 'SACL can be read. ACE coverage, descendant inheritance and event generation have not been validated.' }
@@ -128,6 +129,7 @@ function Get-WelaTargetedSaclPlan {
         [Parameter(Mandatory)]$AuditPlan,
         [ValidateSet('Plan', 'Skip')][string]$Mode = 'Plan',
         [switch]$Live,
+        [switch]$SkipTargetObservation,
         [string]$TargetsPath = (Join-Path $PSScriptRoot '../config/audit_sacl_targets.json')
     )
     $definitions = Get-Content -LiteralPath $TargetsPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
@@ -163,7 +165,7 @@ function Get-WelaTargetedSaclPlan {
                 }
                 $observation = [pscustomobject]@{ PathState = 'Unknown'; SaclReadState = 'Unknown'; Diagnostic = $detail }
                 if ($Mode -eq 'Skip') { $observation = [pscustomobject]@{ PathState = 'Skipped'; SaclReadState = 'Unknown'; Diagnostic = 'Operator skipped target assessment; telemetry prerequisite remains unverified.' } }
-                elseif ($Live -and $resolution -in @('Resolved', 'Redirected')) { $observation = Get-WelaSaclTargetObservation -Path $path -Kind $kind }
+                elseif ($Live -and -not $SkipTargetObservation -and $resolution -in @('Resolved', 'Redirected')) { $observation = Get-WelaSaclTargetObservation -Path $path -Kind $kind }
                 elseif ($Live) { $observation = [pscustomobject]@{ PathState = $resolution; SaclReadState = 'Unknown'; Diagnostic = $detail } }
                 $selected = $policy.mode -in @('exact', 'minimum') -or ($policy.mode -eq 'optional' -and $AuditPlan.includeOptional)
                 $gap = if ($Mode -eq 'Skip') { 'SACL assessment explicitly skipped.' }
