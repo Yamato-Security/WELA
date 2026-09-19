@@ -120,8 +120,16 @@ try {
     $expected=[pscustomobject]@{Computer='CAHOST';RequestId=42;Requester='CAHOST\runner';Nonce='abc-123';StartUtc='2026-09-20T00:00:00Z';EndUtc='2026-09-20T00:01:00Z'}
     $xml='<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}"/><EventID>4886</EventID><Version>0</Version><Channel>Security</Channel><Computer>CAHOST</Computer><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime="2026-09-20T00:00:01Z"/></System><EventData><Data Name="RequestId">42</Data><Data Name="Requester">CAHOST\runner</Data><Data Name="Attributes">WELAProbe:abc-123</Data></EventData></Event>'
     Assert (Test-WelaAdcsRequestEvent $xml $expected 4886) 'Exact native request event identity/context/outcome/nonce matches.'
-    Assert (Test-WelaAdcsRequestEvent $xml.Replace('4886','4889') $expected 4889) 'Pending event is independently correlated to the same numeric request.'
-    foreach($badXml in @($xml.Replace('>42<','>43<'),$xml.Replace('CAHOST</Computer>','OTHER</Computer>'),$xml.Replace('abc-123','other'),$xml.Replace('CAHOST\runner','CAHOST\other'),$xml.Replace('<Version>0','<Version>1'),$xml.Replace('0x8020000000000000','0x8010000000000000'),$xml.Replace('2026-09-20T00:00:01Z','2026-09-19T00:00:01Z'),$xml.Replace('</EventData>','<Data Name="RequestId">42</Data></EventData>'),('<!DOCTYPE Event [<!ENTITY x SYSTEM "file:///c:/secret">]>'+$xml))) {
+    $pendingXml=$xml.Replace('4886','4889').Replace('</EventData>','<Data Name="Disposition">5</Data></EventData>')
+    Assert (Test-WelaAdcsRequestEvent $pendingXml $expected 4889) 'Pending event is independently correlated to the same numeric request and disposition5.'
+    Assert (-not (Test-WelaAdcsRequestEvent $pendingXml.Replace('>5<','>3<') $expected 4889)) 'A non-pending event disposition cannot establish the pending-request evidence.'
+    $nativeExpected=[pscustomobject]@{Computer='runnervmibwwn';RequestId=2;Requester='runnervmibwwn\runneradmin';Nonce='e5d9f00053f64487bc4890e16c043ae0';StartUtc='2026-09-20T09:51:08.1233882Z';EndUtc='2026-09-20T09:51:37.9537209Z'}
+    foreach($id in @(4886,4889)){
+        $nativeXml=[IO.File]::ReadAllText((Join-Path $PSScriptRoot "fixtures/adcs-$id-v1.xml"))
+        Assert (Test-WelaAdcsRequestEvent $nativeXml $nativeExpected $id) 'Actual Server2022 version1 XML with authentication metadata preserves exact request correlation.'
+        Assert (-not (Test-WelaAdcsRequestEvent $nativeXml.Replace('<Version>1','<Version>2') $nativeExpected $id)) 'Unknown native event versions remain unverified.'
+    }
+    foreach($badXml in @($xml.Replace('>42<','>43<'),$xml.Replace('CAHOST</Computer>','OTHER</Computer>'),$xml.Replace('abc-123','other'),$xml.Replace('CAHOST\runner','CAHOST\other'),$xml.Replace('<Version>0','<Version>2'),$xml.Replace('0x8020000000000000','0x8010000000000000'),$xml.Replace('2026-09-20T00:00:01Z','2026-09-19T00:00:01Z'),$xml.Replace('</EventData>','<Data Name="RequestId">42</Data></EventData>'),('<!DOCTYPE Event [<!ENTITY x SYSTEM "file:///c:/secret">]>'+$xml))) {
         Assert (-not (Test-WelaAdcsRequestEvent $badXml $expected 4886)) 'Mismatched/ambiguous/unsafe request XML earns no native evidence.'
     }
     Write-Host "PASS: $script:count AD CS assertions; native writes and service restarts mocked."

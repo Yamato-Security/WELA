@@ -153,7 +153,7 @@ try {
         $afterPolicies=Get-WelaEffectiveAuditPolicy
         foreach($guid in $beforePolicies.Keys){if($afterPolicies[$guid] -ne $beforePolicies[$guid]){throw "Audit policy restoration differs: $guid"}}
     }catch{$cleanupErrors+=$_.Exception.Message}
-    $featureRemoval=[pscustomobject]@{Attempted=$false;Features=@();Success=$null;RestartNeeded=$null;Boundary='CA resources removed and audit policy restored; OS feature removal can require disposal of the hosted runner.'}
+    $featureRemoval=[pscustomobject]@{CaAndAuditRestored=($cleanupErrors.Count -eq 0);Attempted=$false;Features=@();Success=$null;RestartNeeded=$null;Boundary='OS feature removal is separate from CA/audit restoration and can require disposal of the hosted runner.'}
     if($installedFeature -and $cleanupErrors.Count -eq 0){
         try{
             if((Get-WelaRegistryState -Path $caRoot -Name Active).ValueExists){throw 'A configured CA remains; feature cleanup refused.'}

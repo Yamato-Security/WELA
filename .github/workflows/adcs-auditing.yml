@@ -10,6 +10,7 @@ on:
       - 'config/audit_profiles.json'
       - 'tests/AdcsAuditing*'
       - 'tests/fixtures/adcs-pending-probe.csr'
+      - 'tests/fixtures/adcs-*-v1.xml'
       - '.github/workflows/adcs-auditing.yml'
   pull_request:
   workflow_dispatch:

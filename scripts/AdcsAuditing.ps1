@@ -263,13 +263,14 @@ function Test-WelaAdcsRequestEvent {
         if(-not $system){return $false}
         $provider=$system.SelectSingleNode('e:Provider',$ns)
         if($provider.GetAttribute('Name') -cne 'Microsoft-Windows-Security-Auditing' -or [guid]$provider.GetAttribute('Guid') -ne [guid]'54849625-5478-4994-a5ba-3e3b0328c30d' -or
-            $system.SelectSingleNode('e:EventID',$ns).InnerText -cne [string]$EventId -or $system.SelectSingleNode('e:Version',$ns).InnerText -cne '0' -or $system.SelectSingleNode('e:Channel',$ns).InnerText -cne 'Security' -or
+            $system.SelectSingleNode('e:EventID',$ns).InnerText -cne [string]$EventId -or $system.SelectSingleNode('e:Version',$ns).InnerText -cnotin @('0','1') -or $system.SelectSingleNode('e:Channel',$ns).InnerText -cne 'Security' -or
             $system.SelectSingleNode('e:Computer',$ns).InnerText -ine $Expected.Computer -or $system.SelectSingleNode('e:Keywords',$ns).InnerText -ine '0x8020000000000000'){return $false}
         $utc=[DateTimeOffset]::Parse($system.SelectSingleNode('e:TimeCreated',$ns).GetAttribute('SystemTime'),[Globalization.CultureInfo]::InvariantCulture).UtcDateTime
         if($utc -lt ([DateTime]$Expected.StartUtc).ToUniversalTime() -or $utc -gt ([DateTime]$Expected.EndUtc).ToUniversalTime()){return $false}
         $data=New-Object 'System.Collections.Generic.Dictionary[string,string]' ([StringComparer]::Ordinal)
         foreach($node in @($doc.SelectNodes('/e:Event/e:EventData/e:Data',$ns))){$name=$node.GetAttribute('Name');if(-not $name -or $data.ContainsKey($name)){return $false};$data.Add($name,$node.InnerText)}
         if(-not $data.ContainsKey('RequestId') -or $data['RequestId'] -cne [string]$Expected.RequestId -or -not $data.ContainsKey('Requester') -or $data['Requester'] -ine $Expected.Requester -or -not $data.ContainsKey('Attributes')){return $false}
+        if($EventId -eq 4889 -and (-not $data.ContainsKey('Disposition') -or $data['Disposition'] -cne '5')){return $false}
         # Retain and match the random request attribute without localized message parsing.
         return @($data['Attributes'] -split '\r?\n' | Where-Object { $_.Trim() -ceq ('WELAProbe:'+$Expected.Nonce) }).Count -eq 1
     }catch{return $false}
