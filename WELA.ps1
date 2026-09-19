@@ -83,6 +83,8 @@
     [string[]]$RecoveryControlId,
     [string]$RecoveryPlanPath,
     [string]$RecoveryOutputPath,
+    [string]$ArrivalProbePath,
+    [string]$ArrivalOutputPath,
     [switch]$Help
 )
 
@@ -103,6 +105,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeValidation.ps1")
+. (Join-Path $ScriptRoot "scripts/WefArrival.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditNotifications.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
@@ -1885,6 +1888,7 @@ Usage:
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
+  ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
@@ -1926,6 +1930,12 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('ArrivalProbePath','ArrivalOutputPath')}).Count) {
+    throw 'Arrival options require wef-arrival. No command was run.'
+}
+if ($Cmd -eq 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','ArrivalProbePath','ArrivalOutputPath','Help')}).Count) {
+    throw 'wef-arrival accepts only its dedicated source and output paths. No command was run.'
+}
 if ($Cmd -ne 'native-validation' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('ProbeAction','ProbeOutputPath','ProbeTimeoutSeconds') }).Count) {
     throw 'Probe options require native-validation. No command was run.'
 }
@@ -2053,6 +2063,13 @@ switch ($Cmd.ToLower()) {
     'audit-recovery' {
         if ($Help) {Write-Host 'Usage: audit-recovery [-RecoveryAction Plan] -RecoveryJournalPath before.jsonl -RecoveryOriginalResultsPath results.json -RecoveryControlId IDs -RecoveryOutputPath new-directory; then -RecoveryAction Restore -RecoveryPlanPath reviewed-plan.json -RecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/audit-recovery.md.';return}
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
+        $report
+        if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'wef-arrival' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 wef-arrival -ArrivalProbePath existing-native-probe-directory -ArrivalOutputPath new-private-directory. Reads local ForwardedEvents and matches the exact original probe payload. No subscriptions, policy changes, latency or Sigma readiness claims. See docs/wef-arrival.md.'; return}
+        if (-not $ArrivalProbePath -or -not $ArrivalOutputPath) {throw 'ArrivalProbePath and ArrivalOutputPath are required.'}
+        $report=Invoke-WelaWefArrival -ProbePath $ArrivalProbePath -OutputPath $ArrivalOutputPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
     }
