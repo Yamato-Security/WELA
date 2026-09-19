@@ -52,6 +52,18 @@ try {
     Throws {Get-WelaRecoveryMaskTarget '0' ([pscustomobject]@{Mask=1;Mode='exact'}) 1} 'integer'
     Throws {ConvertFrom-WelaRecoveryJson '{"Id":1,"i\u0064":2}'} 'Duplicate'
     Throws {ConvertFrom-WelaRecoveryJson '{"Id":1,}'} 'strict JSON'
+    $rejectedOutput=Join-Path $root 'rejected-network-output'
+    $driveReader=(Get-Command Get-WelaRecoveryOutputDriveType).ScriptBlock
+    try {
+        function Get-WelaRecoveryOutputDriveType {[IO.DriveType]::Network}
+        Throws {New-WelaRecoveryOutput $rejectedOutput} 'local fixed drive'
+        Assert (-not (Test-Path -LiteralPath $rejectedOutput)) 'Mapped network drive observation blocks output before directory creation.'
+        function Get-WelaRecoveryOutputDriveType {[IO.DriveType]::Unknown}
+        Throws {New-WelaRecoveryOutput $rejectedOutput} 'local fixed drive'
+        Assert (-not (Test-Path -LiteralPath $rejectedOutput)) 'Unknown drive type cannot create recovery output.'
+    } finally {Set-Item Function:Get-WelaRecoveryOutputDriveType $driveReader}
+    Throws {New-WelaRecoveryOutput (Join-Path $root 'rejected:stream')} '.'
+    Assert (-not (Test-Path -LiteralPath (Join-Path $root 'rejected'))) 'Stream destination is rejected before creating a base object.'
     Save-Fixture
     $planFile=New-PlanFile
     $dry=Invoke-WelaAuditRecovery -Action Restore -PlanPath $planFile -DryRun -Auto

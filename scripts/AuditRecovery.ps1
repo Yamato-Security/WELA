@@ -133,12 +133,22 @@ function New-WelaRecoveryPlan {
         ReadyRuleCredit=0
     }
 }
+function Get-WelaRecoveryOutputDriveType {
+    param([string]$Root)
+    if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {return ([IO.DriveInfo]::new($Root)).DriveType}
+    # Offline fixture execution has no Windows drive classifications.
+    return [IO.DriveType]::Fixed
+}
 function New-WelaRecoveryOutput {
     param([string]$Path)
     if (-not $Path) {throw 'A new output directory is required.'}
     $provider=$null;$drive=$null
     $resolved=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path,[ref]$provider,[ref]$drive)
-    if ($provider.Name -ne 'FileSystem' -or $resolved.StartsWith('\\') -or (Test-Path -LiteralPath $resolved)) {throw 'Output must be a new local filesystem directory.'}
+    if ($provider.Name -ne 'FileSystem' -or $resolved -match '^[\\/]{2}' -or $resolved.Substring([IO.Path]::GetPathRoot($resolved).Length).Contains(':')) {throw 'Output must be an ordinary local filesystem path without remote/device paths or alternate data streams.'}
+    # Check the drive before probing the destination or its parent: a mapped
+    # network drive can have an ordinary drive-letter path without a UNC prefix.
+    if ((Get-WelaRecoveryOutputDriveType ([IO.Path]::GetPathRoot($resolved))) -ne [IO.DriveType]::Fixed) {throw 'Recovery output requires a local fixed drive.'}
+    if (Test-Path -LiteralPath $resolved) {throw 'Output must be a new local filesystem directory.'}
     $parent=Get-Item -LiteralPath ([IO.Path]::GetDirectoryName($resolved)) -ErrorAction Stop
     for ($node=$parent;$null -ne $node;$node=$node.Parent) {if ($node.Attributes -band [IO.FileAttributes]::ReparsePoint) {throw 'Output ancestors must not be reparse points.'}}
     $null=New-Item -ItemType Directory -Path $resolved -ErrorAction Stop
