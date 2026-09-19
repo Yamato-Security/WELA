@@ -39,6 +39,11 @@
     [switch]$WmiIncludeChildren,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$TranscriptionAction = 'Audit',
     [string]$TranscriptDirectory,
+    [ValidateSet('Audit','Plan','Configure')][string]$LdapAction = 'Audit',
+    [ValidateSet('Preserve','Diagnostic','MdiCleanup')][string]$LdapMode = 'Preserve',
+    [ValidateRange(1,2147483647)][int]$LdapSearchTimeMs,
+    [ValidateRange(1,2147483647)][int]$LdapExpensiveThreshold,
+    [ValidateRange(1,2147483647)][int]$LdapInefficientThreshold,
     [switch]$Help
 )
 
@@ -55,6 +60,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
@@ -1429,9 +1435,7 @@ function ConfigureAuditSettings {
     Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto -Context $context
     Set-WelaDomainNtlmAudit -Auto:$Auto -Context $context
     if ($hostContext.Role -eq 'DomainController') {
-        Set-RegistryConfig -RegPaths @(
-            @{Path = 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Diagnostics'; Name = '15 Field Engineering'; Value = 5}
-        ) -Auto:$Auto -Context $context
+        Write-Host 'LDAP 1644 diagnostics are preserved. MDI no longer requires them; use ldap-diagnostics for explicit Diagnostic or MdiCleanup changes.' -ForegroundColor Yellow
     }
 
     # Both audit display and mutation use the versioned role-aware profile.
@@ -1697,6 +1701,9 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 ldap-diagnostics -LdapAction Audit
+  ./WELA.ps1 ldap-diagnostics -LdapAction Plan -LdapMode Diagnostic -LdapSearchTimeMs 100
+  ./WELA.ps1 ldap-diagnostics -LdapAction Configure -LdapMode Diagnostic -LdapSearchTimeMs 100 -DryRun
   ./WELA.ps1 channel-settings -ChannelAction Audit -WefQuerySet Both -ResultsPath channels.json
   ./WELA.ps1 channel-settings -ChannelAction Plan -GrantEventLogReaders
   ./WELA.ps1 channel-settings -ChannelAction Configure -GrantEventLogReaders -DryRun
@@ -1769,14 +1776,14 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
     -not ($Cmd -eq 'channel-settings' -and $ChannelAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, applocker-readiness -AppLockerAction Import, and ad-object-sacl -AdSaclAction Configure|Rollback. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, and ldap-diagnostics -LdapAction Configure. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1796,12 +1803,28 @@ if (($PSBoundParameters.ContainsKey('ChannelAction') -or $PSBoundParameters.Cont
     throw 'Channel options require channel-settings. No command was run.'
 }
 
+if ($Cmd -ne 'ldap-diagnostics' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('LdapAction','LdapMode','LdapSearchTimeMs','LdapExpensiveThreshold','LdapInefficientThreshold') }).Count) {
+    throw 'LDAP options require the dedicated ldap-diagnostics command. No command was run.'
+}
+
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
     Invoke-WelaProfileCommand -Command $Cmd.ToLower()
     return
 }
 
 switch ($Cmd.ToLower()) {
+    'ldap-diagnostics' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 ldap-diagnostics [-LdapAction Audit|Plan|Configure] [-LdapMode Preserve|Diagnostic|MdiCleanup] [-LdapSearchTimeMs positive-ms] [-LdapExpensiveThreshold positive-count] [-LdapInefficientThreshold positive-count] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. See docs/ldap-diagnostics.md.'; return }
+        if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'ldap-diagnostics observes the actual local DC and uses -LdapMode/-ResultsPath; audit profiles, role overrides and HTML output do not apply.' }
+        if ($LdapAction -eq 'Configure' -and $LdapMode -ne 'Preserve' -and -not (TestAdministrator)) { throw 'LDAP configuration requires Administrator privileges.' }
+        $thresholds=@{}
+        if ($PSBoundParameters.ContainsKey('LdapSearchTimeMs')) { $thresholds.SearchTime=$LdapSearchTimeMs }
+        if ($PSBoundParameters.ContainsKey('LdapExpensiveThreshold')) { $thresholds.Expensive=$LdapExpensiveThreshold }
+        if ($PSBoundParameters.ContainsKey('LdapInefficientThreshold')) { $thresholds.Inefficient=$LdapInefficientThreshold }
+        $report=Invoke-WelaLdapCommand -Action $LdapAction -Mode $LdapMode -Thresholds $thresholds -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
     'channel-settings' {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 channel-settings [-ChannelAction Audit|Plan|Configure] [-ChannelProfile microsoft-wef-appendix-c] [-WefQuerySet Baseline|Suspect|Both] [-GrantEventLogReaders] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
