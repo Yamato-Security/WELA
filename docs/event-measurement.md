@@ -12,7 +12,7 @@
     -MeasurementOutputPath C:\Evidence\new-security-sample -MeasurementExportEvtx
 ```
 
-The exact selectable channels are `Security`, `System`, `Application`, `Microsoft-Windows-DNS-Client/Operational`, `Microsoft-Windows-CAPI2/Operational`, `Microsoft-Windows-WinRM/Operational` and `Microsoft-Windows-PowerShell/Operational`. The actual channel must be registered, enabled and Administrative or Operational, and the current native 64-bit Windows reader must have access. A missing feature, disabled channel, denied read or unavailable identity is **Unverified**, with a nonzero exit; this command does not enable it. Administrative rights alone do not guarantee channel access. Select only a channel whose event contents you are authorized to retain.
+The exact selectable channels are `Security`, `System`, `Application`, `Microsoft-Windows-DNS-Client/Operational`, `Microsoft-Windows-CAPI2/Operational`, `Microsoft-Windows-WinRM/Operational` and `Microsoft-Windows-PowerShell/Operational`. The actual channel must be registered, enabled and Administrative or Operational, and the current native 64-bit Windows reader must have access. Each event computer name must exactly match `MachineName` or local hostname/domain names obtained from native `IPGlobalProperties`; these observed names are recorded in the reader snapshot. A different domain sharing the same short hostname is not accepted. No DNS query is performed. A missing feature, disabled channel, denied read or unavailable identity is **Unverified**, with a nonzero exit; this command does not enable it. Administrative rights alone do not guarantee channel access. Select only a channel whose event contents you are authorized to retain.
 
 `ForwardedEvents` is excluded because collector record IDs and original source XML require a separate validated mapping. Remote sources, arbitrary/wildcard channels, Sysmon and other third-party providers, and Analytic/Debug traces are excluded. `-DryRun`, hypothetical `-Role`/`-Build`, configuration options and unrelated command options are rejected. Use `Plan` for read-only preflight.
 
@@ -44,6 +44,7 @@ Native CI validates the Security-channel sample on those disposable hosts. Windo
 
 ## Microsoft API references
 
+- [IPGlobalProperties.HostName](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ipglobalproperties.hostname): native local computer-name metadata.
 - [EvtSubscribe](https://learn.microsoft.com/en-us/windows/win32/api/winevt/nf-winevt-evtsubscribe): local future-event subscriptions and supported Admin/Operational channels.
 - [Subscription flags](https://learn.microsoft.com/en-us/windows/win32/api/winevt/ne-winevt-evt_subscribe_flags): strict missing-record notifications and future-only origin.
 - [Subscription callback](https://learn.microsoft.com/en-us/windows/win32/api/winevt/nc-winevt-evt_subscribe_callback): service-owned event handles, serialized callback delivery and strict stale notifications.

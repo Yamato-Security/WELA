@@ -11,7 +11,7 @@ function Event([int]$Id=10,[string]$Payload='<EventData><Data Name="Value">owned
 function Delivery([int]$Id=10) {[pscustomobject]@{Xml=(Event $Id);BookmarkXml=('<BookmarkList><Bookmark Channel="Security" RecordId="'+$Id+'" IsCurrent="true"/></BookmarkList>');ElapsedSeconds=0.25}}
 function Capture([array]$Events=@()) {[pscustomobject]@{Status='WindowComplete';NativeError=0;Diagnostic='';StartedUtc='2025-01-02T03:04:05Z';CompletedUtc='2025-01-02T03:04:06Z';RegistrationSeconds=0.01;ElapsedSeconds=1;OutsideWindowCallbacks=0;BeforeWindowCallbacks=0;XmlUtf8Bytes=0;Events=$Events}}
 function State {
-    [pscustomobject]@{CapturedUtc='2025-01-02T03:04:05Z';Reader=[pscustomobject]@{Computer='HOST';HostKey='specific host context';Reader=[pscustomobject]@{Sid='S-1-5-18'}};Configuration=[pscustomobject]@{Name='Security';Type='Administrative';Enabled=$true;Mode='Circular';MaximumBytes=20971520;RegisteredPath='C:\Windows\System32\winevt\Logs\Security.evtx';SecurityDescriptor='specific SDDL';Providers=@('Microsoft-Windows-Security-Auditing')};Log=[pscustomobject]@{CreatedUtc='2025-01-01T00:00:00Z';OldestRecord=1;RecordCount=9;FileBytes=1048576;Full=$false}}
+    [pscustomobject]@{CapturedUtc='2025-01-02T03:04:05Z';Reader=[pscustomobject]@{Computer='HOST';SourceComputerNames=@('HOST','HOST.lab.test');HostKey='specific host context';Reader=[pscustomobject]@{Sid='S-1-5-18'}};Configuration=[pscustomobject]@{Name='Security';Type='Administrative';Enabled=$true;Mode='Circular';MaximumBytes=20971520;RegisteredPath='C:\Windows\System32\winevt\Logs\Security.evtx';SecurityDescriptor='specific SDDL';Providers=@('Microsoft-Windows-Security-Auditing')};Log=[pscustomobject]@{CreatedUtc='2025-01-01T00:00:00Z';OldestRecord=1;RecordCount=9;FileBytes=1048576;Full=$false}}
 }
 $script:stateReads=0;$script:drift='';$script:exportCalls=0;$script:reopen=@();$script:capture=Capture;$script:tamperPath=$null
 function Get-WelaMeasurementState {
@@ -42,13 +42,13 @@ try {
     foreach($alias in @('data.','data ','CON.txt','sample:stream','wild*')) {$raw=$temp+[IO.Path]::DirectorySeparatorChar+$alias;Assert ($raw.EndsWith($alias)) 'Alias fixture retains literal spelling before provider normalization';Reject {Resolve-WelaMeasurementPath $raw} 'path|stream|wildcard|alias|reserved'}
     $plan=Invoke-WelaEventMeasurement -Channel Security
     Assert ($plan.Status -eq 'Planned' -and $plan.Artifacts.Count -eq 0 -and $plan.ObservedDeliveriesPerSecond -eq $null) 'Plan reads state but creates no evidence or measurement'
-    $event=Read-WelaMeasurementEvent -Xml (Event) -Channel Security -Computer HOST
+    $event=Read-WelaMeasurementEvent -Xml (Event) -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($event.RecordId -ceq '10' -and $event.EventId -eq 4688 -and $event.Computer -ceq 'HOST.lab.test') 'Original numeric and qualified computer identities retained'
-    $user=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Audit xmlns="urn:provider"><Value>kept</Value></Audit></UserData>') -Channel Security -Computer HOST
+    $user=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Audit xmlns="urn:provider"><Value>kept</Value></Audit></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($user.Key -match 'urn:provider' -and $user.Key -match 'kept') 'Provider-specific UserData namespace and fields participate in semantic equality'
-    $rendered=Read-WelaMeasurementEvent -Xml ((Event).Replace('</Event>','<RenderingInfo Culture="en-US"><Message>display text</Message></RenderingInfo></Event>')) -Channel Security -Computer HOST
+    $rendered=Read-WelaMeasurementEvent -Xml ((Event).Replace('</Event>','<RenderingInfo Culture="en-US"><Message>display text</Message></RenderingInfo></Event>')) -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($rendered.Key -ceq $event.Key) 'Localized RenderingInfo does not change original event semantics'
-    foreach($bad in @((Event -Channel System),(Event -Computer OTHER),(Event -Id 0),((Event).Replace('<Version>2</Version>','')),((Event).Replace('<EventData>','<EventData/><EventData>')),('<!DOCTYPE Event [<!ENTITY x SYSTEM "file:///etc/passwd">]>'+(Event)))) {Reject {Read-WelaMeasurementEvent -Xml $bad -Channel Security -Computer HOST} 'identity|match|payload|section|DTD|system|duplicate'}
+    foreach($bad in @((Event -Channel System),(Event -Computer OTHER),(Event -Computer 'HOST.other-domain.test'),(Event -Id 0),((Event).Replace('<Version>2</Version>','')),((Event).Replace('<EventData>','<EventData/><EventData>')),('<!DOCTYPE Event [<!ENTITY x SYSTEM "file:///etc/passwd">]>'+(Event)))) {Reject {Read-WelaMeasurementEvent -Xml $bad -Channel Security -Computer @('HOST','HOST.lab.test')} 'identity|match|payload|section|DTD|system|duplicate'}
     Reject {Assert-WelaMeasurementBookmark '<BookmarkList><Bookmark Channel="Security" RecordId="11"/></BookmarkList>' $event} 'does not identify'
     Assert-WelaMeasurementBookmark (Delivery).BookmarkXml $event;$script:checks++
     $many=@(1..41|ForEach-Object {[pscustomobject]@{RecordId=[string]$_}});$query=Get-WelaMeasurementQuery Security $many

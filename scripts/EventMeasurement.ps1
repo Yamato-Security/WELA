@@ -56,6 +56,12 @@ function Write-WelaMeasurementArtifact {
 function Get-WelaMeasurementState {
     param([string]$Channel)
     $reader=Get-WelaEvtxReader
+    # Local IP-helper metadata performs no DNS query. A shared short-name prefix is not identity.
+    $network=[Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties()
+    $names=@($reader.Computer,$network.HostName)
+    if (-not [string]::IsNullOrWhiteSpace($network.DomainName)) {$names+=($network.HostName+'.'+$network.DomainName)}
+    if (@($names|Where-Object {$_ -notmatch '^[\p{L}\p{N}][\p{L}\p{N}_.-]{0,254}$'}).Count) {throw 'Exact native local computer names are unavailable.'}
+    $reader|Add-Member NoteProperty SourceComputerNames @($names|Sort-Object -Unique)
     $configuration=New-Object System.Diagnostics.Eventing.Reader.EventLogConfiguration($Channel)
     $session=New-Object System.Diagnostics.Eventing.Reader.EventLogSession
     try {
@@ -86,7 +92,7 @@ function Read-WelaMeasurementXmlDocument {
     return ,$document
 }
 function Read-WelaMeasurementEvent {
-    param([string]$Xml,[string]$Channel,[string]$Computer)
+    param([string]$Xml,[string]$Channel,[string[]]$Computer)
     $doc=Read-WelaMeasurementXmlDocument $Xml
     $ns='http://schemas.microsoft.com/win/2004/08/events/event';$root=$doc.DocumentElement
     if ($root.LocalName -cne 'Event' -or $root.NamespaceURI -cne $ns -or @($root.Attributes|Where-Object NamespaceURI -ne 'http://www.w3.org/2000/xmlns/').Count) {throw 'Unexpected event XML root.'}
@@ -107,7 +113,7 @@ function Read-WelaMeasurementEvent {
     [uint64]$record=0;[uint32]$eventId=0;[byte]$version=0
     if (-not [uint64]::TryParse($system.EventRecordID.InnerText,[ref]$record) -or $record -eq 0 -or -not [uint32]::TryParse($system.EventID.InnerText,[ref]$eventId) -or -not [byte]::TryParse($system.Version.InnerText,[ref]$version)) {throw 'Invalid native numeric event identity.'}
     $source=$system.Computer.InnerText
-    if ($system.Channel.InnerText -cne $Channel -or $source -notmatch '^[\p{L}\p{N}][\p{L}\p{N}_.-]{0,254}$' -or ($source -ine $Computer -and $source.Split('.')[0] -ine $Computer)) {throw 'Event source/channel does not match the actual local reader.'}
+    if ($system.Channel.InnerText -cne $Channel -or $source -notmatch '^[\p{L}\p{N}][\p{L}\p{N}_.-]{0,254}$' -or $source -notin $Computer) {throw 'Event source/channel does not match the actual local reader.'}
     $provider=$system.Provider.GetAttribute('Name');if ([string]::IsNullOrWhiteSpace($provider)) {throw 'Provider name is unavailable.'}
     $keys=@((Get-WelaEvtxXmlKey $parts.System))
     foreach ($name in @('EventData','UserData','BinaryEventData')) {if ($parts.ContainsKey($name)) {$keys+=$name+'='+(Get-WelaEvtxXmlKey $parts[$name])}}
@@ -160,7 +166,7 @@ function Read-WelaMeasurementEvtx {
     return ,$result.ToArray()
 }
 function Confirm-WelaMeasurementEvtx {
-    param([string]$Path,[array]$Events,[string]$Channel,[string]$Computer)
+    param([string]$Path,[array]$Events,[string]$Channel,[string[]]$Computer)
     $null=Resolve-WelaMeasurementPath $Path
     # Hold a read handle denying writes/deletion throughout native reopen verification.
     $file=[IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
@@ -206,7 +212,7 @@ function Invoke-WelaEventMeasurement {
             $index++;$eventName='event-{0:d4}.xml' -f $index;$bookmarkName='bookmark-{0:d4}.xml' -f $index
             $result.Artifacts+=Write-WelaMeasurementArtifact $root $eventName $delivery.Xml
             $result.Artifacts+=Write-WelaMeasurementArtifact $root $bookmarkName $delivery.BookmarkXml
-            $event=Read-WelaMeasurementEvent -Xml $delivery.Xml -Channel $Channel -Computer $result.Before.Reader.Computer
+            $event=Read-WelaMeasurementEvent -Xml $delivery.Xml -Channel $Channel -Computer $result.Before.Reader.SourceComputerNames
             Assert-WelaMeasurementBookmark $delivery.BookmarkXml $event
             if ($previous -ne 0 -and [uint64]$event.RecordId -ne $previous+1) {throw 'Delivered record IDs are duplicated, reordered or discontinuous; completeness is unverified.'}
             if ($delivery.ElapsedSeconds -lt 0 -or $delivery.ElapsedSeconds -ge $Seconds) {throw 'Delivery timestamp is outside the monotonic observation window.'}
@@ -231,7 +237,7 @@ function Invoke-WelaEventMeasurement {
                 $query=Get-WelaMeasurementQuery $Channel $result.Events
                 $result.Artifacts+=Write-WelaMeasurementArtifact $root 'sample-query.json' (ConvertTo-Json -InputObject ([pscustomobject]@{Channel=$Channel;Query=$query;RecordIds=@($result.Events.RecordId)}))
                 Export-WelaMeasurementEvtx -Channel $Channel -Query $query -Path (Join-Path $root 'sample.evtx')
-                $verified=Confirm-WelaMeasurementEvtx -Path (Join-Path $root 'sample.evtx') -Events $result.Events -Channel $Channel -Computer $result.Before.Reader.Computer
+                $verified=Confirm-WelaMeasurementEvtx -Path (Join-Path $root 'sample.evtx') -Events $result.Events -Channel $Channel -Computer $result.Before.Reader.SourceComputerNames
                 $final=Get-WelaMeasurementState $Channel;Assert-WelaMeasurementState $result.Before $final
                 $result.Artifacts+=Write-WelaMeasurementArtifact $root 'export-after-state.json' (ConvertTo-Json -InputObject $final -Depth 20)
                 $result.Evtx=$verified

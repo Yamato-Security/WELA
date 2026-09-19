@@ -50,8 +50,8 @@ try {
     foreach($artifact in $manifest.Artifacts){Check ((Get-FileHash -LiteralPath (Join-Path $bundle $artifact.Name)).Hash.ToLowerInvariant() -ceq $artifact.Sha256) 'Native artifact hash mismatch.'}
     $delivered=@($manifest.Events|ForEach-Object {[IO.File]::ReadAllText((Join-Path $bundle $_.XmlArtifact))})
     foreach($process in $processes){$matches=@($delivered|Where-Object {Test-WelaProbeEvent -Xml $_ -Process $process -State $nativeState -EndUtc ([datetime]::UtcNow)});Check ($matches.Count -eq 1) ('No exact sampled native 4688 for owned process '+$process.Marker)}
-    $parsed=@($delivered|ForEach-Object {Read-WelaMeasurementEvent -Xml $_ -Channel Security -Computer ([Environment]::MachineName)})
-    $independent=Confirm-WelaMeasurementEvtx -Path (Join-Path $bundle 'sample.evtx') -Events $parsed -Channel Security -Computer ([Environment]::MachineName)
+    $parsed=@($delivered|ForEach-Object {Read-WelaMeasurementEvent -Xml $_ -Channel Security -Computer $manifest.Before.Reader.SourceComputerNames})
+    $independent=Confirm-WelaMeasurementEvtx -Path (Join-Path $bundle 'sample.evtx') -Events $parsed -Channel Security -Computer $manifest.Before.Reader.SourceComputerNames
     Check ($independent.Sha256 -ceq $manifest.Evtx.Sha256) 'Independent native reopen differs.'
     $channelAfter=Get-WelaMeasurementState Security;Assert-WelaMeasurementState $channelBefore $channelAfter;$checks++
     $acl=Get-Acl -LiteralPath $bundle;Check $acl.AreAccessRulesProtected 'Evidence ACL is not protected.'
