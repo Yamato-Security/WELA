@@ -40,5 +40,6 @@ jobs:
       - name: Verify PowerShell 7 package through public CLI in Windows PowerShell 5.1
         shell: powershell
         run: |
-          & ./WELA.ps1 gpo-package -GpoAction Verify -GpoOutputPath "$env:RUNNER_TEMP/gpo-components-7"
+          # A script invoked in-process does not set LASTEXITCODE on normal return.
+          & "$env:SystemRoot/System32/WindowsPowerShell/v1.0/powershell.exe" -NoLogo -NoProfile -NonInteractive -File ./WELA.ps1 gpo-package -GpoAction Verify -GpoOutputPath "$env:RUNNER_TEMP/gpo-components-7"
           if ($LASTEXITCODE -ne 0) { throw 'Public package verification failed.' }
