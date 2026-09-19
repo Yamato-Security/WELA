@@ -23,6 +23,10 @@
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
     [string]$HtmlPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
+    [ValidateSet('Audit', 'Plan', 'Configure')][string]$ChannelAction = 'Audit',
+    [string]$ChannelProfile = 'microsoft-wef-appendix-c',
+    [ValidateSet('Baseline', 'Suspect', 'Both')][string]$WefQuerySet = 'Both',
+    [switch]$GrantEventLogReaders,
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
@@ -50,6 +54,8 @@ Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction 
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
+Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
+. (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1682,6 +1688,10 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 channel-settings -ChannelAction Audit -WefQuerySet Both -ResultsPath channels.json
+  ./WELA.ps1 channel-settings -ChannelAction Plan -GrantEventLogReaders
+  ./WELA.ps1 channel-settings -ChannelAction Configure -GrantEventLogReaders -DryRun
+  # Native channels only; ACL changes require -GrantEventLogReaders. Forwarding identity access needs a separate test.
   ./WELA.ps1 wmi-auditing -WmiAction List
   ./WELA.ps1 wmi-auditing -WmiAction Plan -WmiNamespace root\cimv2 -ResultsPath wmi-plan.json
   ./WELA.ps1 wmi-auditing -WmiAction Configure -WmiNamespace root\cimv2 -DryRun
@@ -1742,8 +1752,9 @@ if ($PSBoundParameters.ContainsKey('SaclMode') -and
 if ($DryRun -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
+    -not ($Cmd -eq 'channel-settings' -and $ChannelAction -eq 'Configure') -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, wmi-auditing -WmiAction Configure, and applocker-readiness -AppLockerAction Import. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, and applocker-readiness -AppLockerAction Import. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1758,12 +1769,32 @@ if (($ResizeLogs -or $ApplyLogMode) -and $Cmd -ne 'configure-eventlogs') {
     throw '-ResizeLogs and -ApplyLogMode require configure-eventlogs. No command was run.'
 }
 
+if (($PSBoundParameters.ContainsKey('ChannelAction') -or $PSBoundParameters.ContainsKey('ChannelProfile') -or
+    $PSBoundParameters.ContainsKey('WefQuerySet') -or $GrantEventLogReaders) -and $Cmd -ne 'channel-settings') {
+    throw 'Channel options require channel-settings. No command was run.'
+}
+
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
     Invoke-WelaProfileCommand -Command $Cmd.ToLower()
     return
 }
 
 switch ($Cmd.ToLower()) {
+    'channel-settings' {
+        if ($Help) {
+            Write-Host 'Usage: ./WELA.ps1 channel-settings [-ChannelAction Audit|Plan|Configure] [-ChannelProfile microsoft-wef-appendix-c] [-WefQuerySet Baseline|Suspect|Both] [-GrantEventLogReaders] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
+            Write-Host 'Audits CAPI2/native WEF prerequisites. Configure enables/grows declared channels; only -GrantEventLogReaders permits adding the CAPI2 read ACE. Existing descriptor entries and retention are preserved. See docs/native-channel-access.md.'
+            return
+        }
+        if ($Profile -or $Baseline) { throw 'channel-settings uses -ChannelProfile; -Profile and -Baseline select Security audit settings.' }
+        if ($HtmlPath) { throw 'channel-settings exports JSON through -ResultsPath; -HtmlPath is not supported.' }
+        if ($ChannelAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'channel-settings Configure requires Administrator privileges.' }
+        try {
+            $report = Invoke-WelaNativeChannelCommand -Action $ChannelAction -Profile $ChannelProfile -QuerySet $WefQuerySet -GrantEventLogReaders:$GrantEventLogReaders -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+            $report
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] Native channel settings: $_" -ForegroundColor Red; exit 1 }
+    }
     'wmi-auditing' {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 wmi-auditing -WmiAction List|Audit|Plan|Configure [-WmiNamespace root\cimv2,root\subscription] [-WmiIncludeChildren] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
