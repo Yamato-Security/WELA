@@ -77,6 +77,12 @@
     [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
     [string]$ProbeOutputPath,
     [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
+    [ValidateSet('Plan','Restore')][string]$RecoveryAction = 'Plan',
+    [string]$RecoveryJournalPath,
+    [string]$RecoveryOriginalResultsPath,
+    [string[]]$RecoveryControlId,
+    [string]$RecoveryPlanPath,
+    [string]$RecoveryOutputPath,
     [switch]$Help
 )
 
@@ -118,6 +124,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
+. (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -1908,6 +1915,9 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
     throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
 }
 
+if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
+if ($Cmd -eq 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','RecoveryAction','RecoveryJournalPath','RecoveryOriginalResultsPath','RecoveryControlId','RecoveryPlanPath','RecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'audit-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
+
 if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ([string]::IsNullOrWhiteSpace($ProfileFile) -or $Cmd -notin @('profiles','plan','audit','audit-settings','configure')) { throw '-ProfileFile requires profiles, plan, audit, audit-settings or configure. No command was run.' }
     if ($Baseline -or ($Cmd -ne 'profiles' -and -not $Profile)) { throw '-ProfileFile requires an explicit -Profile and cannot be combined with -Baseline (profiles lists the file). No command was run.' }
@@ -1976,7 +1986,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -2039,6 +2049,12 @@ switch ($Cmd.ToLower()) {
             $report | Select-Object Status,OutputPath,PayloadEmitted,ExitCode
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] Intune export: $_" -ForegroundColor Red; exit 1 }
+    }
+    'audit-recovery' {
+        if ($Help) {Write-Host 'Usage: audit-recovery [-RecoveryAction Plan] -RecoveryJournalPath before.jsonl -RecoveryOriginalResultsPath results.json -RecoveryControlId IDs -RecoveryOutputPath new-directory; then -RecoveryAction Restore -RecoveryPlanPath reviewed-plan.json -RecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/audit-recovery.md.';return}
+        $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
+        $report
+        if ($report.ExitCode) {exit $report.ExitCode}
     }
     'native-validation' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 native-validation [-ProbeAction Plan|Run] [-ProbeOutputPath new-directory] [-ProbeTimeoutSeconds 1..30]. Plan reads prerequisites; Run launches a fixed benign cmd.exe probe and collects exact native Security 4688 XML. No policy changes or Sigma readiness credit. See docs/native-validation.md.'; return }
