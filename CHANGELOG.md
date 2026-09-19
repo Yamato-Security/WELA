@@ -12,6 +12,7 @@
 
 **Bug Fixes:**
 
+- Fixed domain NTLM auditing: `configure` now sets `AuditNTLMInDomain=7` (Enable all) only on confirmed domain controllers, instead of writing `2` on every host. This setting is left unchanged on other hosts and hosts whose role cannot be determined. Audit output reports the domain NTLM setting, and configuration verifies registry writes and reports failures. (#389) (@Shirofune-Security)
 - Rule filtering applied only the last criterion instead of all of them, so rule counts were inaccurate. (#358) (@fukusuket)
 - Rules were reported as usable even when the logs they depend on were disabled. (#358) (@fukusuket)
 - Rules that belong to multiple categories were counted and written to the CSV files multiple times. (#358) (@fukusuket)

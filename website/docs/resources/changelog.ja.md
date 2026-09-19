@@ -8,10 +8,12 @@
 **改善:**
 
 - ベースライン定義を`WELA.ps1`から`config/baselines.json`に外部化し、ベースラインの追加・変更をJSONの編集のみで行えるようにした。 (#358) (@fukusuket)
+- `Microsoft-Windows-DFSN-Server/Admin`チャネルを`audit-settings`と`audit-filesize`の確認対象に追加した。 (#358) (@fukusuket)
 - MITRE ATT&CK Navigatorのヒートマップを ATT&CK v19 に対応させ、ATT&CK側でrevokedとなった技術IDを置換先に書き換えるようにした(例: v19で`T1685`に統合された`T1562`と`T1562.001`)。Navigatorはrevokedのエントリを黙って破棄するため、従来はその分のカバレッジがヒートマップから欠落していた。 (@fukusuket)
 
 **バグ修正:**
 
+- `configure`で全てのホストに`AuditNTLMInDomain=2`を設定していた問題を修正し、ドメインコントローラと確認できたホストにのみ`7` (Enable all)を設定するようにした。その他のホストや役割を判定できないホストでは、この設定を変更しない。ドメインNTLM監査設定を明示的に表示し、設定後の値の確認とレジストリエラーの報告にも対応した。 (#389) (@Shirofune-Security)
 - ルールのフィルタ条件が全て適用されず最後の条件のみが適用されていたため、ルール数が正確ではなかった。 (#358) (@fukusuket)
 - 依存するログが無効になっているルールも使用可能として報告されていた。 (#358) (@fukusuket)
 - 複数のカテゴリに属するルールが重複してカウントされ、CSVファイルにも重複して出力されていた。 (#358) (@fukusuket)

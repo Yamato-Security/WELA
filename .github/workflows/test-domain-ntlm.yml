@@ -1,0 +1,25 @@
+name: Domain NTLM regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Test domain NTLM policy in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/DomainNtlm.Tests.ps1
+      - name: Test domain NTLM policy in PowerShell 7
+        shell: pwsh
+        run: ./tests/DomainNtlm.Tests.ps1
+      - name: Test domain NTLM audit output in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/DomainNtlmAuditOutput.Tests.ps1
+      - name: Test domain NTLM audit output in PowerShell 7
+        shell: pwsh
+        run: ./tests/DomainNtlmAuditOutput.Tests.ps1
