@@ -17,7 +17,7 @@ function Get-WelaWmiProbeSources {
 function Get-WelaWmiProbeTokenKey {
     param($Token,[switch]$AuthorizationOnly)
     if($Token.Sid -cnotmatch '^S-1-\d+(-\d+)+$' -or $Token.AuthenticationId -cnotmatch '^0x[0-9a-f]+$' -or -not $Token.Name -or -not $Token.Groups){throw 'Incomplete native token observation.'}
-    $value=[ordered]@{Sid=$Token.Sid;Name=$Token.Name;AuthenticationId=$Token.AuthenticationId;AuthenticationType=$Token.AuthenticationType;ImpersonationLevel=$Token.ImpersonationLevel;Groups=@($Token.Groups)}
+    $value=[ordered]@{Sid=$Token.Sid;Name=$Token.Name;AuthenticationId=$Token.AuthenticationId;AuthenticationType=$Token.AuthenticationType;Groups=@($Token.Groups)}
     if(-not $AuthorizationOnly){$value.Privileges=@($Token.Privileges)}
     $value|ConvertTo-Json -Depth 8 -Compress
 }
@@ -33,7 +33,9 @@ function Get-WelaWmiProbeState {
     try{$log=[ordered]@{Name=$channel.LogName;Enabled=$channel.IsEnabled;SecurityDescriptor=$channel.SecurityDescriptor;MaximumSize=$channel.MaximumSizeInBytes;Mode=[string]$channel.LogMode}}finally{$channel.Dispose()}
     $engine=(Get-Process -Id $PID -ErrorAction Stop).Path
     $state=[pscustomobject][ordered]@{Namespace=$Namespace;Computer=[Environment]::MachineName;Host=$hostState;Token=$token;Descriptor=$snapshot;AuditMask=(Get-WelaAuditPolicyMask '0CCE9227-69AE-11D9-BED3-505054503030');Precedence=(Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy);Channel=$log;Engine=$engine;EngineHash=(Get-FileHash -LiteralPath $engine -Algorithm SHA256).Hash.ToLowerInvariant();Sources=(Get-WelaWmiProbeSources)}
-    if((Get-WelaWmiProbeTokenKey $token) -cne (Get-WelaWmiProbeTokenKey ([Wela.WmiProbe.Native]::Snapshot()))){throw 'Token changed while observing namespace prerequisites.'}
+    $finalToken=[Wela.WmiProbe.Native]::Snapshot()
+    if((Get-WelaWmiProbeTokenKey $token) -cne (Get-WelaWmiProbeTokenKey $finalToken)){throw 'Token changed while observing namespace prerequisites.'}
+    $state.Token=$finalToken
     $state
 }
 function Get-WelaWmiProbeStateKey {

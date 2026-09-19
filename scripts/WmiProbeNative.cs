@@ -8,7 +8,7 @@ namespace Wela.WmiProbe {
  public sealed class Group { public string Sid; public uint Attributes; }
  public sealed class Privilege { public string Luid; public uint Attributes; }
  public sealed class Token {
-  public string Sid, Name, AuthenticationId, AuthenticationType, ImpersonationLevel;
+  public string Sid, Name, AuthenticationId, AuthenticationType, ImpersonationLevel, TokenSource;
   public Group[] Groups; public Privilege[] Privileges;
  }
  public static class Native {
@@ -31,13 +31,8 @@ namespace Wela.WmiProbe {
    if(!GetTokenInformation(token,cls,data,length,out length)){int error=Marshal.GetLastWin32Error();Marshal.FreeHGlobal(data);throw new Win32Exception(error);}
    return data;
   }
-  public static Token Snapshot() {
-   IntPtr thread;
-   if(OpenThreadToken(GetCurrentThread(),8,true,out thread)){CloseHandle(thread);throw new InvalidOperationException("Impersonated callers are unsupported.");}
-   int error=Marshal.GetLastWin32Error();if(error!=1008)throw new Win32Exception(error);
-   IntPtr token;if(!OpenProcessToken(GetCurrentProcess(),8,out token))throw new Win32Exception(Marshal.GetLastWin32Error());
-   try {
-    Token result=new Token();using(WindowsIdentity identity=WindowsIdentity.GetCurrent()){result.Sid=identity.User.Value;result.Name=identity.Name;result.AuthenticationType=identity.AuthenticationType;result.ImpersonationLevel=identity.ImpersonationLevel.ToString();}
+  static Token ReadToken(IntPtr token,string source) {
+    Token result=new Token();result.TokenSource=source;using(WindowsIdentity identity=new WindowsIdentity(token)){result.Sid=identity.User.Value;result.Name=identity.Name;result.AuthenticationType=identity.AuthenticationType;result.ImpersonationLevel=identity.ImpersonationLevel.ToString();}
     int length;IntPtr p=Read(token,10,out length);
     try {if(length<Marshal.SizeOf(typeof(Statistics)))throw new InvalidOperationException("Truncated token statistics.");result.AuthenticationId=Hex(((Statistics)Marshal.PtrToStructure(p,typeof(Statistics))).AuthenticationId);}finally{Marshal.FreeHGlobal(p);}
     p=Read(token,2,out length);
@@ -45,7 +40,26 @@ namespace Wela.WmiProbe {
     p=Read(token,3,out length);
     try {int count=Marshal.ReadInt32(p),size=Marshal.SizeOf(typeof(LuidAndAttributes));if(count<0||count>4096||4+(long)count*size>length)throw new InvalidOperationException("Invalid token privileges.");List<Privilege> privileges=new List<Privilege>();for(int i=0;i<count;i++){LuidAndAttributes v=(LuidAndAttributes)Marshal.PtrToStructure(IntPtr.Add(p,4+i*size),typeof(LuidAndAttributes));privileges.Add(new Privilege{Luid=Hex(v.Luid),Attributes=v.Attributes});}privileges.Sort((a,b)=>String.CompareOrdinal(a.Luid,b.Luid));result.Privileges=privileges.ToArray();}finally{Marshal.FreeHGlobal(p);}
     return result;
-   }finally{CloseHandle(token);}
+  }
+  static bool Equivalent(Token a,Token b) {
+   if(a.Sid!=b.Sid||a.AuthenticationId!=b.AuthenticationId||a.Groups.Length!=b.Groups.Length||a.Privileges.Length!=b.Privileges.Length)return false;
+   for(int i=0;i<a.Groups.Length;i++)if(a.Groups[i].Sid!=b.Groups[i].Sid||a.Groups[i].Attributes!=b.Groups[i].Attributes)return false;
+   for(int i=0;i<a.Privileges.Length;i++)if(a.Privileges[i].Luid!=b.Privileges[i].Luid||a.Privileges[i].Attributes!=b.Privileges[i].Attributes)return false;
+   return true;
+  }
+  [DllImport("advapi32.dll")] static extern bool IsTokenRestricted(IntPtr token);
+  public static Token Snapshot() {
+   IntPtr thread=IntPtr.Zero,process=IntPtr.Zero;
+   if(!OpenThreadToken(GetCurrentThread(),8,true,out thread)){int error=Marshal.GetLastWin32Error();if(error!=1008)throw new Win32Exception(error);}
+   try {
+    if(!OpenProcessToken(GetCurrentProcess(),8,out process))throw new Win32Exception(Marshal.GetLastWin32Error());
+    if(IsTokenRestricted(process)||(thread!=IntPtr.Zero&&IsTokenRestricted(thread)))throw new InvalidOperationException("Restricted tokens are unsupported.");
+    Token primary=ReadToken(process,"Process");
+    if(thread==IntPtr.Zero)return primary;
+    Token effective=ReadToken(thread,"EquivalentSelfThread");
+    if(!Equivalent(primary,effective))throw new InvalidOperationException("Effective thread token differs from the process token; an ordinary child cannot preserve this caller context.");
+    return effective;
+   } finally {if(process!=IntPtr.Zero)CloseHandle(process);if(thread!=IntPtr.Zero)CloseHandle(thread);}
   }
  }
 }
