@@ -159,4 +159,13 @@ function Import-WelaWefConfig {
     [pscustomobject]@{ Config=$config; Path=$full; Subscriptions=$subscriptions }
 }
 
-Export-ModuleMember -Function Read-WelaWefXml, Get-WelaWefXmlKey, ConvertFrom-WelaWefQuery, Get-WelaWefAuthorization, ConvertFrom-WelaWefSubscription, Import-WelaWefConfig
+function Read-WelaWecSubscriptionXml {
+    param([Parameter(Mandatory)][string]$Id)
+    if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Native WEC XML reads require 64-bit Windows.'}
+    $path=Join-Path $PSScriptRoot 'WecSubscriptionXml.cs';$hash=(Get-FileHash -LiteralPath $path -Algorithm SHA256 -ErrorAction Stop).Hash
+    if(-not ('Wela.WecXml.Reader' -as [type])){Add-Type -Path $path -ErrorAction Stop;$script:WelaWecXmlSourceHash=$hash}
+    if($script:WelaWecXmlSourceHash -cne $hash){throw 'Loaded native WEC XML reader differs from its source; start a fresh session.'}
+    [Wela.WecXml.Reader]::ReadXml($Id)
+}
+
+Export-ModuleMember -Function Read-WelaWecSubscriptionXml, Read-WelaWefXml, Get-WelaWefXmlKey, ConvertFrom-WelaWefQuery, Get-WelaWefAuthorization, ConvertFrom-WelaWefSubscription, Import-WelaWefConfig
