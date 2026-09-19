@@ -1,0 +1,773 @@
+{
+  "source": "DDFDrop012026/Audit_AreaDDF.xml",
+  "sha256": "5c467e7742e5ac64019a2031dfcb9cf33397d97567b4ca4ae6add48cc448ac74",
+  "facts": [
+    {
+      "node": "AccountLogon_AuditCredentialValidation",
+      "gpName": "Audit Credential Validation",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogon_AuditKerberosAuthenticationService",
+      "gpName": "Audit Kerberos Authentication Service",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogon_AuditKerberosServiceTicketOperations",
+      "gpName": "Audit Kerberos Service Ticket Operations",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogon_AuditOtherAccountLogonEvents",
+      "gpName": "Audit Other Account Logon Events",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountManagement_AuditApplicationGroupManagement",
+      "gpName": "Audit Application Group Management",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountManagement_AuditComputerAccountManagement",
+      "gpName": "Audit Computer Account Management",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountManagement_AuditDistributionGroupManagement",
+      "gpName": "Audit Distributio Group Management",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountManagement_AuditOtherAccountManagementEvents",
+      "gpName": "Audit Other Account Management Events",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountManagement_AuditSecurityGroupManagement",
+      "gpName": "Audit Security Group Management",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountManagement_AuditUserAccountManagement",
+      "gpName": "Audit User Account Management",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DetailedTracking_AuditDPAPIActivity",
+      "gpName": "Audit DPAPI Activity",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DetailedTracking_AuditPNPActivity",
+      "gpName": "Audit PNP Activity",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DetailedTracking_AuditProcessCreation",
+      "gpName": "Audit Process Creation",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DetailedTracking_AuditProcessTermination",
+      "gpName": "Audit Process Termination",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DetailedTracking_AuditRPCEvents",
+      "gpName": "Audit RPC Events",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DetailedTracking_AuditTokenRightAdjusted",
+      "gpName": "Audit Token Right Adjusted",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DSAccess_AuditDetailedDirectoryServiceReplication",
+      "gpName": "Audit Detailed Directory Service Replication",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DSAccess_AuditDirectoryServiceAccess",
+      "gpName": "Audit Directory Service Access",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DSAccess_AuditDirectoryServiceChanges",
+      "gpName": "Audit Directory Service Changes",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "DSAccess_AuditDirectoryServiceReplication",
+      "gpName": "Audit Directory Service Replication",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditAccountLockout",
+      "gpName": "Audit Account Lockout",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditUserDeviceClaims",
+      "gpName": "Audit User Device Claims",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditGroupMembership",
+      "gpName": "Audit Group Membership",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditIPsecExtendedMode",
+      "gpName": "Audit IPsec Extended Mode",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditIPsecMainMode",
+      "gpName": "Audit IPsec Main Mode",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditIPsecQuickMode",
+      "gpName": "Audit IPsec Quick Mode",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditLogoff",
+      "gpName": "Audit Logoff",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditLogon",
+      "gpName": "Audit Logon",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditNetworkPolicyServer",
+      "gpName": "Audit Network Policy Server",
+      "default": 3,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditOtherLogonLogoffEvents",
+      "gpName": "Audit Other Logon Logoff Events",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "AccountLogonLogoff_AuditSpecialLogon",
+      "gpName": "Audit Special Logon",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditApplicationGenerated",
+      "gpName": "Audit Application Generated",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditCertificationServices",
+      "gpName": "Audit Certification Services",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditDetailedFileShare",
+      "gpName": "Audit Detailed File Share",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditFileShare",
+      "gpName": "Audit File Share",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditFileSystem",
+      "gpName": "Audit File System",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditFilteringPlatformConnection",
+      "gpName": "Audit Filtering Platform Connection",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditFilteringPlatformPacketDrop",
+      "gpName": "Audit Filtering Platform Packet Drop",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditHandleManipulation",
+      "gpName": "Audit Handle Manipulation",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditKernelObject",
+      "gpName": "Audit Kernel Object",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditOtherObjectAccessEvents",
+      "gpName": "Audit Other Object Access Events",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditRegistry",
+      "gpName": "Audit Registry",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditRemovableStorage",
+      "gpName": "Audit Removable Storage",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditSAM",
+      "gpName": "Audit SAM",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "ObjectAccess_AuditCentralAccessPolicyStaging",
+      "gpName": "Audit Central Access Policy Staging",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PolicyChange_AuditPolicyChange",
+      "gpName": "Audit Policy Change",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PolicyChange_AuditAuthenticationPolicyChange",
+      "gpName": "Audit Authentication Policy Change",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PolicyChange_AuditAuthorizationPolicyChange",
+      "gpName": "Audit Authorization Policy Change",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PolicyChange_AuditFilteringPlatformPolicyChange",
+      "gpName": "Audit Filtering Platform Policy Change",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PolicyChange_AuditMPSSVCRuleLevelPolicyChange",
+      "gpName": "Audit MPSSVC Rule Level Policy Change",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PolicyChange_AuditOtherPolicyChangeEvents",
+      "gpName": "Audit Other Policy Change Events",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PrivilegeUse_AuditNonSensitivePrivilegeUse",
+      "gpName": "Audit Non Sensitive Privilege Use",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PrivilegeUse_AuditOtherPrivilegeUseEvents",
+      "gpName": "Audit Other Privilege Use Events",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "PrivilegeUse_AuditSensitivePrivilegeUse",
+      "gpName": "Audit Sensitive Privilege Use",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "System_AuditIPsecDriver",
+      "gpName": "Audit IPsec Driver",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "System_AuditOtherSystemEvents",
+      "gpName": "Audit Other System Events",
+      "default": 3,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "System_AuditSecurityStateChange",
+      "gpName": "Audit Security State Change",
+      "default": 1,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "System_AuditSecuritySystemExtension",
+      "gpName": "Audit Security System Extension",
+      "default": 0,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    },
+    {
+      "node": "System_AuditSystemIntegrity",
+      "gpName": "Audit System Integrity",
+      "default": 3,
+      "format": "int",
+      "values": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "conflict": "LastWrite"
+    }
+  ]
+}
