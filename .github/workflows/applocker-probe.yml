@@ -16,15 +16,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Fixtures and native probe in Windows PowerShell 5.1
+      - name: Fixtures in Windows PowerShell 5.1
         if: matrix.engine == 'powershell'
         shell: powershell
-        run: |
-          ./tests/AppLockerProbe.Tests.ps1
-          ./tests/AppLockerProbe.Windows.Tests.ps1 -AllowDisposablePolicyWrite
-      - name: Fixtures and native probe in PowerShell 7
+        run: ./tests/AppLockerProbe.Tests.ps1
+      - name: Native probe in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/AppLockerProbe.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Fixtures in PowerShell 7
         if: matrix.engine == 'pwsh'
         shell: pwsh
-        run: |
-          ./tests/AppLockerProbe.Tests.ps1
-          ./tests/AppLockerProbe.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+        run: ./tests/AppLockerProbe.Tests.ps1
+      - name: Native probe in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/AppLockerProbe.Windows.Tests.ps1 -AllowDisposablePolicyWrite
