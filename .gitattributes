@@ -8,3 +8,6 @@
 /config/audit_profiles.json text eol=lf
 /config/control_applicability.json text eol=lf
 /scripts/ControlApplicability.ps1 text eol=lf
+/scripts/Configuration.ps1 text eol=lf
+/modules/NativeProviders.psm1 text eol=lf
+/modules/AuditProfiles.psm1 text eol=lf

@@ -48,6 +48,8 @@ snapshots. This PR does not replace those reference profiles or fabricate lab da
 
 To use a reviewed scenario snapshot, run the dedicated `default-evidence Compare`
 command. It does not silently rewrite normal audit columns or baseline metadata.
+Use a separate `ResultsPath`: a comparison refuses an output path that resolves
+to its `DefaultEvidencePath`, preserving the reviewed input artifact.
 The comparison reports a per-control default/reference and match/difference only
 when reference provenance and exact context qualify; other defaults stay Unknown.
 Channel observations retain individual channel names and states; registry records
@@ -55,14 +57,19 @@ retain each path, type, value and absence. They are not collapsed to assumed def
 
 ## Capturing and reviewing reference scenarios
 
-Capture records the exact Windows build and UBR patch, edition, architecture,
+Capture records the exact Windows build and UBR patch, edition, localized OS
+architecture and independently observed `Win32_Processor.Architecture` platform
+code (x64 = 9, ARM64 = 12),
 product type, domain role, join state/domain, and a complete installed feature/role
 inventory. A CA role or DC promotion creates a distinct scenario rather than a
 universal "Server default". It includes current typed registry state, native channel
 metadata and all 59 canonical advanced audit subcategories. Individual failures
 remain Unknown. It also records source versions and SHA-256 fingerprints for the
-baseline/profile/applicability catalogs and this collector script; these inputs
-use LF checkouts so byte fingerprints are portable.
+baseline/profile/applicability catalogs, this collector script and its native
+reader helpers (`Configuration.ps1`, `NativeProviders.psm1`, `AuditProfiles.psm1`);
+these inputs use LF checkouts so byte fingerprints are portable. Missing,
+unsupported or inconsistent processor codes leave context Unknown; the localized
+OS architecture string alone cannot qualify a reference.
 
 Every capture is `EvidenceKind: ObservedState`. WELA cannot prove that a machine is
 a clean installation. A domain-joined machine's effective state may include domain
@@ -74,7 +81,7 @@ evidence. Change `EvidenceKind` to `ReviewedCleanInstall`, and populate `Review`
 
 | Field | Required evidence |
 |---|---|
-| `Reviewer`, `ReviewedUtc` | Identified reviewer and ISO-8601 UTC review time at/after capture |
+| `Reviewer`, `ReviewedUtc` | Identified reviewer and explicit ISO-8601 UTC review time at/after capture, ending in `Z` |
 | `ImageSha256` | SHA-256 of the clean installation image |
 | `SnapshotId` | Reproducible VM/image snapshot identifier |
 | `PolicyEvidenceSha256` | SHA-256 of retained effective GPO/MDM/provisioning evidence |
@@ -82,6 +89,16 @@ evidence. Change `EvidenceKind` to `ReviewedCleanInstall`, and populate `Review`
 
 Do not remove observed Unknown entries or rewrite observations to match desired
 recommendations. Keep the hashed image/policy artifacts with the review record.
+`CapturedUtc` and `ReviewedUtc` must use `YYYY-MM-DDTHH:mm:ss[.fffffff]Z` (optional
+one to seven fractional digits). Localized dates, missing timezone suffixes,
+offset spellings and future timestamps are rejected; there is no clock grace
+period. Preserve their original strings when editing the JSON artifact.
+PowerShell 7.5 and later preserve timestamp strings with `-DateKind String`;
+Windows PowerShell 5.1 preserves strings without that option. Earlier PowerShell 7
+releases deserialize timestamps automatically, so an already deserialized
+`DateTime` is accepted only with `Kind=Utc`, then subjected to the same ordering
+and assessment-time checks. Local and unspecified `DateTime` values are rejected;
+original lexical spelling cannot be revalidated after an older engine normalizes it.
 The importer validates structure, fingerprints and exact scenario context;
 it does not authenticate the reviewer or inspect external artifacts. Its report
 explicitly labels that provenance as operator-declared. Duplicate IDs, missing
@@ -98,6 +115,8 @@ Windows CI demonstrates read-only collection only. This PR includes no measured
 clean-install snapshots or end-to-end event/ingestion evidence.
 
 Sources: [Microsoft Application Guard removal](https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/microsoft-defender-application-guard/md-app-guard-overview),
+[Win32 processor platform codes](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-processor),
+[localized OS architecture property](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-operatingsystem),
 [CIS Windows benchmarks](https://www.cisecurity.org/benchmark/microsoft_windows_desktop)
 (reviewed Windows 11 Enterprise v4.0.0, 18.10.44.1), and the versioned source records
 in `config/audit_profiles.json`.

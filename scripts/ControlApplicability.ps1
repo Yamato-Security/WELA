@@ -1,6 +1,22 @@
 # Read-only historical control applicability and provenance-bound default evidence.
+function Get-WelaDefaultProcessorArchitecture {
+    # Win32_OperatingSystem.OSArchitecture is localized; retain an independent,
+    # documented platform code rather than inferring x64/ARM64 from that string.
+    $processors=@(Get-CimInstance Win32_Processor -ErrorAction Stop)
+    if (-not $processors.Count) { throw 'Processor architecture evidence is missing.' }
+    $codes=@(foreach ($processor in $processors) {
+        if ($processor.Architecture -isnot [ValueType] -or $processor.Architecture -notin @(9,12)) {
+            throw 'Processor architecture is missing or outside the reviewed x64/ARM64 scope.'
+        }
+        [int]$processor.Architecture
+    })
+    $unique=@($codes | Sort-Object -Unique)
+    if ($unique.Count -ne 1) { throw 'Conflicting processor architecture evidence.' }
+    return $unique[0]
+}
+
 function Get-WelaDefaultContext {
-    $result=[ordered]@{Status='Unknown';Build=$null;UBR=$null;Edition=$null;ProductType=$null;DomainRole=$null;DomainJoined=$null;Domain=$null;Architecture=$null;InstalledRoles=@();RolesStatus='Unknown';Diagnostic=''}
+    $result=[ordered]@{Status='Unknown';Build=$null;UBR=$null;Edition=$null;ProductType=$null;DomainRole=$null;DomainJoined=$null;Domain=$null;Architecture=$null;ProcessorArchitecture=$null;InstalledRoles=@();RolesStatus='Unknown';Diagnostic=''}
     try {
         if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'Windows is required for a native default snapshot.' }
         if (-not [Environment]::Is64BitProcess) { throw 'Use 64-bit PowerShell for exact native registry and role observations.' }
@@ -15,6 +31,7 @@ function Get-WelaDefaultContext {
         $result.Build=[int]$os.BuildNumber; $result.UBR=[int]$version.UBR; $result.Edition=[string]$version.EditionID
         $result.ProductType=[int]$os.ProductType; $result.DomainRole=[int]$computer.DomainRole
         $result.DomainJoined=[bool]$computer.PartOfDomain; $result.Domain=[string]$computer.Domain; $result.Architecture=[string]$os.OSArchitecture
+        $result.ProcessorArchitecture=Get-WelaDefaultProcessorArchitecture
         if ($os.ProductType -eq 1) {
             $result.InstalledRoles=@(Get-WindowsOptionalFeature -Online -ErrorAction Stop | Where-Object State -eq 'Enabled' | ForEach-Object { [string]$_.FeatureName } | Sort-Object -Unique)
         } else {
@@ -72,9 +89,18 @@ function Get-WelaHistoricalControls {
 }
 
 function Get-WelaDefaultSourceFingerprints {
-    foreach ($path in @('config/baselines.json','config/audit_profiles.json','config/control_applicability.json','scripts/ControlApplicability.ps1')) {
+    foreach ($path in @('config/baselines.json','config/audit_profiles.json','config/control_applicability.json','scripts/ControlApplicability.ps1',
+        'scripts/Configuration.ps1','modules/NativeProviders.psm1','modules/AuditProfiles.psm1')) {
         [pscustomobject]@{Path=$path;Sha256=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot "../$path") -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
     }
+}
+
+function ConvertFrom-WelaDefaultEvidenceJson {
+    param([string]$Text)
+    $arguments=@{InputObject=$Text;ErrorAction='Stop'}
+    # Preserve the timestamp's exact source spelling for strict UTC validation.
+    if ((Get-Command ConvertFrom-Json).Parameters.ContainsKey('DateKind')) { $arguments.DateKind='String' }
+    ConvertFrom-Json @arguments
 }
 
 function Get-WelaDefaultControlDefinitions {
@@ -140,17 +166,18 @@ function Test-WelaDefaultContextComplete {
         -not [string]::IsNullOrWhiteSpace($Context.Edition) -and $Context.ProductType -in @(1,2,3) -and
         $Context.DomainRole -in @(0,1,2,3,4,5) -and $Context.DomainJoined -is [bool] -and
         -not [string]::IsNullOrWhiteSpace($Context.Domain) -and -not [string]::IsNullOrWhiteSpace($Context.Architecture) -and
+        ($Context.ProcessorArchitecture -is [int] -or $Context.ProcessorArchitecture -is [long]) -and $Context.ProcessorArchitecture -in @(9,12) -and
         $null -ne $Context.InstalledRoles
 }
 
 function Get-WelaDefaultContextKey {
     param($Context)
     # Fixed property order; host name intentionally excluded so matching lab peers can compare.
-    [ordered]@{Build=$Context.Build;UBR=$Context.UBR;Edition=$Context.Edition;ProductType=$Context.ProductType;DomainRole=$Context.DomainRole;DomainJoined=$Context.DomainJoined;Domain=$Context.Domain;Architecture=$Context.Architecture;InstalledRoles=@($Context.InstalledRoles | Sort-Object -Unique)} | ConvertTo-Json -Depth 5 -Compress
+    [ordered]@{Build=$Context.Build;UBR=$Context.UBR;Edition=$Context.Edition;ProductType=$Context.ProductType;DomainRole=$Context.DomainRole;DomainJoined=$Context.DomainJoined;Domain=$Context.Domain;Architecture=$Context.Architecture;ProcessorArchitecture=$Context.ProcessorArchitecture;InstalledRoles=@($Context.InstalledRoles | Sort-Object -Unique)} | ConvertTo-Json -Depth 5 -Compress
 }
 
 function Test-WelaReviewedDefaultEvidence {
-    param($Evidence,$Context,$Sources)
+    param($Evidence,$Context,$Sources,[DateTimeOffset]$AssessmentUtc=[DateTimeOffset]::UtcNow)
     $reason=''
     if (-not $Evidence -or $Evidence.SchemaVersion -ne 1 -or $Evidence.EvidenceKind -ne 'ReviewedCleanInstall') { $reason='Reference is not a reviewed clean-install scenario.' }
     elseif (-not (Test-WelaDefaultContextComplete $Context) -or -not (Test-WelaDefaultContextComplete $Evidence.Context)) { $reason='Exact host/role/patch evidence is incomplete.' }
@@ -158,8 +185,17 @@ function Test-WelaReviewedDefaultEvidence {
     else {
         $review=$Evidence.Review
         $captured=[DateTimeOffset]::MinValue; $reviewed=[DateTimeOffset]::MinValue
-        if (-not [DateTimeOffset]::TryParse([string]$Evidence.CapturedUtc,[ref]$captured) -or
-            -not [DateTimeOffset]::TryParse([string]$review.ReviewedUtc,[ref]$reviewed) -or $reviewed -lt $captured -or
+        $capturedText=$Evidence.CapturedUtc; $reviewedText=$review.ReviewedUtc
+        # PowerShell 6 through 7.4 deserialize Z timestamps as UTC DateTime and
+        # have no -DateKind String option. Local/Unspecified values remain invalid.
+        if ($capturedText -is [DateTime] -and $capturedText.Kind -eq [DateTimeKind]::Utc) { $capturedText=$capturedText.ToString('o') }
+        if ($reviewedText -is [DateTime] -and $reviewedText.Kind -eq [DateTimeKind]::Utc) { $reviewedText=$reviewedText.ToString('o') }
+        $utcPattern='\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,7})?Z\z'
+        if ($capturedText -isnot [string] -or $reviewedText -isnot [string] -or
+            $capturedText -cnotmatch $utcPattern -or $reviewedText -cnotmatch $utcPattern -or
+            -not [DateTimeOffset]::TryParse($capturedText,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::AssumeUniversal,[ref]$captured) -or
+            -not [DateTimeOffset]::TryParse($reviewedText,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::AssumeUniversal,[ref]$reviewed) -or
+            $reviewed -lt $captured -or $captured -gt $AssessmentUtc -or $reviewed -gt $AssessmentUtc -or
             [string]::IsNullOrWhiteSpace($review.Reviewer) -or [string]::IsNullOrWhiteSpace($review.SnapshotId) -or
             [string]::IsNullOrWhiteSpace($review.ProvisioningNotes) -or $review.ImageSha256 -notmatch '^[a-fA-F0-9]{64}$' -or
             $review.PolicyEvidenceSha256 -notmatch '^[a-fA-F0-9]{64}$') { $reason='Clean-install review/image/snapshot/policy provenance is incomplete.' }
@@ -199,9 +235,16 @@ function Invoke-WelaDefaultEvidenceCommand {
     param([ValidateSet('Capture','Compare')][string]$Action='Capture',[string]$ReferencePath,[string]$ResultsPath)
     if ($Action -eq 'Compare' -and -not $ReferencePath) { throw 'Compare requires DefaultEvidencePath.' }
     if ($Action -eq 'Capture' -and $ReferencePath) { throw 'DefaultEvidencePath requires Compare.' }
+    if ($Action -eq 'Compare' -and $ResultsPath) {
+        $referenceFull=[IO.Path]::GetFullPath($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($ReferencePath))
+        $resultsFull=[IO.Path]::GetFullPath($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($ResultsPath))
+        if ([string]::Equals($referenceFull,$resultsFull,[StringComparison]::OrdinalIgnoreCase)) {
+            throw 'ResultsPath must differ from DefaultEvidencePath; comparison output cannot overwrite its reference artifact.'
+        }
+    }
     $snapshot=New-WelaDefaultSnapshot
     $report=if ($Action -eq 'Compare') {
-        $reference=Get-Content -LiteralPath $ReferencePath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+        $reference=ConvertFrom-WelaDefaultEvidenceJson (Get-Content -LiteralPath $ReferencePath -Raw -ErrorAction Stop)
         $comparison=Get-WelaDefaultComparison -Snapshot $snapshot -Reference $reference
         [pscustomobject]@{Action=$Action;Snapshot=$snapshot;Comparison=$comparison;ExitCode=$(if ($comparison.ReferenceReview.Accepted -and @($snapshot.Observations | Where-Object Status -eq 'Unknown').Count -eq 0) {0} else {1})}
     } else { [pscustomobject]@{Action=$Action;Snapshot=$snapshot;ExitCode=$(if ((Test-WelaDefaultContextComplete $snapshot.Context) -and @($snapshot.Observations | Where-Object Status -eq 'Unknown').Count -eq 0) {0} else {1})} }
