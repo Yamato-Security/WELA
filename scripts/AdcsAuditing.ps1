@@ -14,6 +14,20 @@ function Assert-WelaAdcsSource {
     param($Source)
     if ((Get-FileHash -LiteralPath $Source.SchemaPath -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant() -cne $Source.SchemaSha256) { throw 'AD CS source profile changed after planning.' }
 }
+function ConvertTo-WelaAdcsThumbprints {
+    param($Values)
+    $items=@($Values)
+    if($items.Count -lt 1){throw 'CA certificate hash list is empty.'}
+    $seen=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    foreach($value in $items){
+        # Native CACertHash REG_MULTI_SZ uses twenty space-separated octets;
+        # certificate-store thumbprints use the same forty hex digits unspaced.
+        if($value -isnot [string] -or $value -notmatch '^(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{2}(?: [0-9a-fA-F]{2}){19})$'){throw 'CA certificate hash list is malformed.'}
+        $normalized=$value.Replace(' ','').ToUpperInvariant()
+        if(-not $seen.Add($normalized)){throw 'CA certificate hash identity is duplicated.'}
+        $normalized
+    }
+}
 function Get-WelaAdcsCertificates {
     param([string[]]$Thumbprints)
     $store=New-Object Security.Cryptography.X509Certificates.X509Store('My','LocalMachine')
@@ -49,8 +63,7 @@ function Get-WelaAdcsSnapshot {
         if (-not $result.CaType.ValueExists -or $result.CaType.Type -ne 'DWord' -or $result.CaType.Value -notin @(0,1,3,4)) { throw 'CA type is missing or unsupported.' }
         $result.CertificateHashes=Get-WelaRegistryState -Path $result.Path -Name CACertHash
         if (-not $result.CertificateHashes.ValueExists -or $result.CertificateHashes.Type -ne 'MultiString') { throw 'CA certificate identity is unavailable.' }
-        $hashes=@($result.CertificateHashes.Value)
-        if ($hashes.Count -lt 1 -or @($hashes | Where-Object { $_ -isnot [string] -or $_ -notmatch '^[0-9a-fA-F]{40}$' }).Count -or @($hashes | Select-Object -Unique).Count -ne $hashes.Count) { throw 'CA certificate hash list is malformed.' }
+        $hashes=@(ConvertTo-WelaAdcsThumbprints $result.CertificateHashes.Value)
         $result.Certificates=@(Get-WelaAdcsCertificates $hashes)
         $result.Filter=Get-WelaRegistryState -Path $result.Path -Name AuditFilter
         if (-not $result.Filter.KeyExists -or ($result.Filter.ValueExists -and ($result.Filter.Type -ne 'DWord' -or ($result.Filter.Value -isnot [int] -and $result.Filter.Value -isnot [long]) -or $result.Filter.Value -lt 0 -or $result.Filter.Value -gt 127))) { throw 'Unknown CA AuditFilter type/bits are preserved for manual review.' }

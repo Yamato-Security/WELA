@@ -11,6 +11,14 @@ function Reg($Value,$Type='DWord'){[pscustomobject]@{KeyExists=$true;ValueExists
 $source=Get-WelaAdcsSource
 Assert ($source.AuditGuid -ieq '0cce9221-69ae-11d9-bed3-505054503030' -and $source.AuditMask -eq 3 -and $source.AuditMode -eq 'minimum' -and $source.AuditFilter -eq 127) 'CA requirements bind the canonical shared identity profile and official filter.'
 Throws {Get-WelaAdcsSource unknown} 'Unknown AD CS'
+$nativeHash='0c e5 0d fc 5a f0 70 1d ee 73 90 dd a7 6b 14 bf 97 9a bc 27'
+Assert ((ConvertTo-WelaAdcsThumbprints @($nativeHash)) -ceq '0CE50DFC5AF0701DEE7390DDA76B14BF979ABC27') 'Actual native twenty-octet CACertHash normalizes for certificate lookup.'
+Assert ((ConvertTo-WelaAdcsThumbprints @($nativeHash.Replace(' ',''))) -ceq '0CE50DFC5AF0701DEE7390DDA76B14BF979ABC27') 'Certificate-store contiguous form retains the same identity.'
+Throws {ConvertTo-WelaAdcsThumbprints @($nativeHash,$nativeHash.Replace(' ','').ToUpperInvariant())} 'duplicated'
+foreach($invalid in @($nativeHash.Replace(' ','-'),($nativeHash+' 00'),$nativeHash.Substring(3),$nativeHash.Replace(' ','  '),(' '+$nativeHash),42)){
+    Throws {ConvertTo-WelaAdcsThumbprints @($invalid)} 'malformed'
+}
+Throws {ConvertTo-WelaAdcsThumbprints @()} 'empty'
 $base=[pscustomobject]@{Status='Supported';Diagnostic='fixture';CapturedUtc='2026-09-20T00:00:00Z';Host=[pscustomobject]@{Computer='CAHOST';DnsHostName='CAHOST';Build=20348;UBR=1;Edition='ServerDatacenter';ProductType=3;DomainRole=2;DomainJoined=$false;Domain='WORKGROUP'};Active=(Reg 'CA-A' String);Path='HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\CA-A';CaType=(Reg 3);CertificateHashes=(Reg @('A'*40) MultiString);Certificates=@([pscustomobject]@{Thumbprint=('A'*40);Sha256=('b'*64);Subject='CN=CA-A';SerialNumber='01'});Filter=(Reg 0);Service=[pscustomobject]@{Name='CertSvc';Status='Running';StartMode='Auto';ProcessId=100;StartUtc='2026-09-19T00:00:00Z';Dependents=@()};AuditMask=0;Precedence=(Reg 0)}
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('wela-ca-fixtures-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory -Path $temp
 $script:ordinal=0

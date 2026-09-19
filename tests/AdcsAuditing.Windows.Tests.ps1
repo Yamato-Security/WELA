@@ -148,15 +148,25 @@ try {
         $afterPolicies=Get-WelaEffectiveAuditPolicy
         foreach($guid in $beforePolicies.Keys){if($afterPolicies[$guid] -ne $beforePolicies[$guid]){throw "Audit policy restoration differs: $guid"}}
     }catch{$cleanupErrors+=$_.Exception.Message}
-    if($installedFeature){
+    $featureRemoval=[pscustomobject]@{Attempted=$false;Features=@();Success=$null;RestartNeeded=$null;Boundary='CA resources removed and audit policy restored; OS feature removal can require disposal of the hosted runner.'}
+    if($installedFeature -and $cleanupErrors.Count -eq 0){
         try{
             if((Get-WelaRegistryState -Path $caRoot -Name Active).ValueExists){throw 'A configured CA remains; feature cleanup refused.'}
             $added=@(Get-WindowsFeature|Where-Object{$_.Installed -and $_.Name -notin $beforeFeatures -and ($_.Name -like 'ADCS-*' -or $_.Name -in @('AD-Certificate','RSAT-ADCS','RSAT-ADCS-Mgmt'))}|ForEach-Object Name)
-            if($added.Count){$removed=Uninstall-WindowsFeature -Name $added -ErrorAction Stop;if(-not $removed.Success -or [string]$removed.RestartNeeded -ne 'No'){throw 'Created CA feature cleanup failed or requires restart.'}}
+            if($added.Count){
+                $featureRemoval.Attempted=$true;$featureRemoval.Features=$added
+                $removed=Uninstall-WindowsFeature -Name $added -ErrorAction Stop
+                $featureRemoval.Success=[bool]$removed.Success;$featureRemoval.RestartNeeded=[string]$removed.RestartNeeded
+                if(-not $removed.Success -or [string]$removed.RestartNeeded -notin @('No','Yes')){throw 'Created CA feature removal failed or returned an unknown restart status.'}
+                # GitHub destroys this isolated VM after the job. No production
+                # restart and no complete OS feature-restoration claim are made.
+            }
         }catch{$cleanupErrors+=$_.Exception.Message}
     }
+    $featureRemoval|ConvertTo-Json -Depth 5|Set-Content -LiteralPath (Join-Path $privateRoot 'feature-removal.json') -Encoding UTF8
+    $featureRemoval|ConvertTo-Json -Depth 5|Write-Host
     if($cleanupErrors.Count){throw "Disposable CA cleanup failed; receipt retained at $privateRoot : $($cleanupErrors -join '; ')"}
     if($passed){Remove-Item -LiteralPath $privateRoot -Recurse -Force}
 }
 $global:LASTEXITCODE=0
-Write-Host 'PASS: actual public CA configuration, idempotence, native pending-request events and exact audit restoration/created-CA cleanup.'
+Write-Host 'PASS: actual public CA configuration, idempotence, pending-request events and exact audit/created-CA restoration. Requested OS feature removal can await hosted-runner disposal, as recorded separately.'
