@@ -40,8 +40,8 @@ role must agree. This is the same longstanding Eventlog registry control; Server
 2025 support does not imply a CIS Server 2025 recommendation was reviewed.
 
 `-EnablePrivacyChannel` separately authorizes enabling the Privacy Operational
-channel after OneSettings policy succeeds. It uses shared channel journaling,
-stale-state checks and readback, retaining the ACL, log mode and existing size
+channel after OneSettings policy succeeds. It rechecks producer prerequisites at the shared channel read/write/final-check
+boundaries and uses shared channel journaling, stale-state checks and readback, retaining the ACL, log mode and existing size
 (the shared technical minimum is 64 KiB, not a CIS sizing recommendation). Without
 this switch, a disabled channel is reported and preserved. No diagnostic-data
 level, OneSettings download/network policy, service state or forwarding setting

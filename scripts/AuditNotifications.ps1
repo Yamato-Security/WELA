@@ -156,7 +156,18 @@ function Invoke-WelaNotificationCommand {
                         (-not $fresh.Policy.ValueExists -or $fresh.Policy.Type -ne 'DWord' -or $fresh.Policy.Value -ne 1))) {
                         throw 'Privacy channel prerequisites changed or OneSettings policy is no longer enabled; dependent channel action refused.'
                     }
-                    Set-WelaNativeChannelControls -Context $context -Plan $channelPlan -Profile 'audit-notifications'
+                    foreach ($channel in $channelPlan) {
+                        $channel | Add-Member NoteProperty NotificationDefinition $one.Definition
+                        $channel | Add-Member NoteProperty NotificationPreview ([bool]$DryRun)
+                    }
+                    $guard={ param($channel)
+                        $producer=Get-WelaNotificationSnapshot $channel.NotificationDefinition
+                        if ($producer.Status -ne 'Supported' -or (-not $channel.NotificationPreview -and
+                            (-not $producer.Policy.ValueExists -or $producer.Policy.Type -ne 'DWord' -or $producer.Policy.Value -ne 1))) {
+                            throw 'OneSettings policy/prerequisites changed before the dependent channel action or verification.'
+                        }
+                    }
+                    Set-WelaNativeChannelControls -Context $context -Plan $channelPlan -Profile 'audit-notifications' -ValidatePrerequisites $guard
                 } catch {
                     # Keep the policy journal, final drift check and JSON export available.
                     $context.Results.Add([pscustomobject]@{Id='AuditNotifications/PrivacyChannelDependency';Kind='NativeChannel';Target=$one.Definition.Channel;Desired='Enable after verified OneSettings policy';Before=$fresh;After=$null;Status='Failed';Diagnostic=$_.Exception.Message})

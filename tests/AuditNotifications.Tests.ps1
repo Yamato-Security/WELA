@@ -13,7 +13,7 @@ function Reset-Fixture {
     $script:values=@{}; $script:types=@{}; $script:writes=@(); $script:journal=$null
     $script:hostStatus='Supported'; $script:build=22631; $script:product=1
     $script:channel='Enabled'; $script:logMode='Circular'; $script:admxError=$false
-    $script:policyDrift=$false; $script:postWriteReads=0
+    $script:channelPromptDrift=$false; $script:policyDrift=$false; $script:postWriteReads=0
     $script:readError=$false; $script:writeError=$false; $script:ignored=$false; $script:race=$false
 }
 function Get-WelaNotificationHost { [pscustomobject]@{Status=$script:hostStatus;Build=$script:build;ProductType=$script:product;Diagnostic='fixture'} }
@@ -103,7 +103,13 @@ try {
     Assert ($rows[0].Status -eq 'Unknown' -and $rows[1].Status -eq 'ChangeRequired') 'Unknown OneSettings applicability cannot hide the independent Security threshold.'
     # Exercise command orchestration with a real runner and stubbed channel writes.
     function Get-WelaNativeChannelPlan { param($Profile) [pscustomobject]@{Channel=$Profile.controls[0].channel} }
-    function Set-WelaNativeChannelControls { param($Context,$Plan,$Profile) $script:channelCalls++ }
+    function Set-WelaNativeChannelControls {
+        param($Context,$Plan,$Profile,$ValidatePrerequisites)
+        Assert ($null -ne $ValidatePrerequisites) 'Shared channel runner must receive the producer prerequisite callback.'
+        if ($script:channelPromptDrift) { $script:values.EnableOneSettingsAuditing=0 }
+        & $ValidatePrerequisites $Plan[0]
+        $script:channelCalls++
+    }
     Reset-Fixture; $script:channelCalls=0
     $context=New-FixtureContext -DryRun
     $report=Invoke-WelaNotificationCommand -Action Configure -Control OneSettings -EnablePrivacyChannel -Auto -BackupPath $context.BackupPath
@@ -124,6 +130,10 @@ try {
     $context=New-FixtureContext -DryRun
     $report=Invoke-WelaNotificationCommand -Action Configure -Control OneSettings -EnablePrivacyChannel -Auto -DryRun -BackupPath $context.BackupPath
     Assert ($report.ExitCode -eq 0 -and $script:channelCalls -eq 1 -and $script:writes.Count -eq 0) 'Dry-run may preview a channel after a policy change that has not been written.'
+    Reset-Fixture; $script:channelCalls=0; $script:channelPromptDrift=$true
+    $context=New-FixtureContext -DryRun
+    $report=Invoke-WelaNotificationCommand -Action Configure -Control OneSettings -EnablePrivacyChannel -Auto -BackupPath $context.BackupPath
+    Assert ($report.ExitCode -eq 1 -and $script:channelCalls -eq 0) 'Producer callback blocks policy drift at the shared channel prompt/write boundary.'
     $exe=(Get-Process -Id $PID).Path
     $ErrorActionPreference='Continue'
     try { $output=& $exe -NoProfile -File (Join-Path $root 'WELA.ps1') configure -Profile wela-2.2.0 -NotificationControl SecurityWarning 2>&1; $code=$LASTEXITCODE } finally { $ErrorActionPreference='Stop' }
