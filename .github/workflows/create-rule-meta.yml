@@ -33,6 +33,10 @@ jobs:
       - name: Run
         run: cd wela-extractor && cargo run --release -- ../hayabusa-rules ../WELA/config/eid_subcategory_mapping.csv ../WELA/config/security_rules.json
 
+      - name: Record rule input revisions and hashes
+        shell: bash
+        run: python WELA/tools/update_rule_manifest.py --rules-commit "$(git -C hayabusa-rules rev-parse HEAD)" --generator-commit "$(git -C wela-extractor rev-parse HEAD)"
+
       - name: Create Text
         id: create-text
         run: |

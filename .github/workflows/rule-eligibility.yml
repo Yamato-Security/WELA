@@ -1,0 +1,35 @@
+name: Native rule eligibility tests
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  eligibility:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Eligibility, output and native observations in powershell
+        shell: powershell
+        run: |
+          ./tests/RuleEligibility.Tests.ps1
+          ./tests/NativeProviders.Tests.ps1
+          ./tests/AuditProfileOutput.Tests.ps1
+          ./tests/DomainNtlmAuditOutput.Tests.ps1
+          ./WELA.ps1 rule-eligibility -ResultsPath "$env:RUNNER_TEMP/eligibility.json" -HtmlPath "$env:RUNNER_TEMP/eligibility.html"
+          $report = Get-Content "$env:RUNNER_TEMP/eligibility.json" -Raw | ConvertFrom-Json
+          if ($report.Summary.Ready -ne 0 -or -not $report.Corpus.Pinned) { throw 'Metadata-only CLI must not grant readiness.' }
+          ./tests/NativeProviders.Windows.Tests.ps1 -OutputDirectory "$env:RUNNER_TEMP/eligibility-native-observations"
+      - name: Eligibility, output and native observations in pwsh
+        shell: pwsh
+        run: |
+          ./tests/RuleEligibility.Tests.ps1
+          ./tests/NativeProviders.Tests.ps1
+          ./tests/AuditProfileOutput.Tests.ps1
+          ./tests/DomainNtlmAuditOutput.Tests.ps1
+          ./WELA.ps1 rule-eligibility -ResultsPath "$env:RUNNER_TEMP/eligibility.json" -HtmlPath "$env:RUNNER_TEMP/eligibility.html"
+          $report = Get-Content "$env:RUNNER_TEMP/eligibility.json" -Raw | ConvertFrom-Json
+          if ($report.Summary.Ready -ne 0 -or -not $report.Corpus.Pinned) { throw 'Metadata-only CLI must not grant readiness.' }
+          ./tests/NativeProviders.Windows.Tests.ps1 -OutputDirectory "$env:RUNNER_TEMP/eligibility-native-observations"

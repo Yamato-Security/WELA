@@ -1,5 +1,6 @@
 # Real catalog + public audit renderer/exports; Windows reads are injected at the OS boundary.
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot '../modules/RuleEligibility.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot '../modules/AuditProfiles.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot '../modules/AuditCatalog.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot '../modules/NativeProviders.psm1') -Force
@@ -181,9 +182,9 @@ try {
     }
     Assert-Equal @(& $module { $script:channelReads | Where-Object { $_ -match '[*?]' } }).Count 0 'Wildcard rules never trigger wildcard native channel reads'
     Assert-Equal $report.Coverage.TotalRules $fixtures.Count 'Rules mapped to both native sources appear once in the full denominator'
-    Assert-Equal $report.Coverage.UsableRules 1 'Only the independently enabled Security source receives usable credit'
-    Assert-Equal @(Import-Csv (Join-Path $script:ScriptRoot 'UsableRules.csv')).Count 1 'Usable CSV matches conservative JSON coverage'
-    Assert-Equal @(Import-Csv (Join-Path $script:ScriptRoot 'UnusableRules.csv')).Count ($fixtures.Count - 1) 'Unconfirmed native rules are retained once in CSV'
+    Assert-Equal $report.Coverage.UsableRules 0 'Enabled Security settings do not establish complete rule readiness'
+    Assert-Equal @(Import-Csv (Join-Path $script:ScriptRoot 'UsableRules.csv')).Count 0 'Usable CSV matches conservative JSON coverage'
+    Assert-Equal @(Import-Csv (Join-Path $script:ScriptRoot 'UnusableRules.csv')).Count $fixtures.Count 'Unconfirmed native rules are retained once in CSV'
     Assert-Equal @($script:heatmapRules | Where-Object { $_.id -ne 'security' -and ($_.applicable -or $_.ideal) }).Count 0 'No current or ideal native provider uplift is fabricated'
     $html = Get-Content -LiteralPath $htmlPath -Raw
     Assert-Equal ($html -match 'Not installed') $true 'HTML retains absent-feature state'
@@ -211,7 +212,7 @@ try {
         Assert-Equal ([bool]$provider.Error.Message) $true "$name provider read failure retains evidence"
         Assert-Equal @($failed.Results | Where-Object { $_.NativeSources.Provider.Name -contains $name -and $_.CurrentSetting -ne 'Unknown' }).Count 0 "$name read failure is visible in the row state"
     }
-    Assert-Equal $failed.Coverage.UsableRules 1 'Provider read failures do not inflate rule coverage'
+    Assert-Equal $failed.Coverage.UsableRules 0 'Provider read failures do not inflate rule coverage'
     Write-Host "PASS: $script:assertions native provider/output assertions; no Windows settings changed."
 } finally {
     Remove-Item -LiteralPath $script:ScriptRoot -Recurse -Force

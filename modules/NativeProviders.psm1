@@ -177,15 +177,16 @@ function Get-WelaNativeSourceState {
 
 function Export-WelaAuditAssessment {
     [CmdletBinding()]
-    param([array]$Rows, [array]$Rules, [string]$Baseline, [string]$ResultsPath, [string]$HtmlPath)
+    param([array]$Rows, [array]$Rules, [string]$Baseline, [string]$ResultsPath, [string]$HtmlPath, $Eligibility)
     $report = [pscustomobject][ordered]@{
         SchemaVersion = 1; AssessedAtUtc = [DateTime]::UtcNow.ToString('o'); Baseline = $Baseline
         Scope = 'Built-in Windows functionality; Sysmon and external telemetry are excluded.'
         Coverage = [pscustomobject]@{
             TotalRules = @($Rules).Count
             UsableRules = @($Rules | Where-Object applicable -eq $true).Count
-            Note = 'Native channel/provider observations do not prove event generation or forwarding. Conditional and unknown sources receive no usable-rule credit. Other audit-policy estimates retain their documented prerequisites.'
+            Note = 'Only evidence-qualified Ready rules are usable. Policy/channel matches are configuration estimates; missing full rule logic, fields, outcomes, SACL, ingestion or query evidence remains Conditional.'
         }
+        Eligibility = $Eligibility
         Results = @($Rows | Select-Object Category, SubCategory, CurrentSetting, DefaultSetting, RecommendedSetting, RuleCount, ChannelState, GenerationReadiness, NativeSources, Note)
     }
     if ($ResultsPath) { $report | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
@@ -193,6 +194,10 @@ function Export-WelaAuditAssessment {
         $parts = @('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>WELA audit assessment</title><style>body{font:16px sans-serif;max-width:1100px;margin:2rem auto;padding:1rem}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f4f4f4;padding:1rem}section{border-top:1px solid #ccc;margin-top:2rem}</style></head><body><h1>WELA audit assessment</h1>')
         $parts += '<p>' + [System.Net.WebUtility]::HtmlEncode($report.Scope) + '</p>'
         $parts += '<p>' + [System.Net.WebUtility]::HtmlEncode($report.Coverage.Note) + '</p>'
+        if ($Eligibility) {
+            $parts += '<h2>Rule eligibility</h2><pre>' + [System.Net.WebUtility]::HtmlEncode(($Eligibility.Summary | ConvertTo-Json -Depth 6)) + '</pre>'
+            $parts += '<details><summary>All rule states and reasons</summary><pre>' + [System.Net.WebUtility]::HtmlEncode(($Eligibility.Results | ConvertTo-Json -Depth 8)) + '</pre></details>'
+        }
         foreach ($row in $report.Results) {
             $parts += '<section><h2>' + [System.Net.WebUtility]::HtmlEncode(($row.Category + ' / ' + $row.SubCategory)) + '</h2><pre>'
             $parts += [System.Net.WebUtility]::HtmlEncode(($row | ConvertTo-Json -Depth 14))

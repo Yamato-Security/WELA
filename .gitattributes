@@ -1,0 +1,4 @@
+# These inputs are pinned by exact byte hashes; Windows checkouts must keep LF.
+/config/security_rules.json text eol=lf
+/config/eid_subcategory_mapping.csv text eol=lf
+/config/rule_eligibility_manifest.json text eol=lf

@@ -1,6 +1,7 @@
 # Exercise the real profile, audit renderer, rule coverage and CSV output with
 # injected audit observations. Only temporary files are written; no Windows policy changes.
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot '../modules/RuleEligibility.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot '../modules/AuditCatalog.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot '../modules/AuditProfiles.psm1') -Force
 $tokens = $null; $parseErrors = $null
@@ -88,16 +89,12 @@ try {
 
             $usable = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UsableRules.csv'))
             $unusable = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UnusableRules.csv'))
-            $expectedUsable = 3
-            if ($observed -eq 'Success' -and $role -eq 'DomainController') { $expectedUsable += 2 }
-            if ($observed -eq 'Success' -and $role -eq 'ADCS') { $expectedUsable++ }
-            Assert-Equal $usable.Count $expectedUsable "$role/$observed does not rescue role-inapplicable GUIDs as usable"
-            Assert-Equal ($usable.Count + $unusable.Count) 8 "$role/$observed retains all unique rules in the utilization denominator"
-            Assert-Equal ($usable.id -contains 'alternative') $true "$role/$observed permits an applicable alternative source"
-            Assert-Equal ($usable.id -contains 'fallback') $true "$role/$observed still rescues an enabled GUID outside the catalog"
-            Assert-Equal ($usable.id -contains 'unknown') $false "$role/$observed leaves an unknown source unavailable"
-            $expectedUtilization = 'You can utilize {0:N2}% of your detection rules.' -f ($expectedUsable / 8 * 100)
-            Assert-Equal ($output.Contains($expectedUtilization)) $true "$role/$observed reports utilization from the complete deduplicated corpus"
+            Assert-Equal $usable.Count 0 "$role/$observed enabled policy alone never establishes usable rules"
+            Assert-Equal ($usable.Count + $unusable.Count) 8 "$role/$observed retains all unique rules in the corpus"
+            $eligibility = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'RuleEligibility.csv'))
+            Assert-Equal $eligibility.Count 8 "$role/$observed exports a reason for every rule"
+            Assert-Equal @($eligibility | Where-Object { $_.State -eq 'Ready' }).Count 0 "$role/$observed supplies no event/query evidence"
+            Assert-Equal ($output.Contains('Evidence-qualified Ready: 0/8 native candidates (0.00% of all 8 unique input rules).') -or $output.Contains('Evidence-qualified Ready: 0/8 native candidates (0,00% of all 8 unique input rules).')) $true "$role/$observed states the explicit numerator and denominator"
             foreach ($ruleId in @('directory', 'kerberos', 'ca')) {
                 $rule = $script:heatmapRules | Where-Object id -eq $ruleId
                 $applicableRole = if ($ruleId -eq 'ca') { 'ADCS' } else { 'DomainController' }

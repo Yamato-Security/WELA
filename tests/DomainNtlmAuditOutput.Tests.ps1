@@ -1,6 +1,7 @@
 # Exercise the real audit renderer/CSV exports with injected observations and rules.
 # Only a temporary directory is written; no Windows policy is read or changed.
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot '../modules/RuleEligibility.psm1') -Force
 $tokens = $null; $parseErrors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../WELA.ps1'), [ref]$tokens, [ref]$parseErrors)
 if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
@@ -63,8 +64,8 @@ try {
         Assert-Equal $outgoingRow.Count 1 'CSV contains one outgoing NTLM setting row'
         Assert-Equal $outgoingRow[0].CurrentSetting 'Audit all (1)' 'CSV retains the independent outgoing NTLM state'
         Assert-Equal $outgoingRow[0].RuleCount '0' 'Outgoing configuration row claims no detection rules'
-        Assert-Equal @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UsableRules.csv')).Count 1 'Configuration row does not change usable rule counts'
-        Assert-Equal @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UnusableRules.csv')).Count 1 'Configuration row does not change unusable rule counts'
+        Assert-Equal @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UsableRules.csv')).Count 0 'Configuration rows do not supply missing detection evidence'
+        Assert-Equal @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UnusableRules.csv')).Count 2 'Both rules retain their missing-evidence gap'
     }
     Write-Host "PASS: $script:assertions domain NTLM output assertions (mocked observations; temporary CSV files only)."
 } finally {
