@@ -111,8 +111,9 @@ try {
     $report=Invoke-WelaNotificationCommand -Action Configure -Control OneSettings -EnablePrivacyChannel -Auto -BackupPath $context.BackupPath
     Assert ($report.ExitCode -eq 1 -and $script:channelCalls -eq 0) 'Failed policy must not enable the channel.'
     $exe=(Get-Process -Id $PID).Path
-    $output=& $exe -NoProfile -File (Join-Path $root 'WELA.ps1') configure -Profile wela-2.2.0 -NotificationControl SecurityWarning 2>&1
-    Assert ($LASTEXITCODE -ne 0 -and ($output -join "`n") -match 'Notification options require') 'Wrong-command options fail before profile mutation.'
+    $ErrorActionPreference='Continue'
+    try { $output=& $exe -NoProfile -File (Join-Path $root 'WELA.ps1') configure -Profile wela-2.2.0 -NotificationControl SecurityWarning 2>&1; $code=$LASTEXITCODE } finally { $ErrorActionPreference='Stop' }
+    Assert ($code -ne 0 -and ($output -join "`n") -match 'Notification options require') 'Wrong-command options fail before profile mutation.'
     Write-Host "PASS: $script:count notification checks."
     $global:LASTEXITCODE=0
 } finally { foreach ($path in $script:cleanup) { if (Test-Path $path) { Remove-Item -LiteralPath $path -Recurse -Force } } }
