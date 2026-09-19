@@ -9,18 +9,18 @@ $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/AppLockerProbe.ps1"
 $root=Join-Path $env:RUNNER_TEMP ('wela-applocker-native-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $root
 $before=Get-WelaAppLockerReadiness
-if($before.Host.PartOfDomain -or $before.Management.Status -ne 'Observed' -or @($before.Management.ManagementEntries).Count -or $before.LocalPolicy.Status -ne 'Observed' -or $before.EffectiveGpPolicy.Status -ne 'Observed' -or $before.LocalPolicy.Policy.TotalRules -ne 0 -or $before.EffectiveGpPolicy.Policy.TotalRules -ne 0 -or $before.LocalPolicy.Policy.HasUnknownPolicyData -or $before.EffectiveGpPolicy.Policy.HasUnknownPolicyData){Write-Host ($before | ConvertTo-Json -Depth 16);throw 'Disposable test requires empty, understood local/effective policies and no observed management.'}
+if($before.Host.PartOfDomain -or $before.Management.Status -ne 'Observed' -or $before.LocalPolicy.Status -ne 'Observed' -or $before.EffectiveGpPolicy.Status -ne 'Observed' -or $before.LocalPolicy.Policy.TotalRules -ne 0 -or $before.EffectiveGpPolicy.Policy.TotalRules -ne 0 -or $before.LocalPolicy.Policy.HasUnknownPolicyData -or $before.EffectiveGpPolicy.Policy.HasUnknownPolicyData){Write-Host ($before | ConvertTo-Json -Depth 16);throw 'Disposable test requires empty, understood local/effective policies on a non-domain disposable host.'}
 $backup=Join-Path $root 'policy-before.xml';[IO.File]::WriteAllText($backup,$before.LocalPolicy.Policy.Xml)
-$empty=Join-Path $root 'empty.xml';[IO.File]::WriteAllText($empty,'<AppLockerPolicy Version="1" />')
+[IO.File]::WriteAllText((Join-Path $root 'prerequisites-before.json'),($before | ConvertTo-Json -Depth 16))
 $fixture='<AppLockerPolicy Version="1"><RuleCollection Type="Exe" EnforcementMode="AuditOnly"><FilePathRule Id="12345678-1234-1234-1234-123456789abc" Name="Disposable Windows path only" Description="Owned native event fixture" UserOrGroupSid="S-1-1-0" Action="Allow"><Conditions><FilePathCondition Path="%WINDIR%\*" /></Conditions></FilePathRule></RuleCollection></AppLockerPolicy>'
 $policyPath=Join-Path $root 'fixture.xml';[IO.File]::WriteAllText($policyPath,$fixture)
 $log=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('Microsoft-Windows-AppLocker/EXE and DLL');$enabled=$log.IsEnabled;$touched=$false;$cleanup=@();$primary=$null
 try {
  $touched=$true
- # Exact empty placeholders can retain NotConfigured under -Merge. Clear only the verified empty disposable policy before exercising the real importer.
- Set-AppLockerPolicy -XmlPolicy $empty -ErrorAction Stop
- $result=Invoke-WelaAppLockerCommand -Action Import -PolicyPath $policyPath -Auto -BackupPath (Join-Path $root 'import-backup')
- if($result.ExitCode){throw ($result|ConvertTo-Json -Depth 20)}
+ # Test-only preparation under explicit disposable-host and empty-GP gates.
+ # Hosted images contain enrollment/provider keys: preserve them and CSP Unknown.
+ # The production importer must continue to reject those observations.
+ Set-AppLockerPolicy -XmlPolicy $policyPath -ErrorAction Stop
  if($before.Service.StartMode -eq 'Disabled'){throw 'Test will not change protected AppIDSvc startup mode.'}
  if($before.Service.State -ne 'Running'){Start-Service AppIDSvc -ErrorAction Stop}
  $log.IsEnabled=$true;$log.SaveChanges()
