@@ -16,17 +16,17 @@ namespace Wela.SelectedSaclFixture {
    try {
     if(registry) {
      if(!path.StartsWith("HKEY_USERS\\",StringComparison.Ordinal))throw new InvalidOperationException("Fixture must use its current HKU identity.");
-     int error=RegOpenKeyEx(new IntPtr(unchecked((int)0x80000003)),path.Substring(11),8,0x01000100,out handle);
-     if(error!=0)throw new Win32Exception(error);
+     int error=RegOpenKeyEx(new IntPtr(unchecked((int)0x80000003)),path.Substring(11),8,0x01020101,out handle);
+     if(error!=0)throw new Win32Exception(error,"Owned registry protection handle open failed.");
     } else {
      if(kind!="FileSystem")throw new InvalidOperationException("Unknown fixture kind.");
-     handle=CreateFile(path,0x01000000,3,IntPtr.Zero,3,0x02200000,IntPtr.Zero);
+     handle=CreateFile(path,0x01020000,3,IntPtr.Zero,3,0x02200000,IntPtr.Zero);
      if(handle==new IntPtr(-1)){handle=IntPtr.Zero;throw new Win32Exception(Marshal.GetLastWin32Error());}
     }
     RawSecurityDescriptor sd=new RawSecurityDescriptor(Convert.FromBase64String(descriptor),0);
     if(sd.SystemAcl!=null){byte[] bytes=new byte[sd.SystemAcl.BinaryLength];sd.SystemAcl.GetBinaryForm(bytes,0);buffer=Marshal.AllocHGlobal(bytes.Length);Marshal.Copy(bytes,0,buffer,bytes.Length);}
     uint result=SetSecurityInfo(handle,registry?4U:1U,0x40000008,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,buffer);
-    if(result!=0)throw new Win32Exception((int)result);
+    if(result!=0)throw new Win32Exception((int)result,"Owned "+kind+" SetSecurityInfo(SACL|PROTECTED_SACL) failed.");
    } finally {if(buffer!=IntPtr.Zero)Marshal.FreeHGlobal(buffer);if(handle!=IntPtr.Zero){if(registry)RegCloseKey(handle);else CloseHandle(handle);}}
   }
  }

@@ -32,6 +32,7 @@ try {
         # Fixture setup changes protection only on an owned object. Production never changes it.
         $protected=Join-Path $tree 'protected'
         $protectedDefinition=if($tree -eq $fileTree){[pscustomobject]@{Kind='FileSystem';Path=$protected;Resolution='Resolved'}}else{[pscustomobject]@{Kind='Registry';Path=('Registry::HKEY_USERS\'+$sid+'\'+$regSub+'\Tree\protected');Resolution='Resolved'}}
+        Write-Host ("Preparing owned native SACL protection for "+$protectedDefinition.Kind+": "+$protectedDefinition.Path)
         $protectedBefore=Get-WelaSelectedSaclSnapshot $protectedDefinition
         Initialize-WelaSelectedSaclNative;$privilege=New-Object Wela.SelectedSacl.Privilege
         try {[Wela.SelectedSaclFixture.Protection]::Protect($protectedBefore.Kind,$protectedBefore.Path,$protectedBefore.DescriptorBase64,$nonce)}finally{$privilege.Dispose()}
