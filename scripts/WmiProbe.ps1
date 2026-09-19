@@ -26,13 +26,15 @@ function Get-WelaWmiProbeState {
     Assert-WelaWmiProbeNamespace $Namespace
     Initialize-WelaWmiProbeNative
     $token=[Wela.WmiProbe.Native]::Snapshot()
+    $service=Get-Service -Name Winmgmt -ErrorAction Stop
+    if($service.Status -ne 'Running'){throw 'Winmgmt must already be running; connecting could otherwise start the service.'}
     $hostState=Get-WelaDefaultContext
     if(-not(Test-WelaDefaultContextComplete $hostState)){throw 'Complete actual host/build/patch/role context is required.'}
     $snapshot=Get-WelaWmiNamespaceSnapshot $Namespace
     $channel=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('Security')
     try{$log=[ordered]@{Name=$channel.LogName;Enabled=$channel.IsEnabled;SecurityDescriptor=$channel.SecurityDescriptor;MaximumSize=$channel.MaximumSizeInBytes;Mode=[string]$channel.LogMode}}finally{$channel.Dispose()}
     $engine=(Get-Process -Id $PID -ErrorAction Stop).Path
-    $state=[pscustomobject][ordered]@{Namespace=$Namespace;Computer=[Environment]::MachineName;Host=$hostState;Token=$token;Descriptor=$snapshot;AuditMask=(Get-WelaAuditPolicyMask '0CCE9227-69AE-11D9-BED3-505054503030');Precedence=(Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy);Channel=$log;Engine=$engine;EngineHash=(Get-FileHash -LiteralPath $engine -Algorithm SHA256).Hash.ToLowerInvariant();Sources=(Get-WelaWmiProbeSources)}
+    $state=[pscustomobject][ordered]@{Namespace=$Namespace;Computer=[Environment]::MachineName;Host=$hostState;Service=[string]$service.Status;Token=$token;Descriptor=$snapshot;AuditMask=(Get-WelaAuditPolicyMask '0CCE9227-69AE-11D9-BED3-505054503030');Precedence=(Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy);Channel=$log;Engine=$engine;EngineHash=(Get-FileHash -LiteralPath $engine -Algorithm SHA256).Hash.ToLowerInvariant();Sources=(Get-WelaWmiProbeSources)}
     $finalToken=[Wela.WmiProbe.Native]::Snapshot()
     if((Get-WelaWmiProbeTokenKey $token) -cne (Get-WelaWmiProbeTokenKey $finalToken)){throw 'Token changed while observing namespace prerequisites.'}
     $state.Token=$finalToken
@@ -42,6 +44,7 @@ function Get-WelaWmiProbeStateKey {
     param($State)
     Assert-WelaWmiProbeNamespace $State.Namespace
     $null=Get-WelaWmiProbeTokenKey $State.Token
+    if($State.Service -cne 'Running'){throw 'Winmgmt must already be running.'}
     if($State.Host.Status -cne 'Observed' -or $State.Host.Build -notin @(22000,22621,22631,20348,26100,26200) -or $State.Host.ProductType -notin @(1,2,3) -or -not $State.Computer){throw 'Host is outside the reviewed Windows 11/Server context.'}
     if($State.AuditMask -notin @(1,3) -or -not $State.Precedence.ValueExists -or $State.Precedence.Type -cne 'DWord' -or $State.Precedence.Value -ne 1){throw 'Other Object Access success auditing and typed audit precedence DWORD1 must already be configured.'}
     if(-not $State.Channel.Enabled -or $State.Channel.Name -cne 'Security' -or -not $State.Channel.SecurityDescriptor){throw 'The Security channel must already be readable and enabled.'}

@@ -5,6 +5,7 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'WmiProbe.ps1')
 Assert-WelaWmiProbeNamespace $Namespace
 Initialize-WelaWmiProbeNative
+if((Get-Service -Name Winmgmt -ErrorAction Stop).Status -ne 'Running'){throw 'Winmgmt is not running; no WMI connection was attempted.'}
 Add-Type -AssemblyName System.Management -ErrorAction Stop
 $before=[Wela.WmiProbe.Native]::Snapshot()
 $nonce='WelaReadProbe_'+[guid]::NewGuid().ToString('N')
