@@ -1,0 +1,35 @@
+name: Windows PowerShell transcription regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'scripts/PowerShellTranscription.ps1'
+      - 'tests/PowerShellTranscription*'
+      - '.github/workflows/powershell-transcription.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  transcription:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Mocked policy and safety regressions in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/PowerShellTranscription.Tests.ps1
+      - name: Native private-directory and 5.1 transcript evidence with verified restoration
+        shell: powershell
+        run: ./tests/PowerShellTranscription.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Mocked policy and safety regressions from PowerShell 7
+        shell: pwsh
+        run: ./tests/PowerShellTranscription.Tests.ps1
+      - name: Native 5.1 transcript evidence from PowerShell 7 host with restoration
+        shell: pwsh
+        run: ./tests/PowerShellTranscription.Windows.Tests.ps1 -AllowDisposablePolicyWrite
