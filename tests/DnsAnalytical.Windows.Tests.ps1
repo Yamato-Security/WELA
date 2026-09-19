@@ -78,13 +78,17 @@ try {
     Assert ($disabled.Status -eq 'Applied' -and -not$disabled.After.IsEnabled -and $disabled.Archive.State -eq 'ArchivedBytes') 'Native disable preserves stopped trace in a hash-verified archive.'
     $events=@(Get-WinEvent -Path $disabled.Archive.ArchivePath -Oldest -MaxEvents 4096 -ErrorAction Stop)
     Assert ($events.Count -lt 4096) 'Archived native event read stays below its explicit completeness cap.'
+    $candidateXml=New-Object 'System.Collections.Generic.List[string]'
+    $eventSummary=New-Object 'System.Collections.Generic.List[string]'
     $matches=@(foreach($event in $events){
         try{
-            $xml=[xml]$event.ToXml();$data=@{};foreach($node in $xml.Event.EventData.Data){$data[[string]$node.Name]=[string]$node.'#text'}
+            $rawXml=$event.ToXml();$xml=[xml]$rawXml;$data=@{};foreach($node in $xml.Event.EventData.Data){$data[[string]$node.Name]=[string]$node.'#text'}
+            if($eventSummary.Count -lt 20){$eventSummary.Add("Event $($event.Id), provider $($event.ProviderName), channel '$($xml.Event.System.Channel)', QNAME '$($data.QNAME)', time $($event.TimeCreated.ToUniversalTime().ToString('o'))")}
+            if($event.Id -eq 257 -and $candidateXml.Count -lt 8){$candidateXml.Add($rawXml)}
             if($event.Id -eq 257 -and $event.ProviderName -ceq 'Microsoft-Windows-DNSServer' -and [string]$xml.Event.System.Provider.Guid -ieq '{eb79061a-a566-4698-9119-3ed2807060e7}' -and [string]$xml.Event.System.Channel -ceq $definition.Pack.channel -and $event.TimeCreated.ToUniversalTime() -ge $started -and $event.TimeCreated.ToUniversalTime() -le [DateTime]::UtcNow -and [string]$data.QNAME.TrimEnd('.') -ieq $query){$event.ToXml()}
         }finally{if($event -is [IDisposable]){$event.Dispose()}}
     })
-    if($matches.Count -ne 1){Write-Host "Expected one event257 for $query; matched $($matches.Count).";throw 'Exact bounded native DNS257/QNAME evidence was not established.'}
+    if($matches.Count -ne 1){Write-Host "Expected one event257 for $query since $($started.ToString('o')); matched $($matches.Count) from $($events.Count) events.";$eventSummary|ForEach-Object{Write-Host $_};$candidateXml|ForEach-Object{Write-Host $_};throw 'Exact bounded native DNS257/QNAME evidence was not established.'}
     [IO.File]::WriteAllText((Join-Path $private 'event257.xml'),$matches[0],[Text.UTF8Encoding]::new($false));Write-Host $matches[0]
     Assert ((Get-FileHash $disabled.Archive.ArchivePath).Hash.ToLowerInvariant() -ceq $disabled.Archive.Sha256) 'Collected native ETL retains the recorded archive hash.'
     $passed=$true
