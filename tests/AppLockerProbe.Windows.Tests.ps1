@@ -8,6 +8,13 @@ function Refresh-DisposableComputerPolicy {
  $process=[Diagnostics.Process]::Start($info)
  try {if(-not $process.WaitForExit(60000)){$process.Kill();throw 'Disposable computer policy refresh exceeded 60 seconds.'};if($process.ExitCode -ne 0){throw ('Disposable computer policy refresh failed: '+$process.ExitCode)}} finally {$process.Dispose()}
 }
+function Stop-DisposablePolicyConverter {
+ $task=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
+ if($task.State -in @('Running','Queued')) {Stop-ScheduledTask -InputObject $task -ErrorAction Stop}
+ $deadline=[DateTime]::UtcNow.AddSeconds(15)
+ do {$task=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop;if($task.State -in @('Ready','Disabled')){return};Start-Sleep -Milliseconds 200}while([DateTime]::UtcNow -lt $deadline)
+ throw 'The verified borrowed PolicyConverter task did not become idle.'
+}
 function Run-DisposablePolicyConverter {
  # Compare the scheduler's own raw timestamps; CIM DateTime timezone/kind differs across server builds.
  $prior=(Get-ScheduledTaskInfo -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop).LastRunTime.Ticks
@@ -18,9 +25,10 @@ function Run-DisposablePolicyConverter {
  do {
   $task=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
   $info=Get-ScheduledTaskInfo -InputObject $task -ErrorAction Stop
-  if($task.State -ne 'Running' -and $info.LastRunTime.Ticks -ne $prior){if($info.LastTaskResult -ne 0){throw ('Native policy conversion failed: '+$info.LastTaskResult)};return}
+  if($task.State -eq 'Ready' -and $info.LastRunTime.Ticks -ne $prior){if($info.LastTaskResult -ne 0){throw ('Native policy conversion failed: '+$info.LastTaskResult)};return}
   Start-Sleep -Milliseconds 200
  }while([DateTime]::UtcNow -lt $deadline)
+ Stop-DisposablePolicyConverter
  throw ('Native policy conversion did not complete within thirty seconds. State='+$task.State+'; beforeTicks='+$prior+'; afterTicks='+$info.LastRunTime.Ticks+'; result='+$info.LastTaskResult)
 }
 $repo=Split-Path $PSScriptRoot -Parent
@@ -85,8 +93,9 @@ try {
 }
 finally {
  if($touched){
-  try {Set-AppLockerPolicy -XmlPolicy $backup -ErrorAction Stop;Refresh-DisposableComputerPolicy;if($converterChanged -or -not $converterDisabled){Run-DisposablePolicyConverter};$restored=Get-WelaAppLockerPolicySnapshot Local;if((Get-WelaAppLockerXmlKey $restored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.LocalPolicy.Policy.Xml)){throw 'Local policy restoration differs'}}catch{$cleanup+=$_.Exception.Message}
-  try {if($converterChanged){$null=Disable-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop};$taskAfter=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop;if((Export-ScheduledTask -InputObject $taskAfter -ErrorAction Stop) -cne $converterBefore){throw 'Native PolicyConverter task definition was not restored'}}catch{$cleanup+=$_.Exception.Message}
+  try {Stop-DisposablePolicyConverter}catch{$cleanup+=$_.Exception.Message}
+  try {Set-AppLockerPolicy -XmlPolicy $backup -ErrorAction Stop;Refresh-DisposableComputerPolicy;if($converterChanged -or -not $converterDisabled){Run-DisposablePolicyConverter};$restored=Get-WelaAppLockerPolicySnapshot Local;if($restored.Status -ne 'Observed' -or (Get-WelaAppLockerXmlKey $restored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.LocalPolicy.Policy.Xml)){throw 'Local policy restoration differs'};$effectiveRestored=Get-WelaAppLockerPolicySnapshot Effective;if($effectiveRestored.Status -ne 'Observed' -or (Get-WelaAppLockerXmlKey $effectiveRestored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.EffectiveGpPolicy.Policy.Xml)){throw 'Effective GP policy restoration differs'}}catch{$cleanup+=$_.Exception.Message}
+  try {Stop-DisposablePolicyConverter;if($converterChanged){$null=Disable-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop};$taskAfter=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop;if($taskAfter.State -ne $(if($converterDisabled){'Disabled'}else{'Ready'}) -or (Export-ScheduledTask -InputObject $taskAfter -ErrorAction Stop) -cne $converterBefore){throw 'Native PolicyConverter task definition was not restored'}}catch{$cleanup+=$_.Exception.Message}
   try {$log.IsEnabled=$enabled;$log.SaveChanges();$verify=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new($log.LogName);try{if($verify.IsEnabled -ne $enabled){throw 'Channel restoration differs'}}finally{$verify.Dispose()}}catch{$cleanup+=$_.Exception.Message}
   if($before.Service.State -ne 'Running') {try {Stop-Service AppIDSvc -ErrorAction Stop}catch{Write-Host 'Protected AppIDSvc could not stop; startup mode was untouched. The disposable hosted VM is discarded after this job.'}}
   $afterService=Get-WelaAppLockerService;if($afterService.StartMode -ne $before.Service.StartMode){$cleanup+='AppIDSvc startup mode changed'}
