@@ -38,3 +38,8 @@ modules/WecSubscriptionXml.cs text eol=lf
 /modules/WecSubscriptionXml.cs text eol=lf
 scripts/AppLockerProbe.ps1 text eol=lf
 tests/AppLockerProbe*.ps1 text eol=lf
+
+# Local delivery catalog and native observer retain reproducible source bytes.
+config/event_measurement.json text eol=lf
+scripts/EventMeasurement* text eol=lf
+tests/EventMeasurement* text eol=lf
