@@ -9,15 +9,19 @@ function Refresh-DisposableComputerPolicy {
  try {if(-not $process.WaitForExit(60000)){$process.Kill();throw 'Disposable computer policy refresh exceeded 60 seconds.'};if($process.ExitCode -ne 0){throw ('Disposable computer policy refresh failed: '+$process.ExitCode)}} finally {$process.Dispose()}
 }
 function Run-DisposablePolicyConverter {
- $started=[DateTime]::UtcNow;$deadline=$started.AddSeconds(30)
+ # Compare the scheduler's own raw timestamps; CIM DateTime timezone/kind differs across server builds.
+ $prior=(Get-ScheduledTaskInfo -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop).LastRunTime.Ticks
+ # Task Scheduler timestamps can have second precision. Separate consecutive owned invocations.
+ Start-Sleep -Milliseconds 1100
+ $deadline=[DateTime]::UtcNow.AddSeconds(30)
  Start-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
  do {
   $task=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
   $info=Get-ScheduledTaskInfo -InputObject $task -ErrorAction Stop
-  if($task.State -ne 'Running' -and $info.LastRunTime.ToUniversalTime() -ge $started.AddSeconds(-1)){if($info.LastTaskResult -ne 0){throw ('Native policy conversion failed: '+$info.LastTaskResult)};return}
+  if($task.State -ne 'Running' -and $info.LastRunTime.Ticks -ne $prior){if($info.LastTaskResult -ne 0){throw ('Native policy conversion failed: '+$info.LastTaskResult)};return}
   Start-Sleep -Milliseconds 200
  }while([DateTime]::UtcNow -lt $deadline)
- throw 'Native policy conversion did not complete within thirty seconds.'
+ throw ('Native policy conversion did not complete within thirty seconds. State='+$task.State+'; beforeTicks='+$prior+'; afterTicks='+$info.LastRunTime.Ticks+'; result='+$info.LastTaskResult)
 }
 $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/Configuration.ps1"
