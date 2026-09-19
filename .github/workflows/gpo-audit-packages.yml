@@ -1,0 +1,45 @@
+name: GPO audit-policy package regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/GpoAuditPackages.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'modules/AuditProfiles.psm1'
+      - 'config/audit_profiles.json'
+      - 'docs/gpo-*'
+      - 'tests/GpoAuditPackages*'
+      - '.github/workflows/gpo-audit-packages.yml'
+      - '.github/workflows/release.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gpo-packages:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Offline semantic and file-safety fixtures in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/GpoAuditPackages.Tests.ps1
+      - name: Native template validation and unchanged-policy checks in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/GpoAuditPackages.Windows.Tests.ps1 -OutputPath "$env:RUNNER_TEMP/gpo-components-51"
+      - name: Offline semantic and file-safety fixtures in PowerShell 7
+        shell: pwsh
+        run: ./tests/GpoAuditPackages.Tests.ps1
+      - name: Native read-only checks and Windows PowerShell package verification in PowerShell 7
+        shell: pwsh
+        run: ./tests/GpoAuditPackages.Windows.Tests.ps1 -OutputPath "$env:RUNNER_TEMP/gpo-components-7" -VerifyOtherPath "$env:RUNNER_TEMP/gpo-components-51"
+      - name: Verify PowerShell 7 package through public CLI in Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          # A script invoked in-process does not set LASTEXITCODE on normal return.
+          & "$env:SystemRoot/System32/WindowsPowerShell/v1.0/powershell.exe" -NoLogo -NoProfile -NonInteractive -File ./WELA.ps1 gpo-package -GpoAction Verify -GpoOutputPath "$env:RUNNER_TEMP/gpo-components-7"
+          if ($LASTEXITCODE -ne 0) { throw 'Public package verification failed.' }
