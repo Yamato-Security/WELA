@@ -49,6 +49,9 @@
     [ValidateRange(1,2147483647)][int]$LdapSearchTimeMs,
     [ValidateRange(1,2147483647)][int]$LdapExpensiveThreshold,
     [ValidateRange(1,2147483647)][int]$LdapInefficientThreshold,
+    [ValidateSet('Audit','Plan','Configure')][string]$IntegrityAction = 'Audit',
+    [string]$IntegrityProfile,
+    [switch]$AllowPrivilegeRemoval,
     [switch]$Help
 )
 
@@ -63,6 +66,7 @@ $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
+. (Join-Path $ScriptRoot "scripts/AuditIntegrity.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
@@ -1734,6 +1738,9 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 audit-integrity -IntegrityAction Audit -ResultsPath integrity.json
+  ./WELA.ps1 audit-integrity -IntegrityAction Plan -IntegrityProfile cis-server2022-v4-dc
+  ./WELA.ps1 audit-integrity -IntegrityAction Configure -IntegrityProfile cis-win11-v4-l1 -DryRun
   ./WELA.ps1 ldap-diagnostics -LdapAction Audit
   ./WELA.ps1 ldap-diagnostics -LdapAction Plan -LdapMode Diagnostic -LdapSearchTimeMs 100
   ./WELA.ps1 ldap-diagnostics -LdapAction Configure -LdapMode Diagnostic -LdapSearchTimeMs 100 -DryRun
@@ -1792,6 +1799,10 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'audit-integrity' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('IntegrityAction','IntegrityProfile','AllowPrivilegeRemoval') }).Count) {
+    throw 'Integrity options require the dedicated audit-integrity command. No command was run.'
+}
+
 if ($Cmd -ne 'rule-eligibility' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('RuleEvidencePath', 'RuleCorpusPath', 'RuleManifestPath') }).Count) {
     throw '-RuleEvidencePath, -RuleCorpusPath and -RuleManifestPath require the read-only rule-eligibility command. No command was run.'
 }
@@ -1820,7 +1831,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
@@ -1828,7 +1839,7 @@ if ($DryRun -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configu
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, and ldap-diagnostics -LdapAction Configure. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, and audit-integrity -IntegrityAction Configure. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1858,6 +1869,14 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'audit-integrity' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-integrity [-IntegrityAction Audit|Plan|Configure] [-IntegrityProfile source-id] [-AllowPrivilegeRemoval] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Audit is read-only; Plan/Configure require an exact source profile. See docs/audit-integrity.md.'; return }
+        if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-integrity observes the actual local Windows host; use -IntegrityProfile and -ResultsPath, without Security profiles, role/build overrides or HTML.' }
+        if ($IntegrityAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'Audit-integrity Configure requires Administrator privileges.' }
+        $report=Invoke-WelaIntegrityCommand -Action $IntegrityAction -Profile $IntegrityProfile -AllowPrivilegeRemoval:$AllowPrivilegeRemoval -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
     'rule-eligibility' {
         if ($Profile -or $Baseline -or $Auto -or $PlanPath) { throw 'rule-eligibility reviews native rule metadata and optional lab artifacts; use -ResultsPath/-HtmlPath, not configuration options.' }
         $arguments = @{}

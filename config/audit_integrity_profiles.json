@@ -1,0 +1,172 @@
+{
+  "SchemaVersion": 1,
+  "Scope": "Two direct LSA rights assignments and CrashOnAuditFail only; omitted values preserve observed state.",
+  "Profiles": [
+    {
+      "Id": "cis-win11-v4-l1",
+      "Role": "Client",
+      "MinBuild": 22000,
+      "MaxBuild": 26100,
+      "Source": "CIS v4.0.0 (reviewed historical edition)",
+      "Url": "https://rayasec.com/wp-content/uploads/CIS-Benchmark/Microsoft-Windows-Desktop/CIS_Microsoft_Windows_11_Enterprise_Benchmark_v4.0.0.pdf",
+      "SourceSha256": "362fe88c80307a809e6cf42556b029839d1c32440048f13fff3e666653bb32ce",
+      "References": [
+        "2.2.23",
+        "2.2.30",
+        "2.3.2.2"
+      ],
+      "SeAuditPrivilege": [
+        "S-1-5-19",
+        "S-1-5-20"
+      ],
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": 0
+    },
+    {
+      "Id": "cis-server2022-v4-member",
+      "Role": "MemberServer",
+      "MinBuild": 20348,
+      "MaxBuild": 20348,
+      "Source": "CIS v4.0.0 (reviewed historical edition)",
+      "Url": "https://rayasec.com/wp-content/uploads/CIS-Benchmark/Microsoft-Windows-Server/CIS_Microsoft_Windows_Server_2022_Benchmark_v4.0.0.pdf",
+      "SourceSha256": "9be0532e08a9b2919e2591a6eb4499f1edd11bc1676876959513f2f4c566bec2",
+      "References": [
+        "2.2.31",
+        "2.2.39",
+        "2.3.2.2"
+      ],
+      "SeAuditPrivilege": [
+        "S-1-5-19",
+        "S-1-5-20"
+      ],
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": 0
+    },
+    {
+      "Id": "cis-server2022-v4-dc",
+      "Role": "DomainController",
+      "MinBuild": 20348,
+      "MaxBuild": 20348,
+      "Source": "CIS v4.0.0 (reviewed historical edition)",
+      "Url": "https://rayasec.com/wp-content/uploads/CIS-Benchmark/Microsoft-Windows-Server/CIS_Microsoft_Windows_Server_2022_Benchmark_v4.0.0.pdf",
+      "SourceSha256": "9be0532e08a9b2919e2591a6eb4499f1edd11bc1676876959513f2f4c566bec2",
+      "References": [
+        "2.2.31",
+        "2.2.38",
+        "2.3.2.2"
+      ],
+      "SeAuditPrivilege": [
+        "S-1-5-19",
+        "S-1-5-20"
+      ],
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": 0
+    },
+    {
+      "Id": "microsoft-sct-win11-24h2",
+      "Role": "Client",
+      "MinBuild": 26100,
+      "MaxBuild": 26100,
+      "Source": "MSFT Windows 11 24H2 - Computer",
+      "Url": "https://www.microsoft.com/en-us/download/details.aspx?id=55319",
+      "Package": "Windows 11 v24H2 Security Baseline.zip",
+      "PackageSha256": "b75439a231c64edaccaad16a16268d199f56ce78273104e117d893f82cf174a5",
+      "Template": "Windows 11 v24H2 Security Baseline/GPOs/{DAD42DA1-8499-42FE-A1CD-9E39196D8B98}/DomainSysvol/GPO/Machine/microsoft/windows nt/SecEdit/GptTmpl.inf",
+      "TemplateSha256": "2da1ec458c2daf9fcf9bd6a56c485a975261e7c04fd59f321000bcae532c75a1",
+      "SeAuditPrivilege": null,
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": null
+    },
+    {
+      "Id": "microsoft-sct-win11-25h2",
+      "Role": "Client",
+      "MinBuild": 26200,
+      "MaxBuild": 26200,
+      "Source": "MSFT Windows 11 25H2 - Computer",
+      "Url": "https://www.microsoft.com/en-us/download/details.aspx?id=55319",
+      "Package": "Windows 11 v25H2 Security Baseline.zip",
+      "PackageSha256": "3517a53030a3e437c9fe00c04274d80965d3527a8eb0514520cba75023c376f7",
+      "Template": "Windows 11 v25H2 Security Baseline/GPOs/{02DB0E53-0925-4E5A-B775-E7A1A9370AB8}/DomainSysvol/GPO/Machine/microsoft/windows nt/SecEdit/GptTmpl.inf",
+      "TemplateSha256": "8c5509e4876e51c448e88add14088a6d7a96df9e1ba4786e6a90749f30ba8b98",
+      "SeAuditPrivilege": null,
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": null
+    },
+    {
+      "Id": "microsoft-sct-server2022-member",
+      "Role": "MemberServer",
+      "MinBuild": 20348,
+      "MaxBuild": 20348,
+      "Source": "MSFT Windows Server 2022 - Member Server",
+      "Url": "https://www.microsoft.com/en-us/download/details.aspx?id=55319",
+      "Package": "Windows Server 2022 Security Baseline.zip",
+      "PackageSha256": "49590cc694626d171fc934fafea6494f13ecd3843086704b7a5b98355909b8e0",
+      "Template": "Windows Server-2022-Security-Baseline-FINAL/GPOs/{20FAD6FB-7C6D-496E-801C-0434769847FF}/DomainSysvol/GPO/Machine/microsoft/windows nt/SecEdit/GptTmpl.inf",
+      "TemplateSha256": "e9fa8208aec6b2fe1f048c61c2b6667cc2b01fbc29f48ed84e0d341e8d0a9c08",
+      "SeAuditPrivilege": null,
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": null
+    },
+    {
+      "Id": "microsoft-sct-server2022-dc",
+      "Role": "DomainController",
+      "MinBuild": 20348,
+      "MaxBuild": 20348,
+      "Source": "MSFT Windows Server 2022 - Domain Controller",
+      "Url": "https://www.microsoft.com/en-us/download/details.aspx?id=55319",
+      "Package": "Windows Server 2022 Security Baseline.zip",
+      "PackageSha256": "49590cc694626d171fc934fafea6494f13ecd3843086704b7a5b98355909b8e0",
+      "Template": "Windows Server-2022-Security-Baseline-FINAL/GPOs/{E2B8214C-729F-4324-A876-F067E58B740B}/DomainSysvol/GPO/Machine/microsoft/windows nt/SecEdit/GptTmpl.inf",
+      "TemplateSha256": "e4a3f7a28f42e17069a2672ca0ae30fba2f54160b05fa847ca85164d028d7a05",
+      "SeAuditPrivilege": null,
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": null
+    },
+    {
+      "Id": "microsoft-sct-server2025-v2602-member",
+      "Role": "MemberServer",
+      "MinBuild": 26100,
+      "MaxBuild": 26100,
+      "Source": "MSFT Windows Server 2025 v2602 - Member Server",
+      "Url": "https://www.microsoft.com/en-us/download/details.aspx?id=55319",
+      "Package": "Windows Server 2025 Security Baseline - 2602.zip",
+      "PackageSha256": "a66dffbe2622c3c4dd70e44a7f2080f362fb2d6f9208c50678671cbb046a286f",
+      "Template": "Windows Server 2025 Security Baseline - 2602/GPOs/{066B7FF5-BF2B-4B1B-8A92-2A83B8619444}/DomainSysvol/GPO/Machine/microsoft/windows nt/SecEdit/GptTmpl.inf",
+      "TemplateSha256": "4403795c0f1eb374b285592a0589a5addfa6af3c5b33490c35595037513ba8e8",
+      "SeAuditPrivilege": null,
+      "SeSecurityPrivilege": [
+        "S-1-5-32-544"
+      ],
+      "CrashOnAuditFail": null
+    },
+    {
+      "Id": "microsoft-sct-server2025-v2602-dc",
+      "Role": "DomainController",
+      "MinBuild": 26100,
+      "MaxBuild": 26100,
+      "Source": "MSFT Windows Server 2025 v2602 - Domain Controller",
+      "Url": "https://www.microsoft.com/en-us/download/details.aspx?id=55319",
+      "Package": "Windows Server 2025 Security Baseline - 2602.zip",
+      "PackageSha256": "a66dffbe2622c3c4dd70e44a7f2080f362fb2d6f9208c50678671cbb046a286f",
+      "Template": "Windows Server 2025 Security Baseline - 2602/GPOs/{88603F56-DC8F-4132-8A8C-8FE5EB0B4B1A}/DomainSysvol/GPO/Machine/microsoft/windows nt/SecEdit/GptTmpl.inf",
+      "TemplateSha256": "a0702b0010e54fd16afdad758fee35157c28f82cbbe28e66f69a3a8ea6034ef7",
+      "SeAuditPrivilege": null,
+      "SeSecurityPrivilege": null,
+      "CrashOnAuditFail": null
+    }
+  ]
+}

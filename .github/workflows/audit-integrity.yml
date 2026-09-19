@@ -1,0 +1,36 @@
+name: Audit integrity regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'scripts/AuditIntegrity*'
+      - 'config/audit_integrity_profiles.json'
+      - 'tests/AuditIntegrity*'
+      - '.github/workflows/audit-integrity.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-integrity:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Mocked privilege and safety regressions in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AuditIntegrity.Tests.ps1
+      - name: Native read-only LSA and security-policy observations in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AuditIntegrity.Windows.Tests.ps1
+      - name: Mocked privilege and safety regressions in PowerShell 7
+        shell: pwsh
+        run: ./tests/AuditIntegrity.Tests.ps1
+      - name: Native read-only LSA and security-policy observations in PowerShell 7
+        shell: pwsh
+        run: ./tests/AuditIntegrity.Windows.Tests.ps1
