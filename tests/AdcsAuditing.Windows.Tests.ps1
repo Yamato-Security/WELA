@@ -119,6 +119,11 @@ try {
     Get-Content -LiteralPath (Join-Path $privateRoot 'native-components.json') -Raw -Encoding UTF8|Write-Host
     $passed=$true
     Write-Host "Observed correlated Security4886/4889 request$requestId on disposable Server$($os.BuildNumber) via $TestEngine; no certificate was approved."
+}catch{
+    # Preserve the primary native failure even if cleanup independently fails.
+    Write-Host ('Native CA validation failed before cleanup: '+($_|Out-String))
+    Write-Host $_.ScriptStackTrace
+    throw
 }finally{
     $cleanupErrors=@()
     if($attemptedCA){
