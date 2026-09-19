@@ -13,9 +13,10 @@ function Capture([array]$Events=@()) {[pscustomobject]@{Status='WindowComplete';
 function State {
     [pscustomobject]@{CapturedUtc='2025-01-02T03:04:05Z';Reader=[pscustomobject]@{Computer='HOST';HostKey='specific host context';Reader=[pscustomobject]@{Sid='S-1-5-18'}};Configuration=[pscustomobject]@{Name='Security';Type='Administrative';Enabled=$true;Mode='Circular';MaximumBytes=20971520;RegisteredPath='C:\Windows\System32\winevt\Logs\Security.evtx';SecurityDescriptor='specific SDDL';Providers=@('Microsoft-Windows-Security-Auditing')};Log=[pscustomobject]@{CreatedUtc='2025-01-01T00:00:00Z';OldestRecord=1;RecordCount=9;FileBytes=1048576;Full=$false}}
 }
-$script:stateReads=0;$script:drift='';$script:exportCalls=0;$script:reopen=@();$script:capture=Capture
+$script:stateReads=0;$script:drift='';$script:exportCalls=0;$script:reopen=@();$script:capture=Capture;$script:tamperPath=$null
 function Get-WelaMeasurementState {
     $script:stateReads++;$s=State
+    if ($script:stateReads -eq 3 -and $script:tamperPath) {[IO.File]::WriteAllBytes($script:tamperPath,[byte[]]@(1,2,3,4))}
     if($script:stateReads -gt 1){switch($script:drift){'reader'{$s.Reader.Reader.Sid='different'};'mode'{$s.Configuration.Mode='Retain'};'created'{$s.Log.CreatedUtc='different'};'clear'{$s.Log.RecordCount=0};'denied'{throw 'Access denied to channel'}}};$s
 }
 function New-WelaMeasurementObserver {
@@ -77,6 +78,11 @@ try {
         $r=Run ('export-'+$variant) -Export
         Assert ($r.ExitCode -eq 1 -and $r.Evtx.Status -eq 'Unverified' -and $null -eq $r.Evtx.Bytes -and $null -eq $r.ObservedDeliveriesPerSecond) "EVTX $variant readback cannot produce verified bytes or a valid rate"
     }
+    $script:capture=Capture @((Delivery));$script:reopen=@((Event));$script:tamperPath=Join-Path (Join-Path $temp 'post-reopen-tamper') 'sample.evtx'
+    $r=Run 'post-reopen-tamper' -Export;$script:tamperPath=$null
+    Assert ($r.ExitCode -eq 1 -and $r.Evtx.Status -eq 'Unverified' -and $null -eq $r.Evtx.Bytes -and $r.Diagnostic -match 'Saved event evidence changed') 'Post-reopen sample mutation revokes verified bytes at final manifest freshness check'
+    $failure=Get-Content -LiteralPath (Join-Path $r.OutputPath 'manifest.json') -Raw | ConvertFrom-Json
+    Assert ($failure.Status -eq 'Unverified' -and $failure.Diagnostic -match 'Final evidence check failed') 'Final artifact mismatch retains a durable unverified manifest'
     # Exercise public dispatch boundaries in a child; expected errors must not terminate PS5.1 before exit capture.
     $engine=(Get-Process -Id $PID).Path
     foreach($args in @(@('configure','-MeasurementAction','Plan'),@('event-measurement','-MeasurementChannel','Security','-Auto'),@('event-measurement','-MeasurementChannel','ForwardedEvents'))) {

@@ -235,6 +235,7 @@ function Invoke-WelaEventMeasurement {
                 $final=Get-WelaMeasurementState $Channel;Assert-WelaMeasurementState $result.Before $final
                 $result.Artifacts+=Write-WelaMeasurementArtifact $root 'export-after-state.json' (ConvertTo-Json -InputObject $final -Depth 20)
                 $result.Evtx=$verified
+                $result.Artifacts+=[pscustomobject]@{Name=$verified.Name;Sha256=$verified.Sha256;Bytes=$verified.Bytes}
             }
             $result.Status='DeliveryWindowObserved';$result.ObservedDeliveriesPerSecond=$result.Events.Count/[double]$capture.ElapsedSeconds
         }
@@ -246,10 +247,14 @@ function Invoke-WelaEventMeasurement {
         try {
             foreach ($artifact in $result.Artifacts) {
                 $path=Resolve-WelaMeasurementPath (Join-Path $root $artifact.Name)
-                if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $artifact.Sha256) {throw 'Saved event evidence changed before the manifest was written.'}
+                if ((Get-Item -LiteralPath $path -Force -ErrorAction Stop).Length -ne $artifact.Bytes -or (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $artifact.Sha256) {throw 'Saved event evidence changed before the manifest was written.'}
             }
-            $null=Write-WelaMeasurementArtifact $root 'manifest.json' (ConvertTo-Json -InputObject $result -Depth 30)
+            if ((Get-WelaMeasurementCatalog).Sha256 -cne $catalog.Sha256) {throw 'Measurement catalog changed before the manifest was written.'}
+        } catch {
+            $result.Status='Unverified';$result.ExitCode=1;$result.ObservedDeliveriesPerSecond=$null;$result.Diagnostic+=' Final evidence check failed: '+$_.Exception.Message
+            if ($result.Evtx.Status -eq 'ExactSampleReopened') {$result.Evtx.Status='Unverified';$result.Evtx.Bytes=$null}
         }
+        try {$null=Write-WelaMeasurementArtifact $root 'manifest.json' (ConvertTo-Json -InputObject $result -Depth 30)}
         catch {$result.Status='Unverified';$result.ExitCode=1;$result.ObservedDeliveriesPerSecond=$null;$result.Diagnostic+=' Manifest write failed: '+$_.Exception.Message}
     }
     return $result
