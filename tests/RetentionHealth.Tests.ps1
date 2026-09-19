@@ -68,7 +68,7 @@ function Get-ChildItem {
 }
 function Run-Report { Invoke-WelaRetentionHealth -ConfigPath $configPath -ResultsPath $jsonPath -HtmlPath $htmlPath }
 try {
-    $env:OS='Windows_NT'; $env:COMPUTERNAME='fixture-host'
+    $env:OS='Windows_NT'; $env:COMPUTERNAME='fixture-host <script>host</script>'
     $default=Import-WelaRetentionConfig
     Assert ($default.Role -eq 'Source' -and $default.Channels.Count -eq 3 -and -not $default.Archive) 'Default assessment needs no archive declaration/config file'
     Reset-Fixture
@@ -86,7 +86,13 @@ try {
     Assert ($json.Signals.Count -eq 3 -and $json.Signals[0].AbsenceOfLoss -eq 'Not established') 'Loss/clear/forwarding evidence is reported independently'
     Assert ($json.Archive.Status -eq 'NotDeclared') 'Archive declaration remains distinct from large source buffers'
     $html=Get-Content $htmlPath -Raw
-    Assert ($html -notmatch '<script>alert' -and $html -match '&lt;script&gt;') 'Untrusted localized/event evidence is escaped in self-contained HTML'
+    Assert ($html -notmatch '<script' -and $html -match '&lt;script&gt;host&lt;/script&gt;') 'Untrusted summary text is HTML-escaped without active script markup'
+    # Windows PowerShell 5.1 may JSON-escape angle brackets before HTML encoding.
+    # Assert the payload round-trip, not one serializer's equivalent spelling.
+    $embeddedMatch=[regex]::Match($html,'<pre>([\s\S]*?)</pre>')
+    Assert $embeddedMatch.Success 'Self-contained HTML retains the complete JSON evidence'
+    $embedded=[Net.WebUtility]::HtmlDecode($embeddedMatch.Groups[1].Value) | ConvertFrom-Json
+    Assert ($embedded.Signals[0].Records[0].Message -ceq 'Localized <script>alert(1)</script> message') 'Escaped event evidence round-trips without losing or activating its text'
     Assert (@($script:fixture.Reads | Where-Object { $_.MaxEvents -gt 3 }).Count -eq 0) 'All fixture queries obey cap plus one sentinel'
     $oldReport=Join-Path $temp 'previous.json'; Copy-Item $jsonPath $oldReport
     $script:fixture.OldestId=40
