@@ -97,6 +97,14 @@
     [string]$RecoveryOutputPath,
     [string]$ArrivalProbePath,
     [string]$ArrivalOutputPath,
+    [ValidateSet('Plan','Apply')][string]$WecUpdateAction = 'Plan',
+    [string]$WecUpdateId,
+    [string[]]$WecUpdateSourceSid,
+    [string]$WecUpdateQueryPath,
+    [AllowEmptyString()][string]$WecUpdateDescription,
+    [string]$WecUpdatePlanPath,
+    [string]$WecUpdatePlanHash,
+    [string]$WecUpdateOutputPath,
     [switch]$Help
 )
 
@@ -135,6 +143,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 . (Join-Path $ScriptRoot "scripts/NativeProviderPacks.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
+. (Join-Path $ScriptRoot "scripts/WecUpdate.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
@@ -1905,6 +1914,7 @@ Usage:
   ./WELA.ps1 adcs-auditing -Help    # Dedicated local CA audit settings; restart requires explicit consent
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
+  ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
   ./WELA.ps1 version     # Show the WELA version
@@ -1962,6 +1972,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecUpdate*'}).Count) {throw 'WecUpdate options require wec-update.'}
+if ($Cmd -eq 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecUpdateAction','WecUpdateId','WecUpdateSourceSid','WecUpdateQueryPath','WecUpdateDescription','WecUpdatePlanPath','WecUpdatePlanHash','WecUpdateOutputPath','Help')}).Count) {throw 'wec-update accepts only dedicated options.'}
 if ($Cmd -ne 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('ArrivalProbePath','ArrivalOutputPath')}).Count) {
     throw 'Arrival options require wef-arrival. No command was run.'
 }
@@ -2116,6 +2128,15 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'wec-update' {
+        if ($Help) {Write-Host 'Usage: wec-update [-WecUpdateAction Plan] -WecUpdateId ID -WecUpdateSourceSid SID -WecUpdateQueryPath query.xml -WecUpdateDescription text -WecUpdateOutputPath new-directory; then Apply with -WecUpdatePlanPath reviewed-plan.json -WecUpdatePlanHash SHA256 -WecUpdateOutputPath new-directory. Only query/description on already disabled subscriptions. See docs/wec-update.md.';return}
+        $arguments=@{Action=$WecUpdateAction;OutputPath=$WecUpdateOutputPath}
+        $map=@{WecUpdateId='Id';WecUpdateSourceSid='SourceSids';WecUpdateQueryPath='QueryPath';WecUpdateDescription='Description';WecUpdatePlanPath='PlanPath';WecUpdatePlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaWecUpdate @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'wef-arrival' {
         if ($Help) {Write-Host 'Usage: ./WELA.ps1 wef-arrival -ArrivalProbePath existing-native-probe-directory -ArrivalOutputPath new-private-directory. Reads local ForwardedEvents and matches the exact original probe payload. No subscriptions, policy changes, latency or Sigma readiness claims. See docs/wef-arrival.md.'; return}
