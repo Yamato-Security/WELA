@@ -15,7 +15,7 @@ $beforeService=ServiceState
 if ($beforeService.State -notin @('Running','Stopped') -or $beforeService.StartMode -notin @('Auto','Manual','Disabled')) {throw 'Fixture requires stable existing service state.'}
 $serviceKey='HKLM:\SYSTEM\CurrentControlSet\Services\Wecsvc'
 $beforeDelayed=Get-WelaRegistryState $serviceKey DelayedAutoStart
-$nonce=[guid]::NewGuid().ToString('N');$id='WELA-Runtime-Test-'+$nonce;$description='Owned disposable runtime fixture '+$nonce
+$nonce=[guid]::NewGuid().ToString('N');$id='WELA-Runtime-Test-'+$nonce;$description='Owned disposable runtime fixture '+$nonce+' '+([string][char]0x65e5)+([string][char]0x672c)+([string][char]0x8a9e)
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('wela-wec-runtime-'+$nonce)
 $null=New-Item -ItemType Directory -Path $temp
 $created=$false;$beforeIds=$null
@@ -39,6 +39,7 @@ try {
     # Disabled, uniquely named and no real source: no listener/firewall/source deployment.
     $created=$true;$null=Invoke-WelaNative 'wecutil.exe' @('cs',$xmlPath)
     $definitionBefore=Get-WelaWecRuntimeDefinition $id;$serviceDuring=ServiceState
+    Assert ($definitionBefore.RawXml.Contains($description)) 'Explicit native Unicode XML preserves the exact non-ASCII description under both PowerShell engines.'
     $result=Invoke-WelaWecRuntime @($id) -ResultsPath (Join-Path $temp 'runtime.json')
     if ($result.ExitCode -ne 0) {throw (ConvertTo-Json $result -Depth 30)}
     $row=$result.Subscriptions[0]
@@ -58,9 +59,7 @@ try {
     $errors=@()
     try {
         if ($created -and @(Subscriptions) -contains $id) {
-            $raw=(Invoke-WelaNative 'wecutil.exe' @('gs',$id,'/f:xml')).Diagnostic
-            $text=[string]::Concat($raw)
-            try {$doc=Read-WelaWefXml $text} catch {throw ('Cleanup definition XML prefix code units: '+((@($text.ToCharArray() | Select-Object -First 12) | ForEach-Object {[int]$_}) -join ',')+'. '+$_.Exception.Message)}
+            $doc=Read-WelaWefXml (Read-WelaWecSubscriptionXml -Id $id)
             $ns=New-Object Xml.XmlNamespaceManager($doc.NameTable);$ns.AddNamespace('s','http://schemas.microsoft.com/2006/03/windows/events/subscription')
             $descriptions=@($doc.SelectNodes('/s:Subscription/s:Description',$ns))
             if ($descriptions.Count -ne 1 -or $descriptions[0].InnerText -cne $description) {throw 'Fixture ownership changed; refusing deletion.'}

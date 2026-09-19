@@ -61,10 +61,8 @@ function Get-WelaWecRuntimeContext {
 }
 function Get-WelaWecRuntimeDefinition {
     param([string]$Id)
-    $native=Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('gs',$Id,'/f:xml')
-    if ($native.ExitCode -ne 0) {throw 'Native subscription definition read failed.'}
-     $xml=[string]::Concat($native.Diagnostic)
-    try {$doc=Read-WelaWefXml $xml} catch {throw ('Native definition XML read failed; initial UTF-16 code units: '+((@($xml.ToCharArray() | Select-Object -First 12) | ForEach-Object {[int]$_}) -join ',')+'. '+$_.Exception.Message)}
+    $xml=Read-WelaWecSubscriptionXml -Id $Id
+    $doc=Read-WelaWefXml $xml
     $ns=New-Object Xml.XmlNamespaceManager($doc.NameTable);$ns.AddNamespace('s','http://schemas.microsoft.com/2006/03/windows/events/subscription')
     $fields=@{}
     foreach ($name in @('SubscriptionId','SubscriptionType','Enabled','Query')) {

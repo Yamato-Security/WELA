@@ -117,7 +117,8 @@ try {
     try {$report=Invoke-WelaWecRuntime @('Fixture') -ResultsPath './runtime.json';Assert (Test-Path ./runtime.json) 'Relative output uses PowerShell location.';Throws {Invoke-WelaWecRuntime @('Fixture') -ResultsPath './runtime.json'} 'new ordinary'} finally {Pop-Location}
     $json=Get-Content -LiteralPath (Join-Path $temp 'runtime.json') -Raw | ConvertFrom-Json
     Assert ($json.Subscriptions[0].Subscription.Fields.LastErrorMessage.Value -ceq 'Lokalisierte Nachricht <script>') 'JSON preserves localized text and exact nested observations.'
-    # Exercise actual definition parser with only native process execution replaced.
+    # Exercise actual definition parser with only native XML acquisition replaced.
+    function Read-WelaWecSubscriptionXml {param($Id) $script:xml}
     function Invoke-WelaNative {param($FilePath,$Arguments) [pscustomobject]@{ExitCode=0;Diagnostic=$script:xml}}
     $script:xml='<Subscription xmlns="http://schemas.microsoft.com/2006/03/windows/events/subscription"><SubscriptionId>Fixture</SubscriptionId><SubscriptionType>SourceInitiated</SubscriptionType><Enabled>false</Enabled><Query>&lt;QueryList&gt;&lt;Query Id="0" Path="Security"&gt;&lt;Select&gt;*&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Query></Subscription>'
     Assert ((& $definitionReader 'Fixture').Enabled -eq $false) 'Native definition parser retains disabled state.'
