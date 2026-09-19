@@ -7,6 +7,7 @@
 
 **Improvements:**
 
+- Preserved LDAP 1644 diagnostics during normal configuration instead of automatically enabling Field Engineering level 5 on DCs. Added explicit `ldap-diagnostics` audit/plan/configure modes for preservation, tunable diagnostics and MDI legacy cleanup, with role/build checks, typed recovery snapshots, race guards, ordered readback and final drift checks. LDAP-only options are rejected before unrelated profile commands can run. Generated events, volume and forwarding remain isolated-DC validation. (#404) (@Shirofune-Security)
 - Corrected the legacy Token Right Adjusted Events GUID so RPC and token auditing are assessed independently in every baseline. Added runtime catalog identity/alias checks and a read-only, fingerprinted EventID mapping review that preserves ambiguous, category-only and unknown candidates without detection credit. (#403) (@Shirofune-Security)
 
 - Added opt-in `ad-object-sacl` audit, plan, configure and conservative rollback actions for MDI domain/Exchange Configuration auditing and explicitly selected certificate template/enrollment service objects. Exact DC binding, schema GUID checks, additive SACL-only changes, pre-write SDDL/ACE receipts and read-back preserve existing security entries. Unknown optional dMSA prerequisites are reported as a separate skipped gap while the five independent domain class ACEs continue. Effective audit policy, inheritance/replication and 4662/5136 event evidence remain separate isolated-DC checks; no Sigma uplift is claimed. (#402) (@Shirofune-Security)
