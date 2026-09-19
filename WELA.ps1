@@ -63,6 +63,9 @@
     [ValidateSet('OneSettings','SecurityWarning')][string[]]$NotificationControl,
     [ValidateRange(1,90)][int]$WarningPercent = 90,
     [switch]$EnablePrivacyChannel,
+    [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
+    [string]$ProbeOutputPath,
+    [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
     [switch]$Help
 )
 
@@ -82,6 +85,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
+. (Join-Path $ScriptRoot "scripts/NativeValidation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditNotifications.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
@@ -1854,6 +1858,7 @@ Usage:
   ./WELA.ps1 control-applicability     # Read-only historical native feature/build assessment
   ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
+  ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
 "@
@@ -1871,6 +1876,13 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     $allowed = @('Cmd','Profile','ProfileFile','Role','Build','PlanPath','IncludeOptional','SaclMode','Auto','DryRun','BackupPath','ResultsPath','Help')
     if (@($PSBoundParameters.Keys | Where-Object { $_ -notin $allowed }).Count) { throw 'Unsupported option for custom audit profiles. No command was run.' }
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
+}
+
+if ($Cmd -ne 'native-validation' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('ProbeAction','ProbeOutputPath','ProbeTimeoutSeconds') }).Count) {
+    throw 'Probe options require native-validation. No command was run.'
+}
+if ($Cmd -eq 'native-validation' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProbeAction','ProbeOutputPath','ProbeTimeoutSeconds','Help') }).Count) {
+    throw 'native-validation accepts only its dedicated probe options. No command was run.'
 }
 
 if ($Cmd -ne 'audit-integrity' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('IntegrityAction','IntegrityProfile','AllowPrivilegeRemoval') }).Count) {
@@ -1965,6 +1977,13 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'native-validation' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 native-validation [-ProbeAction Plan|Run] [-ProbeOutputPath new-directory] [-ProbeTimeoutSeconds 1..30]. Plan reads prerequisites; Run launches a fixed benign cmd.exe probe and collects exact native Security 4688 XML. No policy changes or Sigma readiness credit. See docs/native-validation.md.'; return }
+        $report=Invoke-WelaNativeValidation -Action $ProbeAction -OutputPath $ProbeOutputPath -TimeoutSeconds $ProbeTimeoutSeconds
+        $report
+        if ($report.ExitCode -ne 0) { exit 1 }
+    }
+
     'audit-integrity' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-integrity [-IntegrityAction Audit|Plan|Configure] [-IntegrityProfile source-id] [-AllowPrivilegeRemoval] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Audit is read-only; Plan/Configure require an exact source profile. See docs/audit-integrity.md.'; return }
         if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-integrity observes the actual local Windows host; use -IntegrityProfile and -ResultsPath, without Security profiles, role/build overrides or HTML.' }
