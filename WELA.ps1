@@ -103,6 +103,11 @@
     [ValidateRange(1048576,1073741824)][long]$DnsMinimumBytes = 33554432,
     [ValidateRange(1048576,4294967296)][long]$DnsArchiveMaximumBytes = 1073741824,
     [switch]$AllowDnsTraceReset,
+    [string[]]$WecRuntimeId,
+    [ValidateRange(1,512)][int]$WecRuntimeMaximumSources=128,
+    [ValidateSet('Plan','Run')][string]$AppLockerProbeAction = 'Plan',
+    [string]$AppLockerProbeOutputPath,
+    [ValidateRange(1,30)][int]$AppLockerProbeTimeoutSeconds = 15,
     [switch]$Help
 )
 
@@ -125,9 +130,11 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeValidation.ps1")
 . (Join-Path $ScriptRoot "scripts/WefArrival.ps1")
+. (Join-Path $ScriptRoot "scripts/WecRuntime.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditNotifications.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
+. (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
@@ -1845,6 +1852,7 @@ function Get-WelaUserProfiles {
 $usage = @"
 Usage:
   ./WELA.ps1 dns-analytical -Help  # Dedicated DNS Server direct-channel lifecycle
+  ./WELA.ps1 wec-runtime -WecRuntimeId subscription-id -ResultsPath new-runtime.json
   ./WELA.ps1 targeted-sacl -Help  # Selected existing local SACL targets; read-only by default
   ./WELA.ps1 gpo-package -GpoAction Plan -GpoProfile wela-2.2.0 -Role Client -Build 26100
   ./WELA.ps1 gpo-package -GpoAction Export -GpoProfile wela-2.2.0 -Role Client -Build 26100 -GpoOutputPath .\audit-components
@@ -1913,6 +1921,7 @@ Usage:
   ./WELA.ps1 adcs-auditing -Help    # Dedicated local CA audit settings; restart requires explicit consent
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
+  ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
   ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
   ./WELA.ps1 version     # Show the WELA version
@@ -1976,6 +1985,14 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecRuntime*'}).Count) {
+    throw 'WecRuntime options require wec-runtime. No command was run.'
+}
+if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
+    throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
+}
+if ($Cmd -ne 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds')}).Count) {throw 'AppLocker probe options require applocker-probe.'}
+if ($Cmd -eq 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds','Help')}).Count) {throw 'applocker-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('ArrivalProbePath','ArrivalOutputPath')}).Count) {
     throw 'Arrival options require wef-arrival. No command was run.'
 }
@@ -2088,6 +2105,12 @@ switch ($Cmd.ToLower()) {
         if ($report.ExitCode) { exit $report.ExitCode }
     }
 
+    'wec-runtime' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 wec-runtime -WecRuntimeId id1,id2 [-WecRuntimeMaximumSources 1..512] [-ResultsPath new.json]. Read-only local typed WEC activity/errors/times; historical source inventory is not a connection count. No arrival or Sigma claim. See docs/wec-runtime.md.';return}
+        $report=Invoke-WelaWecRuntime -Ids $WecRuntimeId -MaximumSources $WecRuntimeMaximumSources -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) {exit $report.ExitCode}
+    }
     'targeted-sacl' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 targeted-sacl -TargetSaclProfile profile-id [-TargetSaclId id,...] [-TargetSaclAction Audit|Plan] [-IncludeOptional] [-TargetSaclIncludeChildren] [-ResultsPath new-plan.json]. Configure requires -TargetSaclAction Configure -TargetSaclPlanPath reviewed.json -TargetSaclId same-ids [-TargetSaclIncludeChildren] [-IncludeOptional] [-DryRun] [-Auto] [-BackupPath new-directory] [-ResultsPath new-results.json]. Existing local targets only; see docs/selected-sacl-configuration.md.'; return }
         $report=Invoke-WelaSelectedSacl -Action $TargetSaclAction -Profile $TargetSaclProfile -Ids $TargetSaclId -PlanPath $TargetSaclPlanPath -IncludeOptional:$IncludeOptional -IncludeChildren:$TargetSaclIncludeChildren -DryRun:$DryRun -Auto:$Auto -BackupPath $BackupPath -ResultsPath $ResultsPath
@@ -2137,6 +2160,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'applocker-probe' {
+        if ($Help) {Write-Host 'Usage: applocker-probe [-AppLockerProbeAction Plan|Run] [-AppLockerProbeOutputPath new-private-directory] [-AppLockerProbeTimeoutSeconds 1..30]. Requires existing EXE audit-only policy, running AppIDSvc and enabled channel. Run launches a fixed native cmd.exe copy and collects one exact AppLocker event. See docs/applocker-probe.md.';return}
+        $report=Invoke-WelaAppLockerProbe -Action $AppLockerProbeAction -OutputPath $AppLockerProbeOutputPath -TimeoutSeconds $AppLockerProbeTimeoutSeconds
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'wef-arrival' {
         if ($Help) {Write-Host 'Usage: ./WELA.ps1 wef-arrival -ArrivalProbePath existing-native-probe-directory -ArrivalOutputPath new-private-directory. Reads local ForwardedEvents and matches the exact original probe payload. No subscriptions, policy changes, latency or Sigma readiness claims. See docs/wef-arrival.md.'; return}
