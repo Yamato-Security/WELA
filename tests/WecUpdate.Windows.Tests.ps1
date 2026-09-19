@@ -15,7 +15,7 @@ function ServiceState {Get-CimInstance Win32_Service -Filter "Name='Wecsvc'"|Sel
 function Subscriptions {@((Invoke-WelaNative 'wecutil.exe' @('es')).Output|ForEach-Object {$_.ToString().Trim()}|Where-Object {$_})}
 $beforeService=ServiceState;$serviceKey='HKLM:\SYSTEM\CurrentControlSet\Services\Wecsvc';$beforeDelayed=Get-WelaRegistryState $serviceKey DelayedAutoStart
 if($beforeService.State -notin @('Running','Stopped') -or $beforeService.StartMode -notin @('Auto','Manual','Disabled')){throw 'Stable Wecsvc state required.'}
-$nonce=[guid]::NewGuid().ToString('N');$id='WELA-Update-Test-'+$nonce;$description='Owned original '+$nonce;$changedDescription='Owned reviewed '+$nonce
+$nonce=[guid]::NewGuid().ToString('N');$id='WELA-Update-Test-'+$nonce;$description='Owned original '+$nonce;$changedDescription='Owned reviewed '+([string][char]0x65e5)+([string][char]0x672c)+([string][char]0x8a9e)+' '+$nonce
 $sid='S-1-5-21-111111111-222222222-333333333-1234'
 $root=Join-Path $env:RUNNER_TEMP ('wela-wec-update-'+$nonce);$null=New-Item -ItemType Directory $root
 $created=$false;$beforeIds=$null;$primary=$null
@@ -56,7 +56,7 @@ try {
 finally {
  $errors=@()
  try {
-  if($created -and @(Subscriptions) -contains $id){$raw=[string]::Concat((Invoke-WelaNative 'wecutil.exe' @('gs',$id,'/f:xml')).Diagnostic);$doc=Read-WelaWefXml $raw;$ns=New-Object Xml.XmlNamespaceManager($doc.NameTable);$ns.AddNamespace('s',$doc.DocumentElement.NamespaceURI);$observed=$doc.SelectSingleNode('/s:Subscription/s:Description',$ns).InnerText;if($observed -cnotin @($description,$changedDescription)){throw 'Fixture ownership changed; refusing deletion.'};$null=Invoke-WelaNative 'wecutil.exe' @('ds',$id)}
+  if($created -and @(Subscriptions) -contains $id){$raw=Read-WelaWecSubscriptionXml $id;$doc=Read-WelaWefXml $raw;$ns=New-Object Xml.XmlNamespaceManager($doc.NameTable);$ns.AddNamespace('s',$doc.DocumentElement.NamespaceURI);$observed=$doc.SelectSingleNode('/s:Subscription/s:Description',$ns).InnerText;if($observed -cnotin @($description,$changedDescription)){throw 'Fixture ownership changed; refusing deletion.'};$null=Invoke-WelaNative 'wecutil.exe' @('ds',$id)}
   if($null -ne $beforeIds -and (Key @($beforeIds|Sort-Object)) -cne (Key @(Subscriptions|Sort-Object))){throw 'Subscription inventory differs after cleanup.'}
  }catch{$errors+=$_.Exception.Message}
  try {

@@ -22,7 +22,7 @@ function Get-WelaWecUpdateContext {
 function Get-WelaWecUpdateSources {
     $root=Split-Path $PSScriptRoot -Parent
     $sources=[ordered]@{}
-    foreach($name in @('scripts/WecUpdate.ps1','scripts/WecUpdateNative.cs','modules/WefSubscriptions.psm1','scripts/Configuration.ps1','scripts/ControlApplicability.ps1','scripts/WefArrival.ps1','modules/AuditProfiles.psm1')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $root $name) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+    foreach($name in @('scripts/WecUpdate.ps1','scripts/WecUpdateNative.cs','modules/WefSubscriptions.psm1','modules/WecSubscriptionXml.cs','scripts/Configuration.ps1','scripts/ControlApplicability.ps1','scripts/WefArrival.ps1','modules/AuditProfiles.psm1')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $root $name) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
     $sources|ConvertTo-Json -Compress
 }
 function Read-WelaWecUpdateFile {
@@ -50,8 +50,7 @@ function Get-WelaWecUpdateDefinition {
 function Read-WelaWecUpdateDefinition {
     param([string]$Id,[string[]]$SourceSids)
     if($Id -cnotmatch '^[A-Za-z0-9][A-Za-z0-9 ._-]{0,127}$'){throw 'Invalid exact subscription ID.'}
-    $result=Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('gs',$Id,'/f:xml')
-    $definition=Get-WelaWecUpdateDefinition ([string]::Concat($result.Diagnostic)) $SourceSids
+    $definition=Get-WelaWecUpdateDefinition (Read-WelaWecSubscriptionXml $Id) $SourceSids
     if($definition.Id -cne $Id){throw 'Native subscription identity differs from the selected ID.'}
     $definition
 }
@@ -72,7 +71,7 @@ function Assert-WelaWecUpdatePlan {
     param($Plan)
     Assert-WelaArrivalObject $Plan @('SchemaVersion','Kind','Id','SourceSids','ContextKey','Sources','BeforeXml','QueryXml','Description','RecordedUtc')
     if($Plan.SchemaVersion -isnot [int] -and $Plan.SchemaVersion -isnot [long]){throw 'Plan version must be an integer.'}
-    if($Plan.SchemaVersion -ne 1 -or $Plan.Kind -cne 'WelaDisabledWecUpdatePlan' -or $Plan.Id -isnot [string] -or $Plan.SourceSids -isnot [array] -or $Plan.ContextKey -isnot [string] -or $Plan.Sources -isnot [string] -or $Plan.BeforeXml -isnot [string] -or $Plan.QueryXml -isnot [string] -or $Plan.Description -isnot [string] -or $Plan.Description.Length -gt 4096 -or $Plan.Description -match '[\x00-\x08\x0b\x0c\x0e-\x1f]'){throw 'Unknown or mistyped update plan.'}
+    if($Plan.SchemaVersion -ne 1 -or $Plan.Kind -cne 'WelaDisabledWecUpdatePlan' -or $Plan.Id -isnot [string] -or $Plan.SourceSids -isnot [array] -or $Plan.ContextKey -isnot [string] -or $Plan.Sources -isnot [string] -or $Plan.BeforeXml -isnot [string] -or $Plan.QueryXml -isnot [string] -or $Plan.QueryXml.Length -gt 262144 -or $Plan.Description -isnot [string] -or $Plan.Description.Length -gt 4096 -or $Plan.Description -match '[\x00-\x08\x0b\x0c\x0e-\x1f]'){throw 'Unknown or mistyped update plan.'}
     $null=ConvertTo-WelaArrivalUtc $Plan.RecordedUtc
     foreach($sid in $Plan.SourceSids){if($sid -isnot [string]){throw 'Source SID must be a string.'}}
     $null=Get-WelaWefAuthorization $Plan.SourceSids
@@ -98,7 +97,9 @@ function Invoke-WelaWecUpdate {
             Assert-WelaWecUpdatePlan $plan
             if((Read-WelaWecUpdateFile $QueryPath 524288).Hash -cne $sourceInput.Hash){throw 'Desired query input changed during planning.'}
             if((Read-WelaWecUpdateDefinition $Id $SourceSids).WholeKey -cne $before.WholeKey -or ((Get-WelaWecUpdateContext|ConvertTo-Json -Depth 16 -Compress) -cne $contextKey)){throw 'Host or subscription drift during planning.'}
-            $artifact=Write-WelaWecUpdateArtifact $output 'plan.json' ($plan|ConvertTo-Json -Depth 20);$report.Artifacts+=$artifact;$report.PlanHash=$artifact.Sha256;$report.Status='ReviewRequired';$report.ExitCode=0
+            $planText=$plan|ConvertTo-Json -Depth 20
+            if([Text.Encoding]::UTF8.GetByteCount($planText) -gt 4194304){throw 'The reviewed plan exceeds the four-MiB apply input limit.'}
+            $artifact=Write-WelaWecUpdateArtifact $output 'plan.json' $planText;$report.Artifacts+=$artifact;$report.PlanHash=$artifact.Sha256;$report.Status='ReviewRequired';$report.ExitCode=0
         }else{
             if($sourceInput.Hash -cne $PlanHash){throw 'Reviewed plan hash differs from the selected file bytes.'}
             $plan=ConvertFrom-WelaArrivalJson $sourceInput.Text;Assert-WelaWecUpdatePlan $plan;$report.PlanHash=$sourceInput.Hash

@@ -28,3 +28,4 @@ scripts/WecUpdate.ps1 text eol=lf
 scripts/WecUpdateNative.cs text eol=lf
 modules/WefSubscriptions.psm1 text eol=lf
 tests/WecUpdate*.ps1 text eol=lf
+modules/WecSubscriptionXml.cs text eol=lf

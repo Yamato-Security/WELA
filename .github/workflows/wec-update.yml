@@ -22,6 +22,7 @@ jobs:
         run: |
           ./tests/WecUpdate.Tests.ps1
           ./tests/WecUpdate.Cli.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
       - name: Actual disabled-subscription updates in Windows PowerShell 5.1
         if: matrix.engine == 'powershell'
         shell: powershell
@@ -32,6 +33,7 @@ jobs:
         run: |
           ./tests/WecUpdate.Tests.ps1
           ./tests/WecUpdate.Cli.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
       - name: Actual disabled-subscription updates in PowerShell 7
         if: matrix.engine == 'pwsh'
         shell: pwsh
