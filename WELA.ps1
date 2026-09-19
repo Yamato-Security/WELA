@@ -4,6 +4,7 @@
     [switch]$Debug,
     [string]$Baseline,
     [string]$Profile,
+    [string]$ProfileFile,
     [string]$LogProfile,
     [switch]$ResizeLogs,
     [switch]$ApplyLogMode,
@@ -67,6 +68,9 @@
     [string]$IntuneEdition,
     [string]$IntuneOutputPath,
     [ValidateSet('Reject','PromoteToBoth')][string]$IntuneMinimumMode = 'Reject',
+    [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
+    [string]$ProbeOutputPath,
+    [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
     [switch]$Help
 )
 
@@ -86,6 +90,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
+. (Join-Path $ScriptRoot "scripts/NativeValidation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditNotifications.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
@@ -405,6 +410,28 @@ function Invoke-WelaProfileCommand {
     param([string]$Command)
     if ($script:Baseline) { throw "Use -Profile or -Baseline, not both. Versioned profiles cover advanced audit policy and its precedence prerequisite." }
     if (-not $script:Profile) { throw "Specify -Profile. Use './WELA.ps1 profiles' to list versioned profiles." }
+    $planArguments = @{}
+    if ($script:ProfileFile) {
+        # Complete strict file/identifier/source validation before Windows reads.
+        $custom = Import-WelaCustomAuditProfiles -Path $script:ProfileFile
+        if ($script:Profile -cnotin @($custom.profiles.id)) { throw 'Selected profile is not present in the custom file; built-in fallback is disabled.' }
+        foreach ($output in @($script:PlanPath,$script:ResultsPath,$script:BackupPath)) {
+            if (-not $output) { continue }
+            $full = [IO.Path]::GetFullPath($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($output))
+            if ($full -ieq $custom.customSource.Path -or $full -ieq $custom.customSource.CanonicalPath) { throw 'Profile input/catalog and output/backup paths must differ.' }
+        }
+        $reportPaths=@()
+        foreach ($output in @($script:PlanPath,$script:ResultsPath)) {
+            if (-not $output) { continue }
+            $full=Get-WelaCustomReportPath $output
+            if ($full -iin $reportPaths) { throw 'Custom PlanPath and ResultsPath require distinct new report files.' }
+            $reportPaths+=$full
+        }
+        $planArguments = @{Path=$custom.customSource.Path;CustomFile=$true}
+        if ($script:Role -and $script:Build) {
+            $null = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $script:Role -Build $script:Build @planArguments
+        }
+    }
     $context = Get-WelaSelectedContext
     $current = @{}
     $saclLive = $false
@@ -415,7 +442,11 @@ function Invoke-WelaProfileCommand {
         else { Write-Host "Planning for another role/build: effective state remains Unknown." }
     }
     elseif ($Command -ne 'plan') { throw "Audit and configure require Windows. Offline planning requires explicit -Role and -Build." }
-    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional
+    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional @planArguments
+    if ($script:ProfileFile) {
+        Assert-WelaCustomProfileSource $custom.customSource
+        if ($plan.CustomProfileSource.Sha256 -cne $custom.customSource.Sha256) { throw 'Custom profile changed during host assessment.' }
+    }
     $precedence = Get-WelaAuditPrecedenceState -Offline:($current.Count -eq 0)
     $plan | Add-Member NoteProperty AuditPrecedence $precedence
     $saclPlan = Get-WelaTargetedSaclPlan -AuditPlan $plan -Mode $script:SaclMode -Live:$saclLive
@@ -433,15 +464,26 @@ function Invoke-WelaProfileCommand {
         Assert-WelaAuditProfileTarget -Plan $plan -Context $actual -Current $current
         $configurationContext = New-WelaConfigurationContext -Auto:$script:Auto -DryRun:$script:DryRun -BackupPath $script:BackupPath
         Set-WelaProfileAuditControls -Context $configurationContext -Plan $plan
-        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan -Scope advanced-audit-policy-and-precedence
+        $sharedResultsPath=if ($script:ProfileFile) { $null } else { $script:ResultsPath }
+        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $sharedResultsPath -Plan $plan -Scope advanced-audit-policy-and-precedence
         $result | Add-Member NoteProperty SaclPrerequisites $saclPlan
-        if ($script:ResultsPath) { $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:ResultsPath -Encoding UTF8 -ErrorAction Stop }
+        if ($script:ResultsPath) {
+            if ($script:ProfileFile) { Write-WelaCustomProfileReport $result $script:ResultsPath }
+            else { $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:ResultsPath -Encoding UTF8 -ErrorAction Stop }
+        }
         $result.Results | Format-Table Id, Before, Desired, After, Status -AutoSize
     } else {
         $plan.policies | Format-Table id, mode, currentMask, requiredMask, action -AutoSize
+        if ($script:ProfileFile -and $script:ResultsPath) {
+            Assert-WelaCustomProfileSource $custom.customSource
+            Write-WelaCustomProfileReport $plan $script:ResultsPath
+        }
     }
     if ($script:PlanPath) {
-        $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:PlanPath -Encoding UTF8 -ErrorAction Stop
+        if ($script:ProfileFile) {
+            if ($Command -ne 'configure') { Assert-WelaCustomProfileSource $custom.customSource }
+            Write-WelaCustomProfileReport $result $script:PlanPath
+        } else { $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:PlanPath -Encoding UTF8 -ErrorAction Stop }
         Write-Host "Machine-readable result: $($script:PlanPath)"
     }
     if ($Command -eq 'configure' -and $result.ExitCode -ne 0) { throw "One or more advanced audit policies failed. See the effective-state results." }
@@ -1799,6 +1841,8 @@ Usage:
   # SMB auditing is opt-in and never changes signing/encryption requirements or guest access.
   ./WELA.ps1 ad-object-sacl -AdSaclAction Plan -AdServer dc01.example.test -AdSaclProfile MdiDomain
   ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
+  ./WELA.ps1 profiles -ProfileFile config/custom-audit-profile.example.json
+  ./WELA.ps1 plan -Profile custom-example -ProfileFile config/custom-audit-profile.example.json -Role Client -Build 26100
   ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
   ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
   ./WELA.ps1 configure -Profile asd-native-2021-10 -PlanPath result.json -Auto
@@ -1821,6 +1865,7 @@ Usage:
   ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
+  ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
 "@
@@ -1837,6 +1882,21 @@ if ($Cmd -ne 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
 }
 if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','IntuneProfile','IntuneBuild','IntuneEdition','IntuneOutputPath','IntuneMinimumMode','IncludeOptional','Help') }).Count) {
     throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
+}
+
+if ($PSBoundParameters.ContainsKey('ProfileFile')) {
+    if ([string]::IsNullOrWhiteSpace($ProfileFile) -or $Cmd -notin @('profiles','plan','audit','audit-settings','configure')) { throw '-ProfileFile requires profiles, plan, audit, audit-settings or configure. No command was run.' }
+    if ($Baseline -or ($Cmd -ne 'profiles' -and -not $Profile)) { throw '-ProfileFile requires an explicit -Profile and cannot be combined with -Baseline (profiles lists the file). No command was run.' }
+    $allowed = @('Cmd','Profile','ProfileFile','Role','Build','PlanPath','IncludeOptional','SaclMode','Auto','DryRun','BackupPath','ResultsPath','Help')
+    if (@($PSBoundParameters.Keys | Where-Object { $_ -notin $allowed }).Count) { throw 'Unsupported option for custom audit profiles. No command was run.' }
+    if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
+}
+
+if ($Cmd -ne 'native-validation' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('ProbeAction','ProbeOutputPath','ProbeTimeoutSeconds') }).Count) {
+    throw 'Probe options require native-validation. No command was run.'
+}
+if ($Cmd -eq 'native-validation' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProbeAction','ProbeOutputPath','ProbeTimeoutSeconds','Help') }).Count) {
+    throw 'native-validation accepts only its dedicated probe options. No command was run.'
 }
 
 if ($Cmd -ne 'audit-integrity' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('IntegrityAction','IntegrityProfile','AllowPrivilegeRemoval') }).Count) {
@@ -1940,6 +2000,13 @@ switch ($Cmd.ToLower()) {
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] Intune export: $_" -ForegroundColor Red; exit 1 }
     }
+    'native-validation' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 native-validation [-ProbeAction Plan|Run] [-ProbeOutputPath new-directory] [-ProbeTimeoutSeconds 1..30]. Plan reads prerequisites; Run launches a fixed benign cmd.exe probe and collects exact native Security 4688 XML. No policy changes or Sigma readiness credit. See docs/native-validation.md.'; return }
+        $report=Invoke-WelaNativeValidation -Action $ProbeAction -OutputPath $ProbeOutputPath -TimeoutSeconds $ProbeTimeoutSeconds
+        $report
+        if ($report.ExitCode -ne 0) { exit 1 }
+    }
+
     'audit-integrity' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-integrity [-IntegrityAction Audit|Plan|Configure] [-IntegrityProfile source-id] [-AllowPrivilegeRemoval] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Audit is read-only; Plan/Configure require an exact source profile. See docs/audit-integrity.md.'; return }
         if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-integrity observes the actual local Windows host; use -IntegrityProfile and -ResultsPath, without Security profiles, role/build overrides or HTML.' }
@@ -2133,7 +2200,9 @@ switch ($Cmd.ToLower()) {
         if ($report.ExitCode -ne 0) { throw 'AppLocker assessment/import failed; see structured results.' }
     }
     "profiles" {
-        (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List
+        $data = if ($ProfileFile) { Import-WelaCustomAuditProfiles -Path $ProfileFile } else { Import-WelaAuditProfiles }
+        if ($ProfileFile) { $data.customSource | Format-List }
+        $data.profiles | Select-Object id, version, scope, appliesTo | Format-List
     }
     "plan" { Invoke-WelaProfileCommand -Command 'plan' }
     "audit" { Invoke-WelaProfileCommand -Command 'audit' }
@@ -2200,6 +2269,7 @@ switch ($Cmd.ToLower()) {
             Write-Host ""
             Write-Host "Options:"
             Write-Host "  -Profile     Configure advanced audit policy and precedence from a versioned profile; list IDs with profiles"
+            Write-Host "  -ProfileFile Select a validated custom JSON profile file; requires an explicit -Profile"
             Write-Host "  -Auto        Automatically configure without prompts"
             Write-Host "  -OutgoingNtlmMode  PreserveOrAudit (default): audit, preserving existing deny; Audit: explicitly replace deny; Deny: opt into enforcement"
             Write-Host "  -DryRun      Read live state and report proposed changes without writing Windows settings"
