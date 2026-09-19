@@ -1,5 +1,7 @@
 # Real catalog + public audit renderer/exports; Windows reads are injected at the OS boundary.
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot '../modules/AuditProfiles.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot '../modules/AuditCatalog.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot '../modules/NativeProviders.psm1') -Force
 $module = Get-Module NativeProviders
 & $module {
