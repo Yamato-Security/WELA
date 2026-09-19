@@ -58,6 +58,7 @@
 
 **New Features:**
 
+- Added `applocker-readiness` to inspect native policy collections, enforcement, Application Identity and channels, plus a guarded operator-supplied audit-only import for empty local policies. Existing enforcement and managed hosts block import; unused empty NotConfigured placeholders no longer cause false comparison failures, while targeted placeholders remain blocked because merge can retain enforcement. Original XML and unknown/configured collection content stay preserved; GP/CSP visibility and event-generation gaps remain explicit. (#400) (@Shirofune-Security)
 - Profile plan/audit/configure now include read-only targeted SACL prerequisites with object policy masks, per-user hive and redirected-folder gaps, exact WEF Run/RunOnce audit entries, and an explicit `-SaclMode Skip`. User-file targets retain their configured suffix under the user's AppData or Startup known folder; unsupported or ambiguous paths remain unresolved. No SACL writes or unverified detection uplift are implied. (#398) (@Shirofune-Security)
 
 
