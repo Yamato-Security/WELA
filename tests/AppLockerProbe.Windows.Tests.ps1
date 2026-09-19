@@ -16,21 +16,31 @@ function Stop-DisposablePolicyConverter {
  throw 'The verified borrowed PolicyConverter task did not become idle.'
 }
 function Run-DisposablePolicyConverter {
- # Compare the scheduler's own raw timestamps; CIM DateTime timezone/kind differs across server builds.
- $prior=(Get-ScheduledTaskInfo -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop).LastRunTime.Ticks
- # Task Scheduler timestamps can have second precision. Separate consecutive owned invocations.
- Start-Sleep -Milliseconds 1100
- $deadline=[DateTime]::UtcNow.AddSeconds(30)
- Start-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
- do {
-  $task=Get-ScheduledTask -TaskPath '\Microsoft\Windows\AppID\' -TaskName 'PolicyConverter' -ErrorAction Stop
-  $info=Get-ScheduledTaskInfo -InputObject $task -ErrorAction Stop
-  if($task.State -eq 'Ready' -and $info.LastRunTime.Ticks -ne $prior){if($info.LastTaskResult -ne 0){throw ('Native policy conversion failed: '+$info.LastTaskResult)};return}
-  Start-Sleep -Milliseconds 200
- }while([DateTime]::UtcNow -lt $deadline)
- Stop-DisposablePolicyConverter
- throw ('Native policy conversion did not complete within thirty seconds. State='+$task.State+'; beforeTicks='+$prior+'; afterTicks='+$info.LastRunTime.Ticks+'; result='+$info.LastTaskResult)
+ # The Task Scheduler CIM provider can retain stale LastRunTime on Server2022.
+ # Follow the actual COM Run instance and native completion state instead.
+ $scheduler=$null;$folder=$null;$registered=$null;$instance=$null;$running=$null;$definition=$null;$settings=$null
+ try {
+  $scheduler=New-Object -ComObject 'Schedule.Service';$scheduler.Connect()
+  $folder=$scheduler.GetFolder('\Microsoft\Windows\AppID');$registered=$folder.GetTask('PolicyConverter')
+  $definition=$registered.Definition;$settings=$definition.Settings
+  if(-not $settings.AllowDemandStart){throw 'The verified PolicyConverter task does not allow an on-demand invocation.'}
+  $running=$registered.GetInstances(0)
+  if($running.Count -ne 0 -or $registered.State -ne 3){throw 'The verified borrowed PolicyConverter task must be idle before invocation.'}
+  $null=[Runtime.InteropServices.Marshal]::FinalReleaseComObject($running);$running=$null
+  $instance=$registered.Run($null)
+  if($null -eq $instance -or [string]::IsNullOrWhiteSpace($instance.InstanceGuid)){throw 'Native PolicyConverter did not return a task instance identity.'}
+  $instanceId=[string]$instance.InstanceGuid;$deadline=[DateTime]::UtcNow.AddSeconds(30)
+  do {
+   $running=$registered.GetInstances(0)
+   try {$idle=$running.Count -eq 0 -and $registered.State -eq 3}finally{$null=[Runtime.InteropServices.Marshal]::FinalReleaseComObject($running);$running=$null}
+   if($idle){if($registered.LastTaskResult -ne 0){throw ('Native policy conversion failed: '+$registered.LastTaskResult)};Write-Host ('Native PolicyConverter instance completed: '+$instanceId);return}
+   Start-Sleep -Milliseconds 200
+  }while([DateTime]::UtcNow -lt $deadline)
+  Stop-DisposablePolicyConverter
+  throw 'The owned native PolicyConverter instance did not complete within thirty seconds.'
+ }finally{foreach($item in @($running,$instance,$settings,$definition,$registered,$folder,$scheduler)){if($null -ne $item -and [Runtime.InteropServices.Marshal]::IsComObject($item)){$null=[Runtime.InteropServices.Marshal]::FinalReleaseComObject($item)}}}
 }
+
 $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/Configuration.ps1"
 . "$repo/scripts/AppLockerReadiness.ps1"
