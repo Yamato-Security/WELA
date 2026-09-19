@@ -76,6 +76,8 @@ function Start-WelaWmiProbeRead {
         if($operation.Namespace -cne $State.Namespace -or $operation.ProcessId -ne $process.Id -or $operation.ExpectedAccessMask -ne 1 -or $operation.ReturnedRows -ne 0 -or $operation.Query -cnotmatch "^SELECT Name FROM __Namespace WHERE Name='WelaReadProbe_[a-f0-9]{32}'$"){throw 'Unexpected fixed worker response.'}
         $start=ConvertTo-WelaArrivalUtc $operation.StartedUtc;$end=ConvertTo-WelaArrivalUtc $operation.CompletedUtc
         if($start -gt $end -or ($end-$start).TotalSeconds -gt 20 -or $end -gt [DateTimeOffset]::UtcNow){throw 'Invalid fixed worker time interval.'}
+        # Older PowerShell7 JSON readers can materialize UTC strings as DateTime.
+        $operation.StartedUtc=$start.UtcDateTime.ToString('o');$operation.CompletedUtc=$end.UtcDateTime.ToString('o')
         if((Get-WelaWmiProbeTokenKey $operation.BeforeToken) -cne (Get-WelaWmiProbeTokenKey $operation.AfterToken) -or (Get-WelaWmiProbeTokenKey $operation.BeforeToken -AuthorizationOnly) -cne (Get-WelaWmiProbeTokenKey $State.Token -AuthorizationOnly)){throw 'Worker token differs from the observed caller or changed during access.'}
         $operation|Add-Member NoteProperty SecurityRecordIdBefore $watermark
         $operation
@@ -87,7 +89,7 @@ function Read-WelaWmiProbeEvents {
     $records=@();$xml=@()
     try{
         try{$records=@(Get-WinEvent -LogName Security -FilterXPath $query -MaxEvents 256 -ErrorAction Stop)}catch{if($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*'){throw}}
-        foreach($record in $records){$text=[string]$record.ToXml();if($text.Length -gt 131072){throw 'Native event exceeds the128KiB character bound.'};$xml+=$text}
+        foreach($record in $records){$text=[string]$record.ToXml();if($text.Length -gt 131072){throw 'Native event exceeds the 128 KiB character bound.'};$xml+=$text}
         [pscustomobject]@{Xml=$xml;Capped=($records.Count -ge 256);Query=$query;MaximumEvents=256}
     }finally{foreach($record in $records){$record.Dispose()}}
 }
@@ -120,19 +122,19 @@ function Invoke-WelaWmiProbe {
     if($Action -eq 'Run'){$report.OutputPath=New-WelaArrivalOutput $OutputPath $PSScriptRoot}
     try{
         $before=Get-WelaWmiProbeState $Namespace;$report.Before=$before;$key=Get-WelaWmiProbeStateKey $before
-        if($Action -eq 'Plan'){$report.Status='PrerequisitesObserved';$report.ExitCode=0;return $report}
+        if($Action -eq 'Plan'){$report.After=$before;$report.Status='PrerequisitesObserved';$report.ExitCode=0;return $report}
         $report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath 'before.json' ($before|ConvertTo-Json -Depth 20)
         $operation=Start-WelaWmiProbeRead $before;$report.Operation=$operation
         $report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath 'operation.json' ($operation|ConvertTo-Json -Depth 12)
         $timer=[Diagnostics.Stopwatch]::StartNew();$matches=@()
         do{
             $batch=Read-WelaWmiProbeEvents $operation;$report.Query=$batch.Query;$report.Candidates=@($batch.Xml).Count
-            if($batch.Capped -isnot [bool] -or $batch.Capped){throw 'The256-event query cap was reached or completeness is unknown.'}
+            if($batch.Capped -isnot [bool] -or $batch.Capped){throw 'The 256-event query cap was reached or completeness is unknown.'}
             $matches=@($batch.Xml|Where-Object {Test-WelaWmiProbeEvent $_ $operation $before})
             if($matches.Count){break};Start-Sleep -Milliseconds 250
         }while($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds)
         $report.Matches=$matches.Count
-        if($matches.Count -gt 16){throw 'More than16 matching records exceed the bounded evidence set.'}
+        if($matches.Count -gt 16){throw 'More than 16 matching records exceed the bounded evidence set.'}
         $i=0;foreach($xml in $matches){$i++;$report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath ('event-'+$i+'.xml') $xml}
         if(-not $matches.Count){$i=0;foreach($xml in @($batch.Xml|Select-Object -First 4)){$i++;$report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath ('candidate-'+$i+'.xml') $xml};throw 'No exact WMI namespace read event was observed in the fixed operation interval.'}
         if((Get-WelaWmiProbeWatermark) -lt $operation.SecurityRecordIdBefore){throw 'Security log record boundary moved backwards; evidence continuity is unknown.'}
