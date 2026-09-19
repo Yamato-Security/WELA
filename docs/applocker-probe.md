@@ -1,0 +1,22 @@
+# Native AppLocker EXE probe
+
+Related to #381. `applocker-probe` tests one fixed benign executable against an **existing** effective Group Policy EXE audit-only collection. It changes no policy, service startup/state, channel configuration or audit settings. Sysmon is excluded.
+
+```powershell
+.\WELA.ps1 applocker-probe
+.\WELA.ps1 applocker-probe -AppLockerProbeAction Run -AppLockerProbeOutputPath C:\Evidence\new-applocker-probe -AppLockerProbeTimeoutSeconds 30
+```
+
+Plan reads prerequisites without launching a process or writing files. Run requires a new private output directory on a local fixed drive; its parent must exist. The EXE collection must contain rules, AppIDSvc must already run and the EXE and DLL channel must already be enabled. Only actual 64-bit client/member-server observations are accepted. Domain controller testing is not supported.
+
+Run copies native System32 `cmd.exe` into the protected output directory with a unique filename, verifies its SHA256 and executes only `/d /c echo WELA_APPLOCKER_<nonce>`. Input and copied executable are held read-locked during launch. The copied executable is retained as part of the evidence. No operator-supplied command is executed. Other application-control authorities may block the probe; that produces an unverified result. AppLocker CSP policy remains Unknown because Get-AppLockerPolicy observes Group Policy only.
+
+A bounded query requires exactly one native AppLocker 8002 (allowed) or 8003 (allowed, would block under enforcement) with the expected provider, version, computer, EXE collection, actual user SID, owned process ID, exact file path and time window. The report retains the distinct event ID; 8002 does not demonstrate a would-block decision. Policy, service, channel, reader, host and executable bytes are checked before and after. Denied, absent, capped, duplicate or drifted results fail with a retained diagnostic. Component hashes establish consistency, not authenticity or a signature.
+
+`NativeExeEventObserved` proves only this event in this local channel at this time. It grants **zero Sigma readiness credit**. Scripts, MSI, DLL, packaged applications, forwarding, translated queries and backend matches require separate evidence. Client builds and managed/CSP deployments require lab acceptance beyond hosted-server CI.
+
+The Windows test explicitly opts into temporary changes on disposable GitHub-hosted Server 2022/2025 VMs under Windows PowerShell 5.1 and PowerShell 7. It accepts only a non-domain host with initially empty, understood local/effective GP policies, prepares one AuditOnly policy through the native cmdlet in the test fixture, temporarily enables/runs the existing verified native PolicyConverter task when disabled, runs a bounded computer Group Policy refresh and requires native 8001 policy-application evidence followed by a real 8003. Hosted images can contain enrollment/provider keys; these are recorded and preserved, and CSP policy remains Unknown. This fixture tests the probe, not production importer acceptance: the production importer continues to block observed management entries. It restores and refreshes the original local policy, verifies both local and effective GP snapshots, and restores channel enablement and the exact PolicyConverter task definition/enabled setting with no task invocation left running or queued, and leaves service startup mode untouched. If Windows refuses to stop its protected AppIDSvc, the test records that running-state boundary and relies on disposal of the VM; it does not claim service-state rollback. Never run that fixture on a production host.
+
+The test-only GP refresh is never performed by the product command.
+
+Microsoft references: [documented refresh and policy-applied verification](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/applocker/refresh-an-applocker-policy), [AppLocker event IDs](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/applocker/using-event-viewer-with-applocker), [Application Identity service and protected startup mode](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/applocker/configure-the-application-identity-service).

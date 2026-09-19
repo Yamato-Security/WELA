@@ -253,14 +253,16 @@ function Get-WelaWefInventory {
     foreach ($subscription in $InputModel.Subscriptions) {
         $channels=@()
         foreach ($name in $subscription.Query.Channels) { $channels += Get-WelaNativeChannel -Name $name }
-        $runtime=$null; $observed=$null; $observationError=''
+        $runtime=$null; $typedRuntime=$null; $observed=$null; $observationError=''
         if ($Role -eq 'Collector') {
             try { $observed=Get-WelaWefControlState Subscription @{ Id=$subscription.Id; SourceSids=$subscription.SourceSids } }
             catch { $observationError=$_.ToString() }
             try { $native=Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('gr',$subscription.Id); $runtime=[pscustomobject]@{ State='CommandSucceeded'; Raw=$native.Diagnostic; Diagnostic='Localized native runtime status is retained without inferring event arrival.' } }
             catch { $runtime=[pscustomobject]@{ State='Unknown'; Raw=$null; Diagnostic=$_.ToString() } }
+            try {$typedRuntime=Get-WelaWecRuntime -Id $subscription.Id}
+            catch {$typedRuntime=[pscustomobject]@{Status='Unknown';Diagnostic=$_.Exception.Message;ReadyRuleCredit=0}}
         }
-        [pscustomobject]@{ Id=$subscription.Id; RequestedEnabled=$subscription.Definition.Enabled; RequestedDefinition=$subscription.Definition; ObservedEnabled=$(if ($observed.Exists) { $observed.Definition.Enabled } else { $null }); ObservedSubscription=$observed; ObservationError=$observationError; Filters=$subscription.Query.Filters; SourceChannels=$channels; ChannelObservationLocation=$(if ($Role -eq 'Collector') { 'Collector only; remote source states are not observed' } else { 'Local source' }); Runtime=$runtime; EffectiveSourceReadAccess='Not tested'; EventArrival='Not tested'; ForwardedSigmaCoverage='Not assessed' }
+        [pscustomobject]@{ Id=$subscription.Id; RequestedEnabled=$subscription.Definition.Enabled; RequestedDefinition=$subscription.Definition; ObservedEnabled=$(if ($observed.Exists) { $observed.Definition.Enabled } else { $null }); ObservedSubscription=$observed; ObservationError=$observationError; Filters=$subscription.Query.Filters; SourceChannels=$channels; ChannelObservationLocation=$(if ($Role -eq 'Collector') { 'Collector only; remote source states are not observed' } else { 'Local source' }); Runtime=$runtime; TypedRuntime=$typedRuntime; EffectiveSourceReadAccess='Not tested'; EventArrival='Not tested'; ForwardedSigmaCoverage='Not assessed' }
     }
 }
 
