@@ -1,0 +1,40 @@
+name: Native WEF arrival verification
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/WefArrival.ps1'
+      - 'scripts/NativeValidation.ps1'
+      - 'scripts/ControlApplicability.ps1'
+      - 'scripts/CustomAuditProfiles.ps1'
+      - 'modules/AuditProfiles.psm1'
+      - 'config/audit_profiles.json'
+      - 'tests/WefArrival*'
+      - 'tests/fixtures/WefArrival.Fixture.ps1'
+      - '.github/workflows/wef-arrival.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wef-arrival:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Synthetic source and collector regressions in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/WefArrival.Tests.ps1
+      - name: Actual read-only collector queries in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/WefArrival.Windows.Tests.ps1
+      - name: Synthetic source and collector regressions in PowerShell 7
+        shell: pwsh
+        run: ./tests/WefArrival.Tests.ps1
+      - name: Actual read-only collector queries in PowerShell 7
+        shell: pwsh
+        run: ./tests/WefArrival.Windows.Tests.ps1
