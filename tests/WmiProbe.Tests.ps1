@@ -3,10 +3,34 @@ Import-Module (Join-Path $repo 'modules/AuditProfiles.psm1') -Force
 . (Join-Path $repo 'scripts/WefArrival.ps1')
 . (Join-Path $repo 'scripts/WmiNamespaceAuditing.ps1')
 . (Join-Path $repo 'scripts/WmiProbe.ps1')
+Add-Type -Path (Join-Path $repo 'scripts/WmiProbeNative.cs') -ErrorAction Stop
 $script:count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Reject($Code,$Pattern){$message='';try{&$Code|Out-Null}catch{$message=$_.Exception.Message};Assert ($message -match $Pattern) "Expected $Pattern, got $message"}
 function Clone($Value){ConvertFrom-WelaArrivalJson ($Value|ConvertTo-Json -Depth 24 -Compress)}
+# Exercise the actual native token-equivalence gate with synthetic field values.
+$equivalent=[Wela.WmiProbe.Native].GetMethod('Equivalent',[Reflection.BindingFlags]'NonPublic,Static')
+function NativeToken {
+    $t=[Wela.WmiProbe.Token]::new();$t.Sid='S-1-5-21-1-2-3-1001';$t.AuthenticationId='0x123'
+    $g=[Wela.WmiProbe.Group]::new();$g.Sid='S-1-1-0';$g.Attributes=7;$t.Groups=@($g)
+    $p=[Wela.WmiProbe.Privilege]::new();$p.Luid='0x8';$p.Attributes=0;$t.Privileges=@($p);$t
+}
+$a=NativeToken;$b=NativeToken;$a.TokenSource='Process';$b.TokenSource='EquivalentSelfThread'
+Assert ($equivalent.Invoke($null,@($a,$b))) 'Equivalent runtime self token is accepted without replacement.'
+foreach($change in @('Sid','AuthenticationId','GroupSid','GroupAttributes','PrivilegeLuid','PrivilegeAttributes','GroupCount','PrivilegeCount')){
+    $b=NativeToken
+    switch($change){
+        Sid {$b.Sid='S-1-5-18'}
+        AuthenticationId {$b.AuthenticationId='0x124'}
+        GroupSid {$b.Groups[0].Sid='S-1-5-11'}
+        GroupAttributes {$b.Groups[0].Attributes=16}
+        PrivilegeLuid {$b.Privileges[0].Luid='0x9'}
+        PrivilegeAttributes {$b.Privileges[0].Attributes=2}
+        GroupCount {$b.Groups=@()}
+        PrivilegeCount {$b.Privileges=@()}
+    }
+    Assert (-not $equivalent.Invoke($null,@($a,$b))) ('Different effective token is refused: '+$change)
+}
 $token=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1001';Name='LAB\Reader';AuthenticationId='0x123';AuthenticationType='NTLM';ImpersonationLevel='None';Groups=@([pscustomobject]@{Sid='S-1-1-0';Attributes=7});Privileges=@([pscustomobject]@{Luid='0x8';Attributes=0})}
 $descriptor=[pscustomobject]@{ControlFlags=32788;Owner=$null;Group=$null;DACL=@();SACL=@([pscustomobject]@{AceType=2;AceFlags=64;AccessMask=1;Trustee=[pscustomobject]@{SIDString='S-1-1-0'}})}
 $state=[pscustomobject][ordered]@{Namespace='root\default';Computer='LAB';Host=[pscustomobject]@{Status='Observed';Build=26100;ProductType=3;DomainJoined=$false};Token=$token;Descriptor=[pscustomobject]@{Namespace='root\default';DescriptorJson=($descriptor|ConvertTo-Json -Depth 10 -Compress);DescriptorMof='fixture descriptor'};AuditMask=1;Precedence=[pscustomobject]@{ValueExists=$true;Type='DWord';Value=1};Channel=[pscustomobject]@{Name='Security';Enabled=$true;SecurityDescriptor='O:SYG:SYD:(A;;0x1;;;SY)'};Engine='/fixture';EngineHash=('a'*64);Sources='fixture-sources'}
