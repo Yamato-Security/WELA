@@ -2,6 +2,7 @@
 # injected audit observations. Only temporary files are written; no Windows policy changes.
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot '../modules/RuleEligibility.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot '../modules/AuditCatalog.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot '../modules/AuditProfiles.psm1') -Force
 $tokens = $null; $parseErrors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../WELA.ps1'), [ref]$tokens, [ref]$parseErrors)
