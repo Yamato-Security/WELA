@@ -8,9 +8,22 @@ function Get-WelaMeasurementCatalog {
 }
 function Resolve-WelaMeasurementPath {
     param([Parameter(Mandatory)][string]$Path)
+    # Validate lexical aliases before Windows/provider canonicalization can trim them.
+    foreach ($part in $Path.Split([char[]]@('\','/'))) {
+        if ($part -notin @('.','..') -and ($part -match '[. ]$' -or $part -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)')) {throw 'Measurement evidence rejects ambiguous path aliases and reserved names.'}
+    }
     $full=Resolve-WelaEvtxPath $Path
     foreach ($part in $full.Substring([IO.Path]::GetPathRoot($full).Length).Split([char[]]@('\','/'))) {
         if ($part -match '[. ]$' -or $part -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)' -or $part -match '[<>"|]') {throw 'Measurement evidence rejects ambiguous path aliases and reserved names.'}
+    }
+    # Unlike a missing future output component, denied ancestor metadata is not absence.
+    $ancestor=$full
+    while ($ancestor) {
+        try {
+            $item=Get-Item -LiteralPath $ancestor -Force -ErrorAction Stop
+            if ([int]$item.Attributes -band [int][IO.FileAttributes]::ReparsePoint) {throw 'Measurement evidence cannot traverse reparse points.'}
+        } catch [System.Management.Automation.ItemNotFoundException] { }
+        $parent=[IO.Directory]::GetParent($ancestor);if (-not $parent) {break};$ancestor=$parent.FullName
     }
     $full
 }
@@ -186,7 +199,7 @@ function Invoke-WelaEventMeasurement {
         $observer=New-WelaMeasurementObserver -Channel $Channel -Seconds $Seconds -MaximumEvents $MaximumEvents
         $result.Artifacts+=Write-WelaMeasurementArtifact $root 'window-open.json' (ConvertTo-Json -InputObject ([pscustomobject]@{StartedUtc=$observer.StartedUtc;RegistrationSeconds=$observer.RegistrationSeconds;Channel=$Channel;RequestedSeconds=$Seconds;Origin='Future events only; callbacks before the measurement window are excluded.'}))
         $capture=$observer.Complete();$observer.Dispose();$observer=$null
-        $result.Window=[pscustomobject]@{StartedUtc=$capture.StartedUtc;CompletedUtc=$capture.CompletedUtc;RegistrationSeconds=$capture.RegistrationSeconds;ElapsedSeconds=$capture.ElapsedSeconds;NativeStatus=$capture.Status;NativeError=$capture.NativeError;BeforeWindowCallbacks=$capture.BeforeWindowCallbacks;OutsideWindowCallbacks=$capture.OutsideWindowCallbacks;XmlUtf8Bytes=$capture.XmlUtf8Bytes;Clock='Stopwatch monotonic; callback entry time, not event TimeCreated';LastBookmark=$null}
+        $result.Window=[pscustomobject]@{StartedUtc=$capture.StartedUtc;CompletedUtc=$capture.CompletedUtc;RegistrationSeconds=$capture.RegistrationSeconds;ElapsedSeconds=$capture.ElapsedSeconds;NativeStatus=$capture.Status;NativeError=$capture.NativeError;BeforeWindowCallbacks=$capture.BeforeWindowCallbacks;OutsideWindowCallbacks=$capture.OutsideWindowCallbacks;XmlUtf8Bytes=$capture.XmlUtf8Bytes;Clock='Stopwatch monotonic; serialized callback processing time, not event TimeCreated';LastBookmark=$null}
         $result.ObservedDeliveries=@($capture.Events).Count
         [ulong]$previous=0;$index=0
         foreach ($delivery in $capture.Events) {

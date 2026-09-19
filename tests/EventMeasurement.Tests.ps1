@@ -38,7 +38,7 @@ try {
     Reject {Invoke-WelaEventMeasurement -Channel Security -OutputPath $temp} 'require Run'
     Reject {Invoke-WelaEventMeasurement -Action Run -Channel Security} 'new private'
     Reject {Invoke-WelaEventMeasurement -Action Run -Channel Security -OutputPath $temp} 'already exists'
-    foreach($alias in @('data.','data ','CON.txt','sample:stream','wild*')) {Reject {Resolve-WelaMeasurementPath (Join-Path $temp $alias)} 'path|stream|wildcard|alias|reserved'}
+    foreach($alias in @('data.','data ','CON.txt','sample:stream','wild*')) {$raw=$temp+[IO.Path]::DirectorySeparatorChar+$alias;Assert ($raw.EndsWith($alias)) 'Alias fixture retains literal spelling before provider normalization';Reject {Resolve-WelaMeasurementPath $raw} 'path|stream|wildcard|alias|reserved'}
     $plan=Invoke-WelaEventMeasurement -Channel Security
     Assert ($plan.Status -eq 'Planned' -and $plan.Artifacts.Count -eq 0 -and $plan.ObservedDeliveriesPerSecond -eq $null) 'Plan reads state but creates no evidence or measurement'
     $event=Read-WelaMeasurementEvent -Xml (Event) -Channel Security -Computer HOST

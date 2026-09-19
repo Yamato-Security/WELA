@@ -2129,8 +2129,10 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 
 switch ($Cmd.ToLower()) {
     'event-measurement' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 event-measurement -MeasurementChannel EXACT_NAME [-MeasurementAction Plan|Run] [-MeasurementSeconds 1..60] [-MeasurementMaximumEvents 1..1024] [-MeasurementOutputPath NEW_DIRECTORY] [-MeasurementExportEvtx]. Plan reads actual source/reader state; Run records bounded local deliveries without changing logging. See docs/event-measurement.md.';return}
         if ([string]::IsNullOrWhiteSpace($MeasurementChannel)) {throw 'event-measurement requires an exact -MeasurementChannel.'}
         $measurement=Invoke-WelaEventMeasurement -Action $MeasurementAction -Channel $MeasurementChannel -Seconds $MeasurementSeconds -MaximumEvents $MeasurementMaximumEvents -OutputPath $MeasurementOutputPath -ExportEvtx:$MeasurementExportEvtx
+        if ($measurement.Before) {$measurement.Before.Configuration | Format-List | Out-Host; $measurement.Before.Reader | Select-Object Computer,HostKey,Reader | Format-List | Out-Host}
         $measurement | Select-Object Action,Status,Channel,ObservedDeliveries,ObservedDeliveriesPerSecond,Evtx,Diagnostic,OutputPath | Format-List | Out-Host
         exit $measurement.ExitCode
     }
