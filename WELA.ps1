@@ -97,6 +97,12 @@
     [string]$RecoveryOutputPath,
     [string]$ArrivalProbePath,
     [string]$ArrivalOutputPath,
+    [ValidateSet('Audit','Plan','Configure')][string]$DnsAction = 'Audit',
+    [ValidateSet('Enabled','Disabled')][string]$DnsState,
+    [ValidateSet('Preserve','Circular','Retain')][string]$DnsRetention = 'Preserve',
+    [ValidateRange(1048576,1073741824)][long]$DnsMinimumBytes = 33554432,
+    [ValidateRange(1048576,4294967296)][long]$DnsArchiveMaximumBytes = 1073741824,
+    [switch]$AllowDnsTraceReset,
     [switch]$Help
 )
 
@@ -133,6 +139,7 @@ Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorActi
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeProviderPacks.ps1")
+. (Join-Path $ScriptRoot "scripts/DnsAnalytical.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
@@ -1837,6 +1844,7 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 dns-analytical -Help  # Dedicated DNS Server direct-channel lifecycle
   ./WELA.ps1 targeted-sacl -Help  # Selected existing local SACL targets; read-only by default
   ./WELA.ps1 gpo-package -GpoAction Plan -GpoProfile wela-2.2.0 -Role Client -Build 26100
   ./WELA.ps1 gpo-package -GpoAction Export -GpoProfile wela-2.2.0 -Role Client -Build 26100 -GpoOutputPath .\audit-components
@@ -1918,6 +1926,12 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'Dns*' -or $_ -eq 'AllowDnsTraceReset' }).Count) {
+    throw 'DNS analytical options require dns-analytical. No command was run.'
+}
+if ($Cmd -eq 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','DnsAction','DnsState','DnsRetention','DnsMinimumBytes','DnsArchiveMaximumBytes','AllowDnsTraceReset','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
+    throw 'dns-analytical accepts only dedicated DNS lifecycle and report options. No command was run.'
+}
 if ($Cmd -ne 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'TargetSacl*' }).Count) {
     throw 'TargetSacl options require targeted-sacl. No command was run.'
 }
@@ -2028,7 +2042,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -2037,7 +2051,7 @@ if ($DryRun -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Conf
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, provider-packs -ProviderAction Configure, audit-integrity -IntegrityAction Configure, audit-notifications -NotificationAction Configure, and targeted-sacl -TargetSaclAction Configure; gpo-package -GpoAction Export writes component files only. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, provider-packs -ProviderAction Configure, audit-integrity -IntegrityAction Configure, audit-notifications -NotificationAction Configure, and targeted-sacl -TargetSaclAction Configure; gpo-package -GpoAction Export writes component files only; dns-analytical supports -DnsAction Configure. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -2067,6 +2081,13 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'dns-analytical' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 dns-analytical [-DnsAction Audit|Plan|Configure] [-DnsState Enabled|Disabled] [-DnsRetention Preserve|Circular|Retain] [-DnsMinimumBytes bytes] [-DnsArchiveMaximumBytes bytes] [-AllowDnsTraceReset] [-Auto] [-DryRun] [-BackupPath new-private-directory] [-ResultsPath new.json]. Configure requires explicit DnsState and reset consent for changes; archives stopped traces before reset. See docs/dns-analytical.md.'; return }
+        $report=Invoke-WelaDnsAnalytical -Action $DnsAction -State $DnsState -Retention $DnsRetention -MinimumBytes $DnsMinimumBytes -ArchiveMaximumBytes $DnsArchiveMaximumBytes -AllowTraceReset:$AllowDnsTraceReset -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
+
     'targeted-sacl' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 targeted-sacl -TargetSaclProfile profile-id [-TargetSaclId id,...] [-TargetSaclAction Audit|Plan] [-IncludeOptional] [-TargetSaclIncludeChildren] [-ResultsPath new-plan.json]. Configure requires -TargetSaclAction Configure -TargetSaclPlanPath reviewed.json -TargetSaclId same-ids [-TargetSaclIncludeChildren] [-IncludeOptional] [-DryRun] [-Auto] [-BackupPath new-directory] [-ResultsPath new-results.json]. Existing local targets only; see docs/selected-sacl-configuration.md.'; return }
         $report=Invoke-WelaSelectedSacl -Action $TargetSaclAction -Profile $TargetSaclProfile -Ids $TargetSaclId -PlanPath $TargetSaclPlanPath -IncludeOptional:$IncludeOptional -IncludeChildren:$TargetSaclIncludeChildren -DryRun:$DryRun -Auto:$Auto -BackupPath $BackupPath -ResultsPath $ResultsPath
