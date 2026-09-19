@@ -33,7 +33,8 @@ try {
     $stdout=$child.StandardOutput.ReadToEndAsync();$stderr=$child.StandardError.ReadToEndAsync()
     $opening=[Diagnostics.Stopwatch]::StartNew();$opened=Join-Path $bundle 'window-open.json'
     while(-not(Test-Path -LiteralPath $opened)){
-        if($child.HasExited -or $opening.Elapsed.TotalSeconds -gt 60){throw ('Measurement did not open: '+$stdout.GetAwaiter().GetResult()+' '+$stderr.GetAwaiter().GetResult())}
+        if($child.HasExited){throw ('Measurement did not open: '+$stdout.GetAwaiter().GetResult()+' '+$stderr.GetAwaiter().GetResult())}
+        if($opening.Elapsed.TotalSeconds -gt 60){throw 'Measurement did not open within 60 seconds; the owned child will be stopped during cleanup.'}
         Start-Sleep -Milliseconds 100
     }
     $processes=@(1..3|ForEach-Object {Start-WelaProbeProcess})

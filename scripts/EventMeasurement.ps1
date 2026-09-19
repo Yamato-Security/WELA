@@ -104,8 +104,8 @@ function Read-WelaMeasurementEvent {
         $system[$node.LocalName]=$node
     }
     foreach ($name in @('Provider','EventID','Version','TimeCreated','EventRecordID','Channel','Computer')) {if (-not $system.ContainsKey($name)) {throw "Missing native event identity: $name"}}
-    [ulong]$record=0;[uint32]$eventId=0;[byte]$version=0
-    if (-not [ulong]::TryParse($system.EventRecordID.InnerText,[ref]$record) -or $record -eq 0 -or -not [uint32]::TryParse($system.EventID.InnerText,[ref]$eventId) -or -not [byte]::TryParse($system.Version.InnerText,[ref]$version)) {throw 'Invalid native numeric event identity.'}
+    [uint64]$record=0;[uint32]$eventId=0;[byte]$version=0
+    if (-not [uint64]::TryParse($system.EventRecordID.InnerText,[ref]$record) -or $record -eq 0 -or -not [uint32]::TryParse($system.EventID.InnerText,[ref]$eventId) -or -not [byte]::TryParse($system.Version.InnerText,[ref]$version)) {throw 'Invalid native numeric event identity.'}
     $source=$system.Computer.InnerText
     if ($system.Channel.InnerText -cne $Channel -or $source -notmatch '^[\p{L}\p{N}][\p{L}\p{N}_.-]{0,254}$' -or ($source -ine $Computer -and $source.Split('.')[0] -ine $Computer)) {throw 'Event source/channel does not match the actual local reader.'}
     $provider=$system.Provider.GetAttribute('Name');if ([string]::IsNullOrWhiteSpace($provider)) {throw 'Provider name is unavailable.'}
@@ -201,16 +201,16 @@ function Invoke-WelaEventMeasurement {
         $capture=$observer.Complete();$observer.Dispose();$observer=$null
         $result.Window=[pscustomobject]@{StartedUtc=$capture.StartedUtc;CompletedUtc=$capture.CompletedUtc;RegistrationSeconds=$capture.RegistrationSeconds;ElapsedSeconds=$capture.ElapsedSeconds;NativeStatus=$capture.Status;NativeError=$capture.NativeError;BeforeWindowCallbacks=$capture.BeforeWindowCallbacks;OutsideWindowCallbacks=$capture.OutsideWindowCallbacks;XmlUtf8Bytes=$capture.XmlUtf8Bytes;Clock='Stopwatch monotonic; serialized callback processing time, not event TimeCreated';LastBookmark=$null}
         $result.ObservedDeliveries=@($capture.Events).Count
-        [ulong]$previous=0;$index=0
+        [uint64]$previous=0;$index=0
         foreach ($delivery in $capture.Events) {
             $index++;$eventName='event-{0:d4}.xml' -f $index;$bookmarkName='bookmark-{0:d4}.xml' -f $index
             $result.Artifacts+=Write-WelaMeasurementArtifact $root $eventName $delivery.Xml
             $result.Artifacts+=Write-WelaMeasurementArtifact $root $bookmarkName $delivery.BookmarkXml
             $event=Read-WelaMeasurementEvent -Xml $delivery.Xml -Channel $Channel -Computer $result.Before.Reader.Computer
             Assert-WelaMeasurementBookmark $delivery.BookmarkXml $event
-            if ($previous -ne 0 -and [ulong]$event.RecordId -ne $previous+1) {throw 'Delivered record IDs are duplicated, reordered or discontinuous; completeness is unverified.'}
+            if ($previous -ne 0 -and [uint64]$event.RecordId -ne $previous+1) {throw 'Delivered record IDs are duplicated, reordered or discontinuous; completeness is unverified.'}
             if ($delivery.ElapsedSeconds -lt 0 -or $delivery.ElapsedSeconds -ge $Seconds) {throw 'Delivery timestamp is outside the monotonic observation window.'}
-            $previous=[ulong]$event.RecordId
+            $previous=[uint64]$event.RecordId
             $event|Add-Member NoteProperty ObservedElapsedSeconds $delivery.ElapsedSeconds
             $event|Add-Member NoteProperty XmlArtifact $eventName
             $event|Add-Member NoteProperty BookmarkArtifact $bookmarkName
