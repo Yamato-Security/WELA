@@ -169,21 +169,30 @@ function Assert-WelaGpoBackupMetadata {
         if($registeredCses.ContainsKey($cse) -or @($parts[1..($parts.Count-1)]|Where-Object {$_ -notin $tools}).Count -or @($parts|Select-Object -Unique).Count -ne $parts.Count) {throw 'Unexpected extension/tool registration.'}
         $registeredCses[$cse]=$true
     }
-    $seenFiles=@{}
+    $seenFiles=@{};$seenExtensions=@{}
     foreach($extension in @($gpo.SelectNodes("*[local-name()='GroupPolicyExtension']"))) {
         $id=Get-WelaGpoGuid $extension.GetAttribute('ID',$ns)
-        if($id -notin @('827d319e-6eac-11d2-a4ea-00c04f79f83a','f3ccc681-b74c-4060-9f26-cd84525dca2a','f15c46cd-82a0-4c2d-a210-5d0d3182a418')) {throw 'Unknown native backup extension.'}
+        if($seenExtensions.ContainsKey($id)) {throw 'Duplicate native backup extension.'};$seenExtensions[$id]=$true
+        if($id -notin @('827d319e-6eac-11d2-a4ea-00c04f79f83a','f3ccc681-b74c-4060-9f26-cd84525dca2a','f15c46cd-82a0-4c2d-a210-5d0d3182a418','35378eac-683f-11d2-a89a-00c04fbbcfa2')) {throw 'Unknown native backup extension.'}
         Get-WelaGpoChildren $extension @('FSObjectFile','FSObjectDir') -Repeated @('FSObjectFile','FSObjectDir')
         foreach($node in $extension.ChildNodes|Where-Object NodeType -eq Element) {
             foreach($attribute in $node.Attributes) {if($attribute.NamespaceURI -cne $ns -or $attribute.LocalName -cnotin @('Path','SourceExpandedPath','Location','ReEvaluateFunction')) {throw 'Unknown backup filesystem directive.'}}
             if(@($node.ChildNodes|Where-Object NodeType -eq Element).Count) {throw 'Nested filesystem directives are unsupported.'}
             $location=$node.GetAttribute('Location',$ns).Replace('\','/').ToLowerInvariant()
             $path=$node.GetAttribute('Path',$ns).Replace('\','/').ToLowerInvariant()
+            if($id -eq '35378eac-683f-11d2-a89a-00c04fbbcfa2') {
+                # Genuine GPMC security-only backups retain this absent legacy-ADM
+                # placeholder. It is not Registry.pol or a registered registry policy CSE.
+                $sourcePath=$node.GetAttribute('SourceExpandedPath',$ns)
+                $suffix='\sysvol\'+$Report.Domain+'\Policies\{'+$Report.Id+'}\Adm\*.*'
+                if($node.LocalName -cne 'FSObjectFile' -or $path -cne '%gpo_fspath%/adm/*.*' -or $node.HasAttribute('Location',$ns) -or $node.HasAttribute('ReEvaluateFunction',$ns) -or -not $sourcePath.StartsWith('\\') -or -not $sourcePath.EndsWith($suffix,[StringComparison]::OrdinalIgnoreCase)) {throw 'Only the absent native legacy-ADM placeholder is allowed in the Registry backup extension.'}
+                continue
+            }
             if(-not $location.StartsWith('domainsysvol/gpo/machine/')) {throw 'Only explicit machine-relative backup paths are supported.'}
             $relative=$location.Substring('domainsysvol/gpo/machine/'.Length)
             if($path -cne ('%gpo_mach_fspath%/'+$relative)) {throw 'Backup filesystem path/location mismatch.'}
             $sourcePath=$node.GetAttribute('SourceExpandedPath',$ns)
-            if($sourcePath -notmatch '^\\\\[^\\]+\\sysvol\\[^\\]+\\Policies\\\{[0-9A-Fa-f-]{36}\}\\Machine\\' -or -not $sourcePath.EndsWith(('\Machine\'+$relative.Replace('/','\')),[StringComparison]::OrdinalIgnoreCase)) {throw 'Unsupported source filesystem reference.'}
+            if($sourcePath -notmatch '^\\\\[^\\]+\\sysvol\\[^\\]+\\Policies\\\{[0-9A-Fa-f-]{36}\}\\Machine\\' -or -not $sourcePath.EndsWith(('\sysvol\'+$Report.Domain+'\Policies\{'+$Report.Id+'}\Machine\'+$relative.Replace('/','\')),[StringComparison]::OrdinalIgnoreCase)) {throw 'Unsupported source filesystem reference.'}
             $reEvaluate=$node.GetAttribute('ReEvaluateFunction',$ns)
             if($reEvaluate -and ($relative -ne 'microsoft/windows nt/secedit/gpttmpl.inf' -or $reEvaluate -cne 'SecurityValidateSettings')) {throw 'Unknown native backup callback.'}
             if($node.LocalName -eq 'FSObjectDir') {if($location -notin $Inventory.Directories) {throw 'Backup references a missing/unknown directory.'}}

@@ -59,6 +59,20 @@ function Get-WelaGpoNativeTarget {
     [pscustomobject]@{Id=$Id;Name=$Config.Name;Description=$script:marker;Disabled=$true;Links=0;AuditKey=$key;ComputerVersion=$version;UserVersion=0;Permissions=$permission;Usn=([string](10+$version));ObjectGuid='eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';Xml='<NativeFixture/>';Inventory=@()}
 }
 try {
+    $placeholder='<GroupPolicyExtension bkp:ID="{35378EAC-683F-11D2-A89A-00C04FBBCFA2}" bkp:DescName="Registry"><FSObjectFile bkp:Path="%GPO_FSPATH%\Adm\*.*" bkp:SourceExpandedPath="\\dc.example.test\sysvol\example.test\Policies\{'+$script:sourceId+'}\Adm\*.*"/></GroupPolicyExtension>'
+    $placeholderFixture=New-Fixture;$metadataPath=Join-Path $placeholderFixture.Backup 'Backup.xml'
+    $metadata=[IO.File]::ReadAllText($metadataPath).Replace('</GroupPolicyObject>',$placeholder+'</GroupPolicyObject>');SaveText $metadataPath $metadata
+    Assert ((Invoke-WelaGpoCreateCommand -ConfigPath $placeholderFixture.ConfigPath).Status -eq 'ReviewedInputsOnly') 'An exact absent legacy ADM placeholder from native GPMC is accepted without registry policy'
+    foreach($mutation in @('location','callback','registry','adm-file')) {
+        SaveText $metadataPath $metadata
+        switch($mutation) {
+            location {SaveText $metadataPath ($metadata.Replace('bkp:Path="%GPO_FSPATH%', 'bkp:Location="DomainSysvol\GPO\Adm" bkp:Path="%GPO_FSPATH%'))}
+            callback {SaveText $metadataPath ($metadata.Replace('bkp:Path="%GPO_FSPATH%', 'bkp:ReEvaluateFunction="Unknown" bkp:Path="%GPO_FSPATH%'))}
+            registry {SaveText $metadataPath ($metadata.Replace('%GPO_FSPATH%\Adm\*.*','%GPO_MACH_FSPATH%\registry.pol'))}
+            adm-file {$adm=Join-Path $placeholderFixture.Backup 'DomainSysvol/GPO/Adm';$null=New-Item -ItemType Directory $adm;SaveText (Join-Path $adm 'policy.adm') 'unrelated'}
+        }
+        Reject {Invoke-WelaGpoCreateCommand -ConfigPath $placeholderFixture.ConfigPath} '.'
+    }
     $fixture=New-Fixture;$review=Ready $fixture
     Assert ($review.Status -eq 'ReviewedInputsOnly' -and -not $review.DeploymentVerified -and $review.SigmaEvtxCredit -eq 0 -and $review.ReviewedSha256 -match '^[a-f0-9]{64}$') 'Review binds real component generation and all payload bytes without deployment claims'
     Assert ($review.BackupId -ne $review.SourceGpoId) 'Backup-instance identity stays separate from source GPO GUID'
@@ -108,7 +122,9 @@ try {
     }
     $f=New-Fixture;$null=Ready $f;$f.Config.ReviewedSha256='0'*64;SaveText $f.ConfigPath ($f.Config|ConvertTo-Json)
     Reject {Invoke-WelaGpoCreateCommand -Action Plan -ConfigPath $f.ConfigPath} 'ReviewedSha256'
-    $f=New-Fixture;SaveText $f.ConfigPath ([IO.File]::ReadAllText($f.ConfigPath).Replace('"SchemaVersion": 1','"SchemaVersion": 1, "SchemaVersion": 1'))
+    $f=New-Fixture;$original=$f.Config|ConvertTo-Json -Compress;$duplicate=$original.Replace('"SchemaVersion":1','"SchemaVersion":1,"SchemaVersion":1')
+    Assert ($duplicate -cne $original) 'Duplicate-key test actually changes JSON under both PowerShell engines'
+    SaveText $f.ConfigPath $duplicate
     Reject {Read-WelaGpoCreateConfig $f.ConfigPath} 'Duplicate'
     foreach($field in @('Domain','Dc')) {$f=New-Fixture;$f.Config[$field]='10.0.0.1';SaveText $f.ConfigPath ($f.Config|ConvertTo-Json);Reject {Read-WelaGpoCreateConfig $f.ConfigPath} 'DNS names'}
     Reject {Assert-WelaGpmResult ([pscustomobject]@{OverallStatus=0})} 'native GPMC result'
