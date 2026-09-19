@@ -76,6 +76,7 @@ try {
     Invoke-Cli @('dns-analytical','-DnsAction','Configure','-DnsState','Disabled','-AllowDnsTraceReset','-Auto','-BackupPath',(Join-Path $private 'disable-journal'),'-ResultsPath',$disabledPath)
     $disabled=Get-Content $disabledPath -Raw -Encoding UTF8|ConvertFrom-Json
     Assert ($disabled.Status -eq 'Applied' -and -not$disabled.After.IsEnabled -and $disabled.Archive.State -eq 'ArchivedBytes') 'Native disable preserves stopped trace in a hash-verified archive.'
+    Assert ($disabled.Archive.SourcePath -ceq $original.LogFilePath -and $disabled.Before.Channel -ceq $definition.Pack.channel -and $disabled.After.Channel -ceq $definition.Pack.channel) 'ETL bytes came from the exact registered analytical trace path and preserved channel state.'
     $events=@(Get-WinEvent -Path $disabled.Archive.ArchivePath -Oldest -MaxEvents 4096 -ErrorAction Stop)
     Assert ($events.Count -lt 4096) 'Archived native event read stays below its explicit completeness cap.'
     $candidateXml=New-Object 'System.Collections.Generic.List[string]'
@@ -85,11 +86,18 @@ try {
             $rawXml=$event.ToXml();$xml=[xml]$rawXml;$data=@{};foreach($node in $xml.Event.EventData.Data){$data[[string]$node.Name]=[string]$node.'#text'}
             if($eventSummary.Count -lt 20){$eventSummary.Add("Event $($event.Id), provider $($event.ProviderName), channel '$($xml.Event.System.Channel)', QNAME '$($data.QNAME)', time $($event.TimeCreated.ToUniversalTime().ToString('o'))")}
             if($event.Id -eq 257 -and $candidateXml.Count -lt 8){$candidateXml.Add($rawXml)}
-            if($event.Id -eq 257 -and $event.ProviderName -ceq 'Microsoft-Windows-DNSServer' -and [string]$xml.Event.System.Provider.Guid -ieq '{eb79061a-a566-4698-9119-3ed2807060e7}' -and [string]$xml.Event.System.Channel -ceq $definition.Pack.channel -and $event.TimeCreated.ToUniversalTime() -ge $started -and $event.TimeCreated.ToUniversalTime() -le [DateTime]::UtcNow -and [string]$data.QNAME.TrimEnd('.') -ieq $query){$event.ToXml()}
+            # Raw ETL rendering can leave System.Channel empty. Do not rewrite it: bind
+            # provenance to the verified registered trace path above and exact native manifest link.
+            $manifest=@($disabled.Before.Schema.Events|Where-Object {$_.Id -eq $event.Id -and $_.Version -eq $event.Version -and $_.Channel -ceq $definition.Pack.channel})
+            $channel=[string]$xml.Event.System.Channel
+            if($event.Id -eq 257 -and $event.ProviderName -ceq 'Microsoft-Windows-DNSServer' -and [string]$xml.Event.System.Provider.Guid -ieq '{eb79061a-a566-4698-9119-3ed2807060e7}' -and $manifest.Count -eq 1 -and ($channel -ceq '' -or $channel -ceq $definition.Pack.channel) -and [string]$xml.Event.System.Computer -ieq [Environment]::MachineName -and $event.TimeCreated.ToUniversalTime() -ge $started -and $event.TimeCreated.ToUniversalTime() -le [DateTime]::UtcNow -and [string]$data.QNAME.TrimEnd('.') -ieq $query -and $data.InterfaceIP -ceq '127.0.0.1' -and $data.Destination -ceq '127.0.0.1' -and $data.QTYPE -ceq '1' -and $data.RCODE -ceq '0' -and $data.AA -ceq '1'){$rawXml}
         }finally{if($event -is [IDisposable]){$event.Dispose()}}
     })
     if($matches.Count -ne 1){Write-Host "Expected one event257 for $query since $($started.ToString('o')); matched $($matches.Count) from $($events.Count) events.";$eventSummary|ForEach-Object{Write-Host $_};$candidateXml|ForEach-Object{Write-Host $_};throw 'Exact bounded native DNS257/QNAME evidence was not established.'}
     [IO.File]::WriteAllText((Join-Path $private 'event257.xml'),$matches[0],[Text.UTF8Encoding]::new($false));Write-Host $matches[0]
+    $proof=[pscustomobject]@{Kind='WelaDnsAnalyticalNativeProbe';Engine=$TestEngine;Computer=[Environment]::MachineName;Query=$query;StartedUtc=$started.ToString('o');VerifiedUtc=[DateTime]::UtcNow.ToString('o');EventId=257;XmlChannel=[string]([xml]$matches[0]).Event.System.Channel;RegisteredChannel=$definition.Pack.channel;RegisteredTracePath=$original.LogFilePath;ChannelEvidence='Verified registered ETL path and provider event/version manifest link; raw XML channel is retained without normalization.';ArchiveSha256=$disabled.Archive.Sha256;ReadyRuleCredit=0}
+    Write-WelaDnsAnalyticalJson (Join-Path $private 'event257-proof.json') $proof
+    Write-Host ($proof|ConvertTo-Json -Depth 6)
     Assert ((Get-FileHash $disabled.Archive.ArchivePath).Hash.ToLowerInvariant() -ceq $disabled.Archive.Sha256) 'Collected native ETL retains the recorded archive hash.'
     $passed=$true
     Write-Host "PASS: $script:count DNS native assertions through $TestEngine; exact257 XML observed, no external DNS query or backend/readiness claim."
