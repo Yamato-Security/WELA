@@ -1,0 +1,34 @@
+name: Native provider pack regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  provider-packs:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Safe fixtures in Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          ./tests/NativeProviderPacks.Tests.ps1
+          ./tests/NativeChannelAccess.Tests.ps1
+      - name: Real provider manifests and read-only CLI in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/NativeProviderPacks.Windows.Tests.ps1 -OutputDirectory "$env:RUNNER_TEMP/provider-packs-51"
+      - name: Safe fixtures in PowerShell 7
+        shell: pwsh
+        run: |
+          ./tests/NativeProviderPacks.Tests.ps1
+          ./tests/NativeChannelAccess.Tests.ps1
+      - name: Real provider manifests and read-only CLI in PowerShell 7
+        shell: pwsh
+        run: ./tests/NativeProviderPacks.Windows.Tests.ps1 -OutputDirectory "$env:RUNNER_TEMP/provider-packs-7"

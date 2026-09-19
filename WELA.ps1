@@ -51,6 +51,12 @@
     [ValidateRange(1,2147483647)][int]$LdapInefficientThreshold,
     [ValidateSet('Capture','Compare')][string]$DefaultEvidenceAction = 'Capture',
     [string]$DefaultEvidencePath,
+    [ValidateSet('List','Audit','Plan','Configure')][string]$ProviderAction = 'List',
+    [string[]]$ProviderPack,
+    [ValidateSet('Audit','Plan','Configure')][string]$NotificationAction = 'Audit',
+    [ValidateSet('OneSettings','SecurityWarning')][string[]]$NotificationControl,
+    [ValidateRange(1,90)][int]$WarningPercent = 90,
+    [switch]$EnablePrivacyChannel,
     [switch]$Help
 )
 
@@ -69,6 +75,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
+. (Join-Path $ScriptRoot "scripts/AuditNotifications.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
@@ -81,6 +88,7 @@ Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
+. (Join-Path $ScriptRoot "scripts/NativeProviderPacks.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
@@ -1747,6 +1755,8 @@ Usage:
   ./WELA.ps1 channel-settings -ChannelAction Audit -WefQuerySet Both -ResultsPath channels.json
   ./WELA.ps1 channel-settings -ChannelAction Plan -GrantEventLogReaders
   ./WELA.ps1 channel-settings -ChannelAction Configure -GrantEventLogReaders -DryRun
+  ./WELA.ps1 provider-packs -ProviderAction List
+  ./WELA.ps1 provider-packs -ProviderAction Plan -ProviderPack dns-client,capi2 -ResultsPath provider-plan.json
 
   ./WELA.ps1 wef-source -WefAction Plan -WefConfigPath source.json -ResultsPath source-plan.json
   ./WELA.ps1 wec-collector -WefAction Configure -WefConfigPath collector.json -DryRun
@@ -1790,6 +1800,7 @@ Usage:
   ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
   ./WELA.ps1 control-applicability     # Read-only historical native feature/build assessment
   ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
+  ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
 "@
@@ -1803,6 +1814,14 @@ Write-Host ""
 
 if ($Cmd -ne 'default-evidence' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('DefaultEvidenceAction','DefaultEvidencePath') }).Count) {
     throw 'Default evidence options require default-evidence. No command was run.'
+}
+
+if ($Cmd -eq 'audit-notifications' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','NotificationAction','NotificationControl','WarningPercent','EnablePrivacyChannel','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
+    throw 'audit-notifications accepts only notification, consent/dry-run, recovery and JSON output options. No command was run.'
+}
+
+if ($Cmd -ne 'audit-notifications' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('NotificationAction','NotificationControl','WarningPercent','EnablePrivacyChannel') }).Count) {
+    throw 'Notification options require audit-notifications. No command was run.'
 }
 
 if ($Cmd -ne 'rule-eligibility' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('RuleEvidencePath', 'RuleCorpusPath', 'RuleManifestPath') }).Count) {
@@ -1824,6 +1843,9 @@ if ($PSBoundParameters.ContainsKey('SaclMode') -and
     throw '-SaclMode requires -Profile with plan, audit, audit-settings or configure. It does not control configure-sacl. No command was run.'
 }
 # Reject unsupported dry-run requests before reaching any command's mutation path.
+if ($Cmd -ne 'provider-packs' -and ($PSBoundParameters.ContainsKey('ProviderAction') -or $PSBoundParameters.ContainsKey('ProviderPack'))) {
+    throw 'Provider options require provider-packs. No command was run.'
+}
 if ($Cmd -ne 'powershell-transcription' -and
     ($PSBoundParameters.ContainsKey('TranscriptionAction') -or $PSBoundParameters.ContainsKey('TranscriptDirectory'))) {
     throw 'Transcription options require the dedicated powershell-transcription command. No command was run.'
@@ -1833,7 +1855,8 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+    -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
@@ -1841,7 +1864,7 @@ if ($DryRun -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configu
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, and ldap-diagnostics -LdapAction Configure. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, provider-packs -ProviderAction Configure, and audit-notifications -NotificationAction Configure. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1888,6 +1911,14 @@ switch ($Cmd.ToLower()) {
         $report
         if ($report.ExitCode) { exit $report.ExitCode }
     }
+    'audit-notifications' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-notifications [-NotificationAction Audit|Plan|Configure] [-NotificationControl OneSettings,SecurityWarning] [-WarningPercent 1..90] [-EnablePrivacyChannel] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. See docs/audit-notifications.md.'; return }
+        if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-notifications uses actual host context and -ResultsPath; profile/role/build overrides and HTML are unsupported.' }
+        if ($NotificationAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'Notification Configure requires Administrator privileges.' }
+        $report=Invoke-WelaNotificationCommand -Action $NotificationAction -Control $NotificationControl -WarningPercent $WarningPercent -EnablePrivacyChannel:$EnablePrivacyChannel -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
 
     'rule-eligibility' {
         if ($Profile -or $Baseline -or $Auto -or $PlanPath) { throw 'rule-eligibility reviews native rule metadata and optional lab artifacts; use -ResultsPath/-HtmlPath, not configuration options.' }
@@ -1928,6 +1959,15 @@ switch ($Cmd.ToLower()) {
         if ($PSBoundParameters.ContainsKey('LdapExpensiveThreshold')) { $thresholds.Expensive=$LdapExpensiveThreshold }
         if ($PSBoundParameters.ContainsKey('LdapInefficientThreshold')) { $thresholds.Inefficient=$LdapInefficientThreshold }
         $report=Invoke-WelaLdapCommand -Action $LdapAction -Mode $LdapMode -Thresholds $thresholds -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
+    'provider-packs' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 provider-packs [-ProviderAction List|Audit|Plan|Configure] [-ProviderPack dns-client,capi2,winrm,rdp-client,dns-server-audit] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. DNS classic/analytical packs are manual inventory. See docs/native-provider-packs.md.'; return }
+        if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath -or $PlanPath) { throw 'provider-packs uses explicit pack names, actual host role/build and -ResultsPath JSON; audit profiles and context overrides do not apply.' }
+        if ($ProviderAction -ne 'Configure' -and ($Auto -or $BackupPath)) { throw '-Auto and -BackupPath require ProviderAction Configure.' }
+        if ($ProviderAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'Provider pack configuration requires Administrator privileges.' }
+        $report=Invoke-WelaProviderPackCommand -Action $ProviderAction -Names $ProviderPack -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
         if ($report.ExitCode) { exit $report.ExitCode }
     }

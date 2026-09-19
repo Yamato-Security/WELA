@@ -208,4 +208,4 @@ function Export-WelaAuditAssessment {
     }
 }
 
-Export-ModuleMember -Function Get-WelaNativeChannel, Get-WelaNativeProvider, Get-WelaNativeSources, Get-WelaNativeSourceState, Export-WelaAuditAssessment
+Export-ModuleMember -Function Get-WelaNativeChannel, Get-WelaNativeService, Get-WelaNativeProvider, Get-WelaNativeSources, Get-WelaNativeSourceState, Export-WelaAuditAssessment
