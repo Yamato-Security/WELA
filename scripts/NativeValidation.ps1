@@ -131,7 +131,11 @@ function Invoke-WelaNativeValidation {
     $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaNativeProbeComponents';Probe='security-4688-command-line-v1';Action=$Action;Status='Unverified';ExitCode=0;GeneratedUtc=[DateTime]::UtcNow.ToString('o');PolicyChanges=0;ReadyRuleCredit=0;Scope='Built-in Windows only. Sysmon excluded. Native event collection is not complete-rule or backend validation.';RequiredEvidence=@('Reviewed complete rule and normalization','Backend ingestion','Translated query and successful query result');BeforeState=$null;AfterState=$null;Process=$null;Artifacts=@();Diagnostic='';OutputPath=$null}
     # Reserve a new private directory before any process is launched. New-Item fails on collisions.
     if ($Action -eq 'Run') {
-        $full=[IO.Path]::GetFullPath($OutputPath); $parent=Split-Path $full -Parent
+        # PowerShell location can differ from the process working directory.
+        $provider=$null; $drive=$null
+        $full=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath,[ref]$provider,[ref]$drive)
+        if ($provider.Name -ne 'FileSystem') { throw 'Probe output must use the filesystem.' }
+        $parent=Split-Path $full -Parent
         if (-not (Test-Path -LiteralPath $parent -PathType Container)) { throw 'Output parent directory must already exist.' }
         $null=New-Item -ItemType Directory -Path $full -ErrorAction Stop
         $report.OutputPath=$full

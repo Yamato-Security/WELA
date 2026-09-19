@@ -52,6 +52,15 @@ function Read-WelaProbeEvents {
 }
 $root=Join-Path ([IO.Path]::GetTempPath()) ('wela-native-probe-tests-'+[guid]::NewGuid().ToString('N')); $null=New-Item -ItemType Directory -Path $root
 try {
+    # PowerShell's current location is independent of the process working directory.
+    $relativeName='relative-probe-'+[guid]::NewGuid().ToString('N')
+    Push-Location $root
+    try {
+        $relative=Invoke-WelaNativeValidation -Action Run -OutputPath $relativeName -TimeoutSeconds 1
+        Assert ($relative.ExitCode -eq 0 -and $relative.OutputPath -eq (Join-Path $root $relativeName)) 'relative probe destination resolves against the PowerShell location'
+        Assert (Test-Path -LiteralPath (Join-Path $root "$relativeName/manifest.json")) 'relative probe manifest is written in the requested location'
+    } finally { Pop-Location }
+    $script:launched=0
     $plan=Invoke-WelaNativeValidation
     Assert ($plan.Status -eq 'PrerequisitesObserved' -and $launched -eq 0 -and $plan.Artifacts.Count -eq 0) 'default Plan observes without launching or exporting'
     Throws { Invoke-WelaNativeValidation -Action Run } 'Run needs new destination'
