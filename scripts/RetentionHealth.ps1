@@ -241,7 +241,7 @@ function Invoke-WelaRetentionHealth {
         if ($last.Status -eq 'Observed' -and $last.Records[0].TimeCreatedUtc) {
             try { $latest=[datetime]::Parse($last.Records[0].TimeCreatedUtc,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime(); if ($latest -le $now) { $row.ObservedLatestRecordStale=($now-$latest).TotalMinutes -gt $config.StaleAfterMinutes } } catch { }
         }
-        $prior=if ($previous) { @($previous.Channels | Where-Object Channel -eq $channel | Select-Object -First 1) } else { @() }
+        $prior=@(if ($previous) { $previous.Channels | Where-Object Channel -eq $channel | Select-Object -First 1 })
         $row | Add-Member NoteProperty BoundaryComparison (Compare-WelaRetentionBoundary $row $(if ($prior.Count) { $prior[0] } else { $null }))
         $channels += $row
     }
