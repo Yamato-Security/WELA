@@ -72,6 +72,7 @@ function Assert-WelaWecUpdatePlan {
     Assert-WelaArrivalObject $Plan @('SchemaVersion','Kind','Id','SourceSids','ContextKey','Sources','BeforeXml','QueryXml','Description','RecordedUtc')
     if($Plan.SchemaVersion -isnot [int] -and $Plan.SchemaVersion -isnot [long]){throw 'Plan version must be an integer.'}
     if($Plan.SchemaVersion -ne 1 -or $Plan.Kind -cne 'WelaDisabledWecUpdatePlan' -or $Plan.Id -isnot [string] -or $Plan.SourceSids -isnot [array] -or $Plan.ContextKey -isnot [string] -or $Plan.Sources -isnot [string] -or $Plan.BeforeXml -isnot [string] -or $Plan.QueryXml -isnot [string] -or $Plan.QueryXml.Length -gt 262144 -or $Plan.Description -isnot [string] -or $Plan.Description.Length -gt 4096 -or $Plan.Description -match '[\x00-\x08\x0b\x0c\x0e-\x1f]'){throw 'Unknown or mistyped update plan.'}
+    $null=[Xml.XmlConvert]::VerifyXmlChars($Plan.Description)
     $null=ConvertTo-WelaArrivalUtc $Plan.RecordedUtc
     foreach($sid in $Plan.SourceSids){if($sid -isnot [string]){throw 'Source SID must be a string.'}}
     $null=Get-WelaWefAuthorization $Plan.SourceSids

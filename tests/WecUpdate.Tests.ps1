@@ -47,6 +47,7 @@ try {
   $planResult=Invoke-WelaWecUpdate Plan -Id $id -SourceSids @($sid) -QueryPath $queryPath -Description 'Reviewed change' -OutputPath (Join-Path $root ($scenario+'-plan'))
   Assert ($planResult.ExitCode -eq 0 -and $planResult.Status -eq 'ReviewRequired') "Plan created: $($planResult.Diagnostic)"
   Assert ($script:saves -eq 0) 'Plan never saves'
+  if($scenario -eq 'ok'){$badPlan=ConvertFrom-WelaArrivalJson ([IO.File]::ReadAllText((Join-Path $planResult.OutputPath 'plan.json')));$badPlan.Description=[string][char]0xfffe;Reject {Assert-WelaWecUpdatePlan $badPlan} 'invalid'}
   $planPath=Join-Path $planResult.OutputPath 'plan.json';$hash=$planResult.PlanHash
   $script:mode=$scenario;$script:reads=0
   if($scenario -eq 'hash'){$hash='b'*64}
