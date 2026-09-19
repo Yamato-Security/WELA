@@ -64,12 +64,16 @@ try {
     Bad {param($x) $x.profiles[0].controls.'Process Creation' | Add-Member script 'Write-Host bad'} 'Unknown'
     Bad {param($x) $x.profiles[0] | Add-Member referenceOnly 'false'} 'boolean'
     Save
-    $text=Get-Content -LiteralPath $script:file -Raw
-    foreach ($badText in @($text.Replace('"mask": 1','"mask": 1, "MASK": 2'),$text.Replace('"mask": 1','"mask": 1, "m\u0061sk": 2'),$text.Replace('"schemaVersion": 1','"schemaVersion": 1, // comment'),$text.Replace('"mask": 1','"mask": 1,'))) {
+    # Pretty-print spacing differs between Windows PowerShell 5.1 and PowerShell 7.
+    # Compact JSON gives these lexical mutations stable tokens on both runtimes.
+    $text=$sample | ConvertTo-Json -Depth 20 -Compress
+    foreach ($badText in @($text.Replace('"mask":1','"mask":1,"MASK":2'),$text.Replace('"mask":1','"mask":1,"m\u0061sk":2'),$text.Replace('"schemaVersion":1','"schemaVersion":1,// comment'),$text.Replace('"mask":1','"mask":1,'))) {
+        Assert ($badText -cne $text) 'Malformed JSON fixture must change its input before rejection is tested.'
         $badText | Set-Content -LiteralPath $script:file -Encoding UTF8
         Throws {Import-WelaCustomAuditProfiles $script:file} 'Duplicate|strict JSON'
     }
-    foreach ($badText in @($text.Replace('"schemaVersion"',"'schemaVersion'"),$text.Replace('"schemaVersion"','schemaVersion'),$text.Replace('"mask": 1',"`"mask`": 1, 'mask': 3"),$text.Replace('"mask": 1','"mask": 01'),$text.Replace('"mask": 1','"mask": +1'))) {
+    foreach ($badText in @($text.Replace('"schemaVersion"',"'schemaVersion'"),$text.Replace('"schemaVersion"','schemaVersion'),$text.Replace('"mask":1',"`"mask`":1,'mask':3"),$text.Replace('"mask":1','"mask":01'),$text.Replace('"mask":1','"mask":+1'))) {
+        Assert ($badText -cne $text) 'Invalid lexical JSON fixture must change its input before rejection is tested.'
         $badText | Set-Content -LiteralPath $script:file -Encoding UTF8
         Throws {Import-WelaCustomAuditProfiles $script:file} 'strict JSON'
     }
