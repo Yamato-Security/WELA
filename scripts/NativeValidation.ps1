@@ -4,6 +4,7 @@ function Get-WelaProbeState {
     $context = Get-WelaDefaultContext
     if (-not (Test-WelaDefaultContextComplete $context)) { throw "Complete native host context is required: $($context.Diagnostic)" }
     $hostContext = Get-WelaHostContext
+    if ($hostContext.Build -ne $context.Build) { throw 'Native host readers disagree about the Windows build.' }
     if (($hostContext.Role -eq 'Client' -and $hostContext.Build -notin @(22000,22621,22631,26100,26200)) -or
         ($hostContext.Role -ne 'Client' -and $hostContext.Build -notin @(20348,26100))) { throw 'Host build is outside the reviewed Windows 11 / Server 2022 and 2025 probe scope.' }
     $policies = Get-WelaEffectiveAuditPolicy
@@ -26,6 +27,20 @@ function Assert-WelaProbePrerequisites {
     $guid = '0cce922b-69ae-11d9-bed3-505054503030'
     if (-not $State -or -not (Test-WelaDefaultContextComplete $State.hostObservation)) { throw 'Complete observed host context is required.' }
     if ($State.context.role -notin @('Client','MemberServer','DomainController','ADCS') -or $State.context.build -ne $State.hostObservation.Build) { throw 'Host context is inconsistent.' }
+    $observed=$State.hostObservation
+    $roleMatches=switch ($State.context.role) {
+        'Client' { $observed.ProductType -eq 1 -and $observed.DomainRole -in @(0,1) }
+        'DomainController' { $observed.ProductType -eq 2 -and $observed.DomainRole -in @(4,5) }
+        'MemberServer' { $observed.ProductType -eq 3 -and $observed.DomainRole -in @(2,3) }
+        'ADCS' { $observed.ProductType -eq 3 -and $observed.DomainRole -in @(2,3) -and $observed.InstalledRoles -contains 'ADCS-Cert-Authority' }
+    }
+    if (-not $roleMatches -or $State.context.domainJoined -isnot [bool] -or
+        $State.context.domainJoined -ne $observed.DomainJoined -or
+        $State.context.patch -cne "$($observed.Build).$($observed.UBR)" -or
+        $State.context.installedRoles -isnot [array] -or
+        (@($State.context.installedRoles | Sort-Object -Unique) -join "`n") -cne (@($observed.InstalledRoles | Sort-Object -Unique) -join "`n")) {
+        throw 'Probe role, patch, join or installed-role summary contradicts the detailed host observation.'
+    }
     $mask = $State.auditPolicies[$guid]
     if (($mask -isnot [int] -and $mask -isnot [long]) -or $mask -notin @(1,3)) { throw 'Effective Process Creation success auditing is required; no policy was changed.' }
     foreach ($entry in @($State.auditPrecedence,$State.commandLineCapture)) {

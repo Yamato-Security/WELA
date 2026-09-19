@@ -13,6 +13,12 @@ Use 64-bit elevated Windows PowerShell 5.1 or PowerShell 7 on a reviewed Windows
 
 Prerequisites are effective Process Creation Success auditing, DWORD `SCENoApplyLegacyAuditPolicy=1`, DWORD `ProcessCreationIncludeCmdLine_Enabled=1` and an enabled/readable Security channel. Plan reports observed prerequisites only; Run repeats the observations before launch and after collection. A changed audit mask, prerequisite or host context prevents a successful result. Observations do not establish persistence through a later policy refresh.
 
+The two native host readers must agree on build. The reported role, patch, join
+state and installed-role summary must also agree with the detailed host
+observations; a client/member observation cannot be labeled as a DC, and an AD CS
+label additionally requires the installed CA role. Contradictory evidence is
+reported as Unverified even if the process event itself matches.
+
 Run launches the Windows system `cmd.exe` with `/d /c echo WELA_PROBE_<random-guid>`; callers cannot supply executable paths or commands. It retains only the single matching event XML, using native provider identity, EventID 4688/version 2, successful-audit keyword, local computer name (or joined FQDN), time window, child PID, creator PID, executable path and complete fixed command line. Duplicate matches, unknown schema, access denial, drift, timeout or a 512-event query cap produce `Unverified` and exit 1. Event polling defaults to 15 seconds and supports `-ProbeTimeoutSeconds 1..30`; each synchronous Windows query can take additional time. The child process has a separate 10-second limit. The collector never exports the entire Security log.
 
 The destination must be a new directory under an existing parent. On Windows, its ACL is restricted to the current user, SYSTEM and local Administrators. Files use CreateNew and cannot overwrite prior evidence. A completed collection contains `before-state.json`, `process.json`, `event.xml`, `after-state.json` and `manifest.json`. The manifest fingerprints each component using SHA-256 and preserves the collector status. Partial artifacts and diagnostics remain available after failure. These hashes detect changes relative to the manifest; they are not signatures or proof against a malicious evidence author. Review and protect the directory before sharing its host/policy metadata.

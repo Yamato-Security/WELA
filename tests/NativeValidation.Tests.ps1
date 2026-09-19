@@ -21,6 +21,20 @@ Assert (-not (Test-WelaProbeEvent $xml $process $state ([DateTime]::UtcNow.AddDa
 $prior=$process.StartedUtc; $process.StartedUtc=[DateTime]::UtcNow.AddDays(1).ToString('o')
 Assert (-not (Test-WelaProbeEvent $xml $process $state ([DateTime]::UtcNow))) 'event predating probe rejected'; $process.StartedUtc=$prior
 Assert-WelaProbePrerequisites $state
+foreach ($field in @('role','patch','domainJoined','installedRoles')) {
+    $prior=$state.context.$field
+    switch ($field) {
+        'role' { $state.context.role='DomainController' }
+        'patch' { $state.context.patch='20348.9999' }
+        'domainJoined' { $state.context.domainJoined=$true }
+        'installedRoles' { $state.context.installedRoles=@('ADCS-Cert-Authority') }
+    }
+    Throws { Assert-WelaProbePrerequisites $state } "contradictory native context $field rejected"
+    $state.context.$field=$prior
+}
+$state.context.role='ADCS'
+Throws { Assert-WelaProbePrerequisites $state } 'CA label without its installed role cannot establish a CA probe context'
+$state.context.role='MemberServer'
 foreach ($mask in @(0,2,$null,'1')) { $state.auditPolicies['0cce922b-69ae-11d9-bed3-505054503030']=$mask; Throws { Assert-WelaProbePrerequisites $state } 'missing success bit or unknown mask rejected' }
 $state.auditPolicies['0cce922b-69ae-11d9-bed3-505054503030']=1
 $state.auditPrecedence.Type='String'; Throws { Assert-WelaProbePrerequisites $state } 'string masquerading as DWORD rejected'; $state.auditPrecedence.Type='DWord'
