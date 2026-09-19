@@ -25,16 +25,18 @@ try {
     foreach($guid in $policyGuids){Set-WelaEffectiveAuditPolicy -Guid $guid -Mask 1 -Mode minimum}
     $fileTree=Join-Path $temp 'tree';$null=New-Item -ItemType Directory $fileTree
     $regTree=Join-Path $regProvider 'Tree';$null=New-Item -Path $regTree
+    Add-Type -Path (Join-Path $PSScriptRoot 'SelectedSaclFixtureProtection.cs') -ErrorAction Stop
     foreach($tree in @($fileTree,$regTree)){
         if($tree -eq $fileTree){$null=New-Item -ItemType Directory (Join-Path $tree 'open');$null=New-Item -ItemType Directory (Join-Path $tree 'protected')}
         else{$null=New-Item -Path (Join-Path $tree 'open');$null=New-Item -Path (Join-Path $tree 'protected')}
         # Fixture setup changes protection only on an owned object. Production never changes it.
+        $protected=Join-Path $tree 'protected'
+        $protectedDefinition=if($tree -eq $fileTree){[pscustomobject]@{Kind='FileSystem';Path=$protected;Resolution='Resolved'}}else{[pscustomobject]@{Kind='Registry';Path=('Registry::HKEY_USERS\'+$sid+'\'+$regSub+'\Tree\protected');Resolution='Resolved'}}
+        $protectedBefore=Get-WelaSelectedSaclSnapshot $protectedDefinition
         Initialize-WelaSelectedSaclNative;$privilege=New-Object Wela.SelectedSacl.Privilege
-        try {
-            $protected=Join-Path $tree 'protected';$acl=Get-Acl -LiteralPath $protected -Audit
-            $acl.SetAuditRuleProtection($true,$true)
-            Set-Acl -LiteralPath $protected -AclObject $acl
-        }finally{$privilege.Dispose()}
+        try {[Wela.SelectedSaclFixture.Protection]::Protect($protectedBefore.Kind,$protectedBefore.Path,$protectedBefore.DescriptorBase64,$nonce)}finally{$privilege.Dispose()}
+        $protectedAfter=Get-WelaSelectedSaclSnapshot $protectedDefinition
+        Assert (($protectedAfter.ControlFlags -band 8192) -ne 0 -and $protectedBefore.Owner -ceq $protectedAfter.Owner -and $protectedBefore.Group -ceq $protectedAfter.Group -and $protectedBefore.DaclBase64 -ceq $protectedAfter.DaclBase64) 'Native owned fixture setup sets SACL protection while preserving owner/group/DACL.'
         foreach($branch in @('open','protected')){
             if($tree -eq $fileTree){[IO.File]::WriteAllText((Join-Path (Join-Path $tree $branch) 'leaf.txt'),'owned descendant fixture')}
             else{$null=New-Item -Path (Join-Path (Join-Path $tree $branch) 'Leaf')}
