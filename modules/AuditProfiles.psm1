@@ -325,4 +325,4 @@ function Invoke-WelaAuditProfilePlan {
     }
 }
 
-Export-ModuleMember -Function Import-WelaAuditProfiles, Import-WelaCustomAuditProfiles, Assert-WelaCustomProfileSource, Format-WelaAuditMask, Get-WelaAuditProfilePlan, Get-WelaEffectiveAuditPolicy, Set-WelaEffectiveAuditPolicy, Get-WelaHostContext, Assert-WelaAuditProfileTarget, Invoke-WelaAuditProfilePlan
+Export-ModuleMember -Function Import-WelaAuditProfiles, Import-WelaCustomAuditProfiles, Assert-WelaCustomProfileSource, Get-WelaCustomReportPath, Write-WelaCustomProfileReport, Format-WelaAuditMask, Get-WelaAuditProfilePlan, Get-WelaEffectiveAuditPolicy, Set-WelaEffectiveAuditPolicy, Get-WelaHostContext, Assert-WelaAuditProfileTarget, Invoke-WelaAuditProfilePlan

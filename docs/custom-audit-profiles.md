@@ -69,6 +69,8 @@ properties, duplicated IDs/GUIDs, unknown fields, invalid source references,
 undeclared controls, coercible string/boolean masks and unsupported types are
 rejected. Input is parsed as data; strings containing script syntax are never
 executed. Executable hooks and custom command strings are not supported.
+JavaScript extensions such as single-quoted or unquoted property names are also
+rejected before duplicate-key checks; they cannot hide a second audit mask.
 
 For canonical identifiers, inspect `config/audit_profiles.json` or run:
 
@@ -84,6 +86,13 @@ role/build is rejected at that stage; otherwise native detection supplies contex
 Plans and results record the exact selected-file SHA-256, canonical-catalog
 SHA-256, profile version and declared sources. Output/backup paths cannot equal the
 selected input or canonical catalog. No built-in profile file is written.
+For custom profiles, `-ResultsPath` and `-PlanPath` must name distinct **new local
+files under existing directories**. Existing outputs are preserved, including
+hard-link or symlink aliases of an input. Reparse-point directory ancestry is
+refused, and final output uses `CreateNew` rather than overwriting a file created
+after the initial check. Choose fresh names for repeated runs. Both successful
+and failed configuration results can be written without altering the input;
+the result's source fingerprint describes the policy that was assessed.
 
 The shared configuration engine checks file fingerprints and actual role/build
 before each control, after confirmation/journaling but before each write, and at

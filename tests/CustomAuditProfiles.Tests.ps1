@@ -69,6 +69,10 @@ try {
         $badText | Set-Content -LiteralPath $script:file -Encoding UTF8
         Throws {Import-WelaCustomAuditProfiles $script:file} 'Duplicate|strict JSON'
     }
+    foreach ($badText in @($text.Replace('"schemaVersion"',"'schemaVersion'"),$text.Replace('"schemaVersion"','schemaVersion'),$text.Replace('"mask": 1',"`"mask`": 1, 'mask': 3"),$text.Replace('"mask": 1','"mask": 01'),$text.Replace('"mask": 1','"mask": +1'))) {
+        $badText | Set-Content -LiteralPath $script:file -Encoding UTF8
+        Throws {Import-WelaCustomAuditProfiles $script:file} 'strict JSON'
+    }
     $literal=Copy-Fixture $sample; $literal.profiles[0].note='$(throw "Never execute source data")'; Save $literal
     Assert ((Import-WelaCustomAuditProfiles $script:file).profiles[0].note -ceq $literal.profiles[0].note) 'Executable-looking text stays literal inert metadata.'
     Save; $source=(Import-WelaCustomAuditProfiles $script:file).customSource
@@ -129,6 +133,25 @@ try {
     $script:Build=26100;$script:ResultsPath=Join-Path $temp './profile.json'
     Throws {Invoke-WelaProfileCommand configure} 'paths must differ'
     $script:ResultsPath=$null
+    # Existing hard links are distinct names for the same source bytes. Neither
+    # output aliases nor input aliases may evade source protection before reads.
+    $alias=Join-Path $temp 'source-alias.json'
+    $null=New-Item -ItemType HardLink -Path $alias -Value $script:file
+    $sourceHash=(Get-FileHash $script:file).Hash;$script:nativeReads=0
+    $script:ResultsPath=$alias
+    Throws {Invoke-WelaProfileCommand plan} 'output already exists'
+    $script:ProfileFile=$alias;$script:ResultsPath=$script:file
+    Throws {Invoke-WelaProfileCommand plan} 'output already exists'
+    Assert ($script:nativeReads -eq 0 -and (Get-FileHash $script:file).Hash -ceq $sourceHash) 'Alias collisions preserve source bytes and fail before host reads.'
+    $script:ProfileFile=$script:file;$script:ResultsPath=$null
+    Remove-Item -LiteralPath $alias
+    $script:PlanPath=Join-Path $temp 'same-output.json';$script:ResultsPath=$script:PlanPath
+    Throws {Invoke-WelaProfileCommand plan} 'distinct new report files'
+    $script:PlanPath=$null;$script:ResultsPath=$null
+    $reportTarget=Join-Path $temp 'protected-report.json'
+    Write-WelaCustomProfileReport ([pscustomobject]@{status='original'}) $reportTarget
+    Throws {Write-WelaCustomProfileReport ([pscustomobject]@{status='replacement'}) $reportTarget} 'output already exists'
+    Assert ((Get-Content $reportTarget -Raw|ConvertFrom-Json).status -eq 'original') 'Final report writer preserves existing artifacts instead of overwriting aliases.'
     $script:state=$script:zero.Clone();$script:state[$process]=2;$script:state[$termination]=3;$script:precedence=0
     $script:BackupPath=Join-Path $temp 'applied';$script:ResultsPath=Join-Path $temp 'applied.json';$script:DryRun=$false
     Invoke-WelaProfileCommand configure | Out-Null

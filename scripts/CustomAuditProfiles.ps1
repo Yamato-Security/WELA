@@ -21,6 +21,16 @@ function Assert-WelaCustomStringArray {
 }
 function ConvertFrom-WelaCustomProfileJson {
     param([string]$Text)
+    # ConvertFrom-Json accepts some JavaScript extensions (including single-quoted
+    # and bare property names). Validate the entire JSON token stream first, so
+    # those forms cannot bypass duplicate-property tracking below.
+    $lexical=[regex]'\G(?:[ \t\r\n]+|"(?:\\["\\/bfnrt]|\\u[0-9A-Fa-f]{4}|[^"\\\x00-\x1f])*"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?(?![A-Za-z0-9_.+-])|(?:true|false|null)(?![A-Za-z0-9_])|[{}\[\]:,])'
+    $position=0
+    while ($position -lt $Text.Length) {
+        $match=$lexical.Match($Text,$position)
+        if (-not $match.Success -or $match.Index -ne $position) { throw 'Custom profiles require strict JSON tokens; JavaScript extensions and invalid escapes are not supported.' }
+        $position+=$match.Length
+    }
     # Match JSON strings first; braces/property-looking text inside strings is inert.
     $withoutStrings=[regex]::Replace($Text,'"(?:\\.|[^"\\])*"','""')
     if ($withoutStrings -match '//|/\*|,\s*[}\]]') { throw 'Custom profiles require strict JSON without comments or trailing commas.' }
@@ -131,4 +141,32 @@ function Assert-WelaCustomProfileSource {
     foreach ($entry in @(@($Source.Path,$Source.Sha256),@($Source.CanonicalPath,$Source.CanonicalSha256))) {
         if ((Get-FileHash -LiteralPath $entry[0] -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant() -cne $entry[1]) { throw 'Custom profile or canonical catalog changed since validation; no further configuration is authorized by this plan.' }
     }
+}
+
+function Get-WelaCustomReportPath {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Path)
+    $provider=$null;$drive=$null
+    $full=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path,[ref]$provider,[ref]$drive)
+    if ($provider.Name -ne 'FileSystem' -or $full -match '^[\\/]{2}') { throw 'Custom profile reports require a local filesystem path.' }
+    # New output files also prevent hard-link aliases from overwriting a source or
+    # the canonical catalog. A final CreateNew open closes the file-existence race.
+    if (Test-Path -LiteralPath $full -ErrorAction Stop) { throw 'Custom profile report output already exists; select a new file to preserve inputs and prior evidence.' }
+    $parent=[IO.DirectoryInfo]([IO.Path]::GetDirectoryName($full))
+    if (-not $parent.Exists) { throw 'Custom profile report parent directory must exist.' }
+    while ($parent) {
+        if ($parent.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Custom profile reports cannot traverse symlink or reparse-point directories.' }
+        $parent=$parent.Parent
+    }
+    return $full
+}
+
+function Write-WelaCustomProfileReport {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)]$Report,[Parameter(Mandatory)][string]$Path)
+    $full=Get-WelaCustomReportPath $Path
+    $text=$Report | ConvertTo-Json -Depth 20
+    $bytes=(New-Object Text.UTF8Encoding($false)).GetBytes($text)
+    $stream=[IO.File]::Open($full,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try { $stream.Write($bytes,0,$bytes.Length);$stream.Flush($true) } finally { $stream.Dispose() }
 }

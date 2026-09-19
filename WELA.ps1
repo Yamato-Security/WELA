@@ -410,6 +410,13 @@ function Invoke-WelaProfileCommand {
             $full = [IO.Path]::GetFullPath($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($output))
             if ($full -ieq $custom.customSource.Path -or $full -ieq $custom.customSource.CanonicalPath) { throw 'Profile input/catalog and output/backup paths must differ.' }
         }
+        $reportPaths=@()
+        foreach ($output in @($script:PlanPath,$script:ResultsPath)) {
+            if (-not $output) { continue }
+            $full=Get-WelaCustomReportPath $output
+            if ($full -iin $reportPaths) { throw 'Custom PlanPath and ResultsPath require distinct new report files.' }
+            $reportPaths+=$full
+        }
         $planArguments = @{Path=$custom.customSource.Path;CustomFile=$true}
         if ($script:Role -and $script:Build) {
             $null = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $script:Role -Build $script:Build @planArguments
@@ -447,20 +454,26 @@ function Invoke-WelaProfileCommand {
         Assert-WelaAuditProfileTarget -Plan $plan -Context $actual -Current $current
         $configurationContext = New-WelaConfigurationContext -Auto:$script:Auto -DryRun:$script:DryRun -BackupPath $script:BackupPath
         Set-WelaProfileAuditControls -Context $configurationContext -Plan $plan
-        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan -Scope advanced-audit-policy-and-precedence
+        $sharedResultsPath=if ($script:ProfileFile) { $null } else { $script:ResultsPath }
+        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $sharedResultsPath -Plan $plan -Scope advanced-audit-policy-and-precedence
         $result | Add-Member NoteProperty SaclPrerequisites $saclPlan
-        if ($script:ResultsPath) { $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:ResultsPath -Encoding UTF8 -ErrorAction Stop }
+        if ($script:ResultsPath) {
+            if ($script:ProfileFile) { Write-WelaCustomProfileReport $result $script:ResultsPath }
+            else { $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:ResultsPath -Encoding UTF8 -ErrorAction Stop }
+        }
         $result.Results | Format-Table Id, Before, Desired, After, Status -AutoSize
     } else {
         $plan.policies | Format-Table id, mode, currentMask, requiredMask, action -AutoSize
         if ($script:ProfileFile -and $script:ResultsPath) {
             Assert-WelaCustomProfileSource $custom.customSource
-            $plan | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:ResultsPath -Encoding UTF8 -ErrorAction Stop
+            Write-WelaCustomProfileReport $plan $script:ResultsPath
         }
     }
     if ($script:PlanPath) {
-        if ($script:ProfileFile) { Assert-WelaCustomProfileSource $custom.customSource }
-        $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:PlanPath -Encoding UTF8 -ErrorAction Stop
+        if ($script:ProfileFile) {
+            if ($Command -ne 'configure') { Assert-WelaCustomProfileSource $custom.customSource }
+            Write-WelaCustomProfileReport $result $script:PlanPath
+        } else { $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:PlanPath -Encoding UTF8 -ErrorAction Stop }
         Write-Host "Machine-readable result: $($script:PlanPath)"
     }
     if ($Command -eq 'configure' -and $result.ExitCode -ne 0) { throw "One or more advanced audit policies failed. See the effective-state results." }
