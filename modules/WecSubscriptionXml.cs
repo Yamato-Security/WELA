@@ -1,10 +1,11 @@
-// Explicit Unicode native XML reads, independent of the PowerShell console code page.
+// Bounded native XML bytes, decoded independently of the PowerShell console code page.
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 namespace Wela.WecXml {
  public static class Reader {
   static async Task<byte[]> ReadBounded(Stream stream,int maximum) {
@@ -18,16 +19,22 @@ namespace Wela.WecXml {
    }
   }
   public static string DecodeXml(byte[] bytes) {
-   if(bytes==null||bytes.Length==0||bytes.Length>10485760||bytes.Length%2!=0)throw new InvalidDataException("Expected bounded UTF-16LE WEC XML bytes.");
-   int skip=bytes.Length>=2&&bytes[0]==255&&bytes[1]==254?2:0;
-   string text=new UnicodeEncoding(false,false,true).GetString(bytes,skip,bytes.Length-skip);
-   if(!text.TrimStart(' ','\t','\r','\n').StartsWith("<",StringComparison.Ordinal))throw new InvalidDataException("Native WEC Unicode output is not XML.");
+   if(bytes==null||bytes.Length==0||bytes.Length>10485760)throw new InvalidDataException("Expected bounded native WEC XML bytes.");
+   int skip=0;Encoding encoding=new UTF8Encoding(false,true);
+   if(bytes.Length>=3&&bytes[0]==239&&bytes[1]==187&&bytes[2]==191){skip=3;}
+   else if(bytes.Length>=2&&bytes[0]==255&&bytes[1]==254){skip=2;encoding=new UnicodeEncoding(false,false,true);}
+   else if(bytes.Length>=2&&bytes[0]==254&&bytes[1]==255){skip=2;encoding=new UnicodeEncoding(true,false,true);}
+   else if(bytes.Length>=4&&bytes[0]==60&&bytes[1]==0){encoding=new UnicodeEncoding(false,false,true);}
+   else if(bytes.Length>=4&&bytes[0]==0&&bytes[1]==60){encoding=new UnicodeEncoding(true,false,true);}
+   string text=encoding.GetString(bytes,skip,bytes.Length-skip);
+   XmlReaderSettings settings=new XmlReaderSettings();settings.DtdProcessing=DtdProcessing.Prohibit;settings.XmlResolver=null;settings.MaxCharactersInDocument=10485760;
+   using(XmlReader reader=XmlReader.Create(new StringReader(text),settings)){while(reader.Read()){};}
    return text;
   }
   public static string ReadXml(string id) {
    if(id==null||!Regex.IsMatch(id,@"\A[A-Za-z0-9][A-Za-z0-9 ._-]{0,127}\z"))throw new ArgumentException("Select one exact supported subscription ID.");
    ProcessStartInfo start=new ProcessStartInfo();start.FileName=Path.Combine(Environment.SystemDirectory,"wecutil.exe");
-   start.Arguments="gs \""+id+"\" /f:xml /uni:true";start.UseShellExecute=false;start.CreateNoWindow=true;start.RedirectStandardOutput=true;start.RedirectStandardError=true;
+   start.Arguments="gs \""+id+"\" /f:xml";start.UseShellExecute=false;start.CreateNoWindow=true;start.RedirectStandardOutput=true;start.RedirectStandardError=true;
    using(Process process=new Process()) {
     process.StartInfo=start;bool started=false;
     try {
