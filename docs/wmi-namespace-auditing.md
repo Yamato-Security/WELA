@@ -75,3 +75,5 @@ To repeat on a **disposable Windows lab VM** (this is a mutating integration tes
 ```
 
 The script accepts no target namespace. It uses generated `root\WelaSaclTest_<GUID>` names, creates them with CreateOnly, verifies the returned identity, runs the writer only there, and removes only instances it created. The normal read-only test remains separate. It does not enable audit policy, generate controlled Security 4662 evidence or test forwarding. Namespace lifecycle follows Microsoft's [__Namespace contract](https://learn.microsoft.com/en-us/windows/win32/wmisdk/--namespace); SACL-only updates follow the [SetSecurityDescriptor contract](https://learn.microsoft.com/en-us/windows/win32/wmisdk/setsecuritydescriptor-method-in-class---systemsecurity).
+
+The separate [local WMI probe](wmi-probe.md) can collect bounded namespace-read Security4662 evidence using existing prerequisites. It makes no production namespace/policy changes; its owned-namespace native fixture covers a separate local read case, not remote access or forwarding.

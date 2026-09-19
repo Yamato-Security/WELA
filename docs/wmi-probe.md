@@ -1,0 +1,40 @@
+# Local WMI namespace access evidence
+
+`wmi-probe` runs one fixed, read-only query against an explicitly selected existing local namespace and looks for matching native Security **4662** XML. The default `Plan` only observes prerequisites. Neither action changes audit policy, namespaces, SACLs, DACLs, services, firewall rules or remote access. Sysmon is excluded.
+
+```powershell
+# First configure the appropriate audit policy and namespace SACL through their authority.
+.\WELA.ps1 wmi-probe -WmiProbeNamespace root\default
+.\WELA.ps1 wmi-probe -WmiProbeAction Run -WmiProbeNamespace root\default `
+  -WmiProbeOutputPath C:\Evidence\new-wmi-probe -WmiProbeTimeoutSeconds 15
+```
+
+Only an exact `root\name` hierarchy of ordinary identifiers is accepted. There is no server, credential, query or method parameter. `Run` requires a new directory on a local fixed drive with an existing parent; existing paths, remote paths, alternate streams and reparse points are refused. Its protected DACL grants the current user, SYSTEM and Administrators access. Raw XML, before/after observations, operation details and SHA256 hashes remain together with a final manifest. `Plan` accepts no output path. Dedicated options are rejected on other commands; configuration/Auto/DryRun options are rejected here.
+
+## Prerequisites and actual observations
+
+Use native 64-bit Windows PowerShell 5.1 or PowerShell7 on a reviewed Windows11/Server build. The report records actual build/patch/edition, domain and machine role, selected namespace, full provider descriptor JSON/MOF, Security channel settings, effective **Other Object Access Events** mask and typed `SCENoApplyLegacyAuditPolicy`. Success auditing, DWORD precedence1, a readable enabled Security channel and an observed success read (`WBEM_ENABLE=0x1`) audit ACE matching the actual caller must already exist. A source profile's method-only ACE does not establish this read prerequisite. Use `wmi-auditing` separately to review ASD namespace definitions.
+
+The process token observation includes user SID/name, logon-session LUID, authentication/impersonation information, group SIDs with native attributes, and privilege LUIDs/attributes. Disabled and deny-only groups do not establish a matching success audit ACE. The shared descriptor reader temporarily enables an already assigned `SeSecurityPrivilege` and restores it; the probe verifies its token is unchanged afterward. It does not assign rights. Impersonated callers are refused. An ACE match alone does not prove effective namespace access; the fixed read and event observations are separate.
+
+The worker uses the same PowerShell executable as WELA with `-NoProfile -NonInteractive`. It connects only to `\\.\<selected-namespace>` and executes `SELECT Name FROM __Namespace WHERE Name='WelaReadProbe_<random-guid>'`. It must return zero rows. This avoids retrieving a namespace inventory, creating an instance or invoking a provider method. The child has a twenty-second limit; a stuck owned child is terminated. The configured 1–30-second timeout is the subsequent event-arrival polling limit, not a deadline for all host/descriptor observations. Ordinary native prerequisite APIs can still wait on WMI/Windows availability.
+
+Source/helper and PowerShell executable fingerprints are recorded and checked before/after, alongside full descriptor, host, channel and policy state. The worker records its own before/after token; its user/logon/group context must match the parent, and its privilege state must remain unchanged. A changed state, denied read, failed child, missing evidence, unknown schema or query cap remains `Unverified` with exit1 and available recovery evidence. `LocalNamespaceAccessObserved` requires successful verification; it grants **zero usable Sigma-rule credit**.
+
+## What the event establishes
+
+Microsoft documents WMI4662 as an audited **namespace access check**, distinct from the success/failure of the subsequent provider operation. AD directory-service4662 is a different source. The matcher requires the native Security-Auditing provider/GUID, Security channel, reviewed version0, audit-success keyword, `ObjectServer=WMI`, exact namespace, read access mask1, the worker's user SID and logon LUID, actual local computer, and timestamp within the recorded fixed-query interval. The record ID must be greater than the Security boundary observed before launch. Localized rendered messages are not parsed; original XML is retained.
+
+WMI4662 does not include the query's random name or client PID. Concurrent reads of the same namespace by the same logon session can satisfy these fields. The result therefore establishes matching local namespace-access evidence during the interval, **not exclusive attribution to this one query**. Multiple matching records are retained within the explicit bound. It does not infer remote/local logon type from group names, method success, failure-outcome coverage, provider-WMI-Activity equivalence, complete log continuity, forwarding, backend ingestion or detection readiness.
+
+The Security query accepts at most255 candidates; reaching the256-record cap fails instead of claiming completeness. Each XML input is bounded to128KiB characters and at most16 matches are exported. Up to four bounded candidates may be retained for a missing-match diagnostic. A backwards record boundary fails; absence never proves event loss. No logs are cleared, archived, uploaded or forwarded.
+
+## Disposable native validation
+
+The fixture suite exercises the public report flow with native boundaries explicitly mocked, including source/event mismatches, denied reads, missing prerequisites, state drift, caps and protected new output. Public CLI guards are checked separately. Native code is never dot-sourced from those mock fixtures.
+
+`tests/WmiProbe.Windows.Tests.ps1 -AllowDisposableNamespaceWrite` requires a disposable GitHub-hosted workgroup Server2022/2025. It creates exactly one random `root\WelaReadTest_<GUID>` namespace with CreateOnly, uses the real existing SACL writer with the ASD root-default definition on that owned namespace, temporarily enables Other Object Access success auditing and precedence, and invokes the public CLI. It requires correlated raw native4662 evidence and unchanged namespace security. It then restores the original subcategory and exact typed precedence, verifies all59 audit masks, and deletes only the namespace it created. Failures preserve the primary exception and a private cleanup receipt; restoration failures fail the job. Private temporary evidence remains on the disposable runner until that VM is discarded.
+
+The workflow covers Server2022/2025 with PowerShell5.1/7. A checked-in native test is not evidence of a successful run: inspect the final-head workflow results and raw event evidence. Windows11, production namespaces, domain/DC/CA token behavior, remote WMI, inheritance propagation, forwarding and backend execution remain separate acceptance work. No domain infrastructure is required by this fixture.
+
+Primary references: [WMI namespace access/auditing semantics](https://learn.microsoft.com/en-us/windows/win32/wmisdk/access-to-wmi-namespaces), [namespace object paths](https://learn.microsoft.com/en-us/windows/win32/wmisdk/describing-a-wmi-namespace-object-path), [__Namespace class](https://learn.microsoft.com/en-us/windows/win32/wmisdk/--namespace), [namespace access rights](https://learn.microsoft.com/en-us/windows/win32/wmisdk/namespace-access-rights-constants), [SACL-only descriptor contract](https://learn.microsoft.com/en-us/windows/win32/wmisdk/setsecuritydescriptor-method-in-class---systemsecurity), [token logon LUID](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-token_statistics), and [token group attributes](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-token_groups).
