@@ -62,6 +62,8 @@
     [ValidateSet('OneSettings','SecurityWarning')][string[]]$NotificationControl,
     [ValidateRange(1,90)][int]$WarningPercent = 90,
     [switch]$EnablePrivacyChannel,
+    [string]$ScoreProfile,
+    [string]$ScoreEvidencePath,
     [switch]$Help
 )
 
@@ -98,6 +100,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
+. (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1814,6 +1817,7 @@ Usage:
   ./WELA.ps1 control-applicability     # Read-only historical native feature/build assessment
   ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
+  ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
 "@
@@ -1824,6 +1828,13 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'score' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('ScoreProfile','ScoreEvidencePath') }).Count) {
+    throw 'Scoring options require score. No command was run.'
+}
+if ($Cmd -eq 'score' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ScoreProfile','ScoreEvidencePath','Role','Build','IncludeOptional','ResultsPath','HtmlPath','Help') }).Count) {
+    throw 'score accepts only score, scenario, optional-selection and report options. No command was run.'
+}
 
 if ($Cmd -ne 'audit-integrity' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('IntegrityAction','IntegrityProfile','AllowPrivilegeRemoval') }).Count) {
     throw 'Integrity options require the dedicated audit-integrity command. No command was run.'
@@ -1917,6 +1928,15 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'score' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 score -ScoreProfile profile-id [-Role role -Build build] [-IncludeOptional] [-ScoreEvidencePath evidence.json] [-ResultsPath new.json] [-HtmlPath new.html]. Explicit role/build is an offline scenario; omit both to observe this Windows host. Two separate measures, no overall security grade. See docs/audit-scoring.md.'; return }
+        if (-not $ScoreProfile) { throw 'score requires an explicit -ScoreProfile. Use profiles to list built-in profiles.' }
+        $report=Invoke-WelaAuditScore -Profile $ScoreProfile -EvidencePath $ScoreEvidencePath -Role $Role -Build $Build -IncludeOptional:$IncludeOptional
+        Export-WelaAuditScore -Report $report -ResultsPath $ResultsPath -HtmlPath $HtmlPath
+        $report.Configuration | Select-Object Label,Numerator,Denominator,Percent,Unknown | Format-List
+        $report.Readiness | Select-Object Label,Numerator,Denominator,Percent,Ready,ApplicableUniqueRules | Format-List
+    }
+
     'audit-integrity' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-integrity [-IntegrityAction Audit|Plan|Configure] [-IntegrityProfile source-id] [-AllowPrivilegeRemoval] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Audit is read-only; Plan/Configure require an exact source profile. See docs/audit-integrity.md.'; return }
         if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-integrity observes the actual local Windows host; use -IntegrityProfile and -ResultsPath, without Security profiles, role/build overrides or HTML.' }

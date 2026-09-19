@@ -1,0 +1,30 @@
+name: Transparent native audit scoring
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-scoring:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Arithmetic, provenance and public guards on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AuditScoring.Tests.ps1
+      - name: Read-only native score and full corpus on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/AuditScoring.Windows.Tests.ps1
+      - name: Arithmetic, provenance and public guards on PowerShell 7
+        shell: pwsh
+        run: ./tests/AuditScoring.Tests.ps1
+      - name: Read-only native score and full corpus on PowerShell 7
+        shell: pwsh
+        run: ./tests/AuditScoring.Windows.Tests.ps1
