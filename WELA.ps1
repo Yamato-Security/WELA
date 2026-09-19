@@ -49,6 +49,8 @@
     [ValidateRange(1,2147483647)][int]$LdapSearchTimeMs,
     [ValidateRange(1,2147483647)][int]$LdapExpensiveThreshold,
     [ValidateRange(1,2147483647)][int]$LdapInefficientThreshold,
+    [ValidateSet('List','Audit','Plan','Configure')][string]$ProviderAction = 'List',
+    [string[]]$ProviderPack,
     [switch]$Help
 )
 
@@ -78,6 +80,7 @@ Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
+. (Join-Path $ScriptRoot "scripts/NativeProviderPacks.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
@@ -1740,6 +1743,8 @@ Usage:
   ./WELA.ps1 channel-settings -ChannelAction Audit -WefQuerySet Both -ResultsPath channels.json
   ./WELA.ps1 channel-settings -ChannelAction Plan -GrantEventLogReaders
   ./WELA.ps1 channel-settings -ChannelAction Configure -GrantEventLogReaders -DryRun
+  ./WELA.ps1 provider-packs -ProviderAction List
+  ./WELA.ps1 provider-packs -ProviderAction Plan -ProviderPack dns-client,capi2 -ResultsPath provider-plan.json
 
   ./WELA.ps1 wef-source -WefAction Plan -WefConfigPath source.json -ResultsPath source-plan.json
   ./WELA.ps1 wec-collector -WefAction Configure -WefConfigPath collector.json -DryRun
@@ -1811,6 +1816,9 @@ if ($PSBoundParameters.ContainsKey('SaclMode') -and
     throw '-SaclMode requires -Profile with plan, audit, audit-settings or configure. It does not control configure-sacl. No command was run.'
 }
 # Reject unsupported dry-run requests before reaching any command's mutation path.
+if ($Cmd -ne 'provider-packs' -and ($PSBoundParameters.ContainsKey('ProviderAction') -or $PSBoundParameters.ContainsKey('ProviderPack'))) {
+    throw 'Provider options require provider-packs. No command was run.'
+}
 if ($Cmd -ne 'powershell-transcription' -and
     ($PSBoundParameters.ContainsKey('TranscriptionAction') -or $PSBoundParameters.ContainsKey('TranscriptDirectory'))) {
     throw 'Transcription options require the dedicated powershell-transcription command. No command was run.'
@@ -1821,6 +1829,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
 if ($DryRun -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+    -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
@@ -1828,7 +1837,7 @@ if ($DryRun -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configu
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, and ldap-diagnostics -LdapAction Configure. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, and provider-packs -ProviderAction Configure. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1897,6 +1906,15 @@ switch ($Cmd.ToLower()) {
         if ($PSBoundParameters.ContainsKey('LdapExpensiveThreshold')) { $thresholds.Expensive=$LdapExpensiveThreshold }
         if ($PSBoundParameters.ContainsKey('LdapInefficientThreshold')) { $thresholds.Inefficient=$LdapInefficientThreshold }
         $report=Invoke-WelaLdapCommand -Action $LdapAction -Mode $LdapMode -Thresholds $thresholds -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
+    'provider-packs' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 provider-packs [-ProviderAction List|Audit|Plan|Configure] [-ProviderPack dns-client,capi2,winrm,rdp-client,dns-server-audit] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. DNS classic/analytical packs are manual inventory. See docs/native-provider-packs.md.'; return }
+        if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath -or $PlanPath) { throw 'provider-packs uses explicit pack names, actual host role/build and -ResultsPath JSON; audit profiles and context overrides do not apply.' }
+        if ($ProviderAction -ne 'Configure' -and ($Auto -or $BackupPath)) { throw '-Auto and -BackupPath require ProviderAction Configure.' }
+        if ($ProviderAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'Provider pack configuration requires Administrator privileges.' }
+        $report=Invoke-WelaProviderPackCommand -Action $ProviderAction -Names $ProviderPack -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
         if ($report.ExitCode) { exit $report.ExitCode }
     }

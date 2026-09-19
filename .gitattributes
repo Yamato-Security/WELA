@@ -2,3 +2,5 @@
 /config/security_rules.json text eol=lf
 /config/eid_subcategory_mapping.csv text eol=lf
 /config/rule_eligibility_manifest.json text eol=lf
+# Full upstream rule artifacts retain their exact pinned bytes on every platform.
+/config/provider_rule_sources/*.yml -text whitespace=-blank-at-eol

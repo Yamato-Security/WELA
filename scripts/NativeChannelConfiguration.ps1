@@ -44,21 +44,23 @@ function Get-WelaNativeChannelPlan {
 }
 
 function Set-WelaNativeChannelControls {
-    param($Context, [array]$Plan, [string]$Profile)
+    param($Context, [array]$Plan, [string]$Profile, [scriptblock]$ValidatePrerequisites)
     foreach ($entry in $Plan) {
         $channel = $entry.Definition.channel
         $id = "NativeChannel/$channel/Settings"
         if ($entry.Status -in @('NotInstalled', 'Unknown', 'ManualReview')) {
+            $prerequisiteDiagnostic = if ($entry.PSObject.Properties['PrerequisiteDiagnostic']) { $entry.PrerequisiteDiagnostic } else { '' }
             $Context.Results.Add([pscustomobject]@{
                 Id = $id; Kind = 'NativeChannel'; Target = @{ Channel = $channel; Profile = $Profile }
                 Desired = $entry.Desired; Before = $entry.Before; After = $null; Status = 'Failed'
-                Diagnostic = "$($entry.Status): channel metadata/ACL cannot safely be configured. $($entry.Access.Diagnostic)"
+                Diagnostic = "$($entry.Status): channel metadata/ACL cannot safely be configured. $($entry.Access.Diagnostic) $prerequisiteDiagnostic"
             })
             continue
         }
-        $state = @{ Entry = $entry; InitialRead = $true; Snapshot = $null }
+        $state = @{ Entry = $entry; InitialRead = $true; Snapshot = $null; ValidatePrerequisites = $ValidatePrerequisites }
         $read = {
             param($state)
+            if ($state.ValidatePrerequisites) { & $state.ValidatePrerequisites $state.Entry }
             $current = Get-WelaNativeChannel -Name $state.Entry.Definition.channel
             if (-not (Test-WelaNativeChannelSnapshot $current)) { throw 'Channel settings became unreadable; no assumed defaults are used.' }
             if ($state.InitialRead) {
@@ -78,6 +80,7 @@ function Set-WelaNativeChannelControls {
         $apply = {
             param($state)
             $entry = $state.Entry
+            if ($state.ValidatePrerequisites) { & $state.ValidatePrerequisites $entry }
             $fresh = Get-WelaNativeChannel -Name $entry.Definition.channel
             if (-not (Test-WelaNativeChannelSnapshotEqual $state.Snapshot $fresh)) { throw 'Channel settings changed after the recovery snapshot; no channel write was attempted.' }
             $arguments = @('sl', $entry.Definition.channel)
