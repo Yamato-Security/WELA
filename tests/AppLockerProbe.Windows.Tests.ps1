@@ -2,6 +2,12 @@ param([switch]$AllowDisposablePolicyWrite)
 $ErrorActionPreference='Stop'
 if($env:OS -ne 'Windows_NT'){Write-Host 'Skipped: Windows required.';exit 0}
 if(-not $AllowDisposablePolicyWrite -or $env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted'){throw 'Explicit disposable GitHub-hosted policy-write opt-in required.'}
+function Refresh-DisposableComputerPolicy {
+ $info=New-Object Diagnostics.ProcessStartInfo
+ $info.FileName=Join-Path ([Environment]::SystemDirectory) 'gpupdate.exe';$info.Arguments='/target:computer /force /wait:30';$info.UseShellExecute=$false
+ $process=[Diagnostics.Process]::Start($info)
+ try {if(-not $process.WaitForExit(60000)){$process.Kill();throw 'Disposable computer policy refresh exceeded 60 seconds.'};if($process.ExitCode -ne 0){throw ('Disposable computer policy refresh failed: '+$process.ExitCode)}} finally {$process.Dispose()}
+}
 $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/Configuration.ps1"
 . "$repo/scripts/AppLockerReadiness.ps1"
@@ -20,10 +26,20 @@ try {
  # Test-only preparation under explicit disposable-host and empty-GP gates.
  # Hosted images contain enrollment/provider keys: preserve them and CSP Unknown.
  # The production importer must continue to reject those observations.
+ $preparedUtc=[DateTime]::UtcNow
  Set-AppLockerPolicy -XmlPolicy $policyPath -ErrorAction Stop
  if($before.Service.StartMode -eq 'Disabled'){throw 'Test will not change protected AppIDSvc startup mode.'}
  if($before.Service.State -ne 'Running'){Start-Service AppIDSvc -ErrorAction Stop}
  $log.IsEnabled=$true;$log.SaveChanges()
+ Refresh-DisposableComputerPolicy
+ $applied=$false;$applyDeadline=[DateTime]::UtcNow.AddSeconds(30)
+ do {
+  $records=@()
+  try {try{$records=@(Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-AppLocker/EXE and DLL';Id=8001;StartTime=$preparedUtc} -MaxEvents 10 -ErrorAction Stop)}catch{if($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*'){throw}};$applied=$records.Count -gt 0} finally {foreach($record in $records){$record.Dispose()}}
+  if($applied){break};Start-Sleep -Milliseconds 250
+ } while([DateTime]::UtcNow -lt $applyDeadline)
+ if(-not $applied){throw 'No native 8001 policy-applied event after disposable GP refresh.'}
+ Write-Host 'Native 8001 policy-applied evidence observed after disposable GP refresh.'
  # Wait for actual effective audit-only policy, without treating elapsed time as success.
  $deadline=[DateTime]::UtcNow.AddSeconds(30)
  do {$state=Get-WelaAppLockerProbeState;$ready=$false;try{$null=Get-WelaAppLockerProbeKey $state;$ready=$true}catch{};if($ready){break};Start-Sleep -Milliseconds 500}while([DateTime]::UtcNow -lt $deadline)
@@ -43,7 +59,7 @@ try {
 }
 finally {
  if($touched){
-  try {Set-AppLockerPolicy -XmlPolicy $backup -ErrorAction Stop;$restored=Get-WelaAppLockerPolicySnapshot Local;if((Get-WelaAppLockerXmlKey $restored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.LocalPolicy.Policy.Xml)){throw 'Local policy restoration differs'}}catch{$cleanup+=$_.Exception.Message}
+  try {Set-AppLockerPolicy -XmlPolicy $backup -ErrorAction Stop;Refresh-DisposableComputerPolicy;$restored=Get-WelaAppLockerPolicySnapshot Local;if((Get-WelaAppLockerXmlKey $restored.Policy.Xml) -cne (Get-WelaAppLockerXmlKey $before.LocalPolicy.Policy.Xml)){throw 'Local policy restoration differs'}}catch{$cleanup+=$_.Exception.Message}
   try {$log.IsEnabled=$enabled;$log.SaveChanges();$verify=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new($log.LogName);try{if($verify.IsEnabled -ne $enabled){throw 'Channel restoration differs'}}finally{$verify.Dispose()}}catch{$cleanup+=$_.Exception.Message}
   if($before.Service.State -ne 'Running') {try {Stop-Service AppIDSvc -ErrorAction Stop}catch{Write-Host 'Protected AppIDSvc could not stop; startup mode was untouched. The disposable hosted VM is discarded after this job.'}}
   $afterService=Get-WelaAppLockerService;if($afterService.StartMode -ne $before.Service.StartMode){$cleanup+='AppIDSvc startup mode changed'}
