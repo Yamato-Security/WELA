@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Win32.SafeHandles;
 namespace Wela.DnsAnalytical {
  public sealed class Archive {
@@ -19,6 +20,8 @@ namespace Wela.DnsAnalytical {
   static string Hex(byte[] hash){return BitConverter.ToString(hash).Replace("-","").ToLowerInvariant();}
   static void PathGuard(string path) {
    if(String.IsNullOrEmpty(path)||path.Length<4||path[1]!=':'||path[2]!='\\'||path.Substring(2).Contains(":")||!String.Equals(Path.GetFullPath(path),path,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Archive source/output must be a canonical local drive path.");
+   if(Regex.IsMatch(path,@"[\x00-\x1f*?<>|""\[\]]|[ .](\\|$)"))throw new InvalidOperationException("Archive path contains unsupported alias or wildcard syntax.");
+   if(new DriveInfo(Path.GetPathRoot(path)).DriveType!=DriveType.Fixed)throw new InvalidOperationException("Archive path requires a local fixed drive.");
    string current=Path.GetDirectoryName(path);
    while(!String.IsNullOrEmpty(current)) {
     FileAttributes attributes=File.GetAttributes(current);
@@ -35,6 +38,7 @@ namespace Wela.DnsAnalytical {
    return info;
   }
   static string Identity(FileInfo info){return info.Volume+":"+info.IndexHigh+":"+info.IndexLow+":"+info.Created+":"+info.Written;}
+  public static Archive Inspect(string source,long maximumBytes) { return Read(source,null,maximumBytes); }
   public static Archive Read(string source,string destination,long maximumBytes) {
    if(maximumBytes<1048576||maximumBytes>4294967296L)throw new InvalidOperationException("Archive cap must be between 1 MiB and 4 GiB.");
    PathGuard(source);if(destination!=null)PathGuard(destination);

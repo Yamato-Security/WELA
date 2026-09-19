@@ -53,6 +53,7 @@ function Get-WelaDnsAnalyticalState {
         if($log.IsEnabled -isnot [bool] -or $log.MaximumSizeInBytes -lt 1048576 -or [string]$log.LogMode -notin @('Circular','Retain') -or -not $log.SecurityDescriptor -or -not $log.LogFilePath){throw 'DNS channel enable/size/retention/ACL/path metadata is unknown or unsupported.'}
         $path=[Environment]::ExpandEnvironmentVariables([string]$log.LogFilePath)
         if($path -notmatch '^[A-Za-z]:\\' -or $path -match '[*?<>|]|[ .](\\|$)' -or $path -match '%[^%]+%' -or $path.Substring(2).Contains(':') -or [IO.Path]::GetFullPath($path) -ine $path){throw 'DNS trace path must be an unambiguous canonical local drive path.'}
+        if(([IO.DriveInfo]::new([IO.Path]::GetPathRoot($path))).DriveType -ne [IO.DriveType]::Fixed){throw 'DNS trace must reside on a local fixed drive.'}
         [pscustomobject]@{Context=$context;Channel=$Definition.Pack.channel;Provider=$schema.Provider;ProviderGuid=$schema.ProviderGuid;ChannelType=$schema.ChannelType;ServiceState=$service.State;Schema=$schema;IsEnabled=[bool]$log.IsEnabled;MaximumSizeInBytes=[long]$log.MaximumSizeInBytes;LogMode=[string]$log.LogMode;SecurityDescriptor=[string]$log.SecurityDescriptor;LogFilePath=$path;RegisteredLogFilePath=[string]$log.LogFilePath}
     } finally {foreach($log in $logs){if($log -is [IDisposable]){$log.Dispose()}}}
 }
@@ -78,8 +79,9 @@ function Initialize-WelaDnsTraceArchive {
 function Copy-WelaDnsAnalyticalTrace {
     param([string]$Source,[string]$Destination,[long]$MaximumBytes)
     Initialize-WelaDnsTraceArchive
-    $target=if($Destination){$Destination}else{$null}
-    [Wela.DnsAnalytical.TraceArchive]::Read($Source,$target,$MaximumBytes)
+    # Separate native entry point avoids PowerShell coercing a null string to empty.
+    if($Destination){[Wela.DnsAnalytical.TraceArchive]::Read($Source,$Destination,$MaximumBytes)}
+    else{[Wela.DnsAnalytical.TraceArchive]::Inspect($Source,$MaximumBytes)}
 }
 function Assert-WelaDnsAnalyticalArchive {
     param($Archive,[long]$MaximumBytes)
@@ -91,10 +93,14 @@ function Assert-WelaDnsAnalyticalArchive {
 }
 function Resolve-WelaDnsAnalyticalOutput {
     param([string]$Path)
+    if($Path -match '[\x00-\x1f*?<>|"\[\]]' -or $Path -match '(?<!^[A-Za-z]):' -or @($Path -split '[\\/]'|Where-Object {$_ -notin @('.','..') -and $_ -match '[ .]$'}).Count){throw 'DNS artifact path contains unsupported stream, wildcard, control or trailing-dot/space syntax.'}
     $provider=$null;$drive=$null;$full=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path,[ref]$provider,[ref]$drive)
     if($provider.Name -ne 'FileSystem'){throw 'DNS recovery/report path must use the FileSystem provider.'}
     $full=[IO.Path]::GetFullPath($full)
-    if($env:OS -eq 'Windows_NT' -and $full -notmatch '^[A-Za-z]:\\'){throw 'DNS artifacts require a local drive path, not a network share.'}
+    if($env:OS -eq 'Windows_NT'){
+        if($full -notmatch '^[A-Za-z]:\\' -or $full.Substring(2).Contains(':')){throw 'DNS artifacts require a local fixed drive path, not a network share or alternate stream.'}
+        if(([IO.DriveInfo]::new([IO.Path]::GetPathRoot($full))).DriveType -ne [IO.DriveType]::Fixed){throw 'DNS artifacts require a local fixed drive.'}
+    }
     if(Test-Path -LiteralPath $full){throw 'DNS recovery/report output must be new.'}
     $parent=Get-Item -LiteralPath (Split-Path $full -Parent) -ErrorAction Stop
     if(-not $parent.PSIsContainer){throw 'DNS output parent must be an existing directory.'}
@@ -171,7 +177,10 @@ function Invoke-WelaDnsAnalytical {
                 if($desired.LogMode -ne $current.LogMode){$arguments+='/rt:'+([string]($desired.LogMode -eq 'Retain')).ToLowerInvariant()}
                 if($desired.IsEnabled){$arguments+=@('/e:true','/q:true')}
                 $null=Assert-WelaDnsAnalyticalCurrent $definition $current
-                if($arguments.Count -gt 2){Set-WelaDnsAnalyticalNative $arguments}
+                if($arguments.Count -gt 2){
+                    Assert-WelaDnsAnalyticalArchive $report.Archive $ArchiveMaximumBytes
+                    Set-WelaDnsAnalyticalNative $arguments
+                }
                 $report.After=Assert-WelaDnsAnalyticalCurrent $definition $desired
                 $report.Status='Applied'
                 Write-WelaDnsAnalyticalJson (Join-Path $backup '04-applied.json') $report

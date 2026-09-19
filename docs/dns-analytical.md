@@ -35,13 +35,13 @@ Every non-idempotent Configure requires `-AllowDnsTraceReset`, including stoppin
 
 Before a transition, the adapter creates a **new private recovery directory** under an existing operator-controlled parent and durably records `01-before.json`. It rechecks source/context/schema/channel state, stops the channel if necessary, verifies the stopped configuration and records `02-stopped.json`.
 
-It then opens the registered local ETL through a stable native handle, refuses reparse points/remote paths and writer/delete sharing, and copies in 64 KiB blocks to a new `trace-before.etl`. `-DnsArchiveMaximumBytes` defaults to 1 GiB and accepts 1 MiB–4 GiB; an oversized trace blocks the reset rather than being truncated. File identity, length and SHA-256 are checked against source and archived bytes. `03-archive.json` distinguishes:
+It then opens the registered local ETL through a stable native handle, refuses reparse points, non-fixed drives, remote paths and ambiguous stream/wildcard/control/trailing-dot-space paths and writer/delete sharing, and copies in 64 KiB blocks to a new `trace-before.etl`. `-DnsArchiveMaximumBytes` defaults to 1 GiB and accepts 1 MiB–4 GiB; an oversized trace blocks the reset rather than being truncated. File identity, length and SHA-256 are checked against source and archived bytes. `03-archive.json` distinguishes:
 
 - `ArchivedBytes`: the complete bytes available in that stopped file were copied and read back with the same hash.
 - `ObservedAbsent`: native `FILE_NOT_FOUND` was observed under existing local parents. No empty archive or hash is fabricated.
 - Failure: inaccessible, locked, empty existing, oversized, changed or unsupported trace state. This cannot authorize a reset.
 
-Both source and saved archive are revalidated immediately before the reset-capable native command. Readback must match the desired enable/size/retention values and preserved ACL/path/context. `04-applied.json` records that verified moment; `05-result.json` records final status and any later drift. New result paths resolve relative to PowerShell's current location and never overwrite existing evidence.
+Both source and saved archive are revalidated immediately before the reset-capable native command. Readback must match the desired enable/size/retention values and preserved ACL/path/context. `04-applied.json` records that verified moment; `05-result.json` records final status and any later drift. New result paths resolve relative to PowerShell's current location, require unambiguous fixed-drive paths, and never overwrite existing evidence or write alternate data streams. The last source/archive recheck runs after the final context observation and immediately before the native reset call; it is not an atomic compare-and-reset operation.
 
 If archival fails after a stop, the result is **Failed** and the trace remains stopped. Automatically re-enabling could destroy the very evidence that could not be archived. Recovery files and the observed after-state remain available; a failed/partial operation is never unconditional success. A successful repeat is AlreadyCompliant and performs no stop, archive or reset.
 

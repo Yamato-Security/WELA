@@ -32,6 +32,9 @@ try {
     $archive=Copy-WelaDnsAnalyticalTrace $source $destination 1048576
     Assert ($archive.State -eq 'ArchivedBytes' -and $archive.Length -eq 131073 -and $archive.Sha256 -ceq (Get-FileHash $source).Hash.ToLowerInvariant() -and $archive.Sha256 -ceq $archive.ArchivedSha256) 'Streaming native archive retains exact bytes and hashes.'
     Assert-WelaDnsAnalyticalArchive $archive 1048576
+    $observed=Copy-WelaDnsAnalyticalTrace -Source $source -MaximumBytes 1048576
+    Assert ($observed.State -eq 'ObservedBytes' -and $observed.Sha256 -ceq $archive.Sha256 -and -not$observed.ArchivePath) 'Native read-only overload preserves bytes without a destination or null-string coercion.'
+    foreach($alias in @(($source+':stream'),($source+'.'),($source+' '),(Join-Path $private 'bad?.etl'))){Throws {Resolve-WelaDnsAnalyticalOutput $alias} 'unsupported'}
     Throws {Copy-WelaDnsAnalyticalTrace $source $destination 1048576} 'already exists|exist'
     $lock=[IO.File]::Open($source,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
     try{Throws {Copy-WelaDnsAnalyticalTrace -Source $source -MaximumBytes 1048576} 'absence was not established|another process'}finally{$lock.Dispose()}

@@ -13,7 +13,7 @@ $script:sourceReader=(Get-Command Get-WelaDnsAnalyticalSources).ScriptBlock
 function Get-WelaDnsAnalyticalDefinition {Clone $script:definition}
 $temp=Join-Path ([IO.Path]::GetTempPath()) ('wela-dns-tests-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $temp
 function Reset {
-    $script:backup=Join-Path $temp ([guid]::NewGuid().ToString('N'));$script:scenario='';$script:nativeCalls=@();$script:trace=[Text.Encoding]::UTF8.GetBytes('original ETL fixture');$script:reads=0
+    $script:backup=Join-Path $temp ([guid]::NewGuid().ToString('N'));$script:scenario='';$script:nativeCalls=@();$script:trace=[Text.Encoding]::UTF8.GetBytes('original ETL fixture');$script:reads=0;$script:afterArchiveContextReads=0
     $script:state=[pscustomobject]@{Context=[pscustomobject]@{Key='actual-server-build-patch'};Channel='Microsoft-Windows-DNSServer/Analytical';Provider='Microsoft-Windows-DNSServer';ProviderGuid='eb79061a-a566-4698-9119-3ed2807060e7';ChannelType='Analytical';ServiceState='Running';Schema=[pscustomobject]@{Events=@([pscustomobject]@{Id=257;Version=0;TemplateSha256='pinned-template'})};IsEnabled=$false;MaximumSizeInBytes=[long]33554432;LogMode='Circular';SecurityDescriptor='original-ACL';LogFilePath='C:\fixture\DNS.etl';RegisteredLogFilePath='C:\fixture\DNS.etl'}
 }
 function Get-WelaDnsAnalyticalState {
@@ -21,6 +21,8 @@ function Get-WelaDnsAnalyticalState {
     $script:reads++
     if($script:scenario -eq 'denied-state'){throw 'Denied native metadata'}
     if($script:scenario -eq 'final-drift' -and (Test-Path (Join-Path $script:backup '04-applied.json'))){$script:state.SecurityDescriptor='concurrent-ACL'}
+    if(Test-Path (Join-Path $script:backup '03-archive.json')){$script:afterArchiveContextReads++}
+    if($script:scenario -eq 'final-context-trace-race' -and $script:afterArchiveContextReads -eq 2){$script:trace=[Text.Encoding]::UTF8.GetBytes('changed during final context observation')}
     Clone $script:state
 }
 function Get-WelaDnsAnalyticalSources {
@@ -117,7 +119,7 @@ try {
         Reset;$script:scenario=$case;$r=Configure
         Assert ($script:nativeCalls.Count -eq 0 -and $r.Status -in @('Failed','Skipped')) "No channel mutation after $case."
     }
-    foreach($case in @('archive-denied','trace-race','archive-tamper')){
+    foreach($case in @('archive-denied','trace-race','archive-tamper','final-context-trace-race')){
         Reset;$script:state.IsEnabled=$true;$script:state.MaximumSizeInBytes=1048576;$script:scenario=$case;$r=Configure -Auto
         Assert ($r.Status -eq 'Failed' -and $script:nativeCalls.Count -eq 1 -and -not$r.After.IsEnabled -and -not(Test-Path (Join-Path $script:backup '04-applied.json'))) "$case leaves stopped trace explicitly failed without resetting unarchived evidence."
     }
@@ -129,6 +131,9 @@ try {
     try{$null=Invoke-WelaDnsAnalytical -ResultsPath 'relative.json'}finally{Pop-Location}
     Assert (Test-Path $out) 'Report relative path follows PowerShell location.'
     Throws {Invoke-WelaDnsAnalytical -ResultsPath $out} 'must be new'
+    foreach($suffix in @('base.json:stream','bad*.json','bad?.json','bad[1].json',('bad'+[char]10+'.json'),'trailing.','trailing ')){
+        Throws {Resolve-WelaDnsAnalyticalOutput (Join-Path $temp $suffix)} 'unsupported'
+    }
     Throws {Invoke-WelaDnsAnalytical -Action Configure} 'explicit DNS state'
     Throws {Invoke-WelaDnsAnalytical -DryRun} 'require DNS Configure'
     $exe=(Get-Process -Id $PID).Path
