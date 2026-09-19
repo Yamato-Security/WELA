@@ -1,4 +1,5 @@
 # Explicit selected, existing local targets. No audit-policy writes or hive loading.
+. (Join-Path $PSScriptRoot 'SelectedSaclDescendants.ps1')
 function Get-WelaSelectedSaclHash {
     param([string[]]$Values)
     $encoding=New-Object Text.UTF8Encoding($false,$true)
@@ -7,7 +8,7 @@ function Get-WelaSelectedSaclHash {
     try {([BitConverter]::ToString($sha.ComputeHash($encoding.GetBytes($text)))).Replace('-','').ToLowerInvariant()} finally {$sha.Dispose()}
 }
 function Get-WelaSelectedSaclSources {
-    foreach($path in @('config/audit_sacl_targets.json','config/audit_profiles.json','modules/AuditProfiles.psm1','modules/AuditCatalog.psm1','scripts/TargetedSaclPlanning.ps1','scripts/SelectedSaclConfiguration.ps1','scripts/SelectedSaclNative.cs')) {
+    foreach($path in @('config/audit_sacl_targets.json','config/audit_profiles.json','modules/AuditProfiles.psm1','modules/AuditCatalog.psm1','scripts/TargetedSaclPlanning.ps1','scripts/SelectedSaclConfiguration.ps1','scripts/SelectedSaclNative.cs','scripts/SelectedSaclDescendants.ps1')) {
         [pscustomobject]@{Path=$path;Sha256=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot "../$path") -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
     }
 }
@@ -58,9 +59,9 @@ function Initialize-WelaSelectedSaclNative {
 function Resolve-WelaSelectedSaclNativePath {
     param($Definition)
     if($Definition.Resolution -notin @('Resolved','Redirected')){throw "Target path is unresolved: $($Definition.Resolution). No hive is loaded."}
-    $observation=Get-WelaSaclTargetObservation -Path $Definition.Path -Kind $Definition.Kind -SkipSaclRead
-    if($observation.PathState -ne 'Exists'){throw "Selected existing local target is unavailable: $($observation.PathState). $($observation.Diagnostic)"}
     if($Definition.Kind -eq 'FileSystem') {
+        $observation=Get-WelaSaclTargetObservation -Path $Definition.Path -Kind $Definition.Kind -SkipSaclRead
+        if($observation.PathState -ne 'Exists'){throw "Selected existing local target is unavailable: $($observation.PathState). $($observation.Diagnostic)"}
         if($Definition.Path -notmatch '^[A-Za-z]:\\'){throw 'Only absolute local filesystem targets are supported.'}
         if($Definition.Path.Substring(2).Contains(':') -or $Definition.Path -match '[*?<>|]|[ .](\\|$)'){throw 'Ambiguous filesystem target path.'}
         $full=[IO.Path]::GetFullPath($Definition.Path)
@@ -68,6 +69,8 @@ function Resolve-WelaSelectedSaclNativePath {
         return $full
     }
     if($Definition.Kind -ne 'Registry'){throw 'Unsupported target kind.'}
+    # Do not let a registry provider preflight follow a link before the native
+    # component-by-component OPEN_LINK validation. Missing keys fail native open.
     $path=$Definition.Path -replace '^HKLM:\\','HKEY_LOCAL_MACHINE\' -replace '^Registry::',''
     if($path -notmatch '^HKEY_(LOCAL_MACHINE|USERS)\\[^\\]+' -or $path -match '\\\\|(^|\\)\.\.?($|\\)|[*?%/\x00-\x1f]'){throw 'Only canonical existing HKLM/HKU keys may be selected.'}
     return $path
@@ -133,6 +136,7 @@ function Write-WelaSelectedSaclJson {
     param([string]$Path,$Value)
     $text=($Value | ConvertTo-Json -Depth 24 -Compress)+[Environment]::NewLine
     $bytes=[Text.UTF8Encoding]::new($false).GetBytes($text)
+    if($Value.Kind -eq 'WelaSelectedSaclPlan' -and $bytes.Length -gt 4194304){throw 'Reviewed plan exceeds the 4 MiB import limit; select fewer roots.'}
     $stream=[IO.File]::Open($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::Read)
     try {$stream.Write($bytes,0,$bytes.Length);$stream.Flush($true)} finally {$stream.Dispose()}
 }
@@ -160,6 +164,7 @@ function Read-WelaSelectedSaclPlan {
         if($row.Id -isnot [string] -or $row.Id -cnotmatch '^sacl-[0-9a-f]{24}$' -or $seen.ContainsKey($row.Id)){throw 'Invalid or duplicate reviewed target ID.'};$seen[$row.Id]=$true
         if((Get-WelaSelectedSaclDefinitionKey $row.Definition) -cne $row.DefinitionKey){throw 'Reviewed target definition was modified.'}
         $null=Get-WelaSelectedSaclSnapshotKey $row.Before
+        if($plan.IncludeChildren -and ($row.Before.Kind -eq 'Registry' -or $row.Before.IsDirectory)){$null=Get-WelaSelectedSaclDescendantKey $row.DescendantsBefore}
     }
     [pscustomobject]@{Path=$full;Hash=(Get-WelaSelectedSaclHash @([Convert]::ToBase64String($bytes)));Plan=$plan}
 }
@@ -198,17 +203,26 @@ function Invoke-WelaSelectedSacl {
     Assert-WelaSelectedSaclSources $sources
     foreach($id in $Ids){if(@($catalog.Rows | Where-Object Id -ceq $id).Count -ne 1){throw "Unknown/stale target ID: $id"}}
     $rows=@(foreach($item in $catalog.Rows){if(-not $selected.ContainsKey($item.Id)){continue}
-        $row=[pscustomobject]@{Id=$item.Id;DefinitionKey=$item.DefinitionKey;Definition=$item.Definition;Before=$null;Ace=$null;Status='Blocked';Diagnostic='';After=$null}
+        $row=[pscustomobject]@{Id=$item.Id;DefinitionKey=$item.DefinitionKey;Definition=$item.Definition;Before=$null;Ace=$null;Status='Blocked';Diagnostic='';After=$null;DescendantsBefore=$null;DescendantsAfter=$null;DescendantVerification=$null}
         try {
             $row.Before=Get-WelaSelectedSaclSnapshot $item.Definition
             $row.Ace=Get-WelaSelectedSaclAce $item.Definition $row.Before -IncludeChildren:$IncludeChildren
             Assert-WelaSelectedSaclPrerequisites $item.Definition $row.Ace
+            if($IncludeChildren -and ($row.Before.Kind -eq 'Registry' -or $row.Before.IsDirectory)){
+                $row.DescendantsBefore=Get-WelaSelectedSaclStableDescendants $item.Definition $row.Before
+                if($row.DescendantsBefore.Status -ne 'Complete'){throw ('Descendant capture incomplete: '+($row.DescendantsBefore.Diagnostics -join '; '))}
+            }
             if($imported){
                 $old=@($prior.Rows | Where-Object Id -ceq $item.Id)[0]
+                if($row.DescendantsBefore -and (Get-WelaSelectedSaclDescendantKey $old.DescendantsBefore) -cne (Get-WelaSelectedSaclDescendantKey $row.DescendantsBefore)){throw 'Reviewed descendants changed; review a new plan.'}
                 if($old.DefinitionKey -cne $item.DefinitionKey -or (Get-WelaSelectedSaclSnapshotKey $old.Before) -cne (Get-WelaSelectedSaclSnapshotKey $row.Before) -or
                     $old.Ace.Sid -cne $row.Ace.Sid -or $old.Ace.Mask -ne $row.Ace.Mask -or $old.Ace.Flags -ne $row.Ace.Flags -or $old.Ace.RequiredPolicyMask -ne $row.Ace.RequiredPolicyMask){throw 'Reviewed target definition/identity/descriptor changed; review a new plan.'}
             }
             $row.Status=if(Test-WelaSelectedSaclAce $row.Before $row.Ace){'AlreadyCompliant'}else{'ChangeRequired'}
+            if($row.DescendantsBefore -and $row.Status -eq 'AlreadyCompliant'){
+                $row.DescendantVerification=Test-WelaSelectedSaclDescendantOutcomes $row.DescendantsBefore $row.DescendantsBefore $row.Ace
+                if($row.DescendantVerification.Status -ne 'Observed'){$row.Status='Blocked';throw 'Selected root already has its ACE, but reviewed descendant inheritance is unverified. No duplicate root ACE is added.'}
+            }
         } catch {$row.Diagnostic=$_.Exception.Message}
         $row
     })
@@ -222,6 +236,16 @@ function Invoke-WelaSelectedSacl {
             $row.Status='Blocked';$row.Diagnostic='Multiple selected entries resolve to the same target. Configure one entry, then generate a fresh plan for the other.'
             $physical[$key].Status='Blocked';$physical[$key].Diagnostic=$row.Diagnostic
         }else{$physical[$key]=$row}
+    }
+    foreach($ancestor in $rows){
+        if(-not $ancestor.DescendantsBefore){continue}
+        foreach($child in $rows){
+            if($child -eq $ancestor -or -not $child.Before -or $child.Before.Kind -cne $ancestor.Before.Kind){continue}
+            if($child.Before.Path.StartsWith($ancestor.Before.Path.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){
+                $ancestor.Status='Blocked';$child.Status='Blocked'
+                $ancestor.Diagnostic='Selected ancestor and descendant overlap. Configure one root and review a fresh plan before selecting another.';$child.Diagnostic=$ancestor.Diagnostic
+            }
+        }
     }
     $plan=[pscustomobject]@{SchemaVersion=1;Kind='WelaSelectedSaclPlan';CapturedUtc=[DateTime]::UtcNow.ToString('o');Profile=$Profile;IncludeOptional=[bool]$IncludeOptional;IncludeChildren=[bool]$IncludeChildren;Context=$context;Sources=$sources;Rows=$rows;GenerationReadiness='Conditional';UsableRuleCredit=0;Catalog=$(if(-not $Ids){$catalog.Rows}else{@()});UserInventory=$catalog.UserInventory}
     Assert-WelaSelectedSaclRun $plan $imported
@@ -237,7 +261,7 @@ function Invoke-WelaSelectedSacl {
         $null=New-Item -ItemType Directory -Path $backup -ErrorAction Stop
     }
     foreach($row in $rows){
-        if($row.Status -eq 'AlreadyCompliant'){$row.After=$row.Before;continue}
+        if($row.Status -eq 'AlreadyCompliant'){$row.After=$row.Before;$row.DescendantsAfter=$row.DescendantsBefore;continue}
         if($DryRun){$row.Status='Skipped';$row.Diagnostic='Dry run; no SACL or recovery file written.';continue}
         if(-not $Auto -and (Read-Host "Add the selected audit ACE to $($row.Definition.Path)? (y/N)") -cnotin @('y','Y')){$row.Status='Skipped';$row.Diagnostic='Declined.';continue}
         try {
@@ -245,13 +269,32 @@ function Invoke-WelaSelectedSacl {
             Assert-WelaSelectedSaclPrerequisites $row.Definition $row.Ace
             $fresh=Get-WelaSelectedSaclSnapshot $row.Definition
             if($fresh.Identity -cne $row.Before.Identity -or $fresh.DescriptorBase64 -cne $row.Before.DescriptorBase64){throw 'Target changed before journal/write.'}
-            $receipt=[pscustomobject]@{SchemaVersion=1;Kind='WelaSelectedSaclReceipt';State='Pending';RecordedUtc=[DateTime]::UtcNow.ToString('o');Computer=$context.Computer;ContextKey=$context.Key;Id=$row.Id;Sources=$sources;Definition=$row.Definition;Before=$fresh;Ace=$row.Ace;After=$null}
+            if($row.DescendantsBefore){
+                $freshChildren=Get-WelaSelectedSaclStableDescendants $row.Definition $fresh
+                if((Get-WelaSelectedSaclDescendantKey $freshChildren) -cne (Get-WelaSelectedSaclDescendantKey $row.DescendantsBefore)){throw 'Descendants changed before journal/write.'}
+            }
+            $receipt=[pscustomobject]@{SchemaVersion=1;Kind='WelaSelectedSaclReceipt';State='Pending';RecordedUtc=[DateTime]::UtcNow.ToString('o');Computer=$context.Computer;ContextKey=$context.Key;Id=$row.Id;Sources=$sources;Definition=$row.Definition;Before=$fresh;Ace=$row.Ace;After=$null;DescendantsBefore=$row.DescendantsBefore;DescendantsAfter=$null;DescendantVerification=$null;Ownership='Only the verified explicit selected-root addition; never descendant ACE ownership or bulk rollback authority.'}
             Write-WelaSelectedSaclJson (Join-Path $backup ($row.Id+'.pending.json')) $receipt
             Assert-WelaSelectedSaclRun $plan $imported
             Assert-WelaSelectedSaclPrerequisites $row.Definition $row.Ace
-            $row.After=Write-WelaSelectedSaclNative $row.Definition $fresh $row.Ace
-            Assert-WelaSelectedSaclPreserved $fresh $row.After $row.Ace
-            $receipt.State='Confirmed';$receipt.After=$row.After
+            if($row.DescendantsBefore){
+                $lastChildren=Get-WelaSelectedSaclStableDescendants $row.Definition (Get-WelaSelectedSaclSnapshot $row.Definition)
+                if((Get-WelaSelectedSaclDescendantKey $lastChildren) -cne (Get-WelaSelectedSaclDescendantKey $row.DescendantsBefore)){throw 'Descendants changed after pending receipt; native write refused.'}
+            }
+            try {
+                $row.After=Write-WelaSelectedSaclNative $row.Definition $fresh $row.Ace
+                Assert-WelaSelectedSaclPreserved $fresh $row.After $row.Ace
+            } finally {
+                if($row.DescendantsBefore){
+                    try {
+                        $row.DescendantsAfter=Get-WelaSelectedSaclStableDescendants $row.Definition (Get-WelaSelectedSaclSnapshot $row.Definition)
+                        $row.DescendantVerification=Test-WelaSelectedSaclDescendantOutcomes $row.DescendantsBefore $row.DescendantsAfter $row.Ace
+                    }catch{$row.DescendantVerification=[pscustomobject]@{Status='Unverified';Diagnostics=@($_.Exception.Message);Ownership='No descendant ownership or automatic rollback authority.'}}
+                    Write-WelaSelectedSaclJson (Join-Path $backup ($row.Id+'.descendants-observed.json')) ([pscustomobject]@{Kind='WelaSelectedSaclDescendantObservation';RecordedUtc=[DateTime]::UtcNow.ToString('o');Id=$row.Id;After=$row.DescendantsAfter;Verification=$row.DescendantVerification})
+                }
+            }
+            if($row.DescendantVerification -and $row.DescendantVerification.Status -ne 'Observed'){throw ('Descendant preservation/propagation unverified: '+($row.DescendantVerification.Diagnostics -join '; '))}
+            $receipt.State='Confirmed';$receipt.After=$row.After;$receipt.DescendantsAfter=$row.DescendantsAfter;$receipt.DescendantVerification=$row.DescendantVerification
             Write-WelaSelectedSaclJson (Join-Path $backup ($row.Id+'.confirmed.json')) $receipt
             $row.Status='Applied'
         }catch{$row.Status='Failed';$row.Diagnostic=$_.Exception.Message}
@@ -261,6 +304,10 @@ function Invoke-WelaSelectedSacl {
             Assert-WelaSelectedSaclRun $plan $imported;Assert-WelaSelectedSaclPrerequisites $row.Definition $row.Ace
             $fresh=Get-WelaSelectedSaclSnapshot $row.Definition
             if($fresh.Identity -cne $row.After.Identity -or $fresh.DescriptorBase64 -cne $row.After.DescriptorBase64){throw 'Final selected target state drifted.'}
+            if($row.DescendantsAfter){
+                $finalChildren=Get-WelaSelectedSaclStableDescendants $row.Definition $fresh
+                if((Get-WelaSelectedSaclDescendantKey $finalChildren) -cne (Get-WelaSelectedSaclDescendantKey $row.DescendantsAfter)){throw 'Final descendant membership, identity or descriptor drifted; earlier receipts describe an earlier moment only.'}
+            }
         }catch{$row.Status='Failed';$row.Diagnostic=$_.Exception.Message}
     }
     $report=[pscustomobject]@{SchemaVersion=1;Kind='WelaSelectedSaclResult';ExitCode=$(if(@($rows | Where-Object Status -eq 'Failed').Count){1}else{0});DryRun=[bool]$DryRun;BackupPath=$backup;Plan=$plan;Results=$rows;GenerationReadiness='Conditional';UsableRuleCredit=0}

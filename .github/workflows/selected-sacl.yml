@@ -34,3 +34,15 @@ jobs:
       - name: Explicit disposable native targets and4657/4663 on PowerShell 7
         shell: pwsh
         run: ./tests/SelectedSacl.Windows.Tests.ps1 -AllowDisposableSaclWrite
+      - name: Bounded descendant fixtures on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/SelectedSaclDescendants.Tests.ps1
+      - name: Explicit disposable populated descendant trees on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/SelectedSaclDescendants.Windows.Tests.ps1 -AllowDisposableSaclWrite
+      - name: Bounded descendant fixtures on PowerShell 7
+        shell: pwsh
+        run: ./tests/SelectedSaclDescendants.Tests.ps1
+      - name: Explicit disposable populated descendant trees on PowerShell 7
+        shell: pwsh
+        run: ./tests/SelectedSaclDescendants.Windows.Tests.ps1 -AllowDisposableSaclWrite
