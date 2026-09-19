@@ -17,6 +17,9 @@ function Assert-Equal($Actual, $Expected, [string]$Message) {
 function TestAdministrator { return $true }
 function CollectAuditpol { param([switch]$UseCached) return $true }
 function GetAuditpol { return @{} }
+function Get-WelaOutgoingNtlmState {
+    return [pscustomobject]@{ Description = 'Audit all (1)'; PolicySource = 'Mocked policy source' }
+}
 function Get-WelaDomainNtlmState { return [pscustomobject]@{ Description = $script:description } }
 function Export-MitreHeatmap { param($sigmaRules, $OutputPath, $UseIdealCount) }
 function BuildAuditResult {
@@ -48,7 +51,7 @@ try {
     )) {
         $script:description = $observed
         $output = (AuditLogSetting -outType std -Baseline YamatoSecurity 6>&1 | Out-String)
-        $expectedHeading = 'NTLM Authentication: ' + $observed
+        $expectedHeading = 'NTLM Authentication: Audit all (1); ' + $observed
         Assert-Equal ($output -match ('(?m)^' + [regex]::Escape($expectedHeading) + '\r?$')) $true "Console heading retains '$observed'"
         Assert-Equal ($output -match 'NTLM Authentication: Partially Enabled') $false 'An empty rule array does not imply partial enablement'
         Assert-Equal ($output -match 'Fixture rules: Partially Enabled') $true 'Ordinary rule coverage aggregation is preserved'
@@ -56,6 +59,10 @@ try {
         Assert-Equal $row.Count 1 'CSV contains one domain NTLM setting row'
         Assert-Equal $row[0].CurrentSetting $observed 'CSV retains the observed configuration state'
         Assert-Equal $row[0].RuleCount '0' 'Configuration row claims no detection rules'
+        $outgoingRow = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'WELA-Audit-Result.csv') | Where-Object SubCategory -eq 'Outgoing NTLM policy')
+        Assert-Equal $outgoingRow.Count 1 'CSV contains one outgoing NTLM setting row'
+        Assert-Equal $outgoingRow[0].CurrentSetting 'Audit all (1)' 'CSV retains the independent outgoing NTLM state'
+        Assert-Equal $outgoingRow[0].RuleCount '0' 'Outgoing configuration row claims no detection rules'
         Assert-Equal @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UsableRules.csv')).Count 1 'Configuration row does not change usable rule counts'
         Assert-Equal @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UnusableRules.csv')).Count 1 'Configuration row does not change unusable rule counts'
     }

@@ -80,3 +80,33 @@ Update WELA's Sigma rules config files:
 ```
 ./WELA.ps1 update-rules
 ```
+
+### Outgoing NTLM auditing and restrictions
+
+`configure` defaults to audit-only outgoing NTLM (`RestrictSendingNTLMTraffic=1`).
+An existing `Deny all` value (`2`) is preserved, including with `-Auto`. Unknown
+values and unreadable policy are also preserved for review.
+
+```powershell
+# Audit outgoing NTLM, preserving an existing restriction.
+./WELA.ps1 configure -Auto
+# Explicitly replace an existing restriction with audit-only mode.
+./WELA.ps1 configure -OutgoingNtlmMode Audit -Auto
+# Explicitly opt into denying outgoing NTLM (can break authentication).
+./WELA.ps1 configure -OutgoingNtlmMode Deny
+```
+
+`-OutgoingNtlmMode PreserveOrAudit` is the default. `Audit` and `Deny` are explicit
+operator choices; omitting `-Auto` asks before changing the policy. This option
+only affects outgoing NTLM. Incoming and domain auditing remain separate controls.
+`audit-settings` includes the current outgoing NTLM value and distinguishes audit
+from enforcement in its console and CSV results. Policy provenance is reported as
+last-applied RSoP GPO data when available, otherwise **Unknown**. RSoP can be stale,
+and neither it nor a registry read proves which component last wrote a value.
+After a change WELA verifies the registry value; GPO or MDM can subsequently
+reapply another value. Validate benign NTLM events in
+`Microsoft-Windows-NTLM/Operational` on an isolated Windows host before deployment.
+
+See [Microsoft's outgoing NTLM policy documentation](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/network-security-restrict-ntlm-outgoing-ntlm-traffic-to-remote-servers).
+The safe mocked regression script is `tests/OutgoingNtlm.Tests.ps1`; its Windows
+workflow runs both Windows PowerShell 5.1 and PowerShell 7.

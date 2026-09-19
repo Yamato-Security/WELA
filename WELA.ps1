@@ -3,7 +3,17 @@
     [string]$OutType = "std",
     [switch]$Debug,
     [string]$Baseline,
+    [string]$Profile,
+    [ValidateSet("Client", "MemberServer", "DomainController", "ADCS")][string]$Role,
+    [int]$Build,
+    [string]$PlanPath,
+    [switch]$IncludeOptional,
     [switch]$Auto,
+    [ValidateSet("PreserveOrAudit", "Audit", "Deny")]
+    [string]$OutgoingNtlmMode = "PreserveOrAudit",
+    [switch]$DryRun,
+    [string]$BackupPath,
+    [string]$ResultsPath,
     [switch]$Help
 )
 
@@ -17,6 +27,8 @@ $SecurityRulesPath  = Join-Path $ScriptRoot "config/security_rules.json"
 $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
+. (Join-Path $ScriptRoot "scripts/Configuration.ps1")
+Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -29,6 +41,7 @@ class WELA {
     [string] $Category
     [string] $SubCategory
     [string] $CurrentSetting = ""
+    [string] $AuditPolicyGuid = ""
     [array] $Rules
     [hashtable] $RulesCount
     [string] $DefaultSetting = ""
@@ -273,6 +286,60 @@ function GetBaselineNames {
     return @((GetBaselineConfig).baselines.PSObject.Properties.Name)
 }
 
+function Get-WelaSelectedContext {
+    if (($script:Role -and -not $script:Build) -or ($script:Build -and -not $script:Role)) {
+        throw "Specify both -Role and -Build, or neither to detect this Windows host."
+    }
+    if ($script:Role -and $script:Build) {
+        return [pscustomobject]@{ Role = $script:Role; Build = $script:Build }
+    }
+    Get-WelaHostContext
+}
+
+function Show-WelaAuditProfilePrerequisites {
+    param($Plan)
+    foreach ($policy in $Plan.policies) {
+        if ($policy.prerequisites -and ($policy.mode -in @('exact', 'minimum') -or ($policy.mode -eq 'optional' -and $Plan.includeOptional))) {
+            Write-Host "Prerequisite - $($policy.id): $($policy.prerequisites)" -ForegroundColor DarkYellow
+        }
+    }
+}
+
+function Invoke-WelaProfileCommand {
+    param([string]$Command)
+    if ($script:Baseline) { throw "Use -Profile or -Baseline, not both. Versioned profiles cover advanced audit policy only." }
+    if (-not $script:Profile) { throw "Specify -Profile. Use './WELA.ps1 profiles' to list versioned profiles." }
+    $context = Get-WelaSelectedContext
+    $current = @{}
+    if (TestWindows) {
+        $actual = Get-WelaHostContext
+        if ($actual.Role -eq $context.Role -and $actual.Build -eq $context.Build) { $current = Get-WelaEffectiveAuditPolicy }
+        elseif ($Command -ne 'plan') { throw "Requested role/build does not match this Windows host." }
+        else { Write-Host "Planning for another role/build: effective state remains Unknown." }
+    }
+    elseif ($Command -ne 'plan') { throw "Audit and configure require Windows. Offline planning requires explicit -Role and -Build." }
+    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional
+    Write-Host "Profile: $($plan.profile); role: $($plan.role); build: $($plan.build)"
+    Write-Host "Scope: advanced audit policy only. Channels, command-line capture, PowerShell, NTLM, SACLs, CA AuditFilter and forwarding are separate."
+    Show-WelaAuditProfilePrerequisites -Plan $plan
+    $result = $plan
+    if ($Command -eq 'configure') {
+        if (-not (TestAdministrator)) { throw "Configuring advanced audit policy requires Administrator privileges." }
+        Assert-WelaAuditProfileTarget -Plan $plan -Context $actual -Current $current
+        $configurationContext = New-WelaConfigurationContext -Auto:$script:Auto -DryRun:$script:DryRun -BackupPath $script:BackupPath
+        Set-WelaProfileAuditControls -Context $configurationContext -Plan $plan
+        $result = Complete-WelaConfiguration -Context $configurationContext -ResultsPath $script:ResultsPath -Plan $plan -Scope advanced-audit-policy-only
+        $result.Results | Format-Table Id, Before, Desired, After, Status -AutoSize
+    } else {
+        $plan.policies | Format-Table id, mode, currentMask, requiredMask, action -AutoSize
+    }
+    if ($script:PlanPath) {
+        $result | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $script:PlanPath -Encoding UTF8 -ErrorAction Stop
+        Write-Host "Machine-readable result: $($script:PlanPath)"
+    }
+    if ($Command -eq 'configure' -and $result.ExitCode -ne 0) { throw "One or more advanced audit policies failed. See the effective-state results." }
+}
+
 function BuildAuditResult {
     param (
         [object[]] $all_rules,
@@ -293,8 +360,16 @@ function BuildAuditResult {
 
     $auditpol = GetAuditpol
     $auditResult = @()
+    $sharedPlan = $null
+    if ($baselineName -eq 'YamatoSecurity') {
+        $context = Get-WelaSelectedContext
+        $sharedPlan = Get-WelaAuditProfilePlan -Profile 'wela-2.2.0' -Role $context.Role -Build $context.Build -IncludeOptional:$script:IncludeOptional
+        Write-Host "Advanced audit recommendations: $($sharedPlan.profile), role $($sharedPlan.role), build $($sharedPlan.build). Other controls use the existing baseline metadata."
+    }
 
     foreach ($item in $config.catalog) {
+        # The versioned profile owns all advanced-audit recommendations and canonical GUIDs.
+        if ($sharedPlan -and $item.currentSetting.type -eq 'auditpol') { continue }
         $setting = $settings.($item.id)
         if (-not $setting) {
             throw "Baseline '$baselineName' has no entry for catalog id '$($item.id)'."
@@ -379,6 +454,30 @@ function BuildAuditResult {
         )
     }
 
+    if ($sharedPlan) {
+        foreach ($policy in $sharedPlan.policies) {
+            $rules = ApplyRules -rules $all_rules -guid $policy.guid
+            $current = if ($policy.mode -eq 'not-applicable') { 'Not applicable' }
+                       elseif ($auditpol.ContainsKey($policy.guid)) { $auditpol[$policy.guid] }
+                       else { 'Unknown' }
+            if ($policy.mode -ne 'not-applicable' -and $enabledguid -contains $policy.guid) {
+                $rules | ForEach-Object { $_.applicable = $true }
+            }
+            if ($policy.mode -in @('exact', 'minimum') -and $policy.requiredMask -ne 0) {
+                $rules | ForEach-Object { $_.ideal = $true }
+            }
+            $legacyItem = $config.catalog | Where-Object { $_.subCategory -eq $policy.id -and $_.currentSetting.type -eq 'auditpol' } | Select-Object -First 1
+            $legacy = if ($legacyItem) { $settings.($legacyItem.id) } else { $null }
+            $defaultSetting = if ($legacy) { $legacy.defaultSetting } else { '' }
+            $volume = if ($legacy) { $legacy.volume } else { '' }
+            $note = (@($policy.prerequisites, $policy.note) | Where-Object { $_ }) -join ' '
+            $entry = [WELA]::New("Security Advanced ($($policy.category))", $policy.id, $current, [array]$rules,
+                $defaultSetting, $policy.recommendation, $volume, $note)
+            $entry.AuditPolicyGuid = $policy.guid
+            $auditResult += $entry
+        }
+    }
+
     # どのカテゴリにも該当しなかったルールを取りこぼさない。
     # 集計対象から黙って消えると、利用率の分母がルール総数と合わなくなる。
     $covered = [System.Collections.Generic.HashSet[string]]::new()
@@ -437,13 +536,23 @@ function AuditLogSetting {
         $_ | Add-Member -MemberType NoteProperty -Name "ideal" -Value $false
     }
     $auditResult = BuildAuditResult -all_rules $all_rules -Baseline $Baseline -enabledguid $enabledguid
+    $outgoingNtlm = Get-WelaOutgoingNtlmState
+    $auditResult += [WELA]::new(
+        "NTLM Authentication", "Outgoing NTLM policy", $outgoingNtlm.Description, @(),
+        "Not configured (Allow all)", "Audit all (1); preserve intentional Deny all (2)", "",
+        "RestrictSendingNTLMTraffic. Policy source: $($outgoingNtlm.PolicySource)"
+    )
 
     # ベースラインが扱っていないサブカテゴリでも、そのサブカテゴリが有効ならルールは動く。
     # ルール自身が持つ subcategory_guids を見て救済する。
+    # A live audit mask cannot make a role-inapplicable policy produce its events.
+    $notApplicableGuids = @($auditResult | Where-Object {
+        $_.CurrentSetting -eq 'Not applicable' -and $_.AuditPolicyGuid
+    } | Select-Object -ExpandProperty AuditPolicyGuid)
     $all_rules | ForEach-Object {
         if (-not $_.applicable) {
             foreach ($guid in $_.subcategory_guids) {
-                if ($enabledguid -contains $guid) {
+                if ($enabledguid -contains $guid -and $notApplicableGuids -notcontains $guid) {
                     $_.applicable = $true
                     break
                 }
@@ -481,18 +590,23 @@ function AuditLogSetting {
     if ($outType -eq "std") {
         $auditResult | Group-Object -Property Category | ForEach-Object {
             $notEnabled = @("No Auditing", "Disabled", "Unknown")
-            $enabledCount = ($_.Group |  Where-Object { $notEnabled -notcontains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
-            $disabledCount = ($_.Group |  Where-Object { $notEnabled -contains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
+            $summaryRows = @($_.Group | Where-Object { $_.CurrentSetting -ne 'Not applicable' })
+            $enabledCount = ($summaryRows | Where-Object { $notEnabled -notcontains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
+            $disabledCount = ($summaryRows | Where-Object { $notEnabled -contains $_.CurrentSetting } | ForEach-Object { $_.Rules.Count } | Measure-Object -Sum).Sum
             $out = ""
             $color = ""
-            if (@($_.Group | Where-Object { $_.Rules.Count -gt 0 }).Count -eq 0) {
+            if ($summaryRows.Count -eq 0) {
+                $out = 'Not applicable'
+                $color = 'DarkYellow'
+            }
+            elseif (@($summaryRows | Where-Object { $_.Rules.Count -gt 0 }).Count -eq 0) {
                 # Configuration-only rows have no rule coverage to aggregate.
                 # Preserve their observed state, including applicability and errors.
-                $out = ($_.Group | Select-Object -ExpandProperty CurrentSetting -Unique) -join '; '
+                $out = ($summaryRows | Select-Object -ExpandProperty CurrentSetting -Unique) -join '; '
                 if (-not $out) { $out = 'Unknown' }
                 $color = 'DarkYellow'
             }
-            elseif (@($_.Group | Where-Object { $_.CurrentSetting -ne "Unknown" }).Count -eq 0) {
+            elseif (@($summaryRows | Where-Object { $_.CurrentSetting -ne "Unknown" }).Count -eq 0) {
                 # 設定を確認できないカテゴリ。無効と断定はできない
                 $out = "Unknown"
                 $color = "DarkYellow"
@@ -511,7 +625,7 @@ function AuditLogSetting {
                 $out = "Partially Enabled"
                 $color = "DarkYellow"
             }
-            $enabledPercentage = "0.00%"
+            $enabledPercentage = ""
             if ($enabledCount + $disabledCount -ne 0) {
                 $enabledPercentage = "({0:N2}%)" -f (($enabledCount / ($enabledCount + $disabledCount)) * 100)
             }
@@ -997,6 +1111,7 @@ function Get-WelaDomainNtlmState {
         Applicable = $false
         Readable = $false
         Value = $null
+        Type = $null
         Description = 'Unknown (computer role could not be determined)'
     }
     try {
@@ -1019,10 +1134,15 @@ function Get-WelaDomainNtlmState {
             $property = $properties.PSObject.Properties['AuditNTLMInDomain']
             if ($null -ne $property) {
                 $state.Value = $property.Value
-                $state.Description = switch ($state.Value) {
-                    0 { 'Disabled (0)' }
-                    7 { 'Enable all (7)' }
-                    default { "Value $($state.Value) (not interpreted as Enable all)" }
+                $state.Type = (Get-Item -LiteralPath $path -ErrorAction Stop).GetValueKind('AuditNTLMInDomain').ToString()
+                if ($state.Type -ne 'DWord') {
+                    $state.Description = "Unknown registry type ($($state.Type)): value $($state.Value) (expected DWord)"
+                } else {
+                    $state.Description = switch ($state.Value) {
+                        0 { 'Disabled (0)' }
+                        7 { 'Enable all (7)' }
+                        default { "Value $($state.Value) (not interpreted as Enable all)" }
+                    }
                 }
             }
         }
@@ -1035,7 +1155,11 @@ function Get-WelaDomainNtlmState {
 
 function Set-WelaDomainNtlmAudit {
     [CmdletBinding(SupportsShouldProcess = $true)]
-    param ([switch]$Auto)
+    param ([switch]$Auto, $Context)
+    if ($Context) {
+        Set-WelaNtlmConfigurationControl -Context $Context -Scope Domain -WhatIf:$WhatIfPreference
+        return
+    }
     $state = Get-WelaDomainNtlmState
     Write-Host "Domain NTLM auditing: $($state.Description)"
     if (-not $state.Applicable) {
@@ -1045,7 +1169,7 @@ function Set-WelaDomainNtlmAudit {
     if (-not $state.Readable) {
         throw 'Domain NTLM policy was not changed because its current state could not be read.'
     }
-    if ($state.Value -eq 7) {
+    if ($state.Type -eq 'DWord' -and $state.Value -eq 7) {
         Write-Host '[SKIPPED] Domain NTLM auditing is already Enable all (7).' -ForegroundColor Yellow
         return
     }
@@ -1064,7 +1188,7 @@ function Set-WelaDomainNtlmAudit {
         }
         Set-ItemProperty -LiteralPath $path -Name AuditNTLMInDomain -Value 7 -Type DWord -ErrorAction Stop
         $after = Get-WelaDomainNtlmState
-        if (-not $after.Applicable -or -not $after.Readable -or $after.Value -ne 7) {
+        if (-not $after.Applicable -or -not $after.Readable -or $after.Type -ne 'DWord' -or $after.Value -ne 7) {
             throw "Read-back did not confirm Enable all (7). Observed: $($after.Description)"
         }
         Write-Host '[OK] Domain NTLM auditing: Enable all (7), registry value verified.' -ForegroundColor Green
@@ -1083,10 +1207,23 @@ function Set-RegistryConfig {
         [array]$RegPaths,
 
         [Parameter(Mandatory = $false)]
-        [switch]$Auto
+        [switch]$Auto,
+        $Context
     )
 
     foreach ($reg in $RegPaths) {
+        if ($Context) {
+            if ($PSCmdlet.ShouldProcess("$($reg.Path)\$($reg.Name)", "Set to $($reg.Value)")) {
+                Set-WelaRegistryControl -Context $Context -Path $reg.Path -Name $reg.Name -Value $reg.Value
+            } else {
+                $Context.Results.Add([pscustomobject]@{
+                    Id = "Registry/$($reg.Path)/$($reg.Name)"; Kind = 'Registry'
+                    Target = @{ Path = $reg.Path; Name = $reg.Name }; Desired = $reg.Value
+                    Before = $null; After = $null; Status = 'Skipped'; Diagnostic = 'ShouldProcess declined the change.'
+                })
+            }
+            continue
+        }
         try {
             $currentValue = "Not Set"
             $pathExists = Test-Path $reg.Path
@@ -1127,70 +1264,173 @@ function Set-RegistryConfig {
 }
 
 
+function Get-WelaOutgoingNtlmPolicySource {
+    # RSoP is a last-applied policy snapshot, not proof of the current registry writer.
+    $key = 'SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+    $name = 'RestrictSendingNTLMTraffic'
+    $matches = @()
+    foreach ($class in @('RSOP_RegistryPolicySetting', 'RSOP_SecuritySettingNumeric')) {
+        try {
+            $matches += @(Get-CimInstance -Namespace 'root\RSOP\Computer' -ClassName $class -ErrorAction Stop |
+                Where-Object {
+                    $normalizedKey = $_.keyName -replace '^(MACHINE|HKEY_LOCAL_MACHINE|HKLM)\\', ''
+                    ($normalizedKey -eq $key -and $_.valueName -eq $name) -or
+                    $normalizedKey -eq "$key\$name"
+                })
+        } catch {
+            # RSoP may be unavailable, including on standalone computers. Never infer "local".
+        }
+    }
+    $policy = $matches | Sort-Object precedence | Select-Object -First 1
+    if ($policy -and $policy.GPOID) {
+        return "Last-applied RSoP GPO: $($policy.GPOID) (may be stale; current registry writer unknown)"
+    }
+    return 'Unknown (no matching RSoP source available; local, GPO or MDM provenance is not established)'
+}
+
+function Get-WelaOutgoingNtlmState {
+    $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+    $name = 'RestrictSendingNTLMTraffic'
+    $value = $null
+    $type = $null
+    $readable = $true
+    $description = 'Not configured (Allow all)'
+    try {
+        if (Test-Path -LiteralPath $path -ErrorAction Stop) {
+            # Reading the key distinguishes an absent value from a failed read.
+            $properties = Get-ItemProperty -LiteralPath $path -ErrorAction Stop
+            $property = $properties.PSObject.Properties[$name]
+            if ($null -ne $property) {
+                $value = $property.Value
+                $type = (Get-Item -LiteralPath $path -ErrorAction Stop).GetValueKind($name).ToString()
+                if ($type -ne 'DWord') {
+                    $description = "Unknown registry type ($type): value $value (expected DWord)"
+                } else {
+                    $description = switch ($value) {
+                        0 { 'Allow all (0)' }
+                        1 { 'Audit all (1)' }
+                        2 { 'Deny all (2): authentication restriction, with block events' }
+                        default { "Unknown registry value ($value)" }
+                    }
+                }
+            }
+        }
+    } catch {
+        $readable = $false
+        $description = "Unknown (registry read failed: $($_.Exception.Message))"
+    }
+    [pscustomobject]@{
+        Value = $value
+        Type = $type
+        Readable = $readable
+        Description = $description
+        PolicySource = Get-WelaOutgoingNtlmPolicySource
+    }
+}
+
+function Set-WelaOutgoingNtlmPolicy {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param (
+        [ValidateSet('PreserveOrAudit', 'Audit', 'Deny')]
+        [string]$Mode = 'PreserveOrAudit',
+        [switch]$Auto,
+        $Context
+    )
+    if ($Context) {
+        Set-WelaNtlmConfigurationControl -Context $Context -Scope Outgoing -Mode $Mode -WhatIf:$WhatIfPreference
+        return
+    }
+    $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0'
+    $name = 'RestrictSendingNTLMTraffic'
+    $state = Get-WelaOutgoingNtlmState
+    Write-Host "Outgoing NTLM: $($state.Description)"
+    Write-Host "Policy source: $($state.PolicySource)"
+    if (-not $state.Readable) {
+        throw 'Outgoing NTLM was not changed because its current state could not be read.'
+    }
+    if ($Mode -eq 'PreserveOrAudit' -and $state.Type -eq 'DWord' -and $state.Value -eq 2) {
+        Write-Host '[PRESERVED] Existing Deny all enforcement. Use -OutgoingNtlmMode Audit to explicitly replace it.' -ForegroundColor Yellow
+        return
+    }
+    if ($Mode -eq 'PreserveOrAudit' -and $null -ne $state.Type -and ($state.Type -ne 'DWord' -or $state.Value -notin @(0, 1, 2))) {
+        Write-Warning 'Unknown outgoing NTLM value/type was preserved. Select an explicit -OutgoingNtlmMode after reviewing policy.'
+        return
+    }
+    $desired = if ($Mode -eq 'Deny') { 2 } else { 1 }
+    $description = if ($desired -eq 2) { 'Deny all (2): restrict outgoing NTLM authentication' } else { 'Audit all (1): log outgoing NTLM without denying it' }
+    if ($state.Type -eq 'DWord' -and $state.Value -eq $desired) {
+        Write-Host "[SKIPPED] Outgoing NTLM is already $description." -ForegroundColor Yellow
+        return
+    }
+    if ($desired -eq 2) {
+        Write-Warning 'Explicit Deny mode can break NTLM authentication. This is enforcement, not audit-only configuration.'
+    }
+    if (-not $PSCmdlet.ShouldProcess("$path\$name", $description)) { return }
+    if (-not $Auto) {
+        $response = Read-Host "Change outgoing NTLM from '$($state.Description)' to '$description'? (Y/n)"
+        if ($response -ne '' -and $response -ne 'Y') {
+            Write-Host '[SKIPPED] Outgoing NTLM.' -ForegroundColor Yellow
+            return
+        }
+    }
+    try {
+        # A prompt or ShouldProcess confirmation may outlive a Group Policy refresh.
+        # Recheck immediately before mutation so default audit setup cannot undo new enforcement.
+        $freshState = Get-WelaOutgoingNtlmState
+        if (-not $freshState.Readable) {
+            throw 'Outgoing NTLM was not changed because its current state became unreadable.'
+        }
+        if ($Mode -eq 'PreserveOrAudit' -and $freshState.Type -eq 'DWord' -and $freshState.Value -eq 2) {
+            Write-Host '[PRESERVED] Deny all enforcement appeared before the write. Select explicit Audit mode to replace it.' -ForegroundColor Yellow
+            return
+        }
+        if ($Mode -eq 'PreserveOrAudit' -and $null -ne $freshState.Type -and ($freshState.Type -ne 'DWord' -or $freshState.Value -notin @(0, 1, 2))) {
+            Write-Warning "Outgoing NTLM changed to an unknown value/type ($($freshState.Value)/$($freshState.Type)); it was preserved."
+            return
+        }
+        if ($freshState.Type -eq 'DWord' -and $freshState.Value -eq $desired) {
+            Write-Host "[SKIPPED] Outgoing NTLM is now already $description." -ForegroundColor Yellow
+            return
+        }
+        if (-not (Test-Path -LiteralPath $path -ErrorAction Stop)) {
+            New-Item -Path $path -Force -ErrorAction Stop | Out-Null
+        }
+        Set-ItemProperty -LiteralPath $path -Name $name -Value $desired -Type DWord -ErrorAction Stop
+        $after = Get-WelaOutgoingNtlmState
+        if (-not $after.Readable -or $after.Type -ne 'DWord' -or $after.Value -ne $desired) {
+            throw "Read-back did not match requested value $desired. Observed: $($after.Description)"
+        }
+        Write-Host "[OK] Outgoing NTLM: $($after.Description)" -ForegroundColor Green
+        Write-Host "Policy source: $($after.PolicySource)"
+        Write-Host 'Registry state was verified; Group Policy or MDM may reapply a different value.'
+    } catch {
+        throw "Outgoing NTLM configuration failed: $($_.Exception.Message)"
+    }
+}
+
+
 function ConfigureAuditSettings {
     param (
-        [switch] $Auto,
-        [switch] $Debug
+        [switch]$Auto, [switch]$Debug, [switch]$DryRun, [string]$BackupPath, [string]$ResultsPath,
+        [ValidateSet("PreserveOrAudit", "Audit", "Deny")]
+        [string]$OutgoingNtlmMode = "PreserveOrAudit"
     )
 
-    if (-not (TestWindows)) {
-        Write-Host "[ERROR] 'configure' changes Windows settings and can only run on Windows." -ForegroundColor Red
-        return
+    if (-not (TestWindows)) { throw "'configure' can only run on Windows." }
+    if (-not (TestAdministrator)) { throw 'This script requires Administrator privileges.' }
+    # Never use the debug cache to decide whether mutating controls are compliant.
+    if ($Debug) { Write-Host 'configure always reads live state; the auditpol debug cache is not used.' -ForegroundColor Yellow }
+    # Reject unsupported roles/builds or unknown required policies before any writes.
+    $hostContext = Get-WelaHostContext
+    $effectivePolicy = Get-WelaEffectiveAuditPolicy
+    $profilePlan = Get-WelaAuditProfilePlan -Profile 'wela-2.2.0' -Role $hostContext.Role -Build $hostContext.Build -Current $effectivePolicy -IncludeOptional:$script:IncludeOptional
+    Assert-WelaAuditProfileTarget -Plan $profilePlan -Context $hostContext -Current $effectivePolicy
+    $context = New-WelaConfigurationContext -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath
+    if (-not $DryRun) { Write-Host "Recovery journal: $($context.BackupPath)" }
+
+    foreach ($log in @('Security', 'Microsoft-Windows-PowerShell/Operational', 'Windows PowerShell')) {
+        Set-WelaEventLogControl -Context $context -Log $log -Property MaximumSizeInBytes -Desired 1073741824
     }
-
-    # 管理者権限の確認
-    if (-not (TestAdministrator)) {
-        Write-Error "This script requires Administrator privileges"
-        exit 1
-    }
-
-    if (-not (CollectAuditpol -UseCached:$Debug)) {
-        return
-    }
-
-    # ログサイズ定数
-    $oneGB = 1073741824
-    $oneTwentyEightMB = 134217728
-
-    # セキュリティおよびPowerShellログを1GBに設定
-    Write-Host "Configuring Event Logs..."
-    Write-Host ""
-    $largeLogs = @(
-        "Security",
-        "Microsoft-Windows-PowerShell/Operational",
-        "Windows PowerShell"
-    )
-
-    foreach ($log in $largeLogs) {
-        try {
-            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
-            $currentSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
-            $newSize = 1024
-            Write-Host "Log: $log"
-            if ($currentSize -ge $newSize) {
-                Write-Host "[SKIPPED] $log : Current size ($currentSize MB) is already greater than or equal to $newSize MB." -ForegroundColor Yellow
-                Write-Host ""
-                continue
-            }
-            if ($Auto) {
-                $response = "Y"
-            } else {
-                $response = Read-Host "Your current setting is $currentSize MB. Do you want to change it to 1024 MB? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                wevtutil sl $log /ms:$oneGB 2>&1 | Out-Null
-                Write-Host "[OK] $log : 1024 MB" -ForegroundColor Green
-            } else {
-                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "[ERROR] $log : $_" -ForegroundColor Red
-        }
-        Write-Host ""
-    }
-
-    # その他の重要なログを128MBに設定
     $mediumLogs = @(
         "System",
         "Application",
@@ -1217,343 +1457,42 @@ function ConfigureAuditSettings {
     )
 
     foreach ($log in $mediumLogs) {
-        try {
-            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
-            $currentSize = [math]::Floor($logInfo.MaximumSizeInBytes / 1MB)
-            $newSize = 128
-            Write-Host "Log: $log"
-            if ($currentSize -ge $newSize) {
-                Write-Host "[SKIPPED] $log : Current size ($currentSize MB) is already greater than or equal to $newSize MB." -ForegroundColor Yellow
-                Write-Host ""
-                continue
-            }
-            if ($Auto) {
-                $response = "Y"
-            } else {
-                $response = Read-Host "Your current setting is $currentSize MB. Do you want to change it to 128 MB? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                wevtutil sl $log /ms:$oneTwentyEightMB 2>&1 | Out-Null
-                Write-Host "[OK] $log : 128 MB" -ForegroundColor Green
-            } else {
-                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "[ERROR] $log : $_" -ForegroundColor Red
-        }
-        Write-Host ""
+        Set-WelaEventLogControl -Context $context -Log $log -Property MaximumSizeInBytes -Desired 134217728
+    }
+    foreach ($log in @('Microsoft-Windows-TaskScheduler/Operational', 'Microsoft-Windows-DriverFrameworks-UserMode/Operational', 'Microsoft-Windows-Crypto-DPAPI/Debug')) {
+        Set-WelaEventLogControl -Context $context -Log $log -Property IsEnabled -Desired $true
     }
 
-    # 特定のログの有効化
-    Write-Host "Enabling Event Logs..."
-    Write-Host ""
-    foreach ($log in @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational", "Microsoft-Windows-Crypto-DPAPI/Debug")) {
-        try {
-            $logInfo = Get-WinEvent -ListLog $log -ErrorAction Stop
-            $currentState = if ($logInfo.IsEnabled) { "Enabled" } else { "Disabled" }
-            $newState = "Enabled"
-            Write-Host "Log: $log"
-            if ($currentState -eq $newState) {
-                Write-Host "[SKIPPED] $log : Already Enabled." -ForegroundColor Yellow
-                Write-Host ""
-                continue
-            }
-            if ($Auto) {
-                $response = "Y"
-            } else {
-                $response = Read-Host "Your current setting is $currentState. Do you want to change it to Enabled? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-                wevtutil sl $log /e:true 2>&1 | Out-Null
-                Write-Host "[OK] Enabled: $log" -ForegroundColor Green
-            } else {
-                Write-Host "[SKIPPED] $log" -ForegroundColor Yellow
-            }
-        }
-        catch {
-            Write-Host "[ERROR] Failed to enable $log : $_" -ForegroundColor Red
-        }
-        Write-Host ""
-    }
-
-    # PowerShell ロギングの設定
-    Write-Host "Configuring PowerShell Logging..."
-    Write-Host ""
-    # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。
-    # 32bit の PowerShell 用に Wow6432Node 側も併せて設定する。
     $regPaths = @()
     foreach ($root in $script:PowerShellPolicyRoots) {
-        $regPaths += @{Path = "$root\ModuleLogging";      Name = "EnableModuleLogging";      Value = 1}
-        $regPaths += @{Path = "$root\ScriptBlockLogging"; Name = "EnableScriptBlockLogging"; Value = 1}
+        $regPaths += @{Path = "$root\ModuleLogging"; Name = 'EnableModuleLogging'; Value = 1}
+        $regPaths += @{Path = "$root\ScriptBlockLogging"; Name = 'EnableScriptBlockLogging'; Value = 1}
     }
-    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
-
-    # モジュール名レジストリの設定
+    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto -Context $context
     foreach ($root in $script:PowerShellPolicyRoots) {
-    try {
-        $moduleLoggingPath = "$root\ModuleLogging\ModuleNames"
-        $currentValue = "Not Set"
-        $pathExists = Test-Path $moduleLoggingPath
-        if ($pathExists) {
-            $prop = Get-ItemProperty -Path $moduleLoggingPath -Name "*" -ErrorAction SilentlyContinue
-            if ($prop) {
-                $currentValue = $prop."*"
-            }
-        }
-        Write-Host "Registry: $moduleLoggingPath"
-        if ($currentValue -eq "*") {
-            Write-Host "[SKIPPED] Module logging : Already set to * (all modules)." -ForegroundColor Yellow
-            Write-Host ""
-        } else
-        {
-            if ($Auto)
-            {
-                $response = "Y"
-            }
-            else
-            {
-                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to * (all modules)? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y")
-            {
-                if (-not $pathExists)
-                {
-                    New-Item -Path $moduleLoggingPath -Force | Out-Null
-                }
-                Set-ItemProperty -Path $moduleLoggingPath -Name "*" -Value "*" -Type String
-                Write-Host "[OK] Module logging enabled for all modules" -ForegroundColor Green
-            }
-            else
-            {
-                Write-Host "[SKIPPED] Module logging" -ForegroundColor Yellow
-            }
-        }
+        Set-WelaRegistryControl -Context $context -Path "$root\ModuleLogging\ModuleNames" -Name '*' -Value '*' -Type String
     }
-    catch {
-        Write-Host "[ERROR] Failed to configure module names: $_" -ForegroundColor Red
-    }
-    Write-Host ""
-    }
+    Set-WelaRegistryControl -Context $context -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit' `
+        -Name ProcessCreationIncludeCmdLine_Enabled -Value 1
 
-    # コマンドライン監査の有効化
-    Write-Host "Enabling Command Line Auditing..."
-    Write-Host ""
-    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
-    $valueName = "ProcessCreationIncludeCmdLine_Enabled"
-    try {
-        $currentValue = "Not Set"
-        if (Test-Path $regPath) {
-            $prop = Get-ItemProperty -Path $regPath -Name $valueName -ErrorAction SilentlyContinue
-            $currentValue = $prop.$valueName
-        }
-        Write-Host "Registry: $regPath"
-        if ($currentValue -eq 1) {
-            Write-Host "[SKIPPED] Command Line Auditing : Already Enabled." -ForegroundColor Yellow
-            Write-Host ""
-        } else
-        {
-            if ($Auto)
-            {
-                $response = "Y"
-            }
-            else
-            {
-                $response = Read-Host "Your current setting is $currentValue. Do you want to change it to 1 (Enabled)? (Y/n)"
-            }
-            if ($response -eq "" -or $response -eq "Y" -or $response -eq "y")
-            {
-                $regPath = $regPath -replace "HKLM:", "HKLM"
-                $arguments = "add $regPath /v $valueName /f /t REG_DWORD /d 1"
-                $process = Start-Process -FilePath "reg.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
-                if ($process.ExitCode -eq 0)
-                {
-                    Write-Host "[OK] Command line auditing enabled" -ForegroundColor Green
-                }
-                else
-                {
-                    Write-Host "[ERROR] Command line auditing failed (ExitCode: $( $process.ExitCode ))" -ForegroundColor Red
-                }
-            }
-            else
-            {
-                Write-Host "[SKIPPED] Command line auditing" -ForegroundColor Yellow
-            }
-        }
-    }
-    catch {
-        Write-Host "[ERROR] Failed to check command line auditing: $_" -ForegroundColor Red
-    }
-    Write-Host ""
-
-    # NTLM認証の監査設定
-    Write-Host "Configuring NTLM Audit Settings..."
-    Write-Host ""
+    # NTLM audit/restriction decisions share the recovery and verification context.
+    Set-WelaOutgoingNtlmPolicy -Mode $OutgoingNtlmMode -Auto:$Auto -Context $context
     $regPaths = @(
-        @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "RestrictSendingNTLMTraffic"; Value = 2},
         @{Path = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"; Name = "AuditReceivingNTLMTraffic"; Value = 2}
     )
-    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto
-
-    Set-WelaDomainNtlmAudit -Auto:$Auto
-
-    # LDAP query logging (Directory Service EventID 1644) - domain controllers only.
-    # "15 Field Engineering" = 5 makes expensive / inefficient LDAP searches log as 1644, which surfaces
-    # BloodHound / SharpHound-style directory reconnaissance. Only applied where the NTDS role is present.
-    if (Test-Path "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters") {
-        Write-Host "Configuring LDAP query logging (1644) on this domain controller..."
-        Write-Host ""
+    Set-RegistryConfig -RegPaths $regPaths -Auto:$Auto -Context $context
+    Set-WelaDomainNtlmAudit -Auto:$Auto -Context $context
+    if ($hostContext.Role -eq 'DomainController') {
         Set-RegistryConfig -RegPaths @(
-            @{Path = "HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Diagnostics"; Name = "15 Field Engineering"; Value = 5}
-        ) -Auto:$Auto
+            @{Path = 'HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Diagnostics'; Name = '15 Field Engineering'; Value = 5}
+        ) -Auto:$Auto -Context $context
     }
 
-    # 監査ポリシーの設定
-    Write-Host "Configuring Audit Policies..."
-    Write-Host ""
-    $auditPolicies = @(
-        @{Category = "Account Logon"; Name = "Credential Validation"; GUID = "0CCE923F-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Logon"; Name = "Kerberos Authentication Service"; GUID = "0CCE9242-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Logon"; Name = "Kerberos Service Ticket Operations"; GUID = "0CCE9240-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Computer Account Management"; GUID = "0CCE9236-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Distribution Group Management"; GUID = "0CCE9238-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Other Account Management Events"; GUID = "0CCE923A-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "Security Group Management"; GUID = "0CCE9237-69AE-11D9-BED3-505054503030"},
-        @{Category = "Account Management"; Name = "User Account Management"; GUID = "0CCE9235-69AE-11D9-BED3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "Plug and Play"; GUID = "0cce9248-69ae-11d9-bed3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "Process Creation"; GUID = "0CCE922B-69AE-11D9-BED3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "Process Termination"; GUID = "0CCE922C-69AE-11D9-BED3-505054503030"},
-        @{Category = "Detailed Tracking"; Name = "RPC Events"; GUID = "0CCE922E-69AE-11D9-BED3-505054503030"},
-        @{Category = "DS Access"; Name = "Directory Service Access"; GUID = "0CCE923B-69AE-11D9-BED3-505054503030"},
-        @{Category = "DS Access"; Name = "Directory Service Changes"; GUID = "0CCE923C-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Account Lockout"; GUID = "0CCE9217-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Logoff"; GUID = "0CCE9216-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Logon"; GUID = "0CCE9215-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Other Logon/Logoff Events"; GUID = "0CCE921C-69AE-11D9-BED3-505054503030"},
-        @{Category = "Logon/Logoff"; Name = "Special Logon"; GUID = "0CCE921B-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Certification Services"; GUID = "0CCE9221-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "File Share"; GUID = "0CCE9224-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Detailed File Share"; GUID = "0CCE9244-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Filtering Platform Connection"; GUID = "0CCE9226-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Other Object Access Events"; GUID = "0CCE9227-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "Removable Storage"; GUID = "0CCE9245-69AE-11D9-BED3-505054503030"},
-        @{Category = "Object Access"; Name = "SAM"; GUID = "0CCE9220-69AE-11D9-BED3-505054503030"},
-        @{Category = "Policy Change"; Name = "Audit Policy Change"; GUID = "0CCE922F-69AE-11D9-BED3-505054503030"},
-        @{Category = "Policy Change"; Name = "Authentication Policy Change"; GUID = "0CCE9230-69AE-11D9-BED3-505054503030"},
-        @{Category = "Policy Change"; Name = "Other Policy Change Events"; GUID = "0CCE9234-69AE-11D9-BED3-505054503030"},
-        @{Category = "Privilege Use"; Name = "Sensitive Privilege Use"; GUID = "0CCE9228-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "Security State Change"; GUID = "0CCE9210-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "Security System Extension"; GUID = "0CCE9211-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "System Integrity"; GUID = "0CCE9212-69AE-11D9-BED3-505054503030"},
-        @{Category = "System"; Name = "Other System Events"; GUID = "0CCE9214-69AE-11D9-BED3-505054503030"}
-    )
-
-    $currentAuditPol = GetAuditpol
-
-    foreach ($policy in $auditPolicies)
-    {
-        $newSetting = "Success and Failure"
-        $currentSetting = if ($currentAuditPol.ContainsKey($policy.GUID))
-        {
-            $currentAuditPol[$policy.GUID]
-        }
-        else
-        {
-            "Unknown"
-        }
-
-        Write-Host "Audit Policy: $( $policy.Category ) - $( $policy.Name )"
-        if ($currentSetting -eq $newSetting)
-        {
-            Write-Host "[SKIPPED] $( $policy.Category ) - $( $policy.Name ) : Already set to $newSetting." -ForegroundColor Yellow
-            Write-Host ""
-            continue
-        }
-        if ($Auto) {
-            $response = "Y"
-        } else {
-            $response = Read-Host "Your current setting is $currentSetting. Do you want to change it to $newSetting? (Y/n)"
-        }
-        if ($response -eq "" -or $response -eq "Y" -or $response -eq "y") {
-            $arguments = "/set /subcategory:{$($policy.GUID)} /success:enable /failure:enable"
-            $process = Start-Process -FilePath "auditpol.exe" -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL"
-
-            if ($process.ExitCode -eq 0) {
-                Write-Host "[OK] $($policy.Category) - $($policy.Name)" -ForegroundColor Green
-            }
-            else {
-                Write-Host "[ERROR] $($policy.Category) - $($policy.Name) (ExitCode: $($process.ExitCode))" -ForegroundColor Red
-            }
-        } else {
-            Write-Host "[SKIPPED] $($policy.Category) - $($policy.Name)" -ForegroundColor Yellow
-        }
-        Write-Host ""
-    }
-
-    # AD CS AuditFilter の設定
-    Write-Host "Configuring AD CS Audit Settings..."
-    try {
-        $installed = (Get-WindowsFeature -Name AD-Certificate).InstallState -eq "Installed"
-    } catch {
-        $installed = $false
-    }
-
-    if ($installed) {
-        try {
-            $csRootKey = "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\"
-            $caName = (Get-ItemProperty $csRootKey -ErrorAction Stop).Active
-            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\CertSvc\Configuration\$caName"
-            $prop = Get-ItemProperty -Path $regPath -Name "AuditFilter" -ErrorAction SilentlyContinue
-            $currentValue = if ($null -ne $prop) { [int]$prop.AuditFilter } else { "Not Set" }
-            if ($currentValue -eq 127) {
-                Write-Host "[OK] AuditFilter is already 127" -ForegroundColor Green
-            }
-            else {
-                $proceed = $false
-                if ($Auto) {
-                    $proceed = $true
-                }
-                else {
-                    $response = Read-Host "Do you want to set AuditFilter to 127 and restart Certificate Services? (Y/n)"
-                    $proceed = ($response -eq "" -or $response -match "^[Yy]$")
-                }
-
-                if ($proceed) {
-                    try {
-                        # AuditFilter の設定
-                        & certutil.exe -setreg "CA\AuditFilter" 127 >$null 2>&1
-                        # 証明書サービスの再起動
-                        Restart-Service -Name "CertSvc" -Force -ErrorAction Stop
-                        # 反映確認
-                        $propAfter = Get-ItemProperty -Path $regPath -Name "AuditFilter" -ErrorAction SilentlyContinue
-                        $newValue = if ($null -ne $propAfter) { [int]$propAfter.AuditFilter } else { $null }
-
-                        if ($newValue -eq 127) {
-                            Write-Host "[OK] AuditFilter set to 127 and CertSvc restarted" -ForegroundColor Green
-                        }
-                        else {
-                            Write-Host "[ERROR] AuditFilter did not apply as expected (current: $newValue)" -ForegroundColor Red
-                        }
-                    }
-                    catch {
-                        Write-Host "[ERROR] Failed to set AuditFilter or restart CertSvc: $_" -ForegroundColor Red
-                    }
-                }
-                else {
-                    Write-Host "[SKIP] No changes applied to AuditFilter"
-                }
-            }
-        }
-        catch {
-            Write-Host "[ERROR] Failed to process AD CS audit settings: $_" -ForegroundColor Red
-        }
-    }
-    else {
-        Write-Host "[INFO] AD Certificate Services is not installed. Skipping." -ForegroundColor Yellow
-    }
-    Write-Host ""
-
-    Write-Host "Configuration completed successfully" -ForegroundColor Green
+    # Both audit display and mutation use the versioned role-aware profile.
+    Show-WelaAuditProfilePrerequisites -Plan $profilePlan
+    Set-WelaProfileAuditControls -Context $context -Plan $profilePlan
+    Set-WelaCertificateAuditControl -Context $context
+    Complete-WelaConfiguration -Context $context -ResultsPath $ResultsPath -Plan $profilePlan
 }
 
 $logo = @"
@@ -1812,6 +1751,11 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 profiles                                   # List versioned advanced audit-policy profiles
+  ./WELA.ps1 plan -Profile wela-2.2.0 -Role Client -Build 26100 -PlanPath plan.json
+  ./WELA.ps1 audit-settings -Profile microsoft-sct-win11-24h2 -PlanPath audit.json
+  ./WELA.ps1 configure -Profile asd-native-2021-10 -PlanPath result.json -Auto
+  # -Profile changes advanced audit policy ONLY. Optional controls need -IncludeOptional.
   ./WELA.ps1 audit-settings -Baseline YamatoSecurity     # Audit current setting and show in stdout, save to csv
   ./WELA.ps1 audit-settings -Baseline ASD -OutType gui   # Audit current setting and show in gui, save to csv
   ./WELA.ps1 audit-filesize -Baseline YamatoSecurity     # Audit current file size and show in stdout, save to csv
@@ -1831,7 +1775,22 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+# Reject unsupported dry-run requests before reaching any command's mutation path.
+if ($DryRun -and $Cmd -ne 'configure') {
+    throw "-DryRun is supported only by configure (including configure -Profile). No command was run."
+}
+
+if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
+    Invoke-WelaProfileCommand -Command $Cmd.ToLower()
+    return
+}
+
 switch ($Cmd.ToLower()) {
+    "profiles" {
+        (Import-WelaAuditProfiles).profiles | Select-Object id, version, scope, appliesTo | Format-List
+    }
+    "plan" { Invoke-WelaProfileCommand -Command 'plan' }
+    "audit" { Invoke-WelaProfileCommand -Command 'audit' }
     "audit-settings"  {
         if ($Help -or [string]::IsNullOrEmpty($Baseline)){
             Write-Host "Audit current Windows Event Log settings and compare with baseline"
@@ -1872,12 +1831,17 @@ switch ($Cmd.ToLower()) {
         if ($Help){
             Write-Host "Configure Windows Event Log audit settings based on the YamatoSecurity baseline"
             Write-Host ""
-            Write-Host "Usage: ./WELA.ps1 configure [-Auto]"
+            Write-Host "Usage: ./WELA.ps1 configure [-Profile <id>] [-Auto] [-DryRun] [-BackupPath <new-directory>] [-ResultsPath <json-file>] [-OutgoingNtlmMode <PreserveOrAudit|Audit|Deny>]"
             Write-Host ""
             Write-Host "Options:"
+            Write-Host "  -Profile     Configure advanced audit policy only from a versioned profile; list IDs with profiles"
             Write-Host "  -Auto        Automatically configure without prompts"
+            Write-Host "  -OutgoingNtlmMode  PreserveOrAudit (default): audit, preserving existing deny; Audit: explicitly replace deny; Deny: opt into enforcement"
+            Write-Host "  -DryRun      Read live state and report proposed changes without writing Windows settings"
+            Write-Host "  -BackupPath  New directory for the pre-change recovery journal (unique default beside WELA)"
+            Write-Host "  -ResultsPath Save structured per-control outcomes as JSON"
             Write-Host ""
-            Write-Host "Note: only the YamatoSecurity baseline is currently supported for 'configure'."
+            Write-Host "Without -Profile, configure applies the YamatoSecurity native logging settings. -Profile applies advanced audit policy only. -DryRun and recovery/results options work with both."
             Write-Host ""
             return
         }
@@ -1886,7 +1850,14 @@ switch ($Cmd.ToLower()) {
             Write-Host "Re-run with '-Baseline YamatoSecurity' (or omit -Baseline) if that is what you want."
             break
         }
-        ConfigureAuditSettings -Auto:$Auto -Debug:$Debug
+        try {
+            $report = ConfigureAuditSettings -Auto:$Auto -Debug:$Debug -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath -OutgoingNtlmMode $OutgoingNtlmMode
+            $report
+            if ($report.ExitCode -ne 0) { exit $report.ExitCode }
+        } catch {
+            Write-Host "[Failed] Configuration aborted: $_" -ForegroundColor Red
+            exit 1
+        }
     }
 
     "configure-sacl" {

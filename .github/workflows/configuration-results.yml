@@ -1,0 +1,49 @@
+name: Configuration result regressions
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  configuration-results:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Actual script-scope helpers with disposable HKCU key in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/Test-ConfigurationScriptScopeWindows.ps1
+      - name: Actual script-scope helpers with disposable HKCU key in PowerShell 7
+        shell: pwsh
+        run: ./tests/Test-ConfigurationScriptScopeWindows.ps1
+      - name: Mocked regressions in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/Test-ConfigurationResults.ps1
+      - name: Read-only Windows smoke in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/Test-ConfigurationReadOnlyWindows.ps1
+      - name: Mocked regressions in PowerShell 7
+        shell: pwsh
+        run: ./tests/Test-ConfigurationResults.ps1
+      - name: Read-only Windows smoke in PowerShell 7
+        shell: pwsh
+        run: ./tests/Test-ConfigurationReadOnlyWindows.ps1
+      - name: NTLM integration in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/IntegrationNtlmConfiguration.Tests.ps1
+      - name: NTLM integration in PowerShell 7
+        shell: pwsh
+        run: ./tests/IntegrationNtlmConfiguration.Tests.ps1
+      - name: Profile integration in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/IntegrationProfileConfiguration.Tests.ps1
+      - name: Profile integration in PowerShell 7
+        shell: pwsh
+        run: ./tests/IntegrationProfileConfiguration.Tests.ps1
+      - name: Dry-run and NTLM race safety in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/IntegrationSafety.Tests.ps1
+      - name: Dry-run and NTLM race safety in PowerShell 7
+        shell: pwsh
+        run: ./tests/IntegrationSafety.Tests.ps1

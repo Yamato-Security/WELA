@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added `-DryRun` and `-ResultsPath` to `configure` and `configure -Profile` to preview changes without modifying Windows settings and export per-control results as JSON. Commands that do not support `-DryRun` reject it before running. (#392) (@Shirofune-Security)
+- Added `-BackupPath` and a recovery journal that records each control's previous state before making changes, with a documented manual recovery procedure. (#392) (@Shirofune-Security)
 - Added a `configure-sacl` command that sets targeted audit SACLs on the autostart/persistence registry keys and sensitive files the detection rules watch, so File System (4663), Registry (4657) and Handle Manipulation (4656) auditing produce useful events without enabling global object auditing. It covers machine-wide objects plus per-user HKCU keys and profile AppData across all user profiles and the Default profile (so future users inherit the SACL). Targets live in `config/audit_sacl_targets.json`. (#361) (@YamatoSecurity)
 - `configure` now also enables Detailed Tracking > Process Termination (4689), Object Access > Detailed File Share (5145), and (on domain controllers) LDAP query logging (Directory Service 1644 via NTDS `15 Field Engineering`), so a full detection baseline is applied without any manual `auditpol`/registry steps. (#361) (@YamatoSecurity)
 - Baseline definitions were moved out of `WELA.ps1` into a `config/baselines.json` config file, so adding or changing a baseline is now a JSON-only edit. (#358) (@fukusuket)
@@ -15,6 +17,8 @@
 
 **Bug Fixes:**
 
+- `audit-settings` now reports role-inapplicable audit policies as `Not applicable` and excludes them from category enablement totals. NTLM policy values are interpreted and verified only when stored as DWORDs. (#392) (@Shirofune-Security)
+- Configuration now checks native command exit codes, verifies settings after applying changes, and checks them again before finishing. Failed writes, ineffective changes, CA restart failures and settings that no longer match at the final check produce explicit results and a nonzero exit code instead of unconditional success. (#392) (@Shirofune-Security)
 - Fixed domain NTLM auditing: `configure` now sets `AuditNTLMInDomain=7` (Enable all) only on confirmed domain controllers, instead of writing `2` on every host. This setting is left unchanged on other hosts and hosts whose role cannot be determined. Audit output reports the domain NTLM setting, and configuration verifies registry writes and reports failures. (#389) (@Shirofune-Security)
 - Rule filtering applied only the last criterion instead of all of them, so rule counts were inaccurate. (#358) (@fukusuket)
 - Rules were reported as usable even when the logs they depend on were disabled. (#358) (@fukusuket)
