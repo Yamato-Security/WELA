@@ -137,8 +137,19 @@ function Invoke-WelaAuditScore {
 }
 function Export-WelaAuditScore {
     param($Report,[string]$ResultsPath,[string]$HtmlPath)
-    $paths=@($ResultsPath,$HtmlPath | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | ForEach-Object { [IO.Path]::GetFullPath($_) })
-    if (@($paths | Select-Object -Unique).Count -ne $paths.Count) { throw 'JSON and HTML destinations must differ.' }
+    $resolved=@{ResultsPath=$null;HtmlPath=$null}
+    foreach ($name in @('ResultsPath','HtmlPath')) {
+        $candidate=if ($name -eq 'ResultsPath') { $ResultsPath } else { $HtmlPath }
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        $provider=$null; $drive=$null
+        $full=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($candidate,[ref]$provider,[ref]$drive)
+        if ($provider.Name -ne 'FileSystem') { throw 'Score output requires a FileSystem provider path.' }
+        $resolved[$name]=[IO.Path]::GetFullPath($full)
+    }
+    $ResultsPath=$resolved.ResultsPath; $HtmlPath=$resolved.HtmlPath
+    $comparison=if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+    if ($ResultsPath -and $HtmlPath -and [string]::Equals($ResultsPath,$HtmlPath,$comparison)) { throw 'JSON and HTML destinations must differ.' }
+    $paths=@($ResultsPath,$HtmlPath | Where-Object { $_ })
     foreach ($path in $paths) { if (Test-Path -LiteralPath $path) { throw 'Score output must use new files.' }; if (-not (Test-Path -LiteralPath (Split-Path $path -Parent) -PathType Container)) { throw 'Score output parent must exist.' } }
     $outputs=@()
     if ($ResultsPath) { $outputs+=@{Path=$ResultsPath;Text=($Report | ConvertTo-Json -Depth 28)} }
@@ -157,7 +168,7 @@ function Export-WelaAuditScore {
     }
     foreach ($output in $outputs) {
         $bytes=[Text.UTF8Encoding]::new($false).GetBytes([string]$output.Text)
-        $stream=[IO.File]::Open([IO.Path]::GetFullPath($output.Path),[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+        $stream=[IO.File]::Open($output.Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
         try { $stream.Write($bytes,0,$bytes.Length) } finally { $stream.Dispose() }
     }
 }

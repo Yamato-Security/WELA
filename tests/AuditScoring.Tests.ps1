@@ -80,6 +80,28 @@ try {
     Throws {Export-WelaAuditScore $report $same (Join-Path $temp './same.json')} 'differ'
     Assert (-not (Test-Path -LiteralPath $same)) 'Destination collision fails before either output is written.'
     Throws {Export-WelaAuditScore $report (Join-Path $temp 'missing/score.json') $null} 'parent'
+    $relativeName='location-'+[guid]::NewGuid().ToString('N')
+    $location=Join-Path $temp 'relative-output';$null=New-Item -ItemType Directory -Path $location
+    $processJson=[IO.Path]::Combine([Environment]::CurrentDirectory,($relativeName+'.json'))
+    $processHtml=[IO.Path]::Combine([Environment]::CurrentDirectory,($relativeName+'.html'))
+    Push-Location -LiteralPath $location
+    try {
+        Assert ([IO.Path]::GetFullPath($relativeName+'.json') -cne (Join-Path $location ($relativeName+'.json'))) 'Fixture separates PowerShell location from process working directory.'
+        Export-WelaAuditScore $report ($relativeName+'.json') ($relativeName+'.html')
+        Assert ((Test-Path -LiteralPath (Join-Path $location ($relativeName+'.json'))) -and (Test-Path -LiteralPath (Join-Path $location ($relativeName+'.html'))) -and -not [IO.File]::Exists($processJson) -and -not [IO.File]::Exists($processHtml)) 'Both relative outputs follow Push-Location and never the process directory.'
+    } finally {
+        Pop-Location
+        # Only clean this fixture's unique names if a future regression writes there.
+        foreach($wrongPath in @($processJson,$processHtml)){if([IO.File]::Exists($wrongPath)){[IO.File]::Delete($wrongPath)}}
+    }
+    $providerTest=Join-Path $temp 'provider-guard.json'
+    Throws {Export-WelaAuditScore $report $providerTest 'Env:\WELA_SCORE_OUTPUT_FIXTURE'} 'FileSystem provider'
+    Assert (-not (Test-Path -LiteralPath $providerTest)) 'Non-filesystem destinations fail before a valid companion output is created.'
+    if ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT) {
+        $casePath=Join-Path $temp 'CaseCollision.json'
+        Throws {Export-WelaAuditScore $report $casePath (Join-Path $temp 'casecollision.JSON')} 'differ'
+        Assert (-not (Test-Path -LiteralPath $casePath)) 'Windows case-variant paths are rejected before either output is written.'
+    }
     $script:realRead=(Get-Command Read-WelaScoreJsonBytes).ScriptBlock
     $script:metadataSnapshot=& $script:realRead (Join-Path $root 'config/security_rules.json')
     $script:ruleId=[string]$script:metadataSnapshot.Value[0].id
