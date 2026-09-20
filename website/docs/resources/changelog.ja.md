@@ -7,6 +7,7 @@
 
 **改善:**
 
+- 読み取り専用の`control-applicability`を追加し、旧CISのApplication Guard監査要件を保持しつつ、Windows 11 24H2以降では削除済み・対象外と表示します。`default-evidence`で正確なビルド・パッチ・ドメイン参加・役割を含む現状を記録し、出典とレビュー情報が一致する参照環境と比較できます。旧ベースラインの既定値は履歴情報として保持し、未検証の既定値はUnknownと表示します。合成テストと読み取り専用CIからクリーンインストールやイベント生成の証明は行いません。 (#409) (@Shirofune-Security)
 - Windows標準のDNS Client/Server、CAPI2、WinRM、RDP Clientについて、明示的に選択するprovider-packsの監査・計画とチャネル設定を追加しました。固定した完全なルール定義と実際のプロバイダー・チャネル・イベントスキーマを確認し、DNSのチャネル名不一致や不明な前提条件を保持します。復旧記録付きの変更では大きいバッファ・保持方式・ACLを維持し、Analyticalと従来のDNSログは手動確認のみとします。イベント生成・バックエンド検証や検知範囲の向上は未確認です。 (#411) (@Shirofune-Security)
 - 任意実行の`audit-notifications`を追加し、OneSettings監査とSecurityログ警告しきい値の監査・計画・設定に対応しました。対象とチャネル変更の明示指定、OS・ADMX確認、型付き復旧記録と変更検出を行い、既存の低いしきい値とチャネルACL・保存方式を保持します。ポリシー一致と実イベント生成を分け、Windowsラボの証拠とSigma利用可能性は未検証と表示します。 (#408) (@Shirofune-Security)
 

@@ -49,6 +49,8 @@
     [ValidateRange(1,2147483647)][int]$LdapSearchTimeMs,
     [ValidateRange(1,2147483647)][int]$LdapExpensiveThreshold,
     [ValidateRange(1,2147483647)][int]$LdapInefficientThreshold,
+    [ValidateSet('Capture','Compare')][string]$DefaultEvidenceAction = 'Capture',
+    [string]$DefaultEvidencePath,
     [ValidateSet('List','Audit','Plan','Configure')][string]$ProviderAction = 'List',
     [string[]]$ProviderPack,
     [ValidateSet('Audit','Plan','Configure')][string]$NotificationAction = 'Audit',
@@ -72,6 +74,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
+. (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditNotifications.ps1")
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
@@ -107,7 +110,9 @@ class WELA {
     [array] $NativeSources = @()
     [array] $Rules
     [hashtable] $RulesCount
-    [string] $DefaultSetting = ""
+    [string] $DefaultSetting = "Unknown"
+    [string] $LegacyDefaultHint = ""
+    [string] $DefaultEvidence = "No exact-context reviewed default evidence; historical hints are not host defaults."
     [string] $RecommendedSetting = ""
     [string] $Volume = ""
     [string] $Note = ""
@@ -126,7 +131,8 @@ class WELA {
         $this.SubCategory = $SubCategory
         $this.CurrentSetting = $CurrentSetting
         $this.Rules = $Rules
-        $this.DefaultSetting = $DefaultSetting
+        $this.LegacyDefaultHint = $DefaultSetting
+        $this.DefaultSetting = "Unknown"
         $this.RecommendedSetting = $RecommendedSetting
         $this.Volume = $Volume
         $this.Note = $Note
@@ -175,6 +181,7 @@ class WELA {
                 }
                 if ($this.DefaultSetting) {
                     Write-Host "    - Default Setting: $($this.DefaultSetting)"
+                    Write-Host "    - Default Evidence: $($this.DefaultEvidence)"
                 }
                 if ($this.CurrentSetting) {
                     Write-Host "    - Current Setting: $($this.CurrentSetting)"
@@ -749,7 +756,7 @@ function AuditLogSetting {
             Write-Host ""
         }
     } elseif ($outType -eq "table") {
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, DefaultSetting, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume | Format-Table
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, DefaultSetting, DefaultEvidence, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume | Format-Table
     }
 
     # 1つのルールが複数カテゴリに属するため、集計とCSVはルールID単位で重複排除する
@@ -764,7 +771,7 @@ function AuditLogSetting {
     $currentJson = Join-Path $script:ScriptRoot "mitre-ttp-navigator-current.json"
     $idealJson   = Join-Path $script:ScriptRoot "mitre-ttp-navigator-ideal.json"
 
-    $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note,
+    $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, DefaultEvidence, LegacyDefaultHint, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note,
         @{ Name = 'NativeSourceEvidence'; Expression = { if ($_.NativeSources.Count) { ConvertTo-Json -InputObject $_.NativeSources -Depth 12 -Compress } else { '' } } } |
         Export-Csv -Path $auditCsv -NoTypeInformation
     $usableRules   | Select-Object title, level, service, category, description, id, EligibilityState, EligibilityReasons | Export-Csv -Path $usableCsv -NoTypeInformation
@@ -778,7 +785,7 @@ function AuditLogSetting {
     if ($outType -eq "gui") {
         $usableRules   | Select-Object title, level, service, category, description, id | Out-GridView -Title "Usable Detection Rules"
         $unUsableRules | Select-Object title, level, service, category, description, id | Out-GridView -Title "Unusable Detection Rules"
-        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
+        $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, DefaultEvidence, LegacyDefaultHint, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note | Out-GridView -Title "WELA Audit Result"
     }
 
     Write-Output "Audit check result saved to: $auditCsv"
@@ -1791,6 +1798,8 @@ Usage:
   ./WELA.ps1 configure-sacl                              # Add targeted File System/Registry audit SACLs (ASEP keys + sensitive files) needed by the rules, without global auditing
   ./WELA.ps1 configure-sacl -Auto                        # ...automatically without prompts
   ./WELA.ps1 update-rules         # Update rule config files from https://github.com/Yamato-Security/WELA
+  ./WELA.ps1 control-applicability     # Read-only historical native feature/build assessment
+  ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
@@ -1802,6 +1811,10 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'default-evidence' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('DefaultEvidenceAction','DefaultEvidencePath') }).Count) {
+    throw 'Default evidence options require default-evidence. No command was run.'
+}
 
 if ($Cmd -eq 'audit-notifications' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','NotificationAction','NotificationControl','WarningPercent','EnablePrivacyChannel','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
     throw 'audit-notifications accepts only notification, consent/dry-run, recovery and JSON output options. No command was run.'
@@ -1881,6 +1894,23 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'control-applicability' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 control-applicability [-ResultsPath report.json]. Read-only historical feature/build assessment; see docs/control-applicability.md.'; return }
+        if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath -or $Auto -or $BackupPath -or $PlanPath) { throw 'control-applicability reads actual local context and only accepts -ResultsPath; configuration and context overrides are unsupported.' }
+        $context=Get-WelaDefaultContext
+        $controls=@(Get-WelaHistoricalControls -Context $context)
+        $report=[pscustomobject]@{Scope='Native historical controls; Sysmon excluded';Context=$context;Controls=$controls;Catalog=(Get-WelaControlCatalog)}
+        if ($ResultsPath) { $report | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
+        $report
+        if (@($controls | Where-Object {$_.Applicability.Status -eq 'Unknown' -or $_.PolicyState -eq 'Unknown'}).Count) { exit 1 }
+    }
+    'default-evidence' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 default-evidence [-DefaultEvidenceAction Capture|Compare] [-DefaultEvidencePath reviewed-snapshot.json] [-ResultsPath report.json]. Capture observes current settings and never labels them as defaults. See docs/control-applicability.md.'; return }
+        if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath -or $Auto -or $BackupPath -or $PlanPath) { throw 'default-evidence reads actual local context and accepts only evidence/output options.' }
+        $report=Invoke-WelaDefaultEvidenceCommand -Action $DefaultEvidenceAction -ReferencePath $DefaultEvidencePath -ResultsPath $ResultsPath
+        $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
     'audit-notifications' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-notifications [-NotificationAction Audit|Plan|Configure] [-NotificationControl OneSettings,SecurityWarning] [-WarningPercent 1..90] [-EnablePrivacyChannel] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. See docs/audit-notifications.md.'; return }
         if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-notifications uses actual host context and -ResultsPath; profile/role/build overrides and HTML are unsupported.' }

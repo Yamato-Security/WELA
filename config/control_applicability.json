@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "reviewedOn": "2026-09-19",
+  "scope": "Historical native controls; not a replacement for command-specific applicability checks",
+  "controls": [
+    {
+      "id": "application-guard-auditing",
+      "title": "Application Guard audit events",
+      "productTypes": [1],
+      "minBuild": 22000,
+      "maxBuild": 26099,
+      "reviewedBuilds": [22000, 22621, 22631],
+      "editions": ["Professional", "ProfessionalN", "ProfessionalEducation", "ProfessionalEducationN", "Enterprise", "EnterpriseN", "Education", "EducationN"],
+      "feature": "Windows-Defender-ApplicationGuard",
+      "registryPath": "HKLM:\\SOFTWARE\\Policies\\Microsoft\\AppHVSI",
+      "valueName": "AuditApplicationGuard",
+      "requiredType": "DWord",
+      "requiredValue": 1,
+      "source": {
+        "title": "CIS Microsoft Windows 11 Enterprise Benchmark",
+        "version": "4.0.0 (historical)",
+        "control": "18.10.44.1",
+        "requirement": "Enabled",
+        "url": "https://www.cisecurity.org/benchmark/microsoft_windows_desktop"
+      },
+      "removal": {
+        "firstBuild": 26100,
+        "release": "Windows 11 24H2",
+        "url": "https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/microsoft-defender-application-guard/md-app-guard-overview"
+      }
+    }
+  ]
+}

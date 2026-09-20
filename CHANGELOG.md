@@ -4,6 +4,7 @@
 
 **Improvements:**
 
+- Added read-only `control-applicability` for the historical CIS Application Guard audit requirement, reporting removal on Windows 11 24H2+ without remediation. Added exact build/patch/join/role native snapshots and provenance-bound reference comparison through `default-evidence`. Legacy baseline default strings are retained as historical hints while public defaults remain Unknown without reviewed scenario evidence. Synthetic fixtures and native read-only CI do not claim clean-install or event-generation proof. (#409) (@Shirofune-Security)
 - Added explicit native DNS Client/Server, CAPI2, WinRM and RDP Client provider-pack inventory and selective channel configuration. Pinned full rule definitions and live provider/channel/event schemas retain DNS channel mismatches and unknown prerequisites; journaled opt-in changes preserve larger buffers, retention and ACLs. Analytical/classic DNS remain manual-only, and no event/backend readiness uplift is claimed. (#411) (@Shirofune-Security)
 - Added opt-in `audit-notifications` audit/plan/configure for OneSettings auditing and Security log warning thresholds, with explicit control/channel selections, reviewed host and ADMX gates, typed recovery journals and drift checks. Earlier warning thresholds and channel ACL/retention are preserved. Reports separate policy matches from warning/event generation; Windows lab evidence and Sigma eligibility remain unverified. (#408) (@Shirofune-Security)
 
