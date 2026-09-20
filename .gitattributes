@@ -38,3 +38,8 @@ modules/WecSubscriptionXml.cs text eol=lf
 /modules/WecSubscriptionXml.cs text eol=lf
 scripts/AppLockerProbe.ps1 text eol=lf
 tests/AppLockerProbe*.ps1 text eol=lf
+
+# Pending AD CS restart plans bind exact implementation bytes.
+/scripts/AdcsRestartResume.ps1 text eol=lf
+/scripts/AdcsAuditing.ps1 text eol=lf
+/tests/AdcsRestartResume*.ps1 text eol=lf
