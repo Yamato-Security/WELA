@@ -95,18 +95,22 @@ function Read-WelaChannelLatest {
 }
 function Invoke-WelaChannelRead {
     param([string[]]$Channels,[string]$OutputPath)
+    $sources=Get-WelaChannelReadSources;$sourceKey=Get-WelaChannelReadKey $sources
     $selected=@(Get-WelaChannelReadSelection $Channels)
     if(-not $OutputPath){throw 'channel-read requires a new ChannelReadOutputPath.'}
-    $sources=Get-WelaChannelReadSources;$sourceKey=Get-WelaChannelReadKey $sources
     $hostState=Get-WelaChannelReadHost;$hostKey=Get-WelaChannelReadKey $hostState
-    $before=Get-WelaChannelReader;$readerKey=Get-WelaChannelReadKey $before
     $output=New-WelaArrivalOutput -Path $OutputPath -SourcePath $script:ScriptRoot
-    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaNativeChannelRead';RecordedUtc=[DateTime]::UtcNow.ToString('o');ExitCode=1;Status='Unverified';Host=$hostState;ReaderBefore=$before;ReaderAfter=$null;Sources=$sources;Results=@();Diagnostic='';ReadyRuleCredit=0;ConfigurationChanges=0;Scope='Actual current primary-token local query access at observation time only';EventGeneration='Not tested';Forwarding='Not tested';OutputPath=$output}
+    # Filesystem ACL and metadata APIs may temporarily adjust available privileges.
+    # Finish preparation before capturing the token used by the actual event queries.
+    $metadataByName=@{}
+    foreach($channel in $selected){$metadataByName[$channel]=Get-WelaNativeChannel -Name $channel}
+    $before=Get-WelaChannelReader;$readerKey=Get-WelaChannelReadKey $before
+    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaNativeChannelRead';RecordedUtc=[DateTime]::UtcNow.ToString('o');ExitCode=1;Status='Unverified';Host=$hostState;ReaderBefore=$before;ReaderAfter=$null;ReaderInterval='After output/metadata preparation, before first query through final checks';Sources=$sources;Results=@();Diagnostic='';ReadyRuleCredit=0;ConfigurationChanges=0;Scope='Actual current primary-token local query access at observation time only';EventGeneration='Not tested';Forwarding='Not tested';OutputPath=$output}
     try {
         foreach($channel in $selected){
             if((Get-WelaChannelReadKey (Get-WelaChannelReader)) -cne $readerKey){throw 'Reader token changed before query.'}
             # Channel configuration may require rights the actual event query does not.
-            $metadata=Get-WelaNativeChannel -Name $channel
+            $metadata=$metadataByName[$channel]
             $query=Read-WelaChannelLatest $channel
             $readerAfter=Get-WelaChannelReader
             $row=[pscustomobject]@{Channel=$channel;ConfigurationObservation=$metadata;Query=$query;AccessVerified=$false;ReaderStable=$false}
@@ -115,8 +119,9 @@ function Invoke-WelaChannelRead {
             $row.ReaderStable=$true
             $row.AccessVerified=$query.Status -in @('ReadAllowedEmpty','EventObserved')
         }
+        $finalHostKey=Get-WelaChannelReadKey (Get-WelaChannelReadHost);$finalSourceKey=Get-WelaChannelReadKey (Get-WelaChannelReadSources)
         $report.ReaderAfter=Get-WelaChannelReader
-        if((Get-WelaChannelReadKey $report.ReaderAfter) -cne $readerKey -or (Get-WelaChannelReadKey (Get-WelaChannelReadHost)) -cne $hostKey -or (Get-WelaChannelReadKey (Get-WelaChannelReadSources)) -cne $sourceKey){throw 'Reader, host or implementation changed during observation.'}
+        if((Get-WelaChannelReadKey $report.ReaderAfter) -cne $readerKey -or $finalHostKey -cne $hostKey -or $finalSourceKey -cne $sourceKey){throw 'Reader, host or implementation changed during observation.'}
         $report.Status='Completed'
         $report.ExitCode=if(@($report.Results|Where-Object{-not $_.AccessVerified}).Count){1}else{0}
     }catch{

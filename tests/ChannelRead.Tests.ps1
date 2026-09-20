@@ -9,15 +9,16 @@ foreach($channels in @(@(),@('Sysmon'),@('ForwardedEvents'),@('Security','Securi
 Assert (@(Get-WelaChannelReadSelection @('Security','System')).Count -eq 2) 'Reviewed channels accepted'
 foreach($case in @(@(5,'Denied'),@(15007,'Absent'),@(2,'Absent'),@(87,'Unknown'),@(1460,'Unknown'))){$failure=Get-WelaChannelReadFailure ([ComponentModel.Win32Exception]::new($case[0]));Assert ($failure.Status -eq $case[1]) 'Native numeric error classification'}
 if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){
-    Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogNotFoundException]::new(15007))).Status -eq 'Absent') 'Actual EventLogNotFoundException classification'
-    Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogException]::new(1460))).Status -eq 'Unknown') 'Actual EventLogException timeout is unknown'
+    Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogNotFoundException]::new('synthetic absent channel'))).Status -eq 'Absent') 'Actual EventLogNotFoundException classification'
+    Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogException]::new('native code unexposed'))).Status -eq 'Unknown') 'EventLogException without exposed native code stays unknown'
 }
 Assert ((Get-WelaChannelReadFailure ([InvalidOperationException]::new('outer',[UnauthorizedAccessException]::new('inner')))).Status -eq 'Denied') 'Wrapped access denial'
-$script:counter=0;$script:driftAt=0;$script:queryState='EventObserved';$script:hostDrift=$false;$script:hostReads=0;$script:sourceDrift=$false;$script:sourceReads=0
-function Get-WelaChannelReader {$script:counter++;[pscustomobject][ordered]@{UserSid='S-1-5-21-1-2-3-1001';TokenId='01';AuthenticationId='02';ModifiedId=$(if($script:driftAt -and $script:counter -ge $script:driftAt){'04'}else{'03'})}}
+$script:prepared=0;$script:counter=0;$script:driftAt=0;$script:queryState='EventObserved';$script:hostDrift=$false;$script:hostReads=0;$script:sourceDrift=$false;$script:sourceReads=0
+function Get-WelaChannelReader {$script:counter++;[pscustomobject][ordered]@{UserSid='S-1-5-21-1-2-3-1001';TokenId='01';AuthenticationId='02';ModifiedId=($script:prepared.ToString()+':'+$(if($script:driftAt -and $script:counter -ge $script:driftAt){'04'}else{'03'}))}}
 function Get-WelaChannelReadHost {$script:hostReads++;[pscustomobject]@{Build=$(if($script:hostDrift -and $script:hostReads -gt 1){26100}else{20348})}}
 function Get-WelaChannelReadSources {$script:sourceReads++;[pscustomobject]@{Hash=$(if($script:sourceDrift -and $script:sourceReads -gt 1){'b'}else{'a'})}}
-function Get-WelaNativeChannel {param($Name)[pscustomobject]@{Name=$Name;State='Unknown';Diagnostic='Metadata denied'}}
+# Metadata preparation deliberately changes the synthetic ModifiedId, as Windows APIs can.
+function Get-WelaNativeChannel {param($Name)$script:prepared++;[pscustomobject]@{Name=$Name;State='Unknown';Diagnostic='Metadata denied'}}
 function Read-WelaChannelLatest {param($Channel)[pscustomobject]@{Channel=$Channel;Status=$script:queryState;Event=$(if($script:queryState -eq 'EventObserved'){[pscustomobject]@{RecordId=42}}else{$null})}}
 $fixture=Join-Path ([IO.Path]::GetTempPath()) ('wela-channel-read-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $fixture
 function RunFixture {
