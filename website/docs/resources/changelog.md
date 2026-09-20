@@ -7,6 +7,7 @@
 
 **Improvements:**
 
+- Added explicit native DNS Client/Server, CAPI2, WinRM and RDP Client provider-pack inventory and selective channel configuration. Pinned full rule definitions and live provider/channel/event schemas retain DNS channel mismatches and unknown prerequisites; journaled opt-in changes preserve larger buffers, retention and ACLs. Analytical/classic DNS remain manual-only, and no event/backend readiness uplift is claimed. (#411) (@Shirofune-Security)
 - Added opt-in `audit-notifications` audit/plan/configure for OneSettings auditing and Security log warning thresholds, with explicit control/channel selections, reviewed host and ADMX gates, typed recovery journals and drift checks. Earlier warning thresholds and channel ACL/retention are preserved. Reports separate policy matches from warning/event generation; Windows lab evidence and Sigma eligibility remain unverified. (#408) (@Shirofune-Security)
 
 - Added read-only `rule-eligibility` reports with pinned corpus/mapping hashes, per-rule reasons, explicit scope exclusions and numerator/denominator totals. Optional imported lab artifacts are checked against a narrow complete-rule parser, native XML, configuration, ingestion and query evidence; unsupported or incomplete cases stay Conditional. Audit CSV/JSON/HTML and Navigator outputs no longer treat enabled settings as proven usable rules. Imported Ready results apply only to their recorded context/time; no live end-to-end validation is implied. (#407) (@Shirofune-Security)
