@@ -24,5 +24,7 @@
 # Fixed public pending-request fixture is pinned by its exact byte hash.
 /tests/fixtures/adcs-pending-probe.csr text eol=lf
 
+# Native WEC XML reader source identity remains identical across checkouts.
+/modules/WecSubscriptionXml.cs text eol=lf
 scripts/AppLockerProbe.ps1 text eol=lf
 tests/AppLockerProbe*.ps1 text eol=lf

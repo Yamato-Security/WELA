@@ -1,0 +1,45 @@
+name: Typed native WEC runtime observations
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/WecRuntime*'
+      - 'scripts/WefDeployment.ps1'
+      - 'scripts/RetentionHealth.ps1'
+      - 'modules/WefSubscriptions.psm1'
+      - 'modules/WecSubscriptionXml.cs'
+      - 'tests/WecSubscriptionXml.Tests.ps1'
+      - 'tests/WecRuntime*'
+      - '.github/workflows/wec-runtime.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wec-runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Bounded Unicode XML fixtures in Windows PowerShell5.1
+        shell: powershell
+        run: ./tests/WecSubscriptionXml.Tests.ps1
+      - name: ABI and observation fixtures in Windows PowerShell5.1
+        shell: powershell
+        run: ./tests/WecRuntime.Tests.ps1
+      - name: Native disabled subscription with exact cleanup in Windows PowerShell5.1
+        shell: powershell
+        run: ./tests/WecRuntime.Windows.Tests.ps1 -AllowDisposableSubscription
+      - name: Bounded Unicode XML fixtures in PowerShell7
+        shell: pwsh
+        run: ./tests/WecSubscriptionXml.Tests.ps1
+      - name: ABI and observation fixtures in PowerShell7
+        shell: pwsh
+        run: ./tests/WecRuntime.Tests.ps1
+      - name: Native disabled subscription with exact cleanup in PowerShell7
+        shell: pwsh
+        run: ./tests/WecRuntime.Windows.Tests.ps1 -AllowDisposableSubscription

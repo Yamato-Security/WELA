@@ -148,6 +148,8 @@ function Get-WelaRetentionSubscriptions {
     foreach ($id in $Ids) {
         $definition=Get-WelaRetentionNativeEvidence 'wecutil.exe' @('gs',$id,'/f:xml')
         $runtime=Get-WelaRetentionNativeEvidence 'wecutil.exe' @('gr',$id)
+        try {$typedRuntime=Get-WelaWecRuntime -Id $id}
+        catch {$typedRuntime=[pscustomobject]@{Status='Unknown';Diagnostic=$_.Exception.Message;ReadyRuleCredit=0}}
         $enabled=$null; $query=$null; $scope='Unknown'; $diagnostic=''
         if ($definition.Status -eq 'CommandSucceeded') {
             try {
@@ -158,7 +160,7 @@ function Get-WelaRetentionSubscriptions {
                 $query=ConvertFrom-WelaWefQuery $queryNodes[0].InnerText; $enabled=$enabledNodes[0].InnerText -eq 'true'; $scope='NativeQueryObserved'
             } catch { $diagnostic=$_.ToString() }
         }
-        [pscustomobject]@{ Id=$id; Enabled=$enabled; QueryScope=$scope; Query=$query; Definition=$definition; Runtime=$runtime; Diagnostic=$diagnostic; DeliveryHealth='Unknown'; Backlog='Unknown'; ActualArrival='Not tested' }
+        [pscustomobject]@{ Id=$id; Enabled=$enabled; QueryScope=$scope; Query=$query; Definition=$definition; Runtime=$runtime; TypedRuntime=$typedRuntime; Diagnostic=$diagnostic; DeliveryHealth='Unknown'; Backlog='Unknown'; ActualArrival='Not tested' }
     }
 }
 
