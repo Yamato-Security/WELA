@@ -46,6 +46,21 @@ try {
     Assert ($event.RecordId -ceq '10' -and $event.EventId -eq 4688 -and $event.Computer -ceq 'HOST.lab.test') 'Original numeric and qualified computer identities retained'
     $user=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Audit xmlns="urn:provider"><Value>kept</Value></Audit></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($user.Key -match 'urn:provider' -and $user.Key -match 'kept') 'Provider-specific UserData namespace and fields participate in semantic equality'
+    $mixedPayload='<UserData><Payload xmlns="urn:provider" First="1" Second="2">before<Child>value</Child>after</Payload></UserData>'
+    $movedPayload='<UserData><Payload xmlns="urn:provider" First="1" Second="2">beforeafter<Child>value</Child></Payload></UserData>'
+    $equivalentPayload='<UserData><p:Payload xmlns:p="urn:provider" Second="2" First="1">be<![CDATA[fore]]><p:Child>value</p:Child>after</p:Payload></UserData>'
+    $mixed=Read-WelaMeasurementEvent -Xml (Event -Payload $mixedPayload) -Channel Security -Computer @('HOST','HOST.lab.test')
+    $moved=Read-WelaMeasurementEvent -Xml (Event -Payload $movedPayload) -Channel Security -Computer @('HOST','HOST.lab.test')
+    $equivalent=Read-WelaMeasurementEvent -Xml (Event -Payload $equivalentPayload) -Channel Security -Computer @('HOST','HOST.lab.test')
+    Assert ($mixed.Key -cne $moved.Key) 'Moving mixed-content text across an element changes the payload identity'
+    Assert ($mixed.Key -ceq $equivalent.Key) 'Equivalent prefixes, attribute order and adjacent text/CDATA preserve payload identity'
+    $spaced=Read-WelaMeasurementEvent -Xml (Event -Payload $mixedPayload.Replace('</Child>after','</Child> after')) -Channel Security -Computer @('HOST','HOST.lab.test')
+    Assert ($mixed.Key -cne $spaced.Key) 'Mixed-content whitespace remains payload data'
+    $indented=Read-WelaMeasurementEvent -Xml (Event -Payload "<UserData>`n  <Audit xmlns=`"urn:provider`">`n    <Value>kept</Value>`n  </Audit>`n</UserData>") -Channel Security -Computer @('HOST','HOST.lab.test')
+    Assert ($user.Key -ceq $indented.Key) 'Element-only indentation does not change semantic identity'
+    $preserved=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Payload xmlns="urn:provider" xml:space="preserve"> <Child>value</Child> </Payload></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
+    $preservedChanged=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Payload xmlns="urn:provider" xml:space="preserve">  <Child>value</Child> </Payload></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
+    Assert ($preserved.Key -cne $preservedChanged.Key) 'Explicit xml:space preservation keeps significant whitespace'
     $rendered=Read-WelaMeasurementEvent -Xml ((Event).Replace('</Event>','<RenderingInfo Culture="en-US"><Message>display text</Message></RenderingInfo></Event>')) -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($rendered.Key -ceq $event.Key) 'Localized RenderingInfo does not change original event semantics'
     foreach($bad in @((Event -Channel System),(Event -Computer OTHER),(Event -Computer 'HOST.other-domain.test'),(Event -Id 0),((Event).Replace('<Version>2</Version>','')),((Event).Replace('<EventData>','<EventData/><EventData>')),('<!DOCTYPE Event [<!ENTITY x SYSTEM "file:///etc/passwd">]>'+(Event)))) {Reject {Read-WelaMeasurementEvent -Xml $bad -Channel Security -Computer @('HOST','HOST.lab.test')} 'identity|match|payload|section|DTD|system|duplicate'}
@@ -61,6 +76,11 @@ try {
     Assert ($success.ReadyRuleCredit -eq 0 -and $success.PolicyChanges -eq 0 -and $success.LossAssessment -match '^Unknown') 'Measurement gives no rule credit or upstream losslessness claim'
     Assert ($success.Events[0].PSObject.Properties.Name -notcontains 'Key' -and $success.Events[0].XmlArtifact -eq 'event-0001.xml') 'Manifest refers to exact original evidence artifacts'
     foreach($artifact in $success.Artifacts) {Assert ((Get-FileHash -LiteralPath (Join-Path $success.OutputPath $artifact.Name)).Hash.ToLowerInvariant() -ceq $artifact.Sha256) 'Protected artifact hash matches written evidence'}
+    $script:capture=Capture @((Delivery));$script:capture.Events[0].Xml=Event -Payload $mixedPayload
+    $script:reopen=@((Event -Payload $movedPayload));$changedMixed=Run 'changed-mixed-content' -Export
+    Assert ($changedMixed.ExitCode -eq 1 -and $changedMixed.Evtx.Status -eq 'Unverified' -and $null -eq $changedMixed.Evtx.Bytes -and $changedMixed.Diagnostic -match 'identity or payload') 'EVTX reopen rejects moved mixed-content text before exposing verified bytes'
+    $script:reopen=@((Event -Payload $equivalentPayload));$equivalentMixed=Run 'equivalent-mixed-content' -Export
+    Assert ($equivalentMixed.ExitCode -eq 0 -and $equivalentMixed.Evtx.Status -eq 'ExactSampleReopened') 'EVTX reopen accepts equivalent mixed content without rewriting original XML'
     $script:capture=Capture
     $zero=Run zero -Export
     Assert ($zero.Status -eq 'NoDeliveriesObserved' -and $zero.Evtx.Status -eq 'NotCreatedNoEvents' -and $null -eq $zero.ObservedDeliveriesPerSecond -and -not(Test-Path (Join-Path $zero.OutputPath 'sample.evtx'))) 'Empty window neither invents an EVTX archive nor asserts zero producer rate'

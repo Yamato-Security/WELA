@@ -91,6 +91,28 @@ function Read-WelaMeasurementXmlDocument {
     try {$document=New-Object Xml.XmlDocument;$document.XmlResolver=$null;$document.PreserveWhitespace=$true;$document.Load($reader)} finally {$reader.Dispose()}
     return ,$document
 }
+function Get-WelaMeasurementXmlKey {
+    param($Node)
+    # Keep text in its original position relative to element children. UserData can
+    # contain mixed content; collecting all text separately would erase payload order.
+    $attributes=@($Node.Attributes | Where-Object {$_.NamespaceURI -ne 'http://www.w3.org/2000/xmlns/'} | Sort-Object NamespaceURI,LocalName -CaseSensitive | ForEach-Object {ConvertTo-Json -InputObject @($_.NamespaceURI,$_.LocalName,$_.Value) -Compress})
+    $content=New-Object 'System.Collections.Generic.List[string]'
+    $text=New-Object Text.StringBuilder
+    $hasElements=@($Node.ChildNodes | Where-Object NodeType -eq Element).Count -gt 0
+    $mixed=@($Node.ChildNodes | Where-Object {$_.NodeType -in @('Text','CDATA','SignificantWhitespace')}).Count -gt 0
+    foreach ($child in $Node.ChildNodes) {
+        if ($child.NodeType -eq 'Element') {
+            if ($text.Length) {$content.Add((ConvertTo-Json -InputObject @('Text',$text.ToString()) -Compress));$null=$text.Clear()}
+            $content.Add((ConvertTo-Json -InputObject @('Element',(Get-WelaMeasurementXmlKey $child)) -Compress))
+        } elseif ($child.NodeType -in @('Text','CDATA','SignificantWhitespace')) {$null=$text.Append($child.Value)}
+        elseif ($child.NodeType -eq 'Whitespace') {
+            # Ignore indentation only for element-only content; mixed/leaf text is data.
+            if (-not $hasElements -or $mixed) {$null=$text.Append($child.Value)}
+        } else {throw 'Unsupported event XML node.'}
+    }
+    if ($text.Length) {$content.Add((ConvertTo-Json -InputObject @('Text',$text.ToString()) -Compress))}
+    ConvertTo-Json -InputObject @($Node.NamespaceURI,$Node.LocalName,$attributes,@($content.ToArray())) -Depth 30 -Compress
+}
 function Read-WelaMeasurementEvent {
     param([string]$Xml,[string]$Channel,[string[]]$Computer)
     $doc=Read-WelaMeasurementXmlDocument $Xml
@@ -115,8 +137,8 @@ function Read-WelaMeasurementEvent {
     $source=$system.Computer.InnerText
     if ($system.Channel.InnerText -cne $Channel -or $source -notmatch '^[\p{L}\p{N}][\p{L}\p{N}_.-]{0,254}$' -or $source -notin $Computer) {throw 'Event source/channel does not match the actual local reader.'}
     $provider=$system.Provider.GetAttribute('Name');if ([string]::IsNullOrWhiteSpace($provider)) {throw 'Provider name is unavailable.'}
-    $keys=@((Get-WelaEvtxXmlKey $parts.System))
-    foreach ($name in @('EventData','UserData','BinaryEventData')) {if ($parts.ContainsKey($name)) {$keys+=$name+'='+(Get-WelaEvtxXmlKey $parts[$name])}}
+    $keys=@((Get-WelaMeasurementXmlKey $parts.System))
+    foreach ($name in @('EventData','UserData','BinaryEventData')) {if ($parts.ContainsKey($name)) {$keys+=$name+'='+(Get-WelaMeasurementXmlKey $parts[$name])}}
     [pscustomobject]@{RecordId=$record.ToString([Globalization.CultureInfo]::InvariantCulture);Channel=$Channel;Computer=$source;Provider=$provider;ProviderGuid=$system.Provider.GetAttribute('Guid');EventId=$eventId;Version=$version;EventUtc=(ConvertTo-WelaEvtxUtc $system.TimeCreated.GetAttribute('SystemTime')).ToString('o');Key=($keys -join '|')}
 }
 function Assert-WelaMeasurementBookmark {
