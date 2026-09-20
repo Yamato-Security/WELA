@@ -1,0 +1,48 @@
+name: Disabled unlinked GPO creation regressions
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/GpoCreation.ps1'
+      - 'scripts/GpoAuditPackages.ps1'
+      - 'scripts/AdObjectSacl.ps1'
+      - 'scripts/EvtxRecovery.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'modules/AuditProfiles.psm1'
+      - 'config/audit_profiles.json'
+      - 'docs/gpo-*'
+      - 'tests/GpoCreation*'
+      - '.github/workflows/gpo-creation.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gpo-creation:
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Windows PowerShell 5.1 safe fixtures
+        shell: powershell
+        run: ./tests/GpoCreation.Tests.ps1
+      - name: Windows PowerShell 5.1 public dispatch
+        shell: powershell
+        run: ./tests/GpoCreation.Cli.Tests.ps1
+      - name: Windows PowerShell 5.1 genuine backup reads and workgroup refusal
+        shell: powershell
+        run: ./tests/GpoCreation.Windows.Tests.ps1 -AllowHostedGpmcInstall -OutputPath "$env:RUNNER_TEMP/gpo-native-51"
+      - name: PowerShell 7 safe fixtures
+        shell: pwsh
+        run: ./tests/GpoCreation.Tests.ps1
+      - name: PowerShell 7 public dispatch
+        shell: pwsh
+        run: ./tests/GpoCreation.Cli.Tests.ps1
+      - name: PowerShell 7 genuine backup reads and workgroup refusal
+        shell: pwsh
+        run: ./tests/GpoCreation.Windows.Tests.ps1 -OutputPath "$env:RUNNER_TEMP/gpo-native-7"
