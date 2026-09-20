@@ -1,0 +1,37 @@
+name: Native current-token channel reads
+on:
+  push:
+    paths: ['WELA.ps1', 'scripts/ChannelRead*', 'scripts/WefArrival.ps1', 'modules/NativeProviders.psm1', 'config/native_channel_profile.json', 'tests/ChannelRead*', '.github/workflows/channel-read.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-reader:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Safe refusal and drift fixtures
+        shell: ${{ matrix.engine }}
+        run: ./tests/ChannelRead.Tests.ps1
+      - name: Disposable owned account and CAPI2 ACE native proof
+        shell: ${{ matrix.engine }}
+        run: ./tests/ChannelRead.Windows.Tests.ps1 -AllowDisposableAccount -TestEngine ${{ matrix.engine }}
+      - name: Retain native metadata and cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: channel-reader-${{ matrix.os }}-${{ matrix.engine }}
+          path: |
+            ${{ runner.temp }}/wela-channel-reader-*/acceptance.json
+            ${{ runner.temp }}/wela-channel-reader-*/channel-before.json
+            ${{ runner.temp }}/wela-channel-reader-*/reader/
+            ${{ runner.temp }}/wela-channel-reader-*/admin/
+          if-no-files-found: warn
+          retention-days: 7

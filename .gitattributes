@@ -38,3 +38,8 @@ modules/WecSubscriptionXml.cs text eol=lf
 /modules/WecSubscriptionXml.cs text eol=lf
 scripts/AppLockerProbe.ps1 text eol=lf
 tests/AppLockerProbe*.ps1 text eol=lf
+
+/scripts/ChannelRead.ps1 text eol=lf
+/scripts/ChannelReadNative.cs text eol=lf
+/config/native_channel_profile.json text eol=lf
+/tests/ChannelRead*.ps1 text eol=lf
