@@ -2,6 +2,7 @@
 /config/security_rules.json text eol=lf
 /config/eid_subcategory_mapping.csv text eol=lf
 /config/rule_eligibility_manifest.json text eol=lf
+/config/audit_scoring.json text eol=lf
 
 # Exact-context default evidence pins these source/collector bytes.
 /config/baselines.json text eol=lf

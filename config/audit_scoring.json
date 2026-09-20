@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "native-audit-score-v1",
+  "version": "1.0.0",
+  "configurationWeight": 1,
+  "ruleWeights": {"critical": 20, "high": 15, "medium": 10, "low": 5, "informational": 1, "unknown": 1},
+  "configurationScope": "Selected advanced audit subcategories and typed audit precedence only",
+  "ruleScope": "Applicable unique native candidates; only evidence-qualified Ready earns weight",
+  "exclusions": ["NotApplicable", "Excluded"],
+  "note": "Two independent percentages, not an overall security grade. Unknowns remain in each denominator; Sysmon is excluded."
+}

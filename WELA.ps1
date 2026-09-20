@@ -63,6 +63,8 @@
     [ValidateSet('OneSettings','SecurityWarning')][string[]]$NotificationControl,
     [ValidateRange(1,90)][int]$WarningPercent = 90,
     [switch]$EnablePrivacyChannel,
+    [string]$ScoreProfile,
+    [string]$ScoreEvidencePath,
     [ValidateSet('Plan','Export','Verify')][string]$GpoAction = 'Plan',
     [string]$GpoProfile,
     [string]$GpoOutputPath,
@@ -112,6 +114,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
+. (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
@@ -1873,6 +1876,7 @@ Usage:
   ./WELA.ps1 control-applicability     # Read-only historical native feature/build assessment
   ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
+  ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
   ./WELA.ps1 version     # Show the WELA version
@@ -1885,6 +1889,13 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'score' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('ScoreProfile','ScoreEvidencePath') }).Count) {
+    throw 'Scoring options require score. No command was run.'
+}
+if ($Cmd -eq 'score' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ScoreProfile','ScoreEvidencePath','Role','Build','IncludeOptional','ResultsPath','HtmlPath','Help') }).Count) {
+    throw 'score accepts only score, scenario, optional-selection and report options. No command was run.'
+}
 
 if ($Cmd -ne 'gpo-package' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('GpoAction','GpoProfile','GpoOutputPath','GpoMinimumMode') }).Count) {
     throw 'GPO package options require gpo-package. No command was run.'
@@ -2004,6 +2015,14 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'score' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 score -ScoreProfile profile-id [-Role role -Build build] [-IncludeOptional] [-ScoreEvidencePath evidence.json] [-ResultsPath new.json] [-HtmlPath new.html]. Explicit role/build is an offline scenario; omit both to observe this Windows host. Two separate measures, no overall security grade. See docs/audit-scoring.md.'; return }
+        if (-not $ScoreProfile) { throw 'score requires an explicit -ScoreProfile. Use profiles to list built-in profiles.' }
+        $report=Invoke-WelaAuditScore -Profile $ScoreProfile -EvidencePath $ScoreEvidencePath -Role $Role -Build $Build -IncludeOptional:$IncludeOptional
+        Export-WelaAuditScore -Report $report -ResultsPath $ResultsPath -HtmlPath $HtmlPath
+        $report.Configuration | Select-Object Label,Numerator,Denominator,Percent,Unknown | Format-List
+        $report.Readiness | Select-Object Label,Numerator,Denominator,Percent,Ready,ApplicableUniqueRules | Format-List
+    }
     'gpo-package' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 gpo-package [-GpoAction Plan|Export|Verify] [-GpoProfile profile-id -Role Client|MemberServer|DomainController|ADCS -Build number] [-GpoMinimumMode Reject|PromoteToBoth] [-IncludeOptional] [-GpoOutputPath directory] [-DryRun]. Export requires a fresh directory. These are offline components, not an importable GPO backup. See docs/gpo-audit-packages.md.'; return }
         if ($Profile -or $Baseline -or $HtmlPath -or $Auto -or $BackupPath -or $PlanPath -or $ResultsPath) { throw 'gpo-package uses GpoProfile and GpoOutputPath. Export contains its JSON manifest/review; other profile, result, backup and configuration options are unsupported.' }
