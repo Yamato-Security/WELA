@@ -77,6 +77,9 @@
     [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
     [string]$ProbeOutputPath,
     [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
+    [ValidateSet('Audit','Plan','Configure')][string]$AdcsAction = 'Audit',
+    [string]$AdcsProfile,
+    [switch]$AllowRestart,
     [ValidateSet('Export','Verify')][string]$EvtxAction = 'Verify',
     [string]$EvtxProbePath,
     [string]$EvtxArchivePath,
@@ -103,6 +106,7 @@ $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
+. (Join-Path $ScriptRoot "scripts/AdcsAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditIntegrity.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
@@ -1891,6 +1895,7 @@ Usage:
   ./WELA.ps1 control-applicability     # Read-only historical native feature/build assessment
   ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
+  ./WELA.ps1 adcs-auditing -Help    # Dedicated local CA audit settings; restart requires explicit consent
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
@@ -1905,6 +1910,13 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'adcs-auditing' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('AdcsAction','AdcsProfile','AllowRestart') }).Count) {
+    throw 'AD CS options require adcs-auditing. No command was run.'
+}
+if ($Cmd -eq 'adcs-auditing' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','AdcsAction','AdcsProfile','AllowRestart','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
+    throw 'adcs-auditing accepts only dedicated CA action/source/consent/recovery/report options. No command was run.'
+}
 
 if ($Cmd -ne 'score' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('ScoreProfile','ScoreEvidencePath') }).Count) {
     throw 'Scoring options require score. No command was run.'
@@ -2042,6 +2054,13 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'adcs-auditing' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 adcs-auditing [-AdcsAction Audit|Plan|Configure] [-AdcsProfile microsoft-identity-ca-2026-09] [-AllowRestart] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath new.json]. Audit is read-only; Plan/Configure requires a source. Filter changes require AllowRestart. Existing stopped CAs are never started. See docs/adcs-auditing.md.'; return }
+        $report=Invoke-WelaAdcsCommand -Action $AdcsAction -Profile $AdcsProfile -AllowRestart:$AllowRestart -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report | Select-Object Action,PolicyState,Activation,EventGeneration,ExitCode | Format-List
+        if ($report.ExitCode -ne 0) { exit $report.ExitCode }
+    }
+
     'score' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 score -ScoreProfile profile-id [-Role role -Build build] [-IncludeOptional] [-ScoreEvidencePath evidence.json] [-ResultsPath new.json] [-HtmlPath new.html]. Explicit role/build is an offline scenario; omit both to observe this Windows host. Two separate measures, no overall security grade. See docs/audit-scoring.md.'; return }
         if (-not $ScoreProfile) { throw 'score requires an explicit -ScoreProfile. Use profiles to list built-in profiles.' }

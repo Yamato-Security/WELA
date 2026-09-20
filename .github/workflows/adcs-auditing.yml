@@ -1,0 +1,40 @@
+name: Native AD CS auditing and pending-request evidence
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/AdcsAuditing.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'modules/AuditProfiles.psm1'
+      - 'config/audit_profiles.json'
+      - 'tests/AdcsAuditing*'
+      - 'tests/fixtures/adcs-pending-probe.csr'
+      - 'tests/fixtures/adcs-*-v1.xml'
+      - '.github/workflows/adcs-auditing.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  adcs:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Guard and event-correlation fixtures (Windows PowerShell)
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/AdcsAuditing.Tests.ps1
+      - name: Guard and event-correlation fixtures (PowerShell 7)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/AdcsAuditing.Tests.ps1
+      - name: Disposable standalone CA, public configuration, real pending request, cleanup
+        shell: powershell
+        run: ./tests/AdcsAuditing.Windows.Tests.ps1 -AllowDisposableCA -TestEngine ${{ matrix.engine }}
