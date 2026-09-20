@@ -17,12 +17,22 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Safe refusal and drift fixtures
-        shell: ${{ matrix.engine }}
+      - name: Safe refusal and drift fixtures (powershell)
+        if: matrix.engine == 'powershell'
+        shell: powershell
         run: ./tests/ChannelRead.Tests.ps1
-      - name: Disposable owned account and CAPI2 ACE native proof
-        shell: ${{ matrix.engine }}
-        run: ./tests/ChannelRead.Windows.Tests.ps1 -AllowDisposableAccount -TestEngine ${{ matrix.engine }}
+      - name: Disposable owned account and CAPI2 ACE proof (powershell)
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/ChannelRead.Windows.Tests.ps1 -AllowDisposableAccount -TestEngine powershell
+      - name: Safe refusal and drift fixtures (pwsh)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/ChannelRead.Tests.ps1
+      - name: Disposable owned account and CAPI2 ACE proof (pwsh)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/ChannelRead.Windows.Tests.ps1 -AllowDisposableAccount -TestEngine pwsh
       - name: Retain native metadata and cleanup evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
