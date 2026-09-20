@@ -1,0 +1,9 @@
+{
+  "SchemaVersion": 1,
+  "Role": "Source",
+  "Channels": ["Security", "System", "Application"],
+  "SampleWindowMinutes": 60,
+  "MaxEventsPerChannel": 1000,
+  "StaleAfterMinutes": 60,
+  "ProjectionDays": 30
+}
