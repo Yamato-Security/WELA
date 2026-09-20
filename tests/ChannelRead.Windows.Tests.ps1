@@ -32,15 +32,18 @@ function Read-AsOwnedUser([string]$Label,[int]$ExpectedExit){
     $start.UserName=$username;$start.Domain=[Environment]::MachineName;$start.Password=$password;$start.LoadUserProfile=$true
     $start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
     $start.EnvironmentVariables['TEMP']=$readerHome;$start.EnvironmentVariables['TMP']=$readerHome
-    $process=[Diagnostics.Process]::new();$process.StartInfo=$start
+    $process=[Diagnostics.Process]::new();$process.StartInfo=$start;$started=$false
     try{
-        if(-not $process.Start()){throw 'Native reader process did not start.'}
+        if(-not $process.Start()){throw 'Native reader process did not start.'};$started=$true
         $stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()
-        if(-not $process.WaitForExit(90000)){$process.Kill();throw 'Reader child exceeded 90 seconds.'}
-        $process.WaitForExit();$exitCode=$process.ExitCode
+        if(-not $process.WaitForExit(90000)){$process.Kill();$null=$process.WaitForExit(5000);throw 'Reader child exceeded 90 seconds.'}
+        if(-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($stdout,$stderr),5000)){throw 'Reader output pipes did not close within five seconds of process exit.'}
+        $exitCode=$process.ExitCode
         [IO.File]::WriteAllText((Join-Path $readerHome ($Label+'.stdout')),$stdout.GetAwaiter().GetResult())
         [IO.File]::WriteAllText((Join-Path $readerHome ($Label+'.stderr')),$stderr.GetAwaiter().GetResult())
-    }finally{$process.Dispose()}
+    }finally{
+        try{if($started -and -not $process.HasExited){$process.Kill();if(-not $process.WaitForExit(5000)){throw 'Reader child termination was not confirmed; no acceptance claim.'}}}finally{$process.Dispose()}
+    }
     if($exitCode -ne $ExpectedExit){Get-Content -LiteralPath (Join-Path $readerHome ($Label+'.stderr'));throw "Reader exit $exitCode expected $ExpectedExit"}
     $report=Get-Content -LiteralPath (Join-Path $output 'result.json') -Raw|ConvertFrom-Json
     if($report.ReaderBefore.UserSid -cne $ownedSid -or $report.ReaderBefore.ElevatedAdministrator -or $report.ReaderBefore.GroupSids -contains 'S-1-5-32-544' -or $report.ReaderBefore.GroupSids -contains 'S-1-5-32-573' -or $report.ReaderBefore.TokenType -cne 'Primary'){throw 'Query did not use the owned standard-user primary token.'}
