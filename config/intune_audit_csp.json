@@ -1,0 +1,559 @@
+{
+  "schemaVersion": 1,
+  "version": "microsoft-ddf-2026-02-reviewed-2026-09-20",
+  "provenance": {
+    "ddfIndexUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/configuration-service-provider-ddf",
+    "packageUrl": "https://download.microsoft.com/download/015bd9f5-9cca-4821-8a85-a4c5f9a5d0f2/DDFv2Feb2026.zip",
+    "packageSha256": "bf667d895af4a8c8ab5a31065ce0e28ea2f8b649c4dc416f452f62fd1c42ff14",
+    "auditPath": "DDFDrop012026/Audit_AreaDDF.xml",
+    "auditSha256": "5c467e7742e5ac64019a2031dfcb9cf33397d97567b4ca4ae6add48cc448ac74",
+    "precedencePath": "DDFDrop012026/LocalPoliciesSecurityOptions_AreaDDF.xml",
+    "precedenceSha256": "b2d08684bc723692601e13de2b796cb269e9199138e1e2d927fd1ee4f4f576d1"
+  },
+  "auditDefinition": {
+    "dataType": "Integer",
+    "cspFormat": "int",
+    "scope": "Device",
+    "allowedValues": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "operations": [
+      "Add",
+      "Delete",
+      "Get",
+      "Replace"
+    ],
+    "conflictResolution": "LastWrite",
+    "sourceMinimumVersions": [
+      "10.0.19041",
+      "10.0.18362.329",
+      "10.0.17763.774",
+      "10.0.17134.1039"
+    ],
+    "editionSkuAllowList": [
+      "0x4",
+      "0x1B",
+      "0x30",
+      "0x31",
+      "0x48",
+      "0x54",
+      "0x79",
+      "0x7A",
+      "0x7D",
+      "0x7E",
+      "0x81",
+      "0x8A",
+      "0x8B",
+      "0xA1",
+      "0xA2",
+      "0xA4",
+      "0xA5",
+      "0xAB",
+      "0xAC",
+      "0xAF",
+      "0xBC",
+      "0xBF",
+      "0xCA",
+      "0xCB",
+      "0xCD",
+      "0xCF",
+      "0xD2"
+    ]
+  },
+  "precedenceDefinition": {
+    "omaUri": "./Device/Vendor/MSFT/Policy/Config/LocalPoliciesSecurityOptions/Audit_ForceAuditPolicySubcategorySettingsToOverrideAuditPolicyCategorySettings",
+    "dataType": "Integer",
+    "cspFormat": "int",
+    "value": 1,
+    "scope": "Device",
+    "operations": [
+      "Add",
+      "Delete",
+      "Get",
+      "Replace"
+    ],
+    "conflictResolution": "LastWrite",
+    "sourceMinimumVersions": [
+      "10.0.26100",
+      "10.0.22621.5126"
+    ],
+    "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-localpoliciessecurityoptions#audit_forceauditpolicysubcategorysettingstooverrideauditpolicycategorysettings"
+  },
+  "mappings": [
+    {
+      "id": "Credential Validation",
+      "guid": "0CCE923F-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogon_AuditCredentialValidation",
+      "gpEnglishName": "Audit Credential Validation",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogon_auditcredentialvalidation"
+    },
+    {
+      "id": "Kerberos Authentication Service",
+      "guid": "0CCE9242-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogon_AuditKerberosAuthenticationService",
+      "gpEnglishName": "Audit Kerberos Authentication Service",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogon_auditkerberosauthenticationservice"
+    },
+    {
+      "id": "Kerberos Service Ticket Operations",
+      "guid": "0CCE9240-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogon_AuditKerberosServiceTicketOperations",
+      "gpEnglishName": "Audit Kerberos Service Ticket Operations",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogon_auditkerberosserviceticketoperations"
+    },
+    {
+      "id": "Other Account Logon Events",
+      "guid": "0CCE9241-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogon_AuditOtherAccountLogonEvents",
+      "gpEnglishName": "Audit Other Account Logon Events",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogon_auditotheraccountlogonevents"
+    },
+    {
+      "id": "Application Group Management",
+      "guid": "0CCE9239-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountManagement_AuditApplicationGroupManagement",
+      "gpEnglishName": "Audit Application Group Management",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountmanagement_auditapplicationgroupmanagement"
+    },
+    {
+      "id": "Computer Account Management",
+      "guid": "0CCE9236-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountManagement_AuditComputerAccountManagement",
+      "gpEnglishName": "Audit Computer Account Management",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountmanagement_auditcomputeraccountmanagement"
+    },
+    {
+      "id": "Distribution Group Management",
+      "guid": "0CCE9238-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountManagement_AuditDistributionGroupManagement",
+      "gpEnglishName": "Audit Distributio Group Management",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountmanagement_auditdistributiongroupmanagement"
+    },
+    {
+      "id": "Other Account Management Events",
+      "guid": "0CCE923A-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountManagement_AuditOtherAccountManagementEvents",
+      "gpEnglishName": "Audit Other Account Management Events",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountmanagement_auditotheraccountmanagementevents"
+    },
+    {
+      "id": "Security Group Management",
+      "guid": "0CCE9237-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountManagement_AuditSecurityGroupManagement",
+      "gpEnglishName": "Audit Security Group Management",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountmanagement_auditsecuritygroupmanagement"
+    },
+    {
+      "id": "User Account Management",
+      "guid": "0CCE9235-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountManagement_AuditUserAccountManagement",
+      "gpEnglishName": "Audit User Account Management",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountmanagement_audituseraccountmanagement"
+    },
+    {
+      "id": "DPAPI Activity",
+      "guid": "0CCE922D-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DetailedTracking_AuditDPAPIActivity",
+      "gpEnglishName": "Audit DPAPI Activity",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#detailedtracking_auditdpapiactivity"
+    },
+    {
+      "id": "Plug and Play Events",
+      "guid": "0CCE9248-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DetailedTracking_AuditPNPActivity",
+      "gpEnglishName": "Audit PNP Activity",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#detailedtracking_auditpnpactivity"
+    },
+    {
+      "id": "Process Creation",
+      "guid": "0CCE922B-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DetailedTracking_AuditProcessCreation",
+      "gpEnglishName": "Audit Process Creation",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#detailedtracking_auditprocesscreation"
+    },
+    {
+      "id": "Process Termination",
+      "guid": "0CCE922C-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DetailedTracking_AuditProcessTermination",
+      "gpEnglishName": "Audit Process Termination",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#detailedtracking_auditprocesstermination"
+    },
+    {
+      "id": "RPC Events",
+      "guid": "0CCE922E-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DetailedTracking_AuditRPCEvents",
+      "gpEnglishName": "Audit RPC Events",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#detailedtracking_auditrpcevents"
+    },
+    {
+      "id": "Token Right Adjusted Events",
+      "guid": "0CCE924A-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DetailedTracking_AuditTokenRightAdjusted",
+      "gpEnglishName": "Audit Token Right Adjusted",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#detailedtracking_audittokenrightadjusted"
+    },
+    {
+      "id": "Detailed Directory Service Replication",
+      "guid": "0CCE923E-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DSAccess_AuditDetailedDirectoryServiceReplication",
+      "gpEnglishName": "Audit Detailed Directory Service Replication",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#dsaccess_auditdetaileddirectoryservicereplication"
+    },
+    {
+      "id": "Directory Service Access",
+      "guid": "0CCE923B-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DSAccess_AuditDirectoryServiceAccess",
+      "gpEnglishName": "Audit Directory Service Access",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#dsaccess_auditdirectoryserviceaccess"
+    },
+    {
+      "id": "Directory Service Changes",
+      "guid": "0CCE923C-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DSAccess_AuditDirectoryServiceChanges",
+      "gpEnglishName": "Audit Directory Service Changes",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#dsaccess_auditdirectoryservicechanges"
+    },
+    {
+      "id": "Directory Service Replication",
+      "guid": "0CCE923D-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/DSAccess_AuditDirectoryServiceReplication",
+      "gpEnglishName": "Audit Directory Service Replication",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#dsaccess_auditdirectoryservicereplication"
+    },
+    {
+      "id": "Account Lockout",
+      "guid": "0CCE9217-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditAccountLockout",
+      "gpEnglishName": "Audit Account Lockout",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditaccountlockout"
+    },
+    {
+      "id": "Group Membership",
+      "guid": "0CCE9249-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditGroupMembership",
+      "gpEnglishName": "Audit Group Membership",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditgroupmembership"
+    },
+    {
+      "id": "IPsec Extended Mode",
+      "guid": "0CCE921A-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditIPsecExtendedMode",
+      "gpEnglishName": "Audit IPsec Extended Mode",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditipsecextendedmode"
+    },
+    {
+      "id": "IPsec Main Mode",
+      "guid": "0CCE9218-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditIPsecMainMode",
+      "gpEnglishName": "Audit IPsec Main Mode",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditipsecmainmode"
+    },
+    {
+      "id": "IPsec Quick Mode",
+      "guid": "0CCE9219-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditIPsecQuickMode",
+      "gpEnglishName": "Audit IPsec Quick Mode",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditipsecquickmode"
+    },
+    {
+      "id": "Logoff",
+      "guid": "0CCE9216-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditLogoff",
+      "gpEnglishName": "Audit Logoff",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditlogoff"
+    },
+    {
+      "id": "Logon",
+      "guid": "0CCE9215-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditLogon",
+      "gpEnglishName": "Audit Logon",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditlogon"
+    },
+    {
+      "id": "Network Policy Server",
+      "guid": "0CCE9243-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditNetworkPolicyServer",
+      "gpEnglishName": "Audit Network Policy Server",
+      "cspDocumentedDefault": 3,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditnetworkpolicyserver"
+    },
+    {
+      "id": "Other Logon/Logoff Events",
+      "guid": "0CCE921C-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditOtherLogonLogoffEvents",
+      "gpEnglishName": "Audit Other Logon Logoff Events",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditotherlogonlogoffevents"
+    },
+    {
+      "id": "Special Logon",
+      "guid": "0CCE921B-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditSpecialLogon",
+      "gpEnglishName": "Audit Special Logon",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_auditspeciallogon"
+    },
+    {
+      "id": "User/Device Claims",
+      "guid": "0CCE9247-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/AccountLogonLogoff_AuditUserDeviceClaims",
+      "gpEnglishName": "Audit User Device Claims",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#accountlogonlogoff_audituserdeviceclaims"
+    },
+    {
+      "id": "Application Generated",
+      "guid": "0CCE9222-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditApplicationGenerated",
+      "gpEnglishName": "Audit Application Generated",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditapplicationgenerated"
+    },
+    {
+      "id": "Central Access Policy Staging",
+      "guid": "0CCE9246-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditCentralAccessPolicyStaging",
+      "gpEnglishName": "Audit Central Access Policy Staging",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditcentralaccesspolicystaging"
+    },
+    {
+      "id": "Certification Services",
+      "guid": "0CCE9221-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditCertificationServices",
+      "gpEnglishName": "Audit Certification Services",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditcertificationservices"
+    },
+    {
+      "id": "Detailed File Share",
+      "guid": "0CCE9244-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditDetailedFileShare",
+      "gpEnglishName": "Audit Detailed File Share",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditdetailedfileshare"
+    },
+    {
+      "id": "File Share",
+      "guid": "0CCE9224-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditFileShare",
+      "gpEnglishName": "Audit File Share",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditfileshare"
+    },
+    {
+      "id": "File System",
+      "guid": "0CCE921D-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditFileSystem",
+      "gpEnglishName": "Audit File System",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditfilesystem"
+    },
+    {
+      "id": "Filtering Platform Connection",
+      "guid": "0CCE9226-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditFilteringPlatformConnection",
+      "gpEnglishName": "Audit Filtering Platform Connection",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditfilteringplatformconnection"
+    },
+    {
+      "id": "Filtering Platform Packet Drop",
+      "guid": "0CCE9225-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditFilteringPlatformPacketDrop",
+      "gpEnglishName": "Audit Filtering Platform Packet Drop",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditfilteringplatformpacketdrop"
+    },
+    {
+      "id": "Handle Manipulation",
+      "guid": "0CCE9223-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditHandleManipulation",
+      "gpEnglishName": "Audit Handle Manipulation",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_audithandlemanipulation"
+    },
+    {
+      "id": "Kernel Object",
+      "guid": "0CCE921F-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditKernelObject",
+      "gpEnglishName": "Audit Kernel Object",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditkernelobject"
+    },
+    {
+      "id": "Other Object Access Events",
+      "guid": "0CCE9227-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditOtherObjectAccessEvents",
+      "gpEnglishName": "Audit Other Object Access Events",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditotherobjectaccessevents"
+    },
+    {
+      "id": "Registry",
+      "guid": "0CCE921E-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditRegistry",
+      "gpEnglishName": "Audit Registry",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditregistry"
+    },
+    {
+      "id": "Removable Storage",
+      "guid": "0CCE9245-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditRemovableStorage",
+      "gpEnglishName": "Audit Removable Storage",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditremovablestorage"
+    },
+    {
+      "id": "SAM",
+      "guid": "0CCE9220-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/ObjectAccess_AuditSAM",
+      "gpEnglishName": "Audit SAM",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#objectaccess_auditsam"
+    },
+    {
+      "id": "Audit Policy Change",
+      "guid": "0CCE922F-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PolicyChange_AuditPolicyChange",
+      "gpEnglishName": "Audit Policy Change",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#policychange_auditpolicychange"
+    },
+    {
+      "id": "Authentication Policy Change",
+      "guid": "0CCE9230-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PolicyChange_AuditAuthenticationPolicyChange",
+      "gpEnglishName": "Audit Authentication Policy Change",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#policychange_auditauthenticationpolicychange"
+    },
+    {
+      "id": "Authorization Policy Change",
+      "guid": "0CCE9231-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PolicyChange_AuditAuthorizationPolicyChange",
+      "gpEnglishName": "Audit Authorization Policy Change",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#policychange_auditauthorizationpolicychange"
+    },
+    {
+      "id": "Filtering Platform Policy Change",
+      "guid": "0CCE9233-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PolicyChange_AuditFilteringPlatformPolicyChange",
+      "gpEnglishName": "Audit Filtering Platform Policy Change",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#policychange_auditfilteringplatformpolicychange"
+    },
+    {
+      "id": "MPSSVC Rule-Level Policy Change",
+      "guid": "0CCE9232-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PolicyChange_AuditMPSSVCRuleLevelPolicyChange",
+      "gpEnglishName": "Audit MPSSVC Rule Level Policy Change",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#policychange_auditmpssvcrulelevelpolicychange"
+    },
+    {
+      "id": "Other Policy Change Events",
+      "guid": "0CCE9234-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PolicyChange_AuditOtherPolicyChangeEvents",
+      "gpEnglishName": "Audit Other Policy Change Events",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#policychange_auditotherpolicychangeevents"
+    },
+    {
+      "id": "Non Sensitive Privilege Use",
+      "guid": "0CCE9229-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PrivilegeUse_AuditNonSensitivePrivilegeUse",
+      "gpEnglishName": "Audit Non Sensitive Privilege Use",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#privilegeuse_auditnonsensitiveprivilegeuse"
+    },
+    {
+      "id": "Other Privilege Use Events",
+      "guid": "0CCE922A-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PrivilegeUse_AuditOtherPrivilegeUseEvents",
+      "gpEnglishName": "Audit Other Privilege Use Events",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#privilegeuse_auditotherprivilegeuseevents"
+    },
+    {
+      "id": "Sensitive Privilege Use",
+      "guid": "0CCE9228-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/PrivilegeUse_AuditSensitivePrivilegeUse",
+      "gpEnglishName": "Audit Sensitive Privilege Use",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#privilegeuse_auditsensitiveprivilegeuse"
+    },
+    {
+      "id": "IPsec Driver",
+      "guid": "0CCE9213-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/System_AuditIPsecDriver",
+      "gpEnglishName": "Audit IPsec Driver",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#system_auditipsecdriver"
+    },
+    {
+      "id": "Other System Events",
+      "guid": "0CCE9214-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/System_AuditOtherSystemEvents",
+      "gpEnglishName": "Audit Other System Events",
+      "cspDocumentedDefault": 3,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#system_auditothersystemevents"
+    },
+    {
+      "id": "Security State Change",
+      "guid": "0CCE9210-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/System_AuditSecurityStateChange",
+      "gpEnglishName": "Audit Security State Change",
+      "cspDocumentedDefault": 1,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#system_auditsecuritystatechange"
+    },
+    {
+      "id": "Security System Extension",
+      "guid": "0CCE9211-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/System_AuditSecuritySystemExtension",
+      "gpEnglishName": "Audit Security System Extension",
+      "cspDocumentedDefault": 0,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#system_auditsecuritysystemextension"
+    },
+    {
+      "id": "System Integrity",
+      "guid": "0CCE9212-69AE-11D9-BED3-505054503030",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Audit/System_AuditSystemIntegrity",
+      "gpEnglishName": "Audit System Integrity",
+      "cspDocumentedDefault": 3,
+      "sourceUrl": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-audit#system_auditsystemintegrity"
+    }
+  ]
+}

@@ -63,6 +63,11 @@
     [ValidateSet('OneSettings','SecurityWarning')][string[]]$NotificationControl,
     [ValidateRange(1,90)][int]$WarningPercent = 90,
     [switch]$EnablePrivacyChannel,
+    [string]$IntuneProfile,
+    [int]$IntuneBuild,
+    [string]$IntuneEdition,
+    [string]$IntuneOutputPath,
+    [ValidateSet('Reject','PromoteToBoth')][string]$IntuneMinimumMode = 'Reject',
     [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
     [string]$ProbeOutputPath,
     [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
@@ -104,6 +109,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
+. (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -1858,6 +1864,7 @@ Usage:
   ./WELA.ps1 control-applicability     # Read-only historical native feature/build assessment
   ./WELA.ps1 default-evidence -Help    # Exact-context observed snapshots and reviewed reference comparison
   ./WELA.ps1 audit-notifications -Help  # OneSettings audit and Security warning policy
+  ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
   ./WELA.ps1 version     # Show the WELA version
   ./WELA.ps1 help        # Show this help
@@ -1869,6 +1876,13 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('IntuneProfile','IntuneBuild','IntuneEdition','IntuneOutputPath','IntuneMinimumMode') }).Count) {
+    throw 'Intune options require the offline intune-export command. No command was run.'
+}
+if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','IntuneProfile','IntuneBuild','IntuneEdition','IntuneOutputPath','IntuneMinimumMode','IncludeOptional','Help') }).Count) {
+    throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
+}
 
 if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ([string]::IsNullOrWhiteSpace($ProfileFile) -or $Cmd -notin @('profiles','plan','audit','audit-settings','configure')) { throw '-ProfileFile requires profiles, plan, audit, audit-settings or configure. No command was run.' }
@@ -1977,6 +1991,15 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'intune-export' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 intune-export -IntuneProfile shared-profile-id -IntuneBuild 26100|26200 -IntuneEdition Pro|Enterprise|Education|IoTEnterprise -IntuneOutputPath new-local-directory [-IntuneMinimumMode Reject|PromoteToBoth] [-IncludeOptional]. Offline native audit artifacts only; no tenant or Windows changes. See docs/intune-audit-export.md.'; return }
+        try {
+            if (-not $IntuneProfile -or -not $IntuneBuild -or -not $IntuneEdition -or -not $IntuneOutputPath) { throw 'IntuneProfile, IntuneBuild, IntuneEdition and IntuneOutputPath are required.' }
+            $report=Invoke-WelaIntuneAuditExport -Profile $IntuneProfile -Build $IntuneBuild -Edition $IntuneEdition -OutputPath $IntuneOutputPath -MinimumMode $IntuneMinimumMode -IncludeOptional:$IncludeOptional
+            $report | Select-Object Status,OutputPath,PayloadEmitted,ExitCode
+            if ($report.ExitCode) { exit $report.ExitCode }
+        } catch { Write-Host "[Failed] Intune export: $_" -ForegroundColor Red; exit 1 }
+    }
     'native-validation' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 native-validation [-ProbeAction Plan|Run] [-ProbeOutputPath new-directory] [-ProbeTimeoutSeconds 1..30]. Plan reads prerequisites; Run launches a fixed benign cmd.exe probe and collects exact native Security 4688 XML. No policy changes or Sigma readiness credit. See docs/native-validation.md.'; return }
         $report=Invoke-WelaNativeValidation -Action $ProbeAction -OutputPath $ProbeOutputPath -TimeoutSeconds $ProbeTimeoutSeconds
