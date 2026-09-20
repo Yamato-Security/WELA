@@ -33,6 +33,16 @@ function New-WelaConfigurationContext {
     }
 }
 
+function Assert-WelaConfigurationProfileGuard {
+    param($Context)
+    if ($Context.PSObject.Properties['CustomProfileGuard']) {
+        $guard = $Context.CustomProfileGuard
+        Assert-WelaCustomProfileSource $guard.Source
+        $actual = Get-WelaHostContext
+        if ($actual.Role -ne $guard.Role -or $actual.Build -ne $guard.Build) { throw 'Custom profile target role/build changed; no further configuration is authorized.' }
+    }
+}
+
 function Invoke-WelaConfigurationControl {
     param($Context, [string]$Id, [string]$Kind, $Target, $Desired,
           [scriptblock]$Read, [scriptblock]$Compliant, [scriptblock]$Apply,
@@ -42,6 +52,7 @@ function Invoke-WelaConfigurationControl {
         Before = $null; After = $null; Status = 'Failed'; Diagnostic = ''
     }
     try {
+        Assert-WelaConfigurationProfileGuard $Context
         $result.Before = & $Read $CallbackState
         $preserveReason = if ($PreserveWhen) { & $PreserveWhen $result.Before } else { $null }
         if ($preserveReason) {
@@ -68,12 +79,15 @@ function Invoke-WelaConfigurationControl {
                     Id = $Id; Kind = $Kind; Target = $Target
                     Before = $result.Before; Desired = $Desired
                 }
+                if ($Context.PSObject.Properties['CustomProfileGuard']) { $entry.CustomProfileSource = $Context.CustomProfileGuard.Source }
                 $entry | ConvertTo-Json -Depth 12 -Compress |
                     Add-Content -LiteralPath (Join-Path $Context.BackupPath 'before.jsonl') -Encoding UTF8 -ErrorAction Stop
+                Assert-WelaConfigurationProfileGuard $Context
                 $applied = @(& $Apply $CallbackState)
                 $result.Diagnostic = ($applied | ForEach-Object {
                     if ($_.PSObject.Properties['Diagnostic']) { $_.Diagnostic } else { $_.ToString() }
                 }) -join [Environment]::NewLine
+                Assert-WelaConfigurationProfileGuard $Context
                 $result.After = & $Read $CallbackState
                 if (-not (& $Compliant $result.After $CallbackState)) {
                     throw "Post-apply verification did not match the requested state. $($result.Diagnostic)"
@@ -97,10 +111,15 @@ function Complete-WelaConfiguration {
           [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only", "windows-powershell-transcription-policy-only", "wef-source-configuration-only", "wec-collector-subscriptions-only", "audit-integrity-local-policy-only")]
           [string]$Scope = "native-windows-configuration",
           [string]$SuccessMessage = 'Configuration completed; all requested controls verified.')
+    if ($Context.PSObject.Properties['CustomProfileGuard']) {
+        try { Assert-WelaConfigurationProfileGuard $Context }
+        catch { $Context.Results.Add([pscustomobject]@{Id='CustomProfile/FinalValidation';Kind='ProfileSource';Target=$Context.CustomProfileGuard.Source;Desired='Unchanged file and target';Before=$null;After=$null;Status='Failed';Diagnostic=$_.ToString()}) }
+    }
     # A second read detects a value that was compliant earlier but changed during
     # this run. It does not establish whether GPO or another writer caused drift.
     foreach ($check in $Context.Checks) {
         try {
+            Assert-WelaConfigurationProfileGuard $Context
             $check.Result.After = & $check.Read $check.CallbackState
             if (-not (& $check.Compliant $check.Result.After $check.CallbackState)) {
                 $check.Result.Status = 'Overridden'
@@ -126,6 +145,7 @@ function Complete-WelaConfiguration {
         $report | Add-Member NoteProperty SchemaSha256 $Plan.schemaSha256
         $report | Add-Member NoteProperty Provenance $Plan.provenance
         $report | Add-Member NoteProperty ProfileScope $Plan.scope
+        if ($Plan.PSObject.Properties['CustomProfileSource']) { $report | Add-Member NoteProperty CustomProfileSource $Plan.CustomProfileSource }
     }
     if ($ResultsPath) {
         try { $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $ResultsPath -Encoding UTF8 -ErrorAction Stop }
@@ -299,6 +319,10 @@ function Set-WelaAuditPolicyControl {
 
 function Set-WelaProfileAuditControls {
     param($Context, $Plan)
+    if ($Plan.PSObject.Properties['CustomProfileSource']) {
+        $Context | Add-Member NoteProperty CustomProfileGuard ([pscustomobject]@{Source=$Plan.CustomProfileSource;Role=$Plan.role;Build=$Plan.build}) -Force
+        Assert-WelaConfigurationProfileGuard $Context
+    }
     # The caller must complete Assert-WelaAuditProfileTarget before any mutations.
     $selected = @($Plan.policies | Where-Object { $_.mode -in @('exact', 'minimum') -or ($_.mode -eq 'optional' -and $Plan.includeOptional) })
     if ($selected.Count -eq 0) { return }

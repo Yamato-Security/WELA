@@ -4,6 +4,8 @@
 
 **Profile definitions cover advanced audit policy.** Configuration also verifies and enables its `SCENoApplyLegacyAuditPolicy=1` DWORD prerequisite before applying subcategories. Selecting Microsoft, CIS or ASD does not configure their PowerShell settings, command-line capture, channel buffers, NTLM policy, firewall logs, SACLs, CA AuditFilter, forwarding or retention. This is not a claim of full baseline compliance or detection coverage. Sysmon and external sensors are outside this feature. Ordinary `configure` without `-Profile` continues the existing broader WELA setup, with its advanced audit portion supplied by the shared profile.
 
+For operator-owned settings, see [custom profile files](custom-audit-profiles.md). `-ProfileFile` selects a strictly validated file without editing or overriding built-in profiles.
+
 ## Commands
 
 ```powershell
