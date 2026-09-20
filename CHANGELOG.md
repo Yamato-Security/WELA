@@ -4,6 +4,7 @@
 
 **Improvements:**
 
+- Added opt-in `dns-analytical` auditing, planning and selective DNS Server channel configuration with explicit trace-reset consent, durable state records and bounded native ETL archives verified before resets. Preserve ACLs, paths and larger buffers; report stopped partial failures honestly. Added disposable standalone-DNS tests for loopback event 257 and exact configuration restoration; forwarding and Sigma readiness remain unverified. (#425) (@Shirofune-Security)
 - Added read-only `wec-runtime` with typed native WEC activity, numeric errors, UTC timestamps and bounded per-source observations. Actual reader/context and definition checks keep partial reads, caps and drift explicit; existing WEF/retention inventories retain raw text alongside typed fields. Historical source lists are not connection counts and Active grants no arrival or Sigma credit. Disposable disabled-subscription tests restore service state and remove only their owned fixture. Also fixed synthetic WEF/EVTX fixture timestamp roundtrips without weakening bundle validation. (#424) (@Shirofune-Security)
 
 - Added opt-in `applocker-probe` planning and fixed native EXE collection against existing audit-only policy, with exact AppLocker event correlation, private hashed evidence and drift checks. No policy/service/channel changes or Sigma credit; disposable Windows CI prepares one temporary audit-only fixture for real 8003 collection, preserving management observations and restoring GP policy/channel settings. (#423) (@Shirofune-Security)

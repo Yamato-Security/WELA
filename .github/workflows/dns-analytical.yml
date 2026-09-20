@@ -1,0 +1,30 @@
+name: DNS analytical lifecycle
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dns-analytical:
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Safe lifecycle fixtures on Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/DnsAnalytical.Tests.ps1
+      - name: Safe lifecycle fixtures on PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/DnsAnalytical.Tests.ps1
+      - name: Explicit disposable standalone DNS role and loopback event257
+        shell: powershell
+        run: ./tests/DnsAnalytical.Windows.Tests.ps1 -AllowDisposableDns -TestEngine '${{ matrix.engine }}'
