@@ -45,7 +45,9 @@ try {
     $event=Read-WelaMeasurementEvent -Xml (Event) -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($event.RecordId -ceq '10' -and $event.EventId -eq 4688 -and $event.Computer -ceq 'HOST.lab.test') 'Original numeric and qualified computer identities retained'
     $user=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Audit xmlns="urn:provider"><Value>kept</Value></Audit></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
-    Assert ($user.Key -match 'urn:provider' -and $user.Key -match 'kept') 'Provider-specific UserData namespace and fields participate in semantic equality'
+    $otherNamespace=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Audit xmlns="urn:other"><Value>kept</Value></Audit></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
+    $otherValue=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Audit xmlns="urn:provider"><Value>changed</Value></Audit></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
+    Assert ($user.Key -cne $otherNamespace.Key -and $user.Key -cne $otherValue.Key) 'Provider-specific UserData namespace and fields participate in semantic equality'
     $mixedPayload='<UserData><Payload xmlns="urn:provider" First="1" Second="2">before<Child>value</Child>after</Payload></UserData>'
     $movedPayload='<UserData><Payload xmlns="urn:provider" First="1" Second="2">beforeafter<Child>value</Child></Payload></UserData>'
     $equivalentPayload='<UserData><p:Payload xmlns:p="urn:provider" Second="2" First="1">be<![CDATA[fore]]><p:Child>value</p:Child>after</p:Payload></UserData>'
@@ -61,6 +63,12 @@ try {
     $preserved=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Payload xmlns="urn:provider" xml:space="preserve"> <Child>value</Child> </Payload></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
     $preservedChanged=Read-WelaMeasurementEvent -Xml (Event -Payload '<UserData><Payload xmlns="urn:provider" xml:space="preserve">  <Child>value</Child> </Payload></UserData>') -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($preserved.Key -cne $preservedChanged.Key) 'Explicit xml:space preservation keeps significant whitespace'
+    $nestedPayload='<UserData><Payload xmlns="urn:provider">'+('<Child>'*30)+'kept'+('</Child>'*30)+'</Payload></UserData>'
+    $nested=Read-WelaMeasurementEvent -Xml (Event -Payload $nestedPayload) -Channel Security -Computer @('HOST','HOST.lab.test')
+    $nestedChanged=Read-WelaMeasurementEvent -Xml (Event -Payload $nestedPayload.Replace('kept','changed')) -Channel Security -Computer @('HOST','HOST.lab.test')
+    Assert ($nested.Key.Length -lt 200 -and $nested.Key -cne $nestedChanged.Key) 'Deep valid payload comparison remains bounded and retains the deepest value'
+    $tooDeep='<UserData><Payload xmlns="urn:provider">'+('<Child>'*64)+'value'+('</Child>'*64)+'</Payload></UserData>'
+    Reject {Read-WelaMeasurementEvent -Xml (Event -Payload $tooDeep) -Channel Security -Computer @('HOST','HOST.lab.test')} '64-element nesting cap'
     $rendered=Read-WelaMeasurementEvent -Xml ((Event).Replace('</Event>','<RenderingInfo Culture="en-US"><Message>display text</Message></RenderingInfo></Event>')) -Channel Security -Computer @('HOST','HOST.lab.test')
     Assert ($rendered.Key -ceq $event.Key) 'Localized RenderingInfo does not change original event semantics'
     foreach($bad in @((Event -Channel System),(Event -Computer OTHER),(Event -Computer 'HOST.other-domain.test'),(Event -Id 0),((Event).Replace('<Version>2</Version>','')),((Event).Replace('<EventData>','<EventData/><EventData>')),('<!DOCTYPE Event [<!ENTITY x SYSTEM "file:///etc/passwd">]>'+(Event)))) {Reject {Read-WelaMeasurementEvent -Xml $bad -Channel Security -Computer @('HOST','HOST.lab.test')} 'identity|match|payload|section|DTD|system|duplicate'}

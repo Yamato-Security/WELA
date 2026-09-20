@@ -92,7 +92,8 @@ function Read-WelaMeasurementXmlDocument {
     return ,$document
 }
 function Get-WelaMeasurementXmlKey {
-    param($Node)
+    param($Node,[int]$Depth=0)
+    if ($Depth -ge 64) {throw 'Event XML semantic comparison exceeds the 64-element nesting cap.'}
     # Keep text in its original position relative to element children. UserData can
     # contain mixed content; collecting all text separately would erase payload order.
     $attributes=@($Node.Attributes | Where-Object {$_.NamespaceURI -ne 'http://www.w3.org/2000/xmlns/'} | Sort-Object NamespaceURI,LocalName -CaseSensitive | ForEach-Object {ConvertTo-Json -InputObject @($_.NamespaceURI,$_.LocalName,$_.Value) -Compress})
@@ -103,7 +104,7 @@ function Get-WelaMeasurementXmlKey {
     foreach ($child in $Node.ChildNodes) {
         if ($child.NodeType -eq 'Element') {
             if ($text.Length) {$content.Add((ConvertTo-Json -InputObject @('Text',$text.ToString()) -Compress));$null=$text.Clear()}
-            $content.Add((ConvertTo-Json -InputObject @('Element',(Get-WelaMeasurementXmlKey $child)) -Compress))
+            $content.Add((ConvertTo-Json -InputObject @('Element',(Get-WelaMeasurementXmlKey -Node $child -Depth ($Depth+1))) -Compress))
         } elseif ($child.NodeType -in @('Text','CDATA','SignificantWhitespace')) {$null=$text.Append($child.Value)}
         elseif ($child.NodeType -eq 'Whitespace') {
             # Ignore indentation only for element-only content; mixed/leaf text is data.
@@ -111,7 +112,10 @@ function Get-WelaMeasurementXmlKey {
         } else {throw 'Unsupported event XML node.'}
     }
     if ($text.Length) {$content.Add((ConvertTo-Json -InputObject @('Text',$text.ToString()) -Compress))}
-    ConvertTo-Json -InputObject @($Node.NamespaceURI,$Node.LocalName,$attributes,@($content.ToArray())) -Depth 30 -Compress
+    # Child digests keep memory proportional to the bounded XML, rather than
+    # repeatedly JSON-escaping each descendant's serialized representation.
+    $key=ConvertTo-Json -InputObject @($Node.NamespaceURI,$Node.LocalName,$attributes,@($content.ToArray())) -Depth 30 -Compress
+    Get-WelaEvtxHash ([Text.Encoding]::UTF8.GetBytes($key))
 }
 function Read-WelaMeasurementEvent {
     param([string]$Xml,[string]$Channel,[string[]]$Computer)
