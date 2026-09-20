@@ -77,6 +77,10 @@
     [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
     [string]$ProbeOutputPath,
     [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
+    [ValidateSet('Export','Verify')][string]$EvtxAction = 'Verify',
+    [string]$EvtxProbePath,
+    [string]$EvtxArchivePath,
+    [string]$EvtxOutputPath,
     [ValidateSet('Plan','Restore')][string]$RecoveryAction = 'Plan',
     [string]$RecoveryJournalPath,
     [string]$RecoveryOriginalResultsPath,
@@ -127,6 +131,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
+. (Join-Path $ScriptRoot "scripts/EvtxRecovery.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1919,6 +1924,8 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
     throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
 }
 
+if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
+if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
 if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
 if ($Cmd -eq 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','RecoveryAction','RecoveryJournalPath','RecoveryOriginalResultsPath','RecoveryControlId','RecoveryPlanPath','RecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'audit-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
 
@@ -2059,6 +2066,12 @@ switch ($Cmd.ToLower()) {
             $report | Select-Object Status,OutputPath,PayloadEmitted,ExitCode
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] Intune export: $_" -ForegroundColor Red; exit 1 }
+    }
+    'evtx-recovery' {
+        if ($Help) {Write-Host 'Usage: evtx-recovery -EvtxAction Export -EvtxProbePath validated-probe-directory -EvtxOutputPath new-directory; or -EvtxAction Verify -EvtxProbePath validated-probe-directory -EvtxArchivePath probe.evtx -EvtxOutputPath new-directory. No policy changes. See docs/evtx-recovery.md.';return}
+        $report=Invoke-WelaEvtxRecovery -Action $EvtxAction -ProbePath $EvtxProbePath -ArchivePath $EvtxArchivePath -OutputPath $EvtxOutputPath
+        $report
+        if ($report.ExitCode) {exit $report.ExitCode}
     }
     'audit-recovery' {
         if ($Help) {Write-Host 'Usage: audit-recovery [-RecoveryAction Plan] -RecoveryJournalPath before.jsonl -RecoveryOriginalResultsPath results.json -RecoveryControlId IDs -RecoveryOutputPath new-directory; then -RecoveryAction Restore -RecoveryPlanPath reviewed-plan.json -RecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/audit-recovery.md.';return}

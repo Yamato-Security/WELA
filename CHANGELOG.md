@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added opt-in `evtx-recovery` to export one validated native Security probe and reopen its EVTX through Windows event APIs, with a separate verification action under the actual reader. Strict source/component checks, exact event comparison, protected new output, archive hashes and reader/context drift checks reject empty or changed evidence. Disposable Windows tests cover real export/recovery and empty archives; full retention, other-reader access and Sigma readiness remain separate. (#420) (@Shirofune-Security)
+
 - Added opt-in `audit-recovery` planning and restoration for selected completed audit subcategory and typed precedence writes. Matched journals/results, independently rebuilt plans, actual host/source guards, durable receipts on local fixed drives and final readback refuse drift; minimum masks preserve independent additions and precedence restores last. Native disposable Windows tests verify exact restoration, without historical-identity, policy-persistence or Sigma claims. (#419) (@Shirofune-Security)
 
 - Added read-only `wef-arrival` to validate a completed native 4688 probe bundle and query the local collector for one exact original event. Strict hashes/schema/context checks, bounded native queries, actual reader observations, drift checks and protected raw evidence keep failed or ambiguous results unverified. Presence is separate from subscription attribution, latency, clock synchronization and Sigma readiness; positive cross-host acceptance remains pending. (#418) (@Shirofune-Security)
