@@ -40,6 +40,8 @@ jobs:
           Copy-Item -Recurse -Path ./config -Destination release-binaries/
           Copy-Item -Recurse -Path ./scripts -Destination release-binaries/
           Copy-Item -Recurse -Path ./modules -Destination release-binaries/
+          New-Item -ItemType Directory -Path release-binaries/docs -Force | Out-Null
+          Copy-Item -Path ./docs/gpo-audit-packages.md, ./docs/gpo-package-deployment.md -Destination release-binaries/docs/
 
       - name: Set Artifact Name
         if: contains(matrix.info.os, 'windows') == true

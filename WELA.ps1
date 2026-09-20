@@ -63,6 +63,10 @@
     [ValidateSet('OneSettings','SecurityWarning')][string[]]$NotificationControl,
     [ValidateRange(1,90)][int]$WarningPercent = 90,
     [switch]$EnablePrivacyChannel,
+    [ValidateSet('Plan','Export','Verify')][string]$GpoAction = 'Plan',
+    [string]$GpoProfile,
+    [string]$GpoOutputPath,
+    [ValidateSet('Reject','PromoteToBoth')][string]$GpoMinimumMode = 'Reject',
     [string]$IntuneProfile,
     [int]$IntuneBuild,
     [string]$IntuneEdition,
@@ -109,6 +113,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
+. (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -1804,6 +1809,10 @@ function Get-WelaUserProfiles {
 
 $usage = @"
 Usage:
+  ./WELA.ps1 gpo-package -GpoAction Plan -GpoProfile wela-2.2.0 -Role Client -Build 26100
+  ./WELA.ps1 gpo-package -GpoAction Export -GpoProfile wela-2.2.0 -Role Client -Build 26100 -GpoOutputPath .\audit-components
+  ./WELA.ps1 gpo-package -GpoAction Verify -GpoOutputPath .\audit-components
+
   ./WELA.ps1 audit-integrity -IntegrityAction Audit -ResultsPath integrity.json
   ./WELA.ps1 audit-integrity -IntegrityAction Plan -IntegrityProfile cis-server2022-v4-dc
   ./WELA.ps1 audit-integrity -IntegrityAction Configure -IntegrityProfile cis-win11-v4-l1 -DryRun
@@ -1876,6 +1885,10 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'gpo-package' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('GpoAction','GpoProfile','GpoOutputPath','GpoMinimumMode') }).Count) {
+    throw 'GPO package options require gpo-package. No command was run.'
+}
 
 if ($Cmd -ne 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('IntuneProfile','IntuneBuild','IntuneEdition','IntuneOutputPath','IntuneMinimumMode') }).Count) {
     throw 'Intune options require the offline intune-export command. No command was run.'
@@ -1952,7 +1965,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -1961,7 +1974,7 @@ if ($DryRun -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Con
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
     -not ($Cmd -eq 'ad-object-sacl' -and $AdSaclAction -in @('Configure', 'Rollback')) -and
     -not ($Cmd -eq 'wmi-auditing' -and $WmiAction -eq 'Configure')) {
-    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, provider-packs -ProviderAction Configure, audit-integrity -IntegrityAction Configure, and audit-notifications -NotificationAction Configure. No command was run."
+    throw "-DryRun is supported only by configure (including configure -Profile), configure-eventlogs, firewall-logging -FirewallAction Configure, smb-auditing -SmbAction Configure, powershell-transcription -TranscriptionAction Configure, wmi-auditing -WmiAction Configure, channel-settings -ChannelAction Configure, wef-source/wec-collector -WefAction Configure, applocker-readiness -AppLockerAction Import, ad-object-sacl -AdSaclAction Configure|Rollback, ldap-diagnostics -LdapAction Configure, provider-packs -ProviderAction Configure, audit-integrity -IntegrityAction Configure, and audit-notifications -NotificationAction Configure; gpo-package -GpoAction Export writes component files only. No command was run."
 }
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
@@ -1991,6 +2004,14 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'gpo-package' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 gpo-package [-GpoAction Plan|Export|Verify] [-GpoProfile profile-id -Role Client|MemberServer|DomainController|ADCS -Build number] [-GpoMinimumMode Reject|PromoteToBoth] [-IncludeOptional] [-GpoOutputPath directory] [-DryRun]. Export requires a fresh directory. These are offline components, not an importable GPO backup. See docs/gpo-audit-packages.md.'; return }
+        if ($Profile -or $Baseline -or $HtmlPath -or $Auto -or $BackupPath -or $PlanPath -or $ResultsPath) { throw 'gpo-package uses GpoProfile and GpoOutputPath. Export contains its JSON manifest/review; other profile, result, backup and configuration options are unsupported.' }
+        if ($GpoAction -eq 'Verify' -and @($PSBoundParameters.Keys|Where-Object {$_ -in @('GpoProfile','Role','Build','GpoMinimumMode','IncludeOptional')}).Count) {throw 'Verify reads package context; do not supply profile, role/build or expansion overrides.'}
+        $report=Invoke-WelaGpoPackageCommand -Action $GpoAction -Profile $GpoProfile -Role $Role -Build $Build -MinimumMode $GpoMinimumMode -IncludeOptional:$IncludeOptional -Path $GpoOutputPath -DryRun:$DryRun
+        $report
+        if ($report.ExitCode) {exit $report.ExitCode}
+    }
     'intune-export' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 intune-export -IntuneProfile shared-profile-id -IntuneBuild 26100|26200 -IntuneEdition Pro|Enterprise|Education|IoTEnterprise -IntuneOutputPath new-local-directory [-IntuneMinimumMode Reject|PromoteToBoth] [-IncludeOptional]. Offline native audit artifacts only; no tenant or Windows changes. See docs/intune-audit-export.md.'; return }
         try {
