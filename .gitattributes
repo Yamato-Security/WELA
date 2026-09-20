@@ -24,6 +24,11 @@
 # Fixed public pending-request fixture is pinned by its exact byte hash.
 /tests/fixtures/adcs-pending-probe.csr text eol=lf
 
+scripts/WecUpdate.ps1 text eol=lf
+scripts/WecUpdateNative.cs text eol=lf
+modules/WefSubscriptions.psm1 text eol=lf
+tests/WecUpdate*.ps1 text eol=lf
+modules/WecSubscriptionXml.cs text eol=lf
 # DNS analytical receipts pin the catalog and lifecycle implementation bytes.
 /config/native_provider_packs.json text eol=lf
 /scripts/NativeProviderPacks.ps1 text eol=lf
