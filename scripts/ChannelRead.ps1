@@ -1,7 +1,7 @@
 # Queries the actual current primary token. No credential, impersonation or configuration adapters.
 function Get-WelaChannelReadSources {
     $sources=[ordered]@{}
-    foreach($path in @('scripts/ChannelRead.ps1','scripts/ChannelReadNative.cs','scripts/WefArrival.ps1','modules/NativeProviders.psm1','config/native_channel_profile.json')) {
+    foreach($path in @('WELA.ps1','scripts/ChannelRead.ps1','scripts/ChannelReadNative.cs','scripts/WefArrival.ps1','modules/NativeProviders.psm1','config/native_channel_profile.json')) {
         $sources[$path]=(Get-FileHash -LiteralPath (Join-Path $script:ScriptRoot $path) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
     }
     [pscustomobject]$sources
@@ -9,7 +9,13 @@ function Get-WelaChannelReadSources {
 function Get-WelaChannelReadKey { param($Value) ConvertTo-Json -InputObject $Value -Depth 20 -Compress }
 function Get-WelaChannelReader {
     if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'channel-read requires native 64-bit Windows.'}
-    if(-not ('Wela.ChannelRead.Token' -as [type])){Add-Type -Path (Join-Path $script:ScriptRoot 'scripts/ChannelReadNative.cs') -ErrorAction Stop}
+    $nativeBytes=[IO.File]::ReadAllBytes((Join-Path $script:ScriptRoot 'scripts/ChannelReadNative.cs'))
+    $nativeHash=Get-WelaArrivalHash $nativeBytes
+    if(-not ('Wela.ChannelRead.Token' -as [type])){
+        Add-Type -TypeDefinition ([Text.UTF8Encoding]::new($false,$true).GetString($nativeBytes).TrimStart([char]0xfeff)) -ErrorAction Stop
+        [Wela.ChannelRead.Token]::SourceSha256=$nativeHash
+    }
+    if([Wela.ChannelRead.Token]::SourceSha256 -cne $nativeHash){throw 'Loaded channel-reader helper differs from current source; start a fresh PowerShell process.'}
     $threadIdentity=[Security.Principal.WindowsIdentity]::GetCurrent($true)
     if($null -ne $threadIdentity){$threadIdentity.Dispose();throw 'Impersonated readers are unsupported; launch WELA under the intended primary token.'}
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
@@ -47,14 +53,21 @@ function Get-WelaChannelReadSelection {
 }
 function Get-WelaChannelReadFailure {
     param([Exception]$Exception)
-    $current=$Exception;$code=$null
+    $current=$Exception;$code=$null;$absent=$false
     while($current){
         if($current -is [UnauthorizedAccessException]){$code=5;break}
         if($current.PSObject.Properties['ErrorCode']){$code=[int]$current.ErrorCode}
         if($current -is [ComponentModel.Win32Exception]){$code=$current.NativeErrorCode}
+        if($current -is [Diagnostics.Eventing.Reader.EventLogNotFoundException]){$absent=$true}
+        # Modern EventLogException stores Win32 codes in HRESULT; .NET Framework
+        # does not reliably expose its private native code. Never parse localized text.
+        if($current -is [Diagnostics.Eventing.Reader.EventLogException]){
+            $hr=([long]$current.HResult -band 0xffffffffL)
+            if(($hr -band 0xffff0000L) -eq 0x80070000L){$code=[int]($hr -band 0xffffL)}
+        }
         $current=$current.InnerException
     }
-    $state=if($code -eq 5){'Denied'}elseif($code -in @(2,3,15007)){'Absent'}else{'Unknown'}
+    $state=if($code -eq 5){'Denied'}elseif($absent -or $code -in @(2,3,15007)){'Absent'}else{'Unknown'}
     [pscustomobject]@{Status=$state;NativeError=$code;Diagnostic=$Exception.Message}
 }
 function Read-WelaChannelLatest {

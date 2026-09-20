@@ -8,6 +8,10 @@ function Refuses([scriptblock]$action){$caught=$false;try{&$action|Out-Null}catc
 foreach($channels in @(@(),@('Sysmon'),@('ForwardedEvents'),@('Security','Security'),@('security'),@('Security','System','Application','Windows PowerShell','Microsoft-Windows-CAPI2/Operational','Microsoft-Windows-DNS-Client/Operational','Microsoft-Windows-LSA/Operational','Microsoft-Windows-PowerShell/Operational','Microsoft-Windows-SMBClient/Operational'))){Refuses {Get-WelaChannelReadSelection $channels}}
 Assert (@(Get-WelaChannelReadSelection @('Security','System')).Count -eq 2) 'Reviewed channels accepted'
 foreach($case in @(@(5,'Denied'),@(15007,'Absent'),@(2,'Absent'),@(87,'Unknown'),@(1460,'Unknown'))){$failure=Get-WelaChannelReadFailure ([ComponentModel.Win32Exception]::new($case[0]));Assert ($failure.Status -eq $case[1]) 'Native numeric error classification'}
+if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){
+    Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogNotFoundException]::new(15007))).Status -eq 'Absent') 'Actual EventLogNotFoundException classification'
+    Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogException]::new(1460))).Status -eq 'Unknown') 'Actual EventLogException timeout is unknown'
+}
 Assert ((Get-WelaChannelReadFailure ([InvalidOperationException]::new('outer',[UnauthorizedAccessException]::new('inner')))).Status -eq 'Denied') 'Wrapped access denial'
 $script:counter=0;$script:driftAt=0;$script:queryState='EventObserved';$script:hostDrift=$false;$script:hostReads=0;$script:sourceDrift=$false;$script:sourceReads=0
 function Get-WelaChannelReader {$script:counter++;[pscustomobject][ordered]@{UserSid='S-1-5-21-1-2-3-1001';TokenId='01';AuthenticationId='02';ModifiedId=$(if($script:driftAt -and $script:counter -ge $script:driftAt){'04'}else{'03'})}}

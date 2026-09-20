@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 namespace Wela.ChannelRead {
     public static class Token {
+        public static string SourceSha256;
         [StructLayout(LayoutKind.Sequential)] public struct Luid {
             public UInt32 Low; public Int32 High;
             public override string ToString() { return ((UInt32)High).ToString("x8") + Low.ToString("x8"); }

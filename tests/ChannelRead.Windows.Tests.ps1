@@ -7,6 +7,8 @@ $root=Split-Path $PSScriptRoot -Parent;$script:ScriptRoot=$root
 Import-Module (Join-Path $root 'modules/NativeProviders.psm1') -Force
 . (Join-Path $root 'scripts/WefArrival.ps1')
 . (Join-Path $root 'scripts/ChannelRead.ps1')
+$missing=Read-WelaChannelLatest ('WELA-absent-'+[guid]::NewGuid().ToString('N'))
+if($missing.Status -ne 'Absent'){throw ('Actual native missing-channel query was not classified Absent: '+($missing|ConvertTo-Json -Depth 6))}
 $channel='Microsoft-Windows-CAPI2/Operational';$before=Get-WelaNativeChannel $channel
 if($before.State -notin @('Enabled','Disabled') -or -not $before.SecurityDescriptor){throw 'CAPI2 full settings unavailable.'}
 $nonce=[guid]::NewGuid().ToString('N');$username='WelaR'+$nonce.Substring(0,12)
@@ -34,7 +36,7 @@ function Read-AsOwnedUser([string]$Label,[int]$ExpectedExit){
 }
 try{
     $password=ConvertTo-SecureString ('Wela!7'+[guid]::NewGuid().ToString('N')+'zA#') -AsPlainText -Force
-    $user=New-LocalUser -Name $username -Password $password -Description ('WELA disposable channel-read '+$nonce) -AccountNeverExpires
+    $user=New-LocalUser -Name $username -Password $password -Description ('WELA read '+$nonce) -AccountNeverExpires
     $ownedSid=$user.SID.Value
     Add-LocalGroupMember -SID 'S-1-5-32-545' -Member $user
     $credential=[pscredential]::new(([Environment]::MachineName+'\'+$username),$password)
@@ -61,6 +63,15 @@ try{
     # A populated built-in Application log is queried under the actual administrator too.
     $admin=Invoke-WelaChannelRead @('Application') (Join-Path $fixture 'admin')
     if($admin.ExitCode -ne 0 -or $admin.Results[0].Query.Status -ne 'EventObserved'){throw 'Expected one real Application event without payload export.'}
+    # A loaded helper cannot silently stand in for subsequently changed source bytes.
+    $ownedHelper=Join-Path $codeRoot 'scripts/ChannelReadNative.cs';$originalHelper=[IO.File]::ReadAllBytes($ownedHelper)
+    try{
+        $script:ScriptRoot=$codeRoot
+        $null=Get-WelaChannelReader
+        [IO.File]::AppendAllText($ownedHelper,"`n// owned source-drift fixture`n")
+        $refused=$false;try{$null=Get-WelaChannelReader}catch{if($_.Exception.Message -notlike '*fresh PowerShell process*'){throw};$refused=$true}
+        if(-not $refused){throw 'Loaded token helper accepted changed native source bytes.'}
+    }finally{[IO.File]::WriteAllBytes($ownedHelper,$originalHelper);$script:ScriptRoot=$root}
     $passed=$true
 }finally{
     $errors=@()
