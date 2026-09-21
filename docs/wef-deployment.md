@@ -1,5 +1,7 @@
 # Native WEF source configuration and collector subscriptions
 
+For a missing collector listener, use the separately reviewed [`wec-listener` Plan/Apply](wec-listener.md) to create one assigned-IPv4 HTTP5985 listener. It refuses existing listeners and preserves WinRM authentication, services and firewall settings. Collector configuration still requires its own validated prerequisites; listener creation does not prove source arrival.
+
 `wef-source` and `wec-collector` are separate, opt-in commands for a bounded domain/Kerberos topology: source-initiated subscriptions over HTTP 5985 to a dedicated domain member Windows Server collector. They require an operator JSON file with the actual collector FQDN/URI, explicitly permitted source computer/group SIDs, and selected native subscription XML files. Sysmon and EMET are excluded. Local channel enablement or successful configuration does not establish forwarding or add usable Sigma-rule credit.
 
 This implements source configuration and collector subscription creation, not every WEF topology or all acceptance evidence for issue #368. HTTPS/certificate enrollment, workgroups/cross-domain trust, collector-initiated/custom-delivery subscriptions, listener/firewall creation, remote GPO management, updating/deleting existing subscriptions and automatic rollback are outside this command's initial scope. Dedicated workload isolation, network logon rights, capacity and actual event collection remain operator responsibilities.

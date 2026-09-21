@@ -69,6 +69,10 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/WecRuntime* text eol=lf
 /tests/WecState* text eol=lf
 
+/scripts/WecListener* text eol=lf
+# Existing-file read receipts bind identical native/worker source bytes.
+/scripts/FileAccessProbe* text eol=lf
+/tests/FileAccessProbe* text eol=lf
 # Reviewed channel restoration binds exact installed source bytes.
 /scripts/ChannelRecovery.ps1 text eol=lf
 /tests/ChannelRecovery*.ps1 text eol=lf
