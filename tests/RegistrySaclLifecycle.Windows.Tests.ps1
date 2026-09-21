@@ -98,13 +98,13 @@ try {
     $blocked=Invoke-PublicFixture 'missing-policy-plan' ($selection+@('-TargetSaclAction','Plan'))
     Assert-SelectedRow $blocked 'Blocked'
     $policyBackup=Join-Path $root 'refused-policy'
-    Invoke-PublicFixture 'missing-policy-configure' ($selection+@('-TargetSaclAction','Configure','-TargetSaclPlanPath',(Join-Path $root 'missing-policy-plan.json'),'-BackupPath',$policyBackup,'-Auto')) 1 'outcomes are not already effective'
+    Invoke-PublicFixture 'missing-policy-configure' ($selection+@('-TargetSaclAction','Configure','-TargetSaclPlanPath',(Join-Path $root 'idempotent-plan.json'),'-BackupPath',$policyBackup,'-Auto')) 1 'outcomes are not already effective'
     Assert (-not(Test-Path -LiteralPath $policyBackup) -and (Get-WelaEffectiveAuditPolicy)[$guid] -eq 0) 'Public Configure must refuse ineffective auditing without preparing policy or a journal.'
     Set-WelaEffectiveAuditPolicy -Guid $guid -Mask 3 -Mode exact
     Assert-PreparedState
     $boundary=Read-WelaChannelLatest 'Security';Save 'security-boundary.json' $boundary
     Assert ($boundary.Status -ceq 'EventObserved' -and $boundary.Event.RecordId -gt 0) 'Actual Security watermark must be observed before the single value write.'
-    $operation=[pscustomobject]@{Phase='OneRegSetValueAndSameHandleTypedReadback';Computer=$boundary.Event.Computer;ProcessId=$PID;Engine=$engine;NativePath=('\REGISTRY\USER\'+$hive.Sid+'\Software\Microsoft\Windows\CurrentVersion\RunOnce');RecordIdBefore=$boundary.Event.RecordId;Token=[Wela.WmiProbe.Native]::Snapshot();Write=$hive.WriteProbe();ObservedUtc=[DateTime]::UtcNow.ToString('o')}
+    $operation=[pscustomobject]@{Phase='OneRegSetValueAndSameHandleTypedReadback';Computer=$boundary.Event.Computer;ProcessId=$PID;Engine=$engine;NativePath=('\REGISTRY\USER\'+$hive.Sid+'\Software\Microsoft\Windows\CurrentVersion\RunOnce');RecordIdBefore=$boundary.Event.RecordId;Token=[Wela.WmiProbe.Native]::Snapshot();Write=$hive.WriteProbe();ObservedUtc=[Wela.WmiProbe.Native]::UtcNow().ToString('o')}
     Save 'operation.json' $operation
     Assert ($operation.Write.Calls -eq 1 -and $operation.Write.Success -is [bool] -and $operation.Write.Success -and (ConvertTo-WelaArrivalUtc $operation.Write.StartedUtc) -le (ConvertTo-WelaArrivalUtc $operation.Write.ReturnedUtc) -and (ConvertTo-WelaArrivalUtc $operation.Write.ReturnedUtc) -le (ConvertTo-WelaArrivalUtc $operation.Write.CompletedUtc) -and (ConvertTo-WelaArrivalUtc $operation.Write.CompletedUtc) -le (ConvertTo-WelaArrivalUtc $operation.ObservedUtc)) 'Exactly one native write and its same-handle typed readback must have ordered measured times.'
     $hive.AssertValues($true)
@@ -130,10 +130,14 @@ try {
         try{if($beforePrecedence.ValueExists){Set-ItemProperty -LiteralPath $precedencePath -Name $precedenceName -Type $beforePrecedence.Type -Value $beforePrecedence.Value}else{Remove-ItemProperty -LiteralPath $precedencePath -Name $precedenceName -ErrorAction Stop}}catch{$cleanupErrors+='Precedence restore: '+$_.Exception.Message}
     }
     try{$hive.Dispose()}catch{$cleanupErrors+='Hive unload/seed removal: '+$_.Exception.Message}
-    $hivesOk=(Key (Hives)) -ceq (Key $beforeHives);$tokenOk=(Key ([Wela.WmiProbe.Native]::Snapshot())) -ceq (Key $beforeToken)
-    $masks=Get-WelaEffectiveAuditPolicy;$masksOk=(Key ($masks.GetEnumerator()|Sort-Object Key)) -ceq (Key ($beforeMasks.GetEnumerator()|Sort-Object Key));$precedenceOk=(Key (Get-WelaRegistryState $precedencePath $precedenceName)) -ceq (Key $beforePrecedence)
+    $hivesOk=$false;$tokenOk=$false;$masksOk=$false;$precedenceOk=$false
+    $afterHives=$null;$afterToken=$null;$masks=$null;$afterPrecedence=$null
+    try{$afterHives=Hives;$hivesOk=(Key $afterHives) -ceq (Key $beforeHives)}catch{$cleanupErrors+='HKU verification: '+$_.Exception.Message}
+    try{$afterToken=[Wela.WmiProbe.Native]::Snapshot();$tokenOk=(Key $afterToken) -ceq (Key $beforeToken)}catch{$cleanupErrors+='Token verification: '+$_.Exception.Message}
+    try{$masks=Get-WelaEffectiveAuditPolicy;$masksOk=(Key ($masks.GetEnumerator()|Sort-Object Key)) -ceq (Key ($beforeMasks.GetEnumerator()|Sort-Object Key))}catch{$cleanupErrors+='Audit verification: '+$_.Exception.Message}
+    try{$afterPrecedence=Get-WelaRegistryState $precedencePath $precedenceName;$precedenceOk=(Key $afterPrecedence) -ceq (Key $beforePrecedence)}catch{$cleanupErrors+='Precedence verification: '+$_.Exception.Message}
     if(-not $hive.Loaded -and $hivesOk){try{Remove-Item -LiteralPath $files -Recurse -Force -ErrorAction Stop}catch{$cleanupErrors+='Owned file removal: '+$_.Exception.Message}}
-    $cleanup=[pscustomobject]@{Complete=($hivesOk -and $tokenOk -and $masksOk -and $precedenceOk -and -not $hive.SeedCreated -and -not(Test-Path -LiteralPath $files) -and $cleanupErrors.Count -eq 0);HivesRestored=$hivesOk;TokenRestored=$tokenOk;AuditMasksCompared=$beforeMasks.Count;AuditMasksRestored=$masksOk;PrecedenceRestored=$precedenceOk;HiveUnloaded=(-not $hive.Loaded);SeedRemoved=(-not $hive.SeedCreated);FilesRemoved=(-not(Test-Path -LiteralPath $files));Errors=$cleanupErrors;Failure=$(if($failure){$failure.Exception.Message}else{$null});Assertions=$script:assertions;AfterHives=(Hives);AfterToken=[Wela.WmiProbe.Native]::Snapshot();AfterMasks=$masks;AfterPrecedence=(Get-WelaRegistryState $precedencePath $precedenceName)}
+    $cleanup=[pscustomobject]@{Complete=($hivesOk -and $tokenOk -and $masksOk -and $precedenceOk -and -not $hive.SeedCreated -and -not(Test-Path -LiteralPath $files) -and $cleanupErrors.Count -eq 0);HivesRestored=$hivesOk;TokenRestored=$tokenOk;AuditMasksCompared=$beforeMasks.Count;AuditMasksRestored=$masksOk;PrecedenceRestored=$precedenceOk;HiveUnloaded=(-not $hive.Loaded);SeedRemoved=(-not $hive.SeedCreated);FilesRemoved=(-not(Test-Path -LiteralPath $files));Errors=$cleanupErrors;Failure=$(if($failure){$failure.Exception.Message}else{$null});Assertions=$script:assertions;AfterHives=$afterHives;AfterToken=$afterToken;AfterMasks=$masks;AfterPrecedence=$afterPrecedence}
     Save 'cleanup.json' $cleanup
     $artifacts=@(Get-ChildItem -LiteralPath $root -Recurse -File |Where-Object Name -ne 'artifact-hashes.json'|Sort-Object FullName|ForEach-Object {[pscustomobject]@{Name=$_.FullName.Substring($root.Length+1).Replace('\','/');Sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}})
     Save 'artifact-hashes.json' $artifacts
