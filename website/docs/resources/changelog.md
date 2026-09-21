@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added opt-in `wec-listener` Plan/Apply for one new assigned-IPv4 HTTP5985 listener. Reviewed host/operator/source and WinRM/firewall snapshots, explicit plan hashes, pending evidence and native readback guard creation and preserve existing settings. A fixed native Windows PowerShell 5.1 worker provides the creation adapter under both PowerShell host versions. Existing listeners and drift require review; forwarding arrival and Sigma readiness are not inferred. (@Shirofune-Security)
+
 - Added opt-in `firewall-recovery` for one completed firewall text-log operation. Strict original journal/result matching, reviewed plan hashes, native operator/source guards, durable receipts and exact four-field PersistentStore restoration preserve enforcement, other profiles and bounded rule/filter configuration. Effective policy stays separately reported; partial writes remain unverified without automatic rollback or Sigma credit. Disposable public-CLI tests cover configuration, drift refusal, recovery, idempotence and exact cleanup. (Related #375) (@Shirofune-Security)
 
 - Added explicit `capi2-probe` Plan/Run for a fixed offline ephemeral certificate-chain build and exact local CAPI2 event 11 evidence, with public certificate/nonce/PID/token/precise-UTC binding, bounded worker/collection and retained artifacts. Existing channel, certificate-store and trust configuration are preserved; no TLS, revocation, remote delivery or Sigma credit is claimed.
