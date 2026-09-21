@@ -68,7 +68,7 @@ try {
     }
     foreach($bad in @('NotConfigured','true','1')){$v=Copy-Fixture $e.RecoverTo;$v.LogAllowed=$bad;Throws {ConvertTo-WelaFirewallRecoveryTuple $v} 'True/False'}
     foreach($bad in @('4096',0,32768,$true,1.5)){$v=Copy-Fixture $e.RecoverTo;$v.LogMaxSizeKilobytes=$bad;Throws {ConvertTo-WelaFirewallRecoveryTuple $v} 'integer'}
-    foreach($path in @('\\host\share\log','C:\Logs\..\other.log','C:\Logs\log:stream','C:\Logs\*.log','%TEMP%\log','C:relative.log','C:\Logs\')){Throws {Resolve-WelaFirewallRecoveryLogPath $path} 'path|unsupported|streams'}
+    foreach($path in @('\\host\share\log','C:\Logs\..\other.log','C:\Logs\log:stream','C:\Logs\*.log','%TEMP%\log','C:relative.log','C:\Logs\','C:\Logs\CON.log','C:\Logs\log.','C:\Logs\log ','C:\Logs\\log')){Throws {Resolve-WelaFirewallRecoveryLogPath $path} 'path|unsupported|streams'}
     $v=Copy-Fixture $e.RecoverTo;$v|Add-Member Extra 1;Throws {ConvertTo-WelaFirewallRecoveryTuple $v} 'Unexpected'
     foreach($change in @(
         {$script:row.Status='Failed'},{$script:entry.Target.PolicyStore='ActiveStore';$script:row.Target=Copy-Fixture $entry.Target},

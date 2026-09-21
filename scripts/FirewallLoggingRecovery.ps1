@@ -21,6 +21,9 @@ function Resolve-WelaFirewallRecoveryLogPath {
     # Only native Windows directory variables have reviewed meaning in old paths.
     $expanded=[regex]::Replace($Path,'(?i)%(systemroot|windir)%',[Text.RegularExpressions.MatchEvaluator]{param($m) [Environment]::GetFolderPath([Environment+SpecialFolder]::Windows)})
     if($expanded -notmatch '^[A-Za-z]:\\' -or $expanded -match '%' -or $expanded.Substring(2).Contains(':') -or $expanded.EndsWith('\') -or $expanded.Contains('/')){throw 'UNC/device/relative paths, unknown variables and alternate streams are unsupported.'}
+    foreach($segment in $expanded.Substring(3).Split([char]'\')){
+        if(-not $segment -or $segment -match '[ .]$' -or $segment -match '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)'){throw 'Ambiguous path segments and Windows device aliases are unsupported.'}
+    }
     if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){$null=Resolve-WelaArrivalPath $expanded}
     $expanded
 }
