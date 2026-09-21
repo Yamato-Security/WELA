@@ -53,5 +53,25 @@ try {
   }elseif($case -in @('native-fail','false-success','preservation')){Assert ($restore.Status -eq 'RestoreAttemptedUnverified' -and $script:writes -eq 1) 'Partial failure explicit'}
   else{Assert ($script:writes -eq 0 -and -not $restore.NativeWriteAttempted) 'Refusal occurs before write'}
  }
+ # Reject PowerShell boolean-to-string comparison coercion in completed evidence.
+ $goodResult=[IO.File]::ReadAllText("$root/ok/original.json");$goodJournal=[IO.File]::ReadAllText("$root/ok/journal/before.jsonl")
+ foreach($field in @('Status','Kind','Id','Scope','ComputerName','Phase','StateLog','ReadStatus','TargetLog','DesiredMode')){
+  $r=ConvertFrom-WelaArrivalJson $goodResult;$j=@($goodJournal -split '\r?\n'|Where-Object {$_ -match '\S'}|ForEach-Object {ConvertFrom-WelaArrivalJson $_})
+  switch($field){
+   Status {$r.Results[0].Status=$true}
+   Kind {$r.Results[0].Kind=$true}
+   Id {$r.Results[0].Id=$true}
+   Scope {$r.Scope=$true}
+   ComputerName {$j[0].ComputerName=$true}
+   Phase {$j[1].Phase=$true}
+   StateLog {$r.Results[0].After.Log=$true}
+   ReadStatus {$r.Results[0].After.ReadStatus=$true}
+   TargetLog {$j[0].Target.Log=$true;$r.Results[0].Target.Log=$true}
+   DesiredMode {$j[0].Desired.SizeMode=$true;$r.Results[0].Desired.SizeMode=$true}
+  }
+  $r|ConvertTo-Json -Depth 20|Set-Content "$root/typed-result.json"
+  @($j|ForEach-Object {$_|ConvertTo-Json -Depth 20 -Compress})|Set-Content "$root/typed-journal.jsonl"
+  Reject {Get-WelaEventRecoveryDefinition "$root/typed-journal.jsonl" "$root/typed-result.json" ForwardedEvents} 'mistyped recovery text|Exactly one result'
+ }
 }finally{$env:COMPUTERNAME=$oldComputer;Remove-Item $root -Recurse -Force}
 Write-Host "Event-log recovery passed: $count assertions."

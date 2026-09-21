@@ -22,8 +22,13 @@ function Read-WelaEventRecoveryChannel {
         }
     }finally{$channel.Dispose()}
 }
+function Assert-WelaEventRecoveryText {
+    param($Value,[string[]]$Names)
+    foreach($name in $Names){if($Value.$name -isnot [string]){throw ('Missing or mistyped recovery text field: '+$name)}}
+}
 function Assert-WelaEventRecoveryState {
     param($State,[string]$Log)
+    Assert-WelaEventRecoveryText $State @('Log','ReadStatus','Diagnostic','LogMode')
     if($State.Log -cne $Log -or $State.ReadStatus -cne 'Available' -or $State.Diagnostic -cne '' -or $State.IsEnabled -isnot [bool] -or
         ($State.MaximumSizeInBytes -isnot [int] -and $State.MaximumSizeInBytes -isnot [long]) -or $State.MaximumSizeInBytes -lt 1048576 -or $State.MaximumSizeInBytes -gt 2199023255552 -or $State.MaximumSizeInBytes % 65536 -ne 0 -or $State.LogMode -cnotin @('Circular','Retain','AutoBackup')){throw 'Original channel state is unavailable, mistyped or unsupported.'}
 }
@@ -37,23 +42,30 @@ function Get-WelaEventRecoveryDefinition {
     $entries=@($journal.Text -split '\r?\n'|Where-Object {$_ -match '\S'}|ForEach-Object {ConvertFrom-WelaArrivalJson $_})
     if($entries.Count -lt 1 -or $entries.Count -gt 1024){throw 'Expected 1-1024 bounded journal entries.'}
     $result=ConvertFrom-WelaArrivalJson $resultFile.Text
+    Assert-WelaEventRecoveryText $result @('Scope')
     if($result.DryRun -isnot [bool] -or $result.DryRun -or $result.Results -isnot [array] -or $result.Results.Count -gt 2048 -or $result.Scope -cnotin @('native-windows-configuration','event-log-size-and-mode-only')){throw 'Expected original non-dry-run event-log configuration results.'}
     $id='EventLog/'+$Log+'/ProfileSettings'
     $rows=@($result.Results|Where-Object Id -eq $id);$matching=@($entries|Where-Object Id -eq $id)
     if($rows.Count -ne 1 -or $matching.Count -ne 2){throw 'Exactly one result and its original/immediate-prewrite journal pair are required.'}
     $row=$rows[0];$initial=$matching[0];$fresh=$matching[1]
+    Assert-WelaEventRecoveryText $row @('Status','Kind','Id')
+    Assert-WelaEventRecoveryText $fresh @('Phase')
     if($initial.PSObject.Properties['Phase'] -or $fresh.Phase -cne 'ImmediatePreWrite' -or $row.Status -cne 'Applied' -or $row.Kind -cne 'EventLog' -or $row.Id -cne $id){throw 'Only completed Applied profile writes with ordered immediate-prewrite evidence are supported.'}
     foreach($entry in $matching){
+        Assert-WelaEventRecoveryText $entry @('ComputerName','Kind','Id','RecordedUtc')
         if(($entry.Version -isnot [int] -and $entry.Version -isnot [long]) -or $entry.Version -ne 1 -or $entry.ComputerName -ine $context.Host.Computer -or $entry.Kind -cne 'EventLog' -or $entry.Id -cne $id){throw 'Unknown or wrong-host event-log journal.'}
         $time=ConvertTo-WelaArrivalUtc $entry.RecordedUtc;if($time -gt [DateTimeOffset]::UtcNow.AddMinutes(1)){throw 'Future journal timestamp.'}
     }
     if((ConvertTo-WelaArrivalUtc $fresh.RecordedUtc) -lt (ConvertTo-WelaArrivalUtc $initial.RecordedUtc)){throw 'Journal times are reversed.'}
     foreach($field in @('Before','Target','Desired')){if((Get-WelaRecoveryKey $initial.$field) -cne (Get-WelaRecoveryKey $row.$field)){throw "Original/result $field differs."}}
     Assert-WelaArrivalObject $initial.Target @('Log','Profile');Assert-WelaArrivalObject $fresh.Target @('Log')
+    Assert-WelaEventRecoveryText $initial.Target @('Log','Profile');Assert-WelaEventRecoveryText $fresh.Target @('Log')
     if($initial.Target.Log -cne $Log -or $fresh.Target.Log -cne $Log -or $initial.Target.Profile -isnot [string]){throw 'Contradictory channel identity.'}
     $profile=Get-WelaEventLogProfile $initial.Target.Profile;$control=@($profile.controls|Where-Object log -ceq $Log)
     if($control.Count -ne 1){throw 'Channel is not selected by the original bundled profile.'}
     Assert-WelaArrivalObject $initial.Desired @('MaximumSizeInBytes','SizeMode','LogMode')
+    Assert-WelaEventRecoveryText $initial.Desired @('SizeMode');Assert-WelaEventRecoveryText $fresh.Desired @('SizeMode')
+    if($null -ne $initial.Desired.LogMode){Assert-WelaEventRecoveryText $initial.Desired @('LogMode')}
     if((Get-WelaRecoveryKey $initial.Desired) -cne (Get-WelaRecoveryKey $fresh.Desired) -or $initial.Desired.SizeMode -cnotin @('Exact','Minimum') -or ($null -ne $initial.Desired.LogMode -and $initial.Desired.LogMode -cne $control[0].mode) -or
         ($initial.Desired.MaximumSizeInBytes -isnot [int] -and $initial.Desired.MaximumSizeInBytes -isnot [long]) -or $initial.Desired.MaximumSizeInBytes -ne (ConvertTo-WelaEventLogBytes $control[0].minimumBytes)){throw 'Desired configuration differs from the canonical profile operation.'}
     foreach($state in @($initial.Before,$fresh.Before,$row.After)){Assert-WelaEventRecoveryState $state $Log}
@@ -111,6 +123,7 @@ function Invoke-WelaEventLogRecovery {
         }else{
             if($source.Hash -cne $PlanHash){throw 'Reviewed plan hash differs.'}
             $plan=ConvertFrom-WelaArrivalJson $source.Text;Assert-WelaArrivalObject $plan @('SchemaVersion','Kind','Definition','ContextKey','Sources','Guard')
+            Assert-WelaEventRecoveryText $plan @('Kind','ContextKey','Sources')
             if(($plan.SchemaVersion -isnot [int] -and $plan.SchemaVersion -isnot [long]) -or $plan.SchemaVersion -ne 1 -or $plan.Kind -cne 'WelaEventLogRecoveryPlan' -or $plan.ContextKey -cne $contextKey -or $plan.Sources -cne $sources){throw 'Reviewed plan schema, context or code differs.'}
             $definition=Get-WelaEventRecoveryDefinition $plan.Definition.Journal.Path $plan.Definition.OriginalResults.Path $plan.Definition.Log
             if((Get-WelaRecoveryKey $definition) -cne (Get-WelaRecoveryKey $plan.Definition)){throw 'Recovery plan differs from independently rebuilt original evidence.'}
