@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Reject unbound command-line arguments before dispatch, including unsupported `-WhatIf` and misspelled options on legacy configuration commands. Valid positional arguments and documented `-DryRun` behavior are preserved. Public CLI regressions cover both Windows PowerShell 5.1 and PowerShell 7. (@Shirofune-Security)
+
 - Added opt-in `failed-logon-probe` for one generated, confirmed nonexistent local SAM account attempt with fixed native logon type/provider, precise worker timing and exact Security4625 correlation. Protected receipts preserve raw evidence and unchanged audit/channel/token context; real credentials, domain controllers, remote authentication and Sigma credit are excluded. Disposable Windows tests cover native public runs and exact fixture cleanup. (@Shirofune-Security)
 
 - Added explicit `wec-ingress` Plan/Apply for one new, narrowly scoped Domain TCP5985 collector firewall rule. Actual host/logon/profile/source guards, reviewed hashes, flushed pending evidence and both-store/filter readback refuse drift and existing names; partial creation remains explicit. The existing collector prerequisite recognizes equivalent native dotted netmasks and IPv6 spellings without broadening accepted scopes. Disposable native tests cover creation, collision, replay, collector integration and cleanup without listener, delivery or Sigma claims. (@Shirofune-Security)

@@ -2188,6 +2188,13 @@ if ($Cmd -ne 'ldap-diagnostics' -and @($PSBoundParameters.Keys | Where-Object { 
     throw 'LDAP options require the dedicated ldap-diagnostics command. No command was run.'
 }
 
+# Plain scripts retain unknown named options in $args. Check them before every
+# dispatch, including the profile shortcut, so an unsupported -WhatIf or typo
+# cannot accidentally reach a writer. Keep dedicated option diagnostics above.
+if ($args.Count -gt 0) {
+    throw 'Unsupported trailing arguments. Check -Help for documented options; no command was run.'
+}
+
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
     Invoke-WelaProfileCommand -Command $Cmd.ToLower()
     return
