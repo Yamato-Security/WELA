@@ -7,7 +7,7 @@
 
 **Improvements:**
 
-- Strengthened `evtx-recovery` with actual primary-token and ordinary host observations so intended standard users can verify existing native archives. Version 2 reports distinguish file-open denial from exact native event recovery, pin token/logon/modification and implementation identities, and retain independent producer/reader evidence without changing existing permissions or granting Sigma credit. Disposable Windows tests use fresh owned standard-user sessions for real denial and exact 4688 EVTX recovery, with verified account, file-ACL and policy cleanup. (@Shirofune-Security)
+- Strengthened `evtx-recovery` with actual primary-token and ordinary host observations so intended standard users can verify existing native archives. Version 2 reports distinguish file-open denial from exact native event recovery, pin token/logon/modification and implementation identities, and retain independent producer/reader evidence without changing existing permissions or granting Sigma credit. Disposable Windows tests use fresh owned standard-user sessions for real denial and exact 4688 EVTX recovery, with verified account, file-ACL and policy cleanup. (#433) (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
 

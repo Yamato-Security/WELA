@@ -45,7 +45,7 @@ function Invoke-WelaEvtxReaderFixture {
     }
     try {
         $password=ConvertTo-SecureString ('Wela!7'+[guid]::NewGuid().ToString('N')+'zA#') -AsPlainText -Force
-        $user=New-LocalUser -Name $username -Password $password -Description ('WELA EVTX reader '+$nonce) -AccountNeverExpires
+        $user=New-LocalUser -Name $username -Password $password -Description ('WELA EVTX '+$nonce) -AccountNeverExpires
         $ownedSid=$user.SID.Value;Add-LocalGroupMember -SID 'S-1-5-32-545' -Member $user
         $acl=Get-Acl -LiteralPath $fixture;$acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($user.SID,'ReadAndExecute','ContainerInherit,ObjectInherit','None','Allow'));Set-Acl -LiteralPath $fixture -AclObject $acl
         $acl=Get-Acl -LiteralPath $readerHome;$acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new($user.SID,'FullControl','ContainerInherit,ObjectInherit','None','Allow'));Set-Acl -LiteralPath $readerHome -AclObject $acl
