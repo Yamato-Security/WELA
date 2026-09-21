@@ -43,3 +43,18 @@ tests/AppLockerProbe*.ps1 text eol=lf
 /scripts/ChannelReadNative.cs text eol=lf
 /config/native_channel_profile.json text eol=lf
 /tests/ChannelRead*.ps1 text eol=lf
+# Pending AD CS restart plans bind exact implementation bytes.
+/scripts/AdcsRestartResume.ps1 text eol=lf
+/scripts/AdcsAuditing.ps1 text eol=lf
+/tests/AdcsRestartResume*.ps1 text eol=lf
+# Local delivery catalog and native observer retain reproducible source bytes.
+config/event_measurement.json text eol=lf
+scripts/EventMeasurement* text eol=lf
+tests/EventMeasurement* text eol=lf
+tests/SelectedSaclFixtureProtection.cs text eol=lf
+# Fixed local WMI probe source/worker fingerprints.
+/scripts/WmiProbe*.ps1 text eol=lf
+/scripts/WmiProbeNative.cs text eol=lf
+/scripts/WmiNamespaceAuditing.ps1 text eol=lf
+/scripts/WefArrival.ps1 text eol=lf
+/tests/WmiProbe*.ps1 text eol=lf

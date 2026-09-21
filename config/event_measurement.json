@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "kind": "WelaLocalDeliveryMeasurement",
+  "channels": [
+    "Security",
+    "System",
+    "Application",
+    "Microsoft-Windows-DNS-Client/Operational",
+    "Microsoft-Windows-CAPI2/Operational",
+    "Microsoft-Windows-WinRM/Operational",
+    "Microsoft-Windows-PowerShell/Operational"
+  ],
+  "source": "https://learn.microsoft.com/en-us/windows/win32/api/winevt/nf-winevt-evtsubscribe",
+  "scope": "Exact registered local Administrative/Operational channels only. ForwardedEvents, Analytic/Debug and third-party channels are excluded. Shared built-in channels may contain records from non-Microsoft providers; actual provider identity is retained. Registration, availability and reader access are verified on the actual host."
+}

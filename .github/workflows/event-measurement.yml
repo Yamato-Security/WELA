@@ -1,0 +1,40 @@
+name: Local event delivery measurement
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/EventMeasurement*'
+      - 'scripts/EvtxRecovery.ps1'
+      - 'scripts/ControlApplicability.ps1'
+      - 'scripts/NativeValidation.ps1'
+      - 'config/event_measurement.json'
+      - 'tests/EventMeasurement*'
+      - '.github/workflows/event-measurement.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-delivery:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Fixtures and native callback/export proof (Windows PowerShell 5.1)
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/EventMeasurement.Tests.ps1
+          ./tests/EventMeasurement.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Fixtures and native callback/export proof (PowerShell 7)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/EventMeasurement.Tests.ps1
+          ./tests/EventMeasurement.Windows.Tests.ps1 -AllowDisposablePolicyWrite

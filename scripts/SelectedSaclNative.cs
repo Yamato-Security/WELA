@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -15,6 +16,7 @@ namespace Wela.SelectedSacl {
   public string DescriptorBase64; public string Owner; public string Group; public string DaclBase64;
   public int ControlFlags; public int SecurityInformation; public string DescriptorScope; public Ace[] Aces;
  }
+ public sealed class Children { public string[] Names; public bool Truncated; }
  public sealed class Privilege : IDisposable {
   [StructLayout(LayoutKind.Sequential)] struct Luid { public uint Low; public int High; }
   [StructLayout(LayoutKind.Sequential)] struct TokenPrivileges { public uint Count; public Luid Luid; public uint Attributes; }
@@ -54,12 +56,14 @@ namespace Wela.SelectedSacl {
   [DllImport("advapi32.dll",CharSet=CharSet.Unicode)] static extern int RegOpenKeyEx(IntPtr key,string path,uint options,uint access,out IntPtr opened);
   [DllImport("advapi32.dll",CharSet=CharSet.Unicode)] static extern int RegQueryValueEx(IntPtr key,string name,IntPtr reserved,out uint type,IntPtr data,ref uint size);
   [DllImport("advapi32.dll",CharSet=CharSet.Unicode)] static extern int RegQueryInfoKey(IntPtr key,IntPtr cls,IntPtr clsSize,IntPtr reserved,IntPtr subKeys,IntPtr maxSubKey,IntPtr maxClass,IntPtr values,IntPtr maxValueName,IntPtr maxValue,IntPtr securitySize,out long written);
+  [DllImport("advapi32.dll",CharSet=CharSet.Unicode)] static extern int RegEnumKeyEx(IntPtr key,uint index,StringBuilder name,ref uint length,IntPtr reserved,IntPtr cls,IntPtr clsLength,IntPtr written);
   [DllImport("advapi32.dll")] static extern int RegCloseKey(IntPtr key);
   [DllImport("advapi32.dll")] static extern uint GetSecurityInfo(IntPtr handle,uint kind,uint flags,out IntPtr owner,out IntPtr group,out IntPtr dacl,out IntPtr sacl,out IntPtr descriptor);
   [DllImport("advapi32.dll")] static extern uint GetSecurityDescriptorLength(IntPtr descriptor);
   [DllImport("advapi32.dll")] static extern uint SetSecurityInfo(IntPtr handle,uint kind,uint flags,IntPtr owner,IntPtr group,IntPtr dacl,IntPtr sacl);
   IntPtr handle;readonly List<IntPtr> keys=new List<IntPtr>();readonly string path;readonly string kind;readonly uint objectType;
-  public Target(string kind,string path) {
+  public Target(string kind,string path) : this(kind,path,false) {}
+  public Target(string kind,string path,bool enumerate) {
    this.kind=kind;this.path=path;objectType=kind=="FileSystem"?1U:4U;
    try {
     if(kind=="FileSystem") {
@@ -78,7 +82,7 @@ namespace Wela.SelectedSacl {
      else throw new InvalidOperationException("Only explicitly selected HKLM/HKU keys are supported.");
      if(parts.Length<2)throw new InvalidOperationException("A registry hive root cannot be selected.");
      for(int i=1;i<parts.Length;i++) {
-      IntPtr opened;int error=RegOpenKeyEx(current,parts[i],8,0x01020101,out opened); // OPEN_LINK, 64-bit view, query/read-control/SACL.
+      IntPtr opened;int error=RegOpenKeyEx(current,parts[i],8,0x01020101U|((enumerate&&i==parts.Length-1)?8U:0U),out opened); // OPEN_LINK, 64-bit view, query/read-control/SACL.
       if(error!=0)throw new Win32Exception(error);keys.Add(opened);current=opened;
       uint type;uint size=0;error=RegQueryValueEx(current,"SymbolicLinkValue",IntPtr.Zero,out type,IntPtr.Zero,ref size);
       if(error==0&&type==6)throw new InvalidOperationException("Registry symbolic-link component refused.");
@@ -87,6 +91,27 @@ namespace Wela.SelectedSacl {
      handle=current;
     } else throw new InvalidOperationException("Unsupported selected target kind.");
    }catch {Dispose();throw;}
+  }
+  public Children Enumerate(int maximum) {
+   if(maximum<1||maximum>129)throw new ArgumentOutOfRangeException("maximum");
+   if(handle==IntPtr.Zero)throw new ObjectDisposedException("Target");
+   List<string> names=new List<string>();bool truncated=false;
+   if(kind=="Registry") {
+    for(uint index=0;;index++) {
+     StringBuilder name=new StringBuilder(256);uint length=256;
+     int error=RegEnumKeyEx(handle,index,name,ref length,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);
+     if(error==259)break;if(error!=0)throw new Win32Exception(error,"Registry child enumeration failed.");
+     if(names.Count==maximum){truncated=true;break;}names.Add(name.ToString());
+    }
+   } else {
+    // The verified parent handle remains open without DELETE sharing during enumeration.
+    foreach(string entry in Directory.EnumerateFileSystemEntries(path)) {
+     if(names.Count==maximum){truncated=true;break;}names.Add(System.IO.Path.GetFileName(entry));
+    }
+   }
+   HashSet<string> seen=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+   foreach(string name in names)if(String.IsNullOrEmpty(name)||name=="."||name==".."||name.IndexOfAny(new char[]{'\\','/','\0'})>=0||!seen.Add(name))throw new InvalidOperationException("Ambiguous or duplicate child name.");
+   names.Sort(StringComparer.OrdinalIgnoreCase);return new Children {Names=names.ToArray(),Truncated=truncated};
   }
   static string Bytes(GenericAcl acl){if(acl==null)return null;byte[] bytes=new byte[acl.BinaryLength];acl.GetBinaryForm(bytes,0);return Convert.ToBase64String(bytes);}
   static string Bytes(GenericAce ace){byte[] bytes=new byte[ace.BinaryLength];ace.GetBinaryForm(bytes,0);return Convert.ToBase64String(bytes);}

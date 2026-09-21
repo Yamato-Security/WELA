@@ -41,6 +41,7 @@ function Get-WelaSelectedSaclSnapshot {
     if($script:scenario -eq 'read-denied'){throw 'Selected descriptor access denied'}
     Clone $script:states[$Definition.Path]
 }
+function Get-WelaSelectedSaclChildNames {param($Definition,$Snapshot,$Maximum) [pscustomobject]@{Names=@();Truncated=$false}}
 function Write-WelaSelectedSaclNative {
     param($Definition,$Before,$Ace)
     $script:writes++

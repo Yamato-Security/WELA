@@ -42,6 +42,10 @@
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [ValidateSet('Plan','Run')][string]$WmiProbeAction = 'Plan',
+    [string]$WmiProbeNamespace,
+    [string]$WmiProbeOutputPath,
+    [ValidateRange(1,30)][int]$WmiProbeTimeoutSeconds = 15,
     [string[]]$WmiNamespace,
     [switch]$WmiIncludeChildren,
     [string]$RuleEvidencePath,
@@ -88,6 +92,13 @@
     [switch]$TargetSaclIncludeChildren,
     [ValidateSet('Audit','Plan','Configure')][string]$AdcsAction = 'Audit',
     [string]$AdcsProfile,
+    [ValidateSet('Plan','Resume')][string]$AdcsResumeAction = 'Plan',
+    [string]$AdcsResumeJournalPath,
+    [string]$AdcsResumeResultsPath,
+    [string]$AdcsResumePlanPath,
+    [string]$AdcsResumePlanHash,
+    [string]$AdcsResumeOutputPath,
+    [switch]$AdcsResumeAllowRestart,
     [switch]$AllowRestart,
     [ValidateSet('Export','Verify')][string]$EvtxAction = 'Verify',
     [string]$EvtxProbePath,
@@ -120,6 +131,12 @@
     [ValidateSet('Plan','Run')][string]$AppLockerProbeAction = 'Plan',
     [string]$AppLockerProbeOutputPath,
     [ValidateRange(1,30)][int]$AppLockerProbeTimeoutSeconds = 15,
+    [ValidateSet('Plan','Run')][string]$MeasurementAction = 'Plan',
+    [string]$MeasurementChannel,
+    [ValidateRange(1,60)][int]$MeasurementSeconds = 10,
+    [ValidateRange(1,1024)][int]$MeasurementMaximumEvents = 256,
+    [string]$MeasurementOutputPath,
+    [switch]$MeasurementExportEvtx,
     [switch]$Help
 )
 
@@ -135,6 +152,7 @@ $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/AdcsRestartResume.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditIntegrity.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
@@ -148,6 +166,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/RuleEligibility.psm1") -ErrorAction Stop
@@ -170,6 +189,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
 . (Join-Path $ScriptRoot "scripts/EvtxRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/EventMeasurement.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
 
@@ -1904,6 +1924,8 @@ Usage:
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
   ./WELA.ps1 rule-eligibility -ResultsPath eligibility.json -HtmlPath eligibility.html
+  ./WELA.ps1 event-measurement -MeasurementChannel Security
+  ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
@@ -1938,7 +1960,9 @@ Usage:
   ./WELA.ps1 adcs-auditing -Help    # Dedicated local CA audit settings; restart requires explicit consent
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
+  ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
+  ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
   ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
@@ -1956,6 +1980,8 @@ Write-Host ""
 if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
 if ($Cmd -eq 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ChannelReadName','ChannelReadOutputPath','Help') }).Count) { throw 'channel-read accepts only dedicated channel/output options. No command was run.' }
 
+if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
+if ($Cmd -eq 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','MeasurementAction','MeasurementChannel','MeasurementSeconds','MeasurementMaximumEvents','MeasurementOutputPath','MeasurementExportEvtx','Help')}).Count) {throw 'event-measurement accepts only its dedicated options. No command was run.'}
 if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'Dns*' -or $_ -eq 'AllowDnsTraceReset' }).Count) {
     throw 'DNS analytical options require dns-analytical. No command was run.'
 }
@@ -1968,6 +1994,8 @@ if ($Cmd -ne 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ 
 if ($Cmd -eq 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','TargetSaclAction','TargetSaclProfile','TargetSaclId','TargetSaclPlanPath','TargetSaclIncludeChildren','IncludeOptional','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
     throw 'targeted-sacl accepts only selected-target, consent and report options. No command was run.'
 }
+if ($Cmd -ne 'adcs-resume' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'AdcsResume*'}).Count) {throw 'AdcsResume options require adcs-resume.'}
+if ($Cmd -eq 'adcs-resume' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AdcsResumeAction','AdcsResumeJournalPath','AdcsResumeResultsPath','AdcsResumePlanPath','AdcsResumePlanHash','AdcsResumeOutputPath','AdcsResumeAllowRestart','DryRun','Help')}).Count) {throw 'adcs-resume accepts only its dedicated options.'}
 if ($Cmd -ne 'adcs-auditing' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('AdcsAction','AdcsProfile','AllowRestart') }).Count) {
     throw 'AD CS options require adcs-auditing. No command was run.'
 }
@@ -2017,6 +2045,8 @@ if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -li
 if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
     throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
 }
+if ($Cmd -ne 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiProbe*'}).Count) {throw 'WmiProbe options require wmi-probe.'}
+if ($Cmd -eq 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiProbeAction','WmiProbeNamespace','WmiProbeOutputPath','WmiProbeTimeoutSeconds','Help')}).Count) {throw 'wmi-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds')}).Count) {throw 'AppLocker probe options require applocker-probe.'}
 if ($Cmd -eq 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds','Help')}).Count) {throw 'applocker-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('ArrivalProbePath','ArrivalOutputPath')}).Count) {
@@ -2085,7 +2115,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -2124,6 +2154,14 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'event-measurement' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 event-measurement -MeasurementChannel EXACT_NAME [-MeasurementAction Plan|Run] [-MeasurementSeconds 1..60] [-MeasurementMaximumEvents 1..1024] [-MeasurementOutputPath NEW_DIRECTORY] [-MeasurementExportEvtx]. Plan reads actual source/reader state; Run records bounded local deliveries without changing logging. See docs/event-measurement.md.';return}
+        if ([string]::IsNullOrWhiteSpace($MeasurementChannel)) {throw 'event-measurement requires an exact -MeasurementChannel.'}
+        $measurement=Invoke-WelaEventMeasurement -Action $MeasurementAction -Channel $MeasurementChannel -Seconds $MeasurementSeconds -MaximumEvents $MeasurementMaximumEvents -OutputPath $MeasurementOutputPath -ExportEvtx:$MeasurementExportEvtx
+        if ($measurement.Before) {$measurement.Before.Configuration | Format-List | Out-Host; $measurement.Before.Reader | Select-Object Computer,HostKey,Reader | Format-List | Out-Host}
+        $measurement | Select-Object Action,Status,Channel,ObservedDeliveries,ObservedDeliveriesPerSecond,Evtx,Diagnostic,OutputPath | Format-List | Out-Host
+        exit $measurement.ExitCode
+    }
     'dns-analytical' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 dns-analytical [-DnsAction Audit|Plan|Configure] [-DnsState Enabled|Disabled] [-DnsRetention Preserve|Circular|Retain] [-DnsMinimumBytes bytes] [-DnsArchiveMaximumBytes bytes] [-AllowDnsTraceReset] [-Auto] [-DryRun] [-BackupPath new-private-directory] [-ResultsPath new.json]. Configure requires explicit DnsState and reset consent for changes; archives stopped traces before reset. See docs/dns-analytical.md.'; return }
         $report=Invoke-WelaDnsAnalytical -Action $DnsAction -State $DnsState -Retention $DnsRetention -MinimumBytes $DnsMinimumBytes -ArchiveMaximumBytes $DnsArchiveMaximumBytes -AllowTraceReset:$AllowDnsTraceReset -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
@@ -2138,10 +2176,16 @@ switch ($Cmd.ToLower()) {
         if ($report.ExitCode) {exit $report.ExitCode}
     }
     'targeted-sacl' {
-        if ($Help) { Write-Host 'Usage: ./WELA.ps1 targeted-sacl -TargetSaclProfile profile-id [-TargetSaclId id,...] [-TargetSaclAction Audit|Plan] [-IncludeOptional] [-TargetSaclIncludeChildren] [-ResultsPath new-plan.json]. Configure requires -TargetSaclAction Configure -TargetSaclPlanPath reviewed.json -TargetSaclId same-ids [-TargetSaclIncludeChildren] [-IncludeOptional] [-DryRun] [-Auto] [-BackupPath new-directory] [-ResultsPath new-results.json]. Existing local targets only; see docs/selected-sacl-configuration.md.'; return }
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 targeted-sacl -TargetSaclProfile profile-id [-TargetSaclId id,...] [-TargetSaclAction Audit|Plan] [-IncludeOptional] [-TargetSaclIncludeChildren] [-ResultsPath new-plan.json]. Configure requires -TargetSaclAction Configure -TargetSaclPlanPath reviewed.json -TargetSaclId same-ids [-TargetSaclIncludeChildren] [-IncludeOptional] [-DryRun] [-Auto] [-BackupPath new-directory] [-ResultsPath new-results.json]. Existing local targets only; IncludeChildren requires a complete reviewed capture of at most 128 descendants per root, depth 16. See docs/selected-sacl-configuration.md.'; return }
         $report=Invoke-WelaSelectedSacl -Action $TargetSaclAction -Profile $TargetSaclProfile -Ids $TargetSaclId -PlanPath $TargetSaclPlanPath -IncludeOptional:$IncludeOptional -IncludeChildren:$TargetSaclIncludeChildren -DryRun:$DryRun -Auto:$Auto -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
         if ($report.ExitCode) { exit $report.ExitCode }
+    }
+    'adcs-resume' {
+        if ($Help) {Write-Host 'Usage: adcs-resume [-AdcsResumeAction Plan] -AdcsResumeJournalPath before.jsonl -AdcsResumeResultsPath failed.json -AdcsResumeOutputPath new-plan; Resume with -AdcsResumePlanPath reviewed-plan.json -AdcsResumePlanHash SHA256 and either -DryRun or -AdcsResumeAllowRestart -AdcsResumeOutputPath new-receipts. Only an unchanged, already-running CA recorded as RestartPending is eligible. See docs/adcs-restart-resume.md.';return}
+        $report=Invoke-WelaAdcsRestartResume -Action $AdcsResumeAction -JournalPath $AdcsResumeJournalPath -ResultsPath $AdcsResumeResultsPath -PlanPath $AdcsResumePlanPath -PlanHash $AdcsResumePlanHash -OutputPath $AdcsResumeOutputPath -AllowRestart:$AdcsResumeAllowRestart -DryRun:$DryRun
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'adcs-auditing' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 adcs-auditing [-AdcsAction Audit|Plan|Configure] [-AdcsProfile microsoft-identity-ca-2026-09] [-AllowRestart] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath new.json]. Audit is read-only; Plan/Configure requires a source. Filter changes require AllowRestart. Existing stopped CAs are never started. See docs/adcs-auditing.md.'; return }
@@ -2199,6 +2243,12 @@ switch ($Cmd.ToLower()) {
         $map=@{WecUpdateId='Id';WecUpdateSourceSid='SourceSids';WecUpdateQueryPath='QueryPath';WecUpdateDescription='Description';WecUpdatePlanPath='PlanPath';WecUpdatePlanHash='PlanHash'}
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaWecUpdate @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'wmi-probe' {
+        if ($Help) {Write-Host 'Usage: wmi-probe [-WmiProbeAction Plan|Run] -WmiProbeNamespace root\default [-WmiProbeOutputPath new-private-directory] [-WmiProbeTimeoutSeconds 1..30]. Fixed local read only; requires existing matching SACL and auditing. No policy changes, remote access or Sigma credit. See docs/wmi-probe.md.';return}
+        $report=Invoke-WelaWmiProbe -Action $WmiProbeAction -Namespace $WmiProbeNamespace -OutputPath $WmiProbeOutputPath -TimeoutSeconds $WmiProbeTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
