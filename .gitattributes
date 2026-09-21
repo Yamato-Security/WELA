@@ -73,3 +73,6 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 # Existing-file read receipts bind identical native/worker source bytes.
 /scripts/FileAccessProbe* text eol=lf
 /tests/FileAccessProbe* text eol=lf
+
+# Disposable public registry lifecycle fixture bytes are retained in evidence.
+/tests/RegistrySacl* text eol=lf

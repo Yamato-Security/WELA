@@ -24,9 +24,15 @@ namespace Wela.RegistrySaclFixture {
   }
   public void Dispose(){if(token==IntPtr.Zero)return;try{Privileges ignored;uint needed;bool ok=AdjustTokenPrivileges(token,false,ref previous,(uint)Marshal.SizeOf(typeof(Privileges)),out ignored,out needed);int error=Marshal.GetLastWin32Error();if(!ok||error!=0)throw new Win32Exception(error,"Fixture privilege restoration failed.");}finally{CloseHandle(token);token=IntPtr.Zero;}}
  }
+ public sealed class WriteReceipt {public string StartedUtc,ReturnedUtc,CompletedUtc,HandleId,ValueName,Value;public int Calls;public bool Success;}
  public sealed class Hive : IDisposable {
+  [DllImport("kernel32.dll",ExactSpelling=true)] static extern void GetSystemTimePreciseAsFileTime(out long value);
+  static DateTime UtcNow(){long value;GetSystemTimePreciseAsFileTime(out value);return DateTime.FromFileTimeUtc(value);}
   static readonly IntPtr HKCU=new IntPtr(unchecked((int)0x80000001)),HKU=new IntPtr(unchecked((int)0x80000003));
   [DllImport("advapi32.dll",CharSet=CharSet.Unicode,ExactSpelling=true)] static extern int RegCreateKeyExW(IntPtr root,string path,int reserved,string cls,uint options,uint access,IntPtr security,out IntPtr result,out uint disposition);
+  [DllImport("advapi32.dll",CharSet=CharSet.Unicode,ExactSpelling=true)] static extern int RegOpenKeyExW(IntPtr root,string path,uint options,uint access,out IntPtr key);
+  [DllImport("advapi32.dll",CharSet=CharSet.Unicode,ExactSpelling=true)] static extern int RegSetValueExW(IntPtr key,string name,uint reserved,uint type,byte[] data,uint size);
+  [DllImport("advapi32.dll",CharSet=CharSet.Unicode,ExactSpelling=true)] static extern int RegQueryValueExW(IntPtr key,string name,IntPtr reserved,out uint type,byte[] data,ref uint size);
   [DllImport("advapi32.dll")] static extern int RegCloseKey(IntPtr key);
   [DllImport("advapi32.dll",CharSet=CharSet.Unicode,ExactSpelling=true)] static extern int RegSaveKeyExW(IntPtr key,string file,IntPtr security,uint flags);
   [DllImport("advapi32.dll",CharSet=CharSet.Unicode,ExactSpelling=true)] static extern int RegLoadKeyW(IntPtr root,string name,string file);
@@ -53,7 +59,21 @@ namespace Wela.RegistrySaclFixture {
    AssertOwned();
   }
   public void AssertOwned(){using(RegistryKey key=Registry.Users.OpenSubKey(Sid)){if(!Loaded||key==null||key.GetValueKind("WelaFixtureOwner")!=RegistryValueKind.String||!String.Equals(key.GetValue("WelaFixtureOwner") as string,Nonce,StringComparison.Ordinal))throw new InvalidOperationException("Owned hive marker changed.");}}
-  public void CreateRunOnce(){AssertOwned();IntPtr key;uint disposition;Check(RegCreateKeyExW(HKU,Sid+"\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",0,null,0,0xF003F,IntPtr.Zero,out key,out disposition),"Create owned catalog RunOnce target");try{if(disposition!=1)throw new InvalidOperationException("Owned target unexpectedly exists.");}finally{RegCloseKey(key);}}
+  public void CreateRunOnce(){AssertOwned();IntPtr key;uint disposition;Check(RegCreateKeyExW(HKU,Sid+"\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",0,null,0,0xF003F,IntPtr.Zero,out key,out disposition),"Create owned catalog RunOnce target");try{if(disposition!=1)throw new InvalidOperationException("Owned target unexpectedly exists.");}finally{RegCloseKey(key);}
+   using(RegistryKey target=Registry.Users.OpenSubKey(Sid+"\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",true)){target.SetValue("KeepTypedDword",321,RegistryValueKind.DWord);}
+  }
+  public void AssertValues(bool probe){using(RegistryKey key=Registry.Users.OpenSubKey(Sid+"\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce")){if(key==null||key.ValueCount!=(probe?2:1)||key.GetValueKind("KeepTypedDword")!=RegistryValueKind.DWord||!(key.GetValue("KeepTypedDword") is int)||(int)key.GetValue("KeepTypedDword")!=321)throw new InvalidOperationException("Unrelated owned typed values changed.");if(probe&&(key.GetValueKind("WelaProbe_"+Nonce)!=RegistryValueKind.String||!String.Equals(key.GetValue("WelaProbe_"+Nonce) as string,Nonce,StringComparison.Ordinal)))throw new InvalidOperationException("Owned nonce value mismatch.");}}
+  public WriteReceipt WriteProbe(){
+   AssertOwned();AssertValues(false);string name="WelaProbe_"+Nonce;IntPtr key;
+   Check(RegOpenKeyExW(HKU,Sid+"\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",0,0x103,out key),"Open owned value writer");
+   try{
+    byte[] bytes=System.Text.Encoding.Unicode.GetBytes(Nonce+"\0");string handle="0x"+unchecked((ulong)key.ToInt64()).ToString("x");
+    DateTime start=UtcNow();Check(RegSetValueExW(key,name,0,1,bytes,(uint)bytes.Length),"Write one owned nonce REG_SZ");DateTime returned=UtcNow();
+    uint type,size=(uint)bytes.Length;byte[] actual=new byte[size];Check(RegQueryValueExW(key,name,IntPtr.Zero,out type,actual,ref size),"Read back same-handle owned nonce");
+    if(type!=1||size!=bytes.Length||Convert.ToBase64String(actual)!=Convert.ToBase64String(bytes))throw new InvalidOperationException("Probe write readback failed.");DateTime completed=UtcNow();
+    return new WriteReceipt{StartedUtc=start.ToString("o"),ReturnedUtc=returned.ToString("o"),CompletedUtc=completed.ToString("o"),HandleId=handle,ValueName=name,Value=Nonce,Calls=1,Success=true};
+   }finally{RegCloseKey(key);}
+  }
   public void Dispose(){
    if(Loaded){AssertOwned();using(new Privilege("SeBackupPrivilege"))using(new Privilege("SeRestorePrivilege")){Check(RegUnLoadKeyW(HKU,Sid),"Unload owned fixture hive");Loaded=false;}}
    if(SeedCreated){using(RegistryKey seed=Registry.CurrentUser.OpenSubKey(SeedPath)){if(seed==null||seed.SubKeyCount!=0||seed.ValueCount!=1||seed.GetValueKind("WelaFixtureOwner")!=RegistryValueKind.String||!String.Equals(seed.GetValue("WelaFixtureOwner") as string,Nonce,StringComparison.Ordinal))throw new InvalidOperationException("Owned seed changed; refuse deletion.");}Registry.CurrentUser.DeleteSubKey(SeedPath,true);SeedCreated=false;}
