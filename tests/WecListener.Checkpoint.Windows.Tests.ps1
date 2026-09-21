@@ -18,17 +18,17 @@ function Key($Value){ConvertTo-Json -InputObject @($Value|Select-Object Address,
 function ReadServices {@(Get-CimInstance Win32_Service -Filter "Name='WinRM' OR Name='Wecsvc' OR Name='MpsSvc' OR Name='BFE'"|Sort-Object Name|Select-Object Name,StartMode,State)}
 function ReadFirewall {@(NetSecurity\Get-NetFirewallRule -PolicyStore ActiveStore|Sort-Object Name|Select-Object Name,Enabled,Profile,Direction,Action,PolicyStoreSourceType)}
 function NewCheckpointListener($Selector,$Values) {
-    $automation=$null;$session=$null;$locator=$null
+    $doc=[Xml.XmlDocument]::new();$element=$doc.CreateElement('cfg','Listener','http://schemas.microsoft.com/wbem/wsman/1/config/listener');$null=$doc.AppendChild($element)
+    foreach($name in @('Port','Hostname','Enabled','URLPrefix','CertificateThumbprint')){$child=$doc.CreateElement('cfg',$name,$element.NamespaceURI);$child.InnerText=[string]$Values[$name];$null=$element.AppendChild($child)}
+    $payload=Join-Path $root ('native-listener-'+[guid]::NewGuid().ToString('N')+'.xml')
+    [IO.File]::WriteAllText($payload,$doc.OuterXml,[Text.UTF8Encoding]::new($false))
+    $held=[IO.File]::Open($payload,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
     try {
-        $automation=New-Object -ComObject 'WSMan.Automation'
-        $session=$automation.CreateSession('',0,$null);$session.Timeout=5000
-        $locator=$automation.CreateResourceLocator('http://schemas.microsoft.com/wbem/wsman/1/config/listener')
-        $locator.AddSelector('Address',[string]$Selector.Address);$locator.AddSelector('Transport',[string]$Selector.Transport)
-        $doc=[Xml.XmlDocument]::new();$element=$doc.CreateElement('cfg','Listener','http://schemas.microsoft.com/wbem/wsman/1/config/listener');$null=$doc.AppendChild($element)
-        foreach($name in @('Port','Hostname','Enabled','URLPrefix','CertificateThumbprint')){$child=$doc.CreateElement('cfg',$name,$element.NamespaceURI);$child.InnerText=[string]$Values[$name];$null=$element.AppendChild($child)}
-        [string]$session.Create($locator,$doc.OuterXml,0)
-    }finally{foreach($item in @($locator,$session,$automation)){if($null -ne $item -and [Runtime.InteropServices.Marshal]::IsComObject($item)){$null=[Runtime.InteropServices.Marshal]::FinalReleaseComObject($item)}}}
+        $result=Microsoft.WSMan.Management\New-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet $Selector -FilePath $payload -ErrorAction Stop
+        [string]$result.OuterXml
+    }finally{$held.Dispose()}
 }
+
 $services=ReadServices;$firewall=ReadFirewall;$original=$null;$removed=@();$created=$false;$failure=$null;$cleanupErrors=@();$count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 try {
