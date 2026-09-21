@@ -7,7 +7,7 @@
 
 **Improvements:**
 
-- Added explicit `wec-ingress` Plan/Apply for one new, narrowly scoped Domain TCP5985 collector firewall rule. Actual host/logon/profile/source guards, reviewed hashes, flushed pending evidence and both-store/filter readback refuse drift and existing names; partial creation remains explicit. Disposable native tests cover creation, collision, replay and cleanup without listener, delivery or Sigma claims. (@Shirofune-Security)
+- Added explicit `wec-ingress` Plan/Apply for one new, narrowly scoped Domain TCP5985 collector firewall rule. Actual host/logon/profile/source guards, reviewed hashes, flushed pending evidence and both-store/filter readback refuse drift and existing names; partial creation remains explicit. The existing collector prerequisite recognizes equivalent native dotted netmasks and IPv6 spellings without broadening accepted scopes. Disposable native tests cover creation, collision, replay, collector integration and cleanup without listener, delivery or Sigma claims. (@Shirofune-Security)
 
 - Fixed `wmi-probe` operation timing to use the native precise UTC clock consistently in the parent and worker. Explicit clock receipts and launch/completion bounds preserve exact event correlation; sub-millisecond boundary tests and repeated native public-CLI runs cover timing failures without widening the accepted interval. (@Shirofune-Security)
 

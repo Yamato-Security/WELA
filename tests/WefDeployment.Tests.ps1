@@ -78,7 +78,7 @@ function Get-WSManInstance {
 }
 function Get-NetFirewallRule { param($Name,$PolicyStore) Assert ($PolicyStore -eq 'ActiveStore') 'Ingress is read from effective ActiveStore'; [pscustomobject]@{ Name=$Name; Enabled=$global:WelaWefFixture.Ingress; Direction='Inbound'; Action='Allow'; Profile='Domain'; PolicyStoreSourceType='Local'; EnforcementStatus='Full' } }
 function Get-NetFirewallPortFilter { [CmdletBinding()]param([Parameter(ValueFromPipeline)]$Rule) process { [pscustomobject]@{ Protocol='TCP'; LocalPort='5985'; RemotePort='Any' } } }
-function Get-NetFirewallAddressFilter { [CmdletBinding()]param([Parameter(ValueFromPipeline)]$Rule) process { [pscustomobject]@{ LocalAddress=@('192.0.2.10'); RemoteAddress=@('192.0.2.0/24') } } }
+function Get-NetFirewallAddressFilter { [CmdletBinding()]param([Parameter(ValueFromPipeline)]$Rule) process { [pscustomobject]@{ LocalAddress=@('192.0.2.10/255.255.255.255'); RemoteAddress=@('192.0.2.0/255.255.255.0') } } }
 function Read-Host { param($Prompt) return $global:WelaWefFixture.Prompt }
 function Invoke-WelaNative {
     param($FilePath,$Arguments)

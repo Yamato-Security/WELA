@@ -3,6 +3,8 @@ $ErrorActionPreference='Stop'
 if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not $AllowDisposableFirewallRule -or $env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted'){throw 'Explicit disposable GitHub-hosted Windows opt-in required.'}
 $repo=Split-Path $PSScriptRoot -Parent;$script:ScriptRoot=$repo
 Import-Module "$repo/modules/AuditProfiles.psm1" -Force
+Import-Module "$repo/modules/WefSubscriptions.psm1" -Force
+. "$repo/scripts/WefDeployment.ps1"
 . "$repo/scripts/WefArrival.ps1"
 . "$repo/scripts/WecUpdate.ps1"
 . "$repo/scripts/ChannelRead.ps1"
@@ -34,6 +36,17 @@ try {
  Assert ($apply.Status -eq 'CreatedAndVerified' -and $apply.NativeCreateAttempted -and $apply.ReadyRuleCredit -eq 0) 'Actual public creation and readback'
  foreach($store in @('PersistentStore','ActiveStore')){Assert-WelaIngressReadback (Read-WelaIngressRule $store $name) $selection;$count++}
  Assert ((RulesKey $name) -ceq $beforeRules) 'Other persistent rule properties preserved'
+ # Exercise the real existing collector prerequisite against the new native rule.
+ # Other prerequisites may be unmet on this standalone fixture; inspect only ingress.
+ $collectorConfig=[pscustomobject]@{CollectorFqdn=(Get-WelaWefHost).Fqdn;ListenerAddress='*';IngressRuleName=$name;IngressLocalAddresses=@($local);IngressRemoteAddresses=@('192.0.2.0/24')}
+ $collectorChecks=@(Get-WelaWefCollectorPrerequisites $collectorConfig)
+ $ingress=@($collectorChecks|Where-Object Name -eq 'Existing scoped domain ingress rule')
+ Assert ($ingress.Count -eq 1 -and $ingress[0].Verified) 'Existing collector prerequisite accepts the same reviewed CIDR after native dotted-netmask readback'
+ $null=Write-WelaWecUpdateArtifact $root 'collector-ingress-check.json' ($ingress[0]|ConvertTo-Json -Depth 8)
+ $collectorConfig.IngressRemoteAddresses=@('192.0.2.0/25')
+ $mismatch=@(Get-WelaWefCollectorPrerequisites $collectorConfig|Where-Object Name -eq 'Existing scoped domain ingress rule')
+ Assert ($mismatch.Count -eq 1 -and -not $mismatch[0].Verified) 'Collector prerequisite refuses a genuinely different approved network'
+ $null=Write-WelaWecUpdateArtifact $root 'collector-ingress-mismatch.json' ($mismatch[0]|ConvertTo-Json -Depth 8)
  # Native New must not replace an existing name, even if a creator races our last absence check.
  $collision=$false;try{New-WelaIngressNativeRule $selection}catch{$collision=$true}
  Assert $collision 'Native duplicate-name creation refuses replacement'

@@ -21,6 +21,7 @@ jobs:
         if: matrix.engine == 'powershell'
         shell: powershell
         run: |
+          ./tests/WefFirewallAddress.Tests.ps1
           ./tests/WecIngress.Tests.ps1
           ./tests/WecIngress.Cli.Tests.ps1
       - name: Native scoped firewall rule in Windows PowerShell5.1
@@ -31,6 +32,7 @@ jobs:
         if: matrix.engine == 'pwsh'
         shell: pwsh
         run: |
+          ./tests/WefFirewallAddress.Tests.ps1
           ./tests/WecIngress.Tests.ps1
           ./tests/WecIngress.Cli.Tests.ps1
       - name: Native scoped firewall rule in PowerShell7
