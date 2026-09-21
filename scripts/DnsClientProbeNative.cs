@@ -20,15 +20,15 @@ namespace Wela.DnsClientProbe {
   // DnsQueryEx is the documented exact export; do not allow a W-suffixed name probe.
   [DllImport("dnsapi.dll",EntryPoint="DnsQueryEx",ExactSpelling=true)] static extern uint DnsQueryEx(ref Request request,ref QueryResult result,IntPtr cancel);
   [DllImport("dnsapi.dll")] static extern void DnsRecordListFree(IntPtr records,int freeType);
+  [DllImport("kernel32.dll",ExactSpelling=true)] static extern void GetSystemTimePreciseAsFileTime(out long value);
+  public static DateTime UtcNow() { long value;GetSystemTimePreciseAsFileTime(out value);return DateTime.FromFileTimeUtc(value); }
   public static string ValidateResolver(string resolver) {
    if(resolver==null||!Regex.IsMatch(resolver,@"^(0|[1-9][0-9]{0,2})(\.(0|[1-9][0-9]{0,2})){3}$"))throw new ArgumentException("One canonical dotted-decimal IPv4 resolver is required.");
    IPAddress address;if(!IPAddress.TryParse(resolver,out address)||address.AddressFamily!=System.Net.Sockets.AddressFamily.InterNetwork||address.ToString()!=resolver)throw new ArgumentException("Invalid IPv4 resolver.");
    byte[] bytes=address.GetAddressBytes();if(bytes[0]==0||bytes[0]>=224||resolver=="255.255.255.255")throw new ArgumentException("Unspecified, multicast and reserved/broadcast resolver addresses are refused.");
    return resolver;
   }
-  public static Result Query(string name,string resolver) {
-   if(IntPtr.Size!=8)throw new InvalidOperationException("Native 64-bit process required.");
-   if(name==null||!Regex.IsMatch(name,@"^wela-[a-f0-9]{32}\.wela\.test\.\z"))throw new ArgumentException("Only the fixed random probe name is accepted.");
+  static byte[] BuildServerArray(string resolver) {
    ValidateResolver(resolver);
    // SDK DNS_ADDR_ARRAY header32 + one DNS_ADDR64; sockaddr_in in its first16 bytes.
    // Match Microsoft Windows-classic-samples/DNSAsyncQuery CreateDnsServerList:
@@ -36,6 +36,12 @@ namespace Wela.DnsClientProbe {
    byte[] server=new byte[96];BitConverter.GetBytes((uint)1).CopyTo(server,0);BitConverter.GetBytes((uint)1).CopyTo(server,4);
    BitConverter.GetBytes((ushort)2).CopyTo(server,32);
    IPAddress.Parse(resolver).GetAddressBytes().CopyTo(server,36);
+   return server;
+  }
+  public static Result Query(string name,string resolver) {
+   if(IntPtr.Size!=8)throw new InvalidOperationException("Native 64-bit process required.");
+   if(name==null||!Regex.IsMatch(name,@"^wela-[a-f0-9]{32}\.wela\.test\.\z"))throw new ArgumentException("Only the fixed random probe name is accepted.");
+   byte[] server=BuildServerArray(resolver);
    IntPtr servers=Marshal.AllocHGlobal(server.Length);QueryResult result=new QueryResult {Version=1};
    try {
     Marshal.Copy(server,0,servers,server.Length);

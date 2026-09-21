@@ -59,6 +59,7 @@ function Get-WelaDnsClientProbeWatermark {
 }
 function Start-WelaDnsClientProbeQuery {
     param($State,[string]$Resolver,[string]$QueryName,$Report)
+    Initialize-WelaDnsClientProbeNative
     $fresh=Get-WelaDnsClientProbeState
     if((Get-WelaDnsClientProbeStateKey $fresh) -cne (Get-WelaDnsClientProbeStateKey $State)){throw 'DNS prerequisites changed before query.'}
     $boundary=Get-WelaDnsClientProbeWatermark
@@ -67,7 +68,7 @@ function Start-WelaDnsClientProbeQuery {
     $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$State.Engine;$info.Arguments='-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'+$worker+'" -Resolver "'+$Resolver+'" -QueryName "'+$QueryName+'"';$info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.StandardOutputEncoding=[Text.UTF8Encoding]::new($false,$true);$info.StandardErrorEncoding=[Text.UTF8Encoding]::new($false,$true)
     $process=[Diagnostics.Process]::new();$process.StartInfo=$info;$started=$false
     try{
-        $launch=[DateTimeOffset]::UtcNow;$started=$process.Start();if(-not $started){throw 'DNS probe worker did not start.'}
+        $launch=[DateTimeOffset][Wela.DnsClientProbe.Native]::UtcNow();$started=$process.Start();if(-not $started){throw 'DNS probe worker did not start.'}
         $output=$process.StandardOutput.ReadToEndAsync();$errorText=$process.StandardError.ReadToEndAsync()
         if(-not $process.WaitForExit(20000)){throw 'DNS query worker exceeded twenty seconds; operation completion is unverified.'}
         if(-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($output,$errorText),5000)){throw 'DNS worker output did not finish.'}
@@ -79,7 +80,7 @@ function Start-WelaDnsClientProbeQuery {
         if($operation.ProcessId -ne $process.Id -or $operation.Query.QueryName -cne $QueryName -or $operation.Query.Resolver -cne $Resolver -or $operation.Query.Options -ne 2103790 -or $operation.Query.Status -ne $operation.Query.ResultStatus -or $operation.Query.Status -notin @(0,9003,9501)){throw ('Unexpected DNS worker response or unsupported native outcome: PID='+$operation.ProcessId+' expectedPID='+$process.Id+' options='+$operation.Query.Options+' APIstatus='+$operation.Query.Status+' resultStatus='+$operation.Query.ResultStatus)}
         $begin=ConvertTo-WelaArrivalUtc $operation.StartedUtc;$end=ConvertTo-WelaArrivalUtc $operation.CompletedUtc
         $operation.StartedUtc=$begin.UtcDateTime.ToString('o');$operation.CompletedUtc=$end.UtcDateTime.ToString('o')
-        if($begin -lt $launch -or $end -lt $begin -or $end -gt [DateTimeOffset]::UtcNow -or ($end-$begin).TotalSeconds -gt 20){throw 'Invalid DNS operation timestamps.'}
+        if($operation.Clock -cne 'GetSystemTimePreciseAsFileTime' -or $begin -lt $launch -or $end -lt $begin -or $end -gt [DateTimeOffset][Wela.DnsClientProbe.Native]::UtcNow() -or ($end-$begin).TotalSeconds -gt 20){throw 'Invalid DNS operation timestamps.'}
         if((Get-WelaChannelReadKey $operation.BeforeToken) -cne (Get-WelaChannelReadKey $operation.AfterToken) -or (Get-WelaDnsClientProbeReaderKey $operation.BeforeToken) -cne (Get-WelaDnsClientProbeReaderKey $callerBefore)){throw 'DNS worker token differs from observed caller or changed.'}
         $operation|Add-Member NoteProperty RecordIdBefore $boundary
         $operation|Add-Member NoteProperty CallerBefore $callerBefore
@@ -89,7 +90,11 @@ function Start-WelaDnsClientProbeQuery {
 function Read-WelaDnsClientProbeEvents {
     param($Operation)
     $channel='Microsoft-Windows-DNS-Client/Operational'
-    $xpath="*[System[Provider[@Name='Microsoft-Windows-DNS-Client'] and EventID=3008 and EventRecordID>$($Operation.RecordIdBefore) and TimeCreated[@SystemTime>='$($Operation.StartedUtc)' and @SystemTime<='$($Operation.CompletedUtc)']]]"
+    # Read only this nonce in a bounded recent interval. The validator still requires
+    # exact operation timestamps; outside-interval XML is useful failure evidence only.
+    $name=$Operation.Query.QueryName
+    if($name -cnotmatch '^wela-[a-f0-9]{32}\.wela\.test\.$'){throw 'Unexpected DNS event query name.'}
+    $xpath="*[System[Provider[@Name='Microsoft-Windows-DNS-Client'] and EventID=3008 and EventRecordID>$($Operation.RecordIdBefore) and TimeCreated[timediff(@SystemTime)<=60000]] and EventData[Data[@Name='QueryName']='$name' or Data[@Name='QueryName']='$($name.TrimEnd('.'))']]"
     $reader=$null;$record=$null;$xml=@();$timer=[Diagnostics.Stopwatch]::StartNew()
     try{
         $query=[Diagnostics.Eventing.Reader.EventLogQuery]::new($channel,[Diagnostics.Eventing.Reader.PathType]::LogName,$xpath);$query.TolerateQueryErrors=$false
