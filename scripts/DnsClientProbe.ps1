@@ -58,7 +58,7 @@ function Get-WelaDnsClientProbeWatermark {
     try{$query=[Diagnostics.Eventing.Reader.EventLogQuery]::new('Microsoft-Windows-DNS-Client/Operational',[Diagnostics.Eventing.Reader.PathType]::LogName,'*');$query.ReverseDirection=$true;$reader=[Diagnostics.Eventing.Reader.EventLogReader]::new($query);$reader.BatchSize=1;$record=$reader.ReadEvent([TimeSpan]::FromSeconds(5));Assert-WelaChannelQueryStatus -Channel 'Microsoft-Windows-DNS-Client/Operational' -LogStatus @($reader.LogStatus);if($record){if($record.RecordId -le 0){throw 'Invalid native record boundary.'};return [long]$record.RecordId};return [long]0}finally{if($record){$record.Dispose()};if($reader){$reader.Dispose()}}
 }
 function Start-WelaDnsClientProbeQuery {
-    param($State,[string]$Resolver,[string]$QueryName)
+    param($State,[string]$Resolver,[string]$QueryName,$Report)
     $fresh=Get-WelaDnsClientProbeState
     if((Get-WelaDnsClientProbeStateKey $fresh) -cne (Get-WelaDnsClientProbeStateKey $State)){throw 'DNS prerequisites changed before query.'}
     $boundary=Get-WelaDnsClientProbeWatermark
@@ -73,8 +73,10 @@ function Start-WelaDnsClientProbeQuery {
         if(-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($output,$errorText),5000)){throw 'DNS worker output did not finish.'}
         if($output.Result.Length -gt 262144 -or $errorText.Result.Length -gt 65536){throw 'DNS worker output exceeded evidence bounds.'}
         if($process.ExitCode -ne 0 -or $errorText.Result){throw ('DNS worker failed: '+$errorText.Result)}
+        # Retain bounded owned-worker output even when schema/status validation refuses it.
+        $Report.Artifacts+=Write-WelaArrivalArtifact $Report.OutputPath 'worker.json' $output.Result
         $operation=ConvertFrom-WelaRecoveryJson $output.Result
-        if($operation.ProcessId -ne $process.Id -or $operation.Query.QueryName -cne $QueryName -or $operation.Query.Resolver -cne $Resolver -or $operation.Query.Options -ne 2103790 -or $operation.Query.Status -ne $operation.Query.ResultStatus -or $operation.Query.Status -notin @(0,9003,9501)){throw 'Unexpected DNS worker response or unsupported native outcome.'}
+        if($operation.ProcessId -ne $process.Id -or $operation.Query.QueryName -cne $QueryName -or $operation.Query.Resolver -cne $Resolver -or $operation.Query.Options -ne 2103790 -or $operation.Query.Status -ne $operation.Query.ResultStatus -or $operation.Query.Status -notin @(0,9003,9501)){throw ('Unexpected DNS worker response or unsupported native outcome: PID='+$operation.ProcessId+' expectedPID='+$process.Id+' options='+$operation.Query.Options+' APIstatus='+$operation.Query.Status+' resultStatus='+$operation.Query.ResultStatus)}
         $begin=ConvertTo-WelaArrivalUtc $operation.StartedUtc;$end=ConvertTo-WelaArrivalUtc $operation.CompletedUtc
         $operation.StartedUtc=$begin.UtcDateTime.ToString('o');$operation.CompletedUtc=$end.UtcDateTime.ToString('o')
         if($begin -lt $launch -or $end -lt $begin -or $end -gt [DateTimeOffset]::UtcNow -or ($end-$begin).TotalSeconds -gt 20){throw 'Invalid DNS operation timestamps.'}
@@ -135,7 +137,7 @@ function Invoke-WelaDnsClientProbe {
         if($Action -eq 'Plan'){$report.After=$before;$report.Status='PrerequisitesObserved';$report.ExitCode=0;return $report}
         $report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath 'before.json' ($before|ConvertTo-Json -Depth 24)
         $queryName='wela-'+[guid]::NewGuid().ToString('N')+'.wela.test.'
-        $operation=Start-WelaDnsClientProbeQuery $before $Resolver $queryName;$report.Operation=$operation;$report.ReaderBefore=$operation.CallerBefore
+        $operation=Start-WelaDnsClientProbeQuery $before $Resolver $queryName $report;$report.Operation=$operation;$report.ReaderBefore=$operation.CallerBefore
         $report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath 'operation.json' ($operation|ConvertTo-Json -Depth 15)
         $timer=[Diagnostics.Stopwatch]::StartNew();$matches=@()
         do{$batch=Read-WelaDnsClientProbeEvents $operation;$report.Query=$batch.Query;$report.QueryLogStatus=@($batch.LogStatus);Assert-WelaChannelQueryStatus -Channel 'Microsoft-Windows-DNS-Client/Operational' -LogStatus $report.QueryLogStatus;$report.Candidates=@($batch.Xml).Count;if($batch.Capped -isnot [bool] -or $batch.Capped){throw 'DNS event query cap reached or completeness unknown.'};$matches=@($batch.Xml|Where-Object {Test-WelaDnsClientProbeEvent $_ $operation $before});if($matches.Count){break};Start-Sleep -Milliseconds 250}while($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds)

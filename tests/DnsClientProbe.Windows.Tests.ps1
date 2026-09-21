@@ -54,7 +54,7 @@ try {
 }catch{
  Write-Host ('Native DNS Client failure: '+($_|Out-String));Write-Host $_.ScriptStackTrace
  # Small owned diagnostics only; avoid dumping unrelated channel payloads.
- if(Test-Path (Join-Path $private 'evidence')){Get-ChildItem (Join-Path $private 'evidence') -File|Where-Object {$_.Name -in @('manifest.json','operation.json') -or $_.Name -like 'candidate-*.xml'}|ForEach-Object{Write-Host $_.Name;Write-Host ([IO.File]::ReadAllText($_.FullName))}}
+ if(Test-Path (Join-Path $private 'evidence')){Get-ChildItem (Join-Path $private 'evidence') -File|Where-Object {$_.Name -in @('manifest.json','operation.json','worker.json') -or $_.Name -like 'candidate-*.xml'}|ForEach-Object{Write-Host $_.Name;Write-Host ([IO.File]::ReadAllText($_.FullName))}}
  throw
 }finally{
  $errors=@()
