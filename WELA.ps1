@@ -147,6 +147,12 @@
     [string]$RecoveryOutputPath,
     [string]$ArrivalProbePath,
     [string]$ArrivalOutputPath,
+    [ValidateSet('Plan','Apply')][string]$WecListenerAction = 'Plan',
+    [string]$WecListenerComputerName,
+    [string]$WecListenerLocalAddress,
+    [string]$WecListenerPlanPath,
+    [string]$WecListenerPlanHash,
+    [string]$WecListenerOutputPath,
     [ValidateSet('Plan','Apply')][string]$WecIngressAction = 'Plan',
     [string]$WecIngressName,
     [string[]]$WecIngressLocalAddress,
@@ -242,6 +248,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/WecUpdate.ps1")
 . (Join-Path $ScriptRoot "scripts/WecIngress.ps1")
+. (Join-Path $ScriptRoot "scripts/WecListener.ps1")
 . (Join-Path $ScriptRoot "scripts/WecState.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
@@ -2036,6 +2043,7 @@ Usage:
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
   ./WELA.ps1 eventlog-recovery -Help # Review restoration of one completed log size/mode write
+  ./WELA.ps1 wec-listener -Help      # Review one fixed-address native HTTP5985 listener
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
@@ -2127,6 +2135,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
 
 if ($Cmd -ne 'eventlog-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'EventRecovery*'}).Count) {throw 'EventRecovery options require eventlog-recovery.'}
 if ($Cmd -eq 'eventlog-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EventRecoveryAction','EventRecoveryJournalPath','EventRecoveryOriginalResultsPath','EventRecoveryLog','EventRecoveryPlanPath','EventRecoveryPlanHash','EventRecoveryOutputPath','EventRecoveryAllowShrink','EventRecoveryAllowRetentionChange','Help')}).Count)) {throw 'eventlog-recovery accepts only dedicated options.'}
+if ($Cmd -ne 'wec-listener' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecListener*'}).Count) {throw 'WecListener options require wec-listener.'}
+if ($Cmd -eq 'wec-listener' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecListenerAction','WecListenerComputerName','WecListenerLocalAddress','WecListenerPlanPath','WecListenerPlanHash','WecListenerOutputPath','Help')}).Count)) {throw 'wec-listener accepts only dedicated options.'}
 if ($Cmd -ne 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecIngress*'}).Count) {throw 'WecIngress options require wec-ingress.'}
 if ($Cmd -eq 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecIngressAction','WecIngressName','WecIngressLocalAddress','WecIngressRemoteAddress','WecIngressPlanPath','WecIngressPlanHash','WecIngressOutputPath','Help')}).Count) {throw 'wec-ingress accepts only dedicated options.'}
 if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
@@ -2364,6 +2374,19 @@ switch ($Cmd.ToLower()) {
         $map=@{EventRecoveryJournalPath='JournalPath';EventRecoveryOriginalResultsPath='OriginalResultsPath';EventRecoveryLog='Log';EventRecoveryPlanPath='PlanPath';EventRecoveryPlanHash='PlanHash'}
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaEventLogRecovery @arguments;$report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'wec-listener' {
+        if ($Help) {Write-Host 'Usage: wec-listener [-WecListenerAction Plan] -WecListenerComputerName actual-local-computer -WecListenerLocalAddress assigned-IPv4 -WecListenerOutputPath new-private-directory; then Apply with -WecListenerPlanPath plan.json -WecListenerPlanHash SHA256 -WecListenerOutputPath new-private-directory. Creates one fixed HTTP5985 /wsman listener using native Windows PowerShell5.1 under either host engine. Existing listener conflicts refuse; services, authentication and firewall settings are preserved. See docs/wec-listener.md.';return}
+        if ($WecListenerAction -eq 'Plan') {
+            if ($PSBoundParameters.ContainsKey('WecListenerPlanPath') -or $PSBoundParameters.ContainsKey('WecListenerPlanHash') -or [string]::IsNullOrWhiteSpace($WecListenerComputerName) -or [string]::IsNullOrWhiteSpace($WecListenerLocalAddress) -or [string]::IsNullOrWhiteSpace($WecListenerOutputPath)) {throw 'wec-listener Plan requires a computer name, assigned IPv4 and new output path; reviewed plan/hash options are for Apply.'}
+        } else {
+            if ($PSBoundParameters.ContainsKey('WecListenerComputerName') -or $PSBoundParameters.ContainsKey('WecListenerLocalAddress') -or [string]::IsNullOrWhiteSpace($WecListenerPlanPath) -or $WecListenerPlanHash -cnotmatch '^[a-fA-F0-9]{64}$' -or [string]::IsNullOrWhiteSpace($WecListenerOutputPath)) {throw 'wec-listener Apply requires only a reviewed plan, SHA256 and new output path; computer/address are taken from the reviewed plan.'}
+        }
+        $arguments=@{Action=$WecListenerAction;OutputPath=$WecListenerOutputPath}
+        $map=@{WecListenerComputerName='ComputerName';WecListenerLocalAddress='LocalAddress';WecListenerPlanPath='PlanPath';WecListenerPlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaWecListener @arguments;$report
         if($report.ExitCode){exit $report.ExitCode}
     }
     'wec-ingress' {
