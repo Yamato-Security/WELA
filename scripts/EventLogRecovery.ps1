@@ -52,7 +52,7 @@ function Get-WelaEventRecoveryDefinition {
     Assert-WelaEventRecoveryText $fresh @('Phase')
     if($initial.PSObject.Properties['Phase'] -or $fresh.Phase -cne 'ImmediatePreWrite' -or $row.Status -cne 'Applied' -or $row.Kind -cne 'EventLog' -or $row.Id -cne $id){throw 'Only completed Applied profile writes with ordered immediate-prewrite evidence are supported.'}
     foreach($entry in $matching){
-        Assert-WelaEventRecoveryText $entry @('ComputerName','Kind','Id','RecordedUtc')
+        Assert-WelaEventRecoveryText $entry @('ComputerName','Kind','Id')
         if(($entry.Version -isnot [int] -and $entry.Version -isnot [long]) -or $entry.Version -ne 1 -or $entry.ComputerName -ine $context.Host.Computer -or $entry.Kind -cne 'EventLog' -or $entry.Id -cne $id){throw 'Unknown or wrong-host event-log journal.'}
         $time=ConvertTo-WelaArrivalUtc $entry.RecordedUtc;if($time -gt [DateTimeOffset]::UtcNow.AddMinutes(1)){throw 'Future journal timestamp.'}
     }
