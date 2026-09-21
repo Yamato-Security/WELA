@@ -5,7 +5,7 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
-- Extend `audit-recovery` to restore three named process/PowerShell logging DWORDs from completed journals, with native value-only writes, neighboring-data guards and retained registry keys.
+- Extend `audit-recovery` to restore three named process/PowerShell logging DWORDs from completed journals, with native value-only writes, neighboring-data guards and retained registry keys. ([#435](https://github.com/Yamato-Security/WELA/pull/435))
 
 **Improvements:**
 
