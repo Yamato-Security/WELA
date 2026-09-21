@@ -48,12 +48,20 @@ namespace Wela.FileSaclRecovery {
   }
   public static void Removed(string beforeBytes,string afterBytes,string added) {
    RawSecurityDescriptor before=Parse(beforeBytes),after=Parse(afterBytes);Outside(before,after,false);
-   if(before.SystemAcl==null||after.SystemAcl==null||before.SystemAcl.Revision!=after.SystemAcl.Revision)throw new InvalidOperationException("SACL revision or presence changed during removal.");
+   if(before.SystemAcl==null)throw new InvalidOperationException("Original SACL is absent.");
+   if(after.SystemAcl==null){if(before.SystemAcl.Count!=1)throw new InvalidOperationException("A null SACL would lose unrelated audit ACEs.");}
+   else if(before.SystemAcl.Revision!=after.SystemAcl.Revision)throw new InvalidOperationException("SACL revision changed during removal: "+before.SystemAcl.Revision+" to "+after.SystemAcl.Revision+" (after count "+after.SystemAcl.Count+").");
    Dictionary<string,int> expected=Counts(before.SystemAcl),actual=Counts(after.SystemAcl);
    if(!expected.ContainsKey(added)||expected[added]!=1)throw new InvalidOperationException("The selected audit ACE is no longer unique.");
    expected[added]--;
    foreach(KeyValuePair<string,int> entry in expected){int count=actual.ContainsKey(entry.Key)?actual[entry.Key]:0;if(count!=entry.Value)throw new InvalidOperationException("Unrelated audit ACEs changed during removal.");actual.Remove(entry.Key);}
    if(actual.Count!=0)throw new InvalidOperationException("Unexpected ACE appeared during removal.");
+  }
+  public static string SaclRepresentation(string value) {
+   RawSecurityDescriptor sd=Parse(value);bool present=(sd.ControlFlags&ControlFlags.SystemAclPresent)!=0;
+   if(!present)return "Absent";
+   if(sd.SystemAcl==null)return "PresentNull";
+   return (sd.SystemAcl.Count==0?"PresentEmpty":"PresentWithAces")+";Revision="+sd.SystemAcl.Revision;
   }
   public static Snapshot Observe(string path,string identity,byte[] bytes) {
    string encoded=Convert.ToBase64String(bytes);RawSecurityDescriptor sd=Parse(encoded);List<Ace> entries=new List<Ace>();
@@ -91,7 +99,7 @@ namespace Wela.FileSaclRecovery {
   [DllImport("advapi32.dll")] static extern uint GetSecurityInfo(IntPtr handle,uint kind,uint flags,out IntPtr owner,out IntPtr group,out IntPtr dacl,out IntPtr sacl,out IntPtr descriptor);
   [DllImport("advapi32.dll")] static extern uint GetSecurityDescriptorLength(IntPtr descriptor);
   [DllImport("advapi32.dll")] static extern uint SetSecurityInfo(IntPtr handle,uint kind,uint flags,IntPtr owner,IntPtr group,IntPtr dacl,IntPtr sacl);
-  readonly string path;IntPtr handle;Privilege privilege;public bool WriteAttempted {get;private set;}
+  readonly string path;IntPtr handle;Privilege privilege;public bool WriteAttempted {get;private set;}public Snapshot AfterObservation {get;private set;}
   public Target(string path){this.path=path;try{privilege=new Privilege();handle=CreateFile(path,0x01020000,3,IntPtr.Zero,3,0x02200000,IntPtr.Zero);if(handle==new IntPtr(-1)){int error=Marshal.GetLastWin32Error();handle=IntPtr.Zero;throw new Win32Exception(error);}Check();}catch{Dispose();throw;}}
   string Check(){if(handle==IntPtr.Zero)throw new ObjectDisposedException("Target");FileInfo info;if(!GetFileInformationByHandle(handle,out info))throw new Win32Exception(Marshal.GetLastWin32Error());if((info.Attributes&0x410)!=0)throw new InvalidOperationException("Directories and reparse files are unsupported.");StringBuilder final=new StringBuilder(32768);uint length=GetFinalPathNameByHandle(handle,final,(uint)final.Capacity,0);if(length==0||length>=final.Capacity||!String.Equals(final.ToString(),"\\\\?\\"+path,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Final held file path differs from the reviewed path.");return info.Volume+":"+info.IndexHigh+":"+info.IndexLow+":"+info.Created;}
   public Snapshot Read(){string identity=Check();IntPtr owner,group,dacl,sacl,descriptor;uint error=GetSecurityInfo(handle,1,511,out owner,out group,out dacl,out sacl,out descriptor);if(error!=0)throw new Win32Exception((int)error,"Full SDK-defined file descriptor read failed.");byte[] bytes;try{uint size=GetSecurityDescriptorLength(descriptor);if(size<20||size>1048576)throw new InvalidOperationException("Invalid descriptor size.");bytes=new byte[size];Marshal.Copy(descriptor,bytes,0,(int)size);}finally{LocalFree(descriptor);}if(Check()!=identity)throw new InvalidOperationException("Held file identity changed.");return Descriptor.Observe(path,identity,bytes);}
@@ -103,7 +111,7 @@ namespace Wela.FileSaclRecovery {
    if(ace==null||ace.IsCallback||ace.AceType!=AceType.SystemAudit||((int)ace.AceFlags!=64&&(int)ace.AceFlags!=128&&(int)ace.AceFlags!=192))throw new InvalidOperationException("Only an explicit ordinary audit ACE can be removed.");
    sd.SystemAcl.RemoveAce(index);byte[] bytes=new byte[sd.SystemAcl.BinaryLength];sd.SystemAcl.GetBinaryForm(bytes,0);IntPtr buffer=Marshal.AllocHGlobal(bytes.Length);
    try{Marshal.Copy(bytes,0,buffer,bytes.Length);WriteAttempted=true;uint error=SetSecurityInfo(handle,1,8,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,buffer);if(error!=0)throw new Win32Exception((int)error,"SACL-only removal failed.");}finally{Marshal.FreeHGlobal(buffer);}
-   Snapshot after=Read();if(after.Identity!=before.Identity)throw new InvalidOperationException("File identity changed during removal.");Descriptor.Removed(before.DescriptorBase64,after.DescriptorBase64,added);return after;
+   Snapshot after=Read();AfterObservation=after;if(after.Identity!=before.Identity)throw new InvalidOperationException("File identity changed during removal.");Descriptor.Removed(before.DescriptorBase64,after.DescriptorBase64,added);return after;
   }
   public void Dispose(){try{if(handle!=IntPtr.Zero){CloseHandle(handle);handle=IntPtr.Zero;}}finally{if(privilege!=null){privilege.Dispose();privilege=null;}}}
  }

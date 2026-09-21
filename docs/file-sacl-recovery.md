@@ -44,7 +44,7 @@ $hash = (Get-FileHash $plan -Algorithm SHA256).Hash.ToLowerInvariant()
 
 Before mutation, `reviewed-plan.json` and `pending.json` are created exclusively, flushed to disk, reopened and hashed. Implementation, operator, host, original input files and reviewed plan are rechecked. The native helper holds a file handle without delete sharing, rejects directories and reparse files, verifies its final path and actual identity, and rereads the exact descriptor. It submits only `SACL_SECURITY_INFORMATION` to remove the unique proven ACE. Temporary `SeSecurityPrivilege` state is restored.
 
-Afterwards WELA reads the held file and reopens the path, checks identity, unrelated ACE bytes/counts, SACL revision/presence, owner/group, DACL, control flags and resource-manager control, then rechecks sources/evidence and reopens once more. Descriptor observations cover WinSDK-defined sections `0x1ff`; future sections are unobserved. Windows security-descriptor operations are not an atomic compare-and-swap against another administrator. Quiesce concurrent ACL writers; the guards detect observed drift, not an arbitrarily timed competing write.
+Afterwards WELA reads the held file and reopens the path, checks identity, unrelated ACE bytes/counts, SACL presence, revision when an ACL remains, owner/group, DACL, control flags and resource-manager control, then rechecks sources/evidence and reopens once more. Descriptor observations cover WinSDK-defined sections `0x1ff`; future sections are unobserved. Windows security-descriptor operations are not an atomic compare-and-swap against another administrator. Quiesce concurrent ACL writers; the guards detect observed drift, not an arbitrarily timed competing write.
 
 `result.json` reports:
 
@@ -54,7 +54,7 @@ Afterwards WELA reads the held file and reopens the path, checks identity, unrel
 | `Refused` | The operation failed before any native write attempt. |
 | `WriteAttemptedUnverified` | A native write was attempted but complete final verification failed. Retain evidence and inspect manually. |
 
-Removing the final audit ACE may leave an **empty present SACL** even if the historical descriptor had no SACL. This is an ACE-removal result, not a byte-for-byte restoration of the historical descriptor. `OriginalDescriptorBytesMatch` is only an observation; exact historical descriptor equality and original ACE ordering are not promised. Unrelated ACE bytes and counts are preserved. WELA does not automatically re-add the ACE after partial failure. No outcome grants rule-readiness credit.
+Removing the final audit ACE may leave an **empty or null present SACL** even if the historical descriptor had no SACL. Windows may retain `SACL_PRESENT` while returning no ACL pointer (`PresentNull`); this is accepted only when the removed ACE was the sole original ACE and all outside control/header fields still match. `SaclBefore` and `SaclAfter` record the observed representation and available ACL revision. This is an ACE-removal result, not a byte-for-byte restoration of the historical descriptor. `OriginalDescriptorBytesMatch` is only an observation; exact historical descriptor equality and original ACE ordering are not promised. Unrelated ACE bytes and counts are preserved. WELA does not automatically re-add the ACE after partial failure. No outcome grants rule-readiness credit.
 
 ## Validation and limits
 

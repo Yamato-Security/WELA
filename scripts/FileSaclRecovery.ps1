@@ -117,7 +117,7 @@ function New-WelaFileSaclRecoveryPlan {
     if ((Get-WelaSelectedSaclSnapshotKey $current) -cne (Get-WelaSelectedSaclSnapshotKey $confirmed.After)) {throw 'Current file identity or descriptor differs from the completed operation; manual review required.'}
     if ((Get-WelaSelectedSaclSnapshotKey (Get-WelaFileSaclRecoverySnapshot $row.Definition)) -cne (Get-WelaSelectedSaclSnapshotKey $current)) {throw 'File changed during recovery planning.'}
     $inputFiles=[ordered]@{};foreach ($name in $files.Keys) {$file=$files[$name];$inputFiles[$name]=[pscustomobject]@{Path=$file.Path;Sha256=$file.Sha256;Bytes=$file.Bytes}}
-    $recovery=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaFileSaclRecoveryPlan';Id=$row.Id;Profile=$plan.Profile;Operator=$operator;ContextKey=$context.Key;Sources=$sources;OriginalFiles=[pscustomobject]$inputFiles;Definition=$row.Definition;BeforeAddition=$row.Before;Expected=$current;AddedAce=$added;Outcome='Remove one proven explicit ordinary audit ACE; an empty present SACL can remain.';ReadyRuleCredit=0}
+    $recovery=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaFileSaclRecoveryPlan';Id=$row.Id;Profile=$plan.Profile;Operator=$operator;ContextKey=$context.Key;Sources=$sources;OriginalFiles=[pscustomobject]$inputFiles;Definition=$row.Definition;BeforeAddition=$row.Before;Expected=$current;AddedAce=$added;Outcome='Remove one proven explicit ordinary audit ACE; an empty or null present SACL can remain.';ReadyRuleCredit=0}
     Assert-WelaFileSaclRecoveryFresh $recovery
     $recovery
 }
@@ -144,7 +144,7 @@ function Invoke-WelaFileSaclRecovery {
     if ((Get-WelaFileSaclRecoveryKey $plan) -cne (Get-WelaFileSaclRecoveryKey $rebuilt)) {throw 'Reviewed recovery plan is stale or modified.'}
     if ($DryRun) {return [pscustomobject]@{Status='WouldRemoveAddedAce';ExitCode=0;Target=$plan.Definition.Path;ReadyRuleCredit=0}}
     $output=New-WelaArrivalOutput -Path $OutputPath -SourcePath (Split-Path $reviewed.Path -Parent)
-    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaFileSaclRecoveryResult';Status='Refused';ExitCode=1;StartedUtc=[DateTime]::UtcNow.ToString('o');CompletedUtc=$null;PlanHash=$PlanHash;Before=$plan.Expected;After=$null;WriteAttempted=$false;Artifacts=@();OriginalDescriptorBytesMatch=$false;Diagnostic='';OutputPath=$output;ReadyRuleCredit=0;PolicyChanges=0;Scope='Remove only one proven explicit leaf-file audit ACE; preserve other ACE bytes/counts and observed descriptor components. No descendant, exact historical descriptor, event or Sigma claim.'}
+    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaFileSaclRecoveryResult';Status='Refused';ExitCode=1;StartedUtc=[DateTime]::UtcNow.ToString('o');CompletedUtc=$null;PlanHash=$PlanHash;Before=$plan.Expected;After=$null;SaclBefore=[Wela.FileSaclRecovery.Descriptor]::SaclRepresentation($plan.Expected.DescriptorBase64);SaclAfter=$null;WriteAttempted=$false;Artifacts=@();OriginalDescriptorBytesMatch=$false;Diagnostic='';OutputPath=$output;ReadyRuleCredit=0;PolicyChanges=0;Scope='Remove only one proven explicit leaf-file audit ACE; preserve other ACE bytes/counts and observed descriptor components. No descendant, exact historical descriptor, event or Sigma claim.'}
     $target=$null
     try {
         $report.Artifacts+=Write-WelaFileSaclRecoveryArtifact $output 'reviewed-plan.json' (Get-WelaFileSaclRecoveryKey $plan)
@@ -153,7 +153,7 @@ function Invoke-WelaFileSaclRecovery {
         if ((Read-WelaFileSaclRecoveryInput $reviewed.Path).Sha256 -cne $PlanHash) {throw 'Reviewed recovery plan changed before write.'}
         Initialize-WelaFileSaclRecoveryNative
         $target=[Wela.FileSaclRecovery.Target]::new((Resolve-WelaSelectedSaclNativePath $plan.Definition))
-        try {$report.After=$target.Remove($plan.Expected.Identity,$plan.Expected.DescriptorBase64,$plan.AddedAce)} finally {$report.WriteAttempted=$target.WriteAttempted}
+        try {$report.After=$target.Remove($plan.Expected.Identity,$plan.Expected.DescriptorBase64,$plan.AddedAce)} finally {$report.WriteAttempted=$target.WriteAttempted;if ($target.AfterObservation) {$report.After=$target.AfterObservation;$report.SaclAfter=[Wela.FileSaclRecovery.Descriptor]::SaclRepresentation($report.After.DescriptorBase64)}}
         $target.Dispose();$target=$null
         $fresh=Get-WelaFileSaclRecoverySnapshot $plan.Definition
         if ((Get-WelaSelectedSaclSnapshotKey $fresh) -cne (Get-WelaSelectedSaclSnapshotKey $report.After)) {throw 'File identity or descriptor changed after removal.'}

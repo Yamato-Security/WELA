@@ -87,6 +87,14 @@ $duplicateAdded=[Wela.FileSaclRecovery.Descriptor]::AddedAce((Encode $duplicateO
 [Wela.FileSaclRecovery.Descriptor]::Removed((Encode $duplicateAfter),(Encode $duplicateOld),$duplicateAdded)
 Assert ($duplicateOld.SystemAcl.Count -eq 2) 'Duplicate unrelated ACEs are preserved.'
 Throws {[Wela.FileSaclRecovery.Descriptor]::Removed((Encode $duplicateAfter),(Encode $old),$duplicateAdded)} 'Unrelated audit ACEs'
+# Windows can retain SACL_PRESENT with a null ACL after removing the sole ACE.
+$sole=Add-AuditAce $base (New-AuditAce)
+$soleAdded=[Wela.FileSaclRecovery.Descriptor]::AddedAce($before,(Encode $sole),'S-1-1-0',1,64)
+$presentNull=Clone $sole;$presentNull.SystemAcl=$null
+[Wela.FileSaclRecovery.Descriptor]::Removed((Encode $sole),(Encode $presentNull),$soleAdded)
+Assert ([Wela.FileSaclRecovery.Descriptor]::SaclRepresentation((Encode $presentNull)) -ceq 'PresentNull') 'Sole-ACE removal can retain present-null SACL with exact control fields.'
+Throws {[Wela.FileSaclRecovery.Descriptor]::Removed((Encode $after),(Encode $presentNull),$added)} 'lose unrelated'
+Throws {[Wela.FileSaclRecovery.Descriptor]::Removed((Encode $sole),(Encode $presentNull),'different-ACE')} 'no longer unique'
 # Native object audit ACEs never qualify as the ordinary selected addition.
 $objectBase=Clone $base;$objectBase.SystemAcl=[Security.AccessControl.RawAcl]::new(4,0);$objectBase.SetFlags($objectBase.ControlFlags -bor [Security.AccessControl.ControlFlags]::SystemAclPresent)
 $objectAfter=Clone $objectBase

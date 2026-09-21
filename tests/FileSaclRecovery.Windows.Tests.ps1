@@ -87,6 +87,8 @@ try {
         $out=Join-Path $caseDir 'restored'
         Run-Wela ($restore+@('-Auto','-FileSaclRecoveryOutputPath',$out))
         $result=Json (Join-Path $out 'result.json');$after=Get-WelaSelectedSaclSnapshot $definition
+        Assert ($result.SaclAfter -ceq [Wela.FileSaclRecovery.Descriptor]::SaclRepresentation($after.DescriptorBase64)) 'Reported final SACL representation matches actual reopened native bytes.'
+        Write-Host ("Native SACL representation: "+$result.SaclBefore+' -> '+$result.SaclAfter)
         Assert ($result.Status -ceq 'AddedAceRemoved' -and $result.WriteAttempted -and $result.ExitCode -eq 0 -and $result.PolicyChanges -eq 0) 'Public recovery performs and verifies only the proven added ACE removal.'
         [Wela.FileSaclRecovery.Descriptor]::Removed($afterAddition.DescriptorBase64,$after.DescriptorBase64,$plan.AddedAce)
         Assert ($before.Identity -ceq $after.Identity -and $before.Owner -ceq $after.Owner -and $before.Group -ceq $after.Group -and $before.DaclBase64 -ceq $after.DaclBase64 -and $before.Aces.Count -eq $after.Aces.Count) 'Actual reopened leaf preserves identity, owner/group/DACL and unrelated ACE counts.'
