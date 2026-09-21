@@ -1,0 +1,35 @@
+name: Reviewed exact-IP collector listener
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wec-listener:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Native listener checkpoint in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WecListener.Checkpoint.Windows.Tests.ps1 -AllowDisposableListenerReplacement
+      - name: Native listener checkpoint in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WecListener.Checkpoint.Windows.Tests.ps1 -AllowDisposableListenerReplacement
+      - name: Retain native listener and cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wec-listener-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-listener-*/
+          if-no-files-found: warn
+          retention-days: 7
