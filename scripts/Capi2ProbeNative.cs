@@ -2,9 +2,17 @@
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 namespace Wela.Capi2Probe {
  public sealed class ChainResult { public uint Flags, ErrorStatus, InfoStatus, Chains, Elements; }
  public static class Native {
+  public static CngKey CreateEphemeralRsa() {
+   CngKeyCreationParameters parameters=new CngKeyCreationParameters();
+   parameters.Provider=CngProvider.MicrosoftSoftwareKeyStorageProvider;
+   parameters.Parameters.Add(new CngProperty("Length",BitConverter.GetBytes(2048),CngPropertyOptions.None));
+   // Literal null is essential: PowerShell converts a null string argument to empty.
+   return CngKey.Create(CngAlgorithm.Rsa,null,parameters);
+  }
   public const uint OfflineFlags=0x80002104; // cache-only URL/revocation, no AIA, no auth-root auto-update
   [StructLayout(LayoutKind.Sequential)] struct Usage { public uint Count; public IntPtr Oids; }
   [StructLayout(LayoutKind.Sequential)] struct Match { public uint Type; public Usage Usage; }

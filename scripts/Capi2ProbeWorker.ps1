@@ -8,10 +8,7 @@ Initialize-WelaCapi2ProbeNative
 $before=[Wela.WmiProbe.Native]::Snapshot()
 $key=$null;$rsa=$null;$certificate=$null
 try {
- $parameters=[Security.Cryptography.CngKeyCreationParameters]::new()
- $parameters.Provider=[Security.Cryptography.CngProvider]::MicrosoftSoftwareKeyStorageProvider
- $parameters.Parameters.Add([Security.Cryptography.CngProperty]::new('Length',[BitConverter]::GetBytes([int]2048),[Security.Cryptography.CngPropertyOptions]::None))
- $key=[Security.Cryptography.CngKey]::Create([Security.Cryptography.CngAlgorithm]::Rsa,$null,$parameters)
+ $key=[Wela.Capi2Probe.Native]::CreateEphemeralRsa()
  if(-not $key.IsEphemeral -or $key.KeyName){throw 'The generated CNG key is not ephemeral.'}
  $rsa=[Security.Cryptography.RSACng]::new($key)
  $request=[Security.Cryptography.X509Certificates.CertificateRequest]::new(('CN=WelaCapi2Probe_'+$Nonce),$rsa,[Security.Cryptography.HashAlgorithmName]::SHA256,[Security.Cryptography.RSASignaturePadding]::Pkcs1)

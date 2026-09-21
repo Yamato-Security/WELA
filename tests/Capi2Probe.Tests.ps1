@@ -10,7 +10,7 @@ function Clone($Value){ConvertFrom-WelaArrivalJson ($Value|ConvertTo-Json -Depth
 $nonce='0123456789abcdef0123456789abcdef';$now=[DateTime]::UtcNow
 $token=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1001';Name='HOST\user';AuthenticationId='0x1234';AuthenticationType='NTLM';Groups=@([pscustomobject]@{Sid='S-1-5-32-545';Attributes=7});Privileges=@()}
 $state=[pscustomobject]@{Computer='HOST';Host=[pscustomobject]@{Computer='HOST';Build=20348;UBR=1;ProductType=3;DomainJoined=$false;Domain='WORKGROUP'};Token=$token;Channel=[pscustomobject]@{Name='Microsoft-Windows-CAPI2/Operational';Enabled=$true;SecurityDescriptor='O:SYG:SYD:(A;;1;;;SY)';Type='Operational';Provider='Microsoft-Windows-CAPI2'};Provider=[pscustomobject]@{Name='Microsoft-Windows-CAPI2';Guid='5bbca4a8-b209-48dc-a8c7-b23d3e5216fb';Event11Versions=@(0);LogNames=@('Microsoft-Windows-CAPI2/Operational')}}
-$rsa=[Security.Cryptography.RSA]::Create();$rsa.KeySize=2048;$cert=$null
+if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){$rsa=[Security.Cryptography.RSACng]::new(2048)}else{$rsa=[Security.Cryptography.RSA]::Create();$rsa.KeySize=2048};$cert=$null
 try{
  $request=[Security.Cryptography.X509Certificates.CertificateRequest]::new(('CN=WelaCapi2Probe_'+$nonce),$rsa,[Security.Cryptography.HashAlgorithmName]::SHA256,[Security.Cryptography.RSASignaturePadding]::Pkcs1)
  $cert=$request.CreateSelfSigned(([DateTimeOffset]$now).AddMinutes(-5),([DateTimeOffset]$now).AddMinutes(5))
