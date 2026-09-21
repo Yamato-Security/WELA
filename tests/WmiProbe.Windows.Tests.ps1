@@ -1,5 +1,5 @@
 # Real native APIs and public CLI. Never dot-source mocked fixture functions.
-param([switch]$AllowDisposableNamespaceWrite)
+param([switch]$AllowDisposableNamespaceWrite,[ValidateRange(1,5)][int]$ProbeRuns=3)
 $ErrorActionPreference='Stop'
 if(-not $AllowDisposableNamespaceWrite -or $env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:OS -ne 'Windows_NT'){throw 'Explicit disposable GitHub-hosted Windows opt-in is required.'}
 $repo=Split-Path $PSScriptRoot -Parent
@@ -43,21 +43,24 @@ try{
     Assert (Test-WelaWmiDescriptorPreserved ($before.DescriptorJson|ConvertFrom-Json) ($after.DescriptorJson|ConvertFrom-Json)) 'Owner/group/DACL and existing SACL entries survived.'
     Set-ItemProperty -LiteralPath $path -Name $name -Type DWord -Value 1
     Set-WelaEffectiveAuditPolicy -Guid $guid -Mask 1 -Mode minimum
-    $out=Join-Path $private 'probe'
-    $ErrorActionPreference='Continue'
-    $cli=& $engine -NoLogo -NoProfile -NonInteractive -File (Join-Path $repo 'WELA.ps1') wmi-probe -WmiProbeAction Run -WmiProbeNamespace $namespace -WmiProbeOutputPath $out -WmiProbeTimeoutSeconds 20 2>&1|Out-String
-    $code=$LASTEXITCODE;$ErrorActionPreference='Stop'
-    $manifest=ConvertFrom-WelaArrivalJson ([IO.File]::ReadAllText((Join-Path $out 'manifest.json')))
-    # Bounded raw native diagnostics are useful when an unreviewed OS schema differs.
-    Write-Host ($manifest|ConvertTo-Json -Depth 18)
-    foreach($file in @(Get-ChildItem -LiteralPath $out -Filter '*.xml' -ErrorAction Stop)){Write-Host ([IO.File]::ReadAllText($file.FullName))}
-    Assert ($code -eq 0 -and $manifest.Status -eq 'LocalNamespaceAccessObserved' -and $manifest.ExitCode -eq 0) ('Public native probe failed: '+$manifest.Diagnostic+' '+$cli)
-    Assert ($manifest.Matches -ge 1 -and $manifest.Matches -le 16 -and $manifest.ReadyRuleCredit -eq 0 -and $manifest.PolicyChanges -eq 0 -and $manifest.NamespaceChanges -eq 0) 'Bounded native evidence grants no policy or Sigma claim.'
-    foreach($artifact in $manifest.Artifacts){Assert ($artifact.Sha256 -ceq (Get-FileHash -LiteralPath (Join-Path $out $artifact.Name)).Hash.ToLowerInvariant()) 'Protected artifact hash verifies.'}
-    foreach($file in @(Get-ChildItem -LiteralPath $out -Filter 'event-*.xml')){Assert (Test-WelaWmiProbeEvent ([IO.File]::ReadAllText($file.FullName)) $manifest.Operation $manifest.Before) 'Real WMI event passes exact source/namespace/token/mask/time checks.'}
-    Assert ((Get-WelaWmiNamespaceSnapshot $namespace).DescriptorJson -ceq $after.DescriptorJson) 'Public probe made no namespace security changes.'
-    Assert ((Get-WelaWmiProbeTokenKey ([Wela.WmiProbe.Native]::Snapshot())) -ceq (Get-WelaWmiProbeTokenKey $originalToken)) 'Native descriptor reads/writes restored caller token state.'
-    Assert ((Get-Acl -LiteralPath $out).AreAccessRulesProtected) 'Evidence directory blocks inherited broad access.'
+    for($trial=1;$trial -le $ProbeRuns;$trial++){
+        $out=Join-Path $private ('probe-'+$trial)
+        $ErrorActionPreference='Continue'
+        $cli=& $engine -NoLogo -NoProfile -NonInteractive -File (Join-Path $repo 'WELA.ps1') wmi-probe -WmiProbeAction Run -WmiProbeNamespace $namespace -WmiProbeOutputPath $out -WmiProbeTimeoutSeconds 20 2>&1|Out-String
+        $code=$LASTEXITCODE;$ErrorActionPreference='Stop'
+        $manifest=ConvertFrom-WelaArrivalJson ([IO.File]::ReadAllText((Join-Path $out 'manifest.json')))
+        # Bounded raw native diagnostics are useful when an unreviewed OS schema differs.
+        Write-Host ($manifest|ConvertTo-Json -Depth 18)
+        foreach($file in @(Get-ChildItem -LiteralPath $out -Filter '*.xml' -ErrorAction Stop)){Write-Host ([IO.File]::ReadAllText($file.FullName))}
+        Assert ($code -eq 0 -and $manifest.Status -eq 'LocalNamespaceAccessObserved' -and $manifest.ExitCode -eq 0) ('Public native probe failed: '+$manifest.Diagnostic+' '+$cli)
+        Assert ($manifest.Operation.Clock -ceq 'GetSystemTimePreciseAsFileTime') 'Actual worker identifies the native precise UTC clock.'
+        Assert ($manifest.Matches -ge 1 -and $manifest.Matches -le 16 -and $manifest.ReadyRuleCredit -eq 0 -and $manifest.PolicyChanges -eq 0 -and $manifest.NamespaceChanges -eq 0) 'Bounded native evidence grants no policy or Sigma claim.'
+        foreach($artifact in $manifest.Artifacts){Assert ($artifact.Sha256 -ceq (Get-FileHash -LiteralPath (Join-Path $out $artifact.Name)).Hash.ToLowerInvariant()) 'Protected artifact hash verifies.'}
+        foreach($file in @(Get-ChildItem -LiteralPath $out -Filter 'event-*.xml')){Assert (Test-WelaWmiProbeEvent ([IO.File]::ReadAllText($file.FullName)) $manifest.Operation $manifest.Before) 'Real WMI event passes exact source/namespace/token/mask/time checks.'}
+        Assert ((Get-WelaWmiNamespaceSnapshot $namespace).DescriptorJson -ceq $after.DescriptorJson) 'Public probe made no namespace security changes.'
+        Assert ((Get-WelaWmiProbeTokenKey ([Wela.WmiProbe.Native]::Snapshot())) -ceq (Get-WelaWmiProbeTokenKey $originalToken)) 'Native descriptor reads/writes restored caller token state.'
+        Assert ((Get-Acl -LiteralPath $out).AreAccessRulesProtected) 'Evidence directory blocks inherited broad access.'
+    }
 }catch{$failure=$_}
 finally{
     try{Set-WelaEffectiveAuditPolicy -Guid $guid -Mask $originalPolicies[$guid] -Mode exact}catch{$cleanupErrors+='Audit restoration: '+$_.Exception.Message}
@@ -68,5 +71,5 @@ finally{
     [pscustomobject]@{Namespace=$namespace;Created=$created;Failure=$(if($failure){$failure.Exception.Message}else{$null});CleanupErrors=$cleanupErrors;Evidence=$private;Complete=($null -eq $failure -and $cleanupErrors.Count -eq 0)}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $private 'cleanup.json') -Encoding UTF8
 }
 if($failure){throw $failure};if($cleanupErrors.Count){throw ($cleanupErrors -join '; ')}
-Write-Host "PASS: $script:count actual native WMI4662/public CLI assertions, original policies restored and owned namespace removed. No remote or Sigma claim."
+Write-Host "PASS: $script:count actual native WMI4662/public CLI assertions across $ProbeRuns independent public runs, original policies restored and owned namespace removed. No remote or Sigma claim."
 $global:LASTEXITCODE=0
