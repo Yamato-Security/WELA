@@ -2013,7 +2013,7 @@ Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 if ($Cmd -ne 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'FirewallRecovery*' }).Count) {throw 'FirewallRecovery options require firewall-recovery. No command was run.'}
-if ($Cmd -eq 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','FirewallRecoveryAction','FirewallRecoveryProfile','FirewallRecoveryJournalPath','FirewallRecoveryResultsPath','FirewallRecoveryPlanPath','FirewallRecoveryPlanHash','FirewallRecoveryOutputPath','Auto','DryRun','Help') }).Count) {throw 'firewall-recovery accepts only dedicated options, Auto and DryRun. No command was run.'}
+if ($Cmd -eq 'firewall-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','FirewallRecoveryAction','FirewallRecoveryProfile','FirewallRecoveryJournalPath','FirewallRecoveryResultsPath','FirewallRecoveryPlanPath','FirewallRecoveryPlanHash','FirewallRecoveryOutputPath','Auto','DryRun','Help') }).Count)) {throw 'firewall-recovery accepts only dedicated options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
 if ($Cmd -ne 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'SmbRuntime*' }).Count) {throw 'SmbRuntime options require smb-runtime. No command was run.'}
 if ($Cmd -eq 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','SmbRuntimeAction','SmbRuntimeOutputPath','Auto','DryRun','Help') }).Count) {throw 'smb-runtime accepts only its dedicated options, Auto and DryRun. No command was run.'}

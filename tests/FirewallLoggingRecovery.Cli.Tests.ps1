@@ -12,6 +12,7 @@ Check @('firewall-recovery','-RecoveryAction','Restore') 'dedicated|require audi
 Check @('firewall-recovery','-FirewallRecoveryProfile','All') 'ValidateSet|does not belong'
 Check @('firewall-recovery','-FirewallRecoveryAction','Plan','-Auto') 'requires one profile'
 Check @('firewall-recovery','-FirewallRecoveryAction','Restore','-DryRun') 'reviewed plan/hash'
+Check @('firewall-recovery','-FirewallRecoveryAction','Restore','-WhatIf') 'dedicated options'
 Check @('firewall-recovery','-FirewallRecoveryAction','Restore','-FirewallRecoveryPlanPath','missing','-FirewallRecoveryPlanHash',('a'*64),'-DryRun','-FirewallRecoveryOutputPath','must-not-exist') 'reviewed plan/hash'
 $global:LASTEXITCODE=0
 Write-Host "Firewall recovery public CLI: $n checks passed."
