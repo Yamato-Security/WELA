@@ -63,3 +63,8 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /tests/Capi2Probe* text eol=lf
 
 /scripts/CustomAuditProfiles.ps1 text eol=lf
+
+# Reviewed WEC state plans bind native setter and runtime source bytes.
+/scripts/WecState* text eol=lf
+/scripts/WecRuntime* text eol=lf
+/tests/WecState* text eol=lf

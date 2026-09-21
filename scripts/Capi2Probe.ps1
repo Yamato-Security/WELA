@@ -31,7 +31,7 @@ function Get-WelaCapi2ProbeStateKey {
  if(@($State.Services).Count -ne 3 -or (@($State.Services.Name|Sort-Object) -join ',') -cne 'CryptSvc,EventLog,Winmgmt' -or @($State.Services|Where-Object Status -cne 'Running').Count){throw 'Required native services must already be running.'}
  if($State.Host.Build -notin @(20348,26100) -or $State.Host.ProductType -notin @(2,3) -or -not $State.Host.UBR -or $State.Host.Computer -cne $State.Computer){throw 'CAPI2 probe requires an observed Server 2022/2025 build and patch context.'}
  if($State.Channel.Enabled -isnot [bool] -or -not $State.Channel.Enabled -or $State.Channel.Name -cne 'Microsoft-Windows-CAPI2/Operational' -or $State.Channel.Type -cne 'Operational' -or $State.Channel.Provider -cne 'Microsoft-Windows-CAPI2' -or -not $State.Channel.SecurityDescriptor){throw 'CAPI2 Operational must already be enabled with an observed descriptor.'}
- if($State.Provider.Name -cne 'Microsoft-Windows-CAPI2' -or $State.Provider.Guid -ine '5bbca4a8-b209-48dc-a8c7-b23d3e5216fb' -or @($State.Provider.Event11Versions).Count -ne 1 -or $State.Provider.Event11Versions[0] -ne 0 -or $State.Channel.Name -cnotin $State.Provider.LogNames){throw 'Unreviewed CAPI2 provider or event11 schema version.'}
+ if($State.Provider.Name -cne 'Microsoft-Windows-CAPI2' -or $State.Provider.Guid -ine '5bbca4a8-b209-48dc-a8c7-b23d3e5216fb' -or @($State.Provider.Event11Versions).Count -ne 1 -or $State.Provider.Event11Versions[0] -ne 0 -or $State.Channel.Name -cnotin $State.Provider.LogNames){throw 'Unreviewed CAPI2 provider or event 11 schema version.'}
  $null=Get-WelaWmiProbeTokenKey $State.Token
  $State|ConvertTo-Json -Depth 16 -Compress
 }
@@ -115,7 +115,7 @@ function Test-WelaCapi2ProbeEvent {
   if($system.Computer.InnerText -notin $computers -or $system.Execution.GetAttribute('ProcessID') -cne [string]$Operation.ProcessId -or $system.Security.GetAttribute('UserID') -cne $Operation.BeforeToken.Sid){return $false}
   $time=ConvertTo-WelaArrivalUtc $system.TimeCreated.GetAttribute('SystemTime');if($time -lt (ConvertTo-WelaArrivalUtc $Operation.StartedUtc) -or $time -gt (ConvertTo-WelaArrivalUtc $Operation.CompletedUtc)){return $false}
   $data=$doc.SelectSingleNode('/e:Event/e:UserData',$ns)
-  # Namespace and exact paths are pinned to native event11, never a recursive name search.
+  # Namespace and exact paths are pinned to native event 11, never a recursive name search.
   if(@($data.ChildNodes|Where-Object NodeType -eq Element).Count -ne 1){return $false}
   $chain=$data.SelectNodes('e:CertGetCertificateChain',$ns);if($chain.Count -ne 1){return $false};$chain=$chain[0]
   $names=@('Certificate','ExtendedKeyUsage','URLRetrievalTimeout','Flags','ChainEngineInfo','CertificateChain','EventAuxInfo','CorrelationAuxInfo','Result')
@@ -139,7 +139,7 @@ function Test-WelaCapi2ProbeEvent {
 function Invoke-WelaCapi2Probe {
  param([ValidateSet('Plan','Run')][string]$Action='Plan',[string]$OutputPath,[ValidateRange(1,30)][int]$TimeoutSeconds=15)
  if(($Action -eq 'Run') -ne (-not [string]::IsNullOrWhiteSpace($OutputPath))){throw 'Run requires a new Capi2ProbeOutputPath; Plan creates no files.'}
- $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaOfflineCapi2ChainProbe';Action=$Action;Status='Unverified';ExitCode=1;Before=$null;After=$null;Operation=$null;Query=$null;Candidates=0;Matches=0;Artifacts=@();Diagnostic='';OutputPath=$null;ChannelChanges=0;StoreChanges=0;TrustPolicyChanges=0;ReadyRuleCredit=0;Scope='One fixed local ephemeral certificate-chain build and matching CAPI2 event11 only. Untrusted self-signed outcome expected; no TLS, revocation, remote, forwarding, catalog event70 or Sigma/backend validation. Sysmon excluded.'}
+ $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaOfflineCapi2ChainProbe';Action=$Action;Status='Unverified';ExitCode=1;Before=$null;After=$null;Operation=$null;Query=$null;Candidates=0;Matches=0;Artifacts=@();Diagnostic='';OutputPath=$null;ChannelChanges=0;StoreChanges=0;TrustPolicyChanges=0;ReadyRuleCredit=0;Scope='One fixed local ephemeral certificate-chain build and matching CAPI2 event 11 only. Untrusted self-signed outcome expected; no TLS, revocation, remote, forwarding, catalog event70 or Sigma/backend validation. Sysmon excluded.'}
  if($Action -eq 'Run'){$report.OutputPath=New-WelaArrivalOutput $OutputPath $PSScriptRoot}
  try{
   $before=Get-WelaCapi2ProbeState;$report.Before=$before;$key=Get-WelaCapi2ProbeStateKey $before;$null=Get-WelaCapi2ProbeWatermark
@@ -154,7 +154,7 @@ function Invoke-WelaCapi2Probe {
    $matches=@($batch.Xml|Where-Object {Test-WelaCapi2ProbeEvent $_ $operation $before});if($matches.Count){break};Start-Sleep -Milliseconds 250
   }while($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds)
   $report.Matches=$matches.Count
-  if($matches.Count -ne 1){$i=0;foreach($xml in @($batch.Xml|Select-Object -First 4)){$i++;$report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath ('candidate-'+$i+'.xml') $xml};throw 'Expected exactly one matching CAPI2 event11 in the fixed operation interval.'}
+  if($matches.Count -ne 1){$i=0;foreach($xml in @($batch.Xml|Select-Object -First 4)){$i++;$report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath ('candidate-'+$i+'.xml') $xml};throw 'Expected exactly one matching CAPI2 event 11 in the fixed operation interval.'}
   $report.Artifacts+=Write-WelaArrivalArtifact $report.OutputPath 'event.xml' $matches[0]
   if((Get-WelaCapi2ProbeWatermark) -lt $operation.RecordIdBefore){throw 'CAPI2 record boundary moved backwards; continuity is unknown.'}
   $after=Get-WelaCapi2ProbeState;$report.After=$after;if((Get-WelaCapi2ProbeStateKey $after) -cne $key){throw 'Host, token, provider, channel or implementation changed during collection.'}
