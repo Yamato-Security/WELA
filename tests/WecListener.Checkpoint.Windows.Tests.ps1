@@ -17,6 +17,18 @@ function ReadListeners {
 function Key($Value){ConvertTo-Json -InputObject @($Value|Select-Object Address,Transport,Port,Hostname,Enabled,URLPrefix,CertificateThumbprint,ListeningOn) -Depth 10 -Compress}
 function ReadServices {@(Get-CimInstance Win32_Service -Filter "Name='WinRM' OR Name='Wecsvc' OR Name='MpsSvc' OR Name='BFE'"|Sort-Object Name|Select-Object Name,StartMode,State)}
 function ReadFirewall {@(NetSecurity\Get-NetFirewallRule -PolicyStore ActiveStore|Sort-Object Name|Select-Object Name,Enabled,Profile,Direction,Action,PolicyStoreSourceType)}
+function NewCheckpointListener($Selector,$Values) {
+    $automation=$null;$session=$null;$locator=$null
+    try {
+        $automation=New-Object -ComObject 'WSMan.Automation'
+        $session=$automation.CreateSession('',0,$null);$session.Timeout=5000
+        $locator=$automation.CreateResourceLocator('http://schemas.microsoft.com/wbem/wsman/1/config/listener')
+        $locator.AddSelector('Address',[string]$Selector.Address);$locator.AddSelector('Transport',[string]$Selector.Transport)
+        $doc=[Xml.XmlDocument]::new();$element=$doc.CreateElement('cfg','Listener','http://schemas.microsoft.com/wbem/wsman/1/config/listener');$null=$doc.AppendChild($element)
+        foreach($name in @('Port','Hostname','Enabled','URLPrefix','CertificateThumbprint')){$child=$doc.CreateElement('cfg',$name,$element.NamespaceURI);$child.InnerText=[string]$Values[$name];$null=$element.AppendChild($child)}
+        [string]$session.Create($locator,$doc.OuterXml,0)
+    }finally{foreach($item in @($locator,$session,$automation)){if($null -ne $item -and [Runtime.InteropServices.Marshal]::IsComObject($item)){$null=[Runtime.InteropServices.Marshal]::FinalReleaseComObject($item)}}}
+}
 $services=ReadServices;$firewall=ReadFirewall;$original=$null;$removed=@();$created=$false;$failure=$null;$cleanupErrors=@();$count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 try {
@@ -35,14 +47,14 @@ try {
     $values=@{Port='5985';Hostname='';Enabled='true';URLPrefix='wsman';CertificateThumbprint=''}
     Save 'selection.json' @{Selector=$selector;Values=$values}
     $created=$true
-    $result=Microsoft.WSMan.Management\New-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet $selector -ValueSet $values -ErrorAction Stop
-    Save 'native-create.json' @{Xml=$result.OuterXml}
+    $result=NewCheckpointListener $selector $values
+    Save 'native-create.json' @{Xml=$result}
     $after=ReadListeners;Save 'listeners-created.json' $after;$chosen=@($after|Where-Object {$_.Address -ceq $selector.Address -and $_.Transport -ceq 'HTTP'})
     Assert ($chosen.Count -eq 1) 'Exactly one assigned-IP listener must exist.'
     Assert ($chosen[0].Port -ceq '5985' -and $chosen[0].Enabled -ceq 'true' -and $chosen[0].URLPrefix -ceq 'wsman' -and -not $chosen[0].CertificateThumbprint -and -not $chosen[0].Hostname) 'Every fixed listener property must match.'
     Assert ($chosen[0].ListeningOn.Count -eq 1 -and $chosen[0].ListeningOn[0] -ceq $ip) 'Actual ListeningOn must contain exactly the selected IPv4 address.'
     $duplicateRejected=$false;$duplicateError=''
-    try {$null=Microsoft.WSMan.Management\New-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet $selector -ValueSet $values -ErrorAction Stop}catch{$duplicateRejected=$true;$duplicateError=$_.ToString()}
+    try {$null=NewCheckpointListener $selector $values}catch{$duplicateRejected=$true;$duplicateError=$_.ToString()}
     Save 'collision.json' @{Rejected=$duplicateRejected;Diagnostic=$duplicateError};Assert $duplicateRejected 'Windows must reject creating the same listener selector twice.'
     Assert ((Key (ReadListeners)) -ceq (Key $after)) 'Rejected collision must preserve the listener definition.'
     $prereq=@(Get-WelaWefCollectorPrerequisites ([pscustomobject]@{CollectorFqdn='fixture.invalid';ListenerAddress=$selector.Address;IngressRuleName='WELA-checkpoint-does-not-exist';IngressLocalAddresses=@($ip);IngressRemoteAddresses=@('192.0.2.0/24')}))
@@ -50,7 +62,7 @@ try {
     Write-Host "PASS: $count native listener checkpoint assertions. No WEF delivery proof."
 }catch{$failure=$_.ToString();Write-Host $failure;throw}finally{
     if($created){try {Microsoft.WSMan.Management\Remove-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet $selector -ErrorAction Stop}catch{$cleanupErrors+=$_.ToString()}}
-    foreach($listener in $removed){try {$null=Microsoft.WSMan.Management\New-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet @{Address=$listener.Address;Transport=$listener.Transport} -ValueSet @{Port=$listener.Port;Hostname=$listener.Hostname;Enabled=$listener.Enabled;URLPrefix=$listener.URLPrefix;CertificateThumbprint=$listener.CertificateThumbprint} -ErrorAction Stop}catch{$cleanupErrors+=$_.ToString()}}
+    foreach($listener in $removed){try {$null=NewCheckpointListener @{Address=$listener.Address;Transport=$listener.Transport} @{Port=$listener.Port;Hostname=$listener.Hostname;Enabled=$listener.Enabled;URLPrefix=$listener.URLPrefix;CertificateThumbprint=$listener.CertificateThumbprint}}catch{$cleanupErrors+=$_.ToString()}}
     $restored=$null;$listenersOk=$false;$firewallOk=$false;$servicesOk=$false
     try {$restored=ReadListeners;Save 'listeners-restored.json' $restored;$listenersOk=$null -ne $original -and (Key $original) -ceq (Key $restored)}catch{$cleanupErrors+=$_.ToString()}
     try {if(@($services|Where-Object Name -eq 'WinRM')[0].State -eq 'Stopped'){Stop-Service WinRM -ErrorAction Stop};$endServices=ReadServices;Save 'services-restored.json' $endServices;$servicesOk=($services|ConvertTo-Json -Compress) -ceq ($endServices|ConvertTo-Json -Compress)}catch{$cleanupErrors+=$_.ToString()}
