@@ -30,7 +30,8 @@ namespace Wela.DnsClientProbe {
    if(name==null||!Regex.IsMatch(name,@"^wela-[a-f0-9]{32}\.wela\.test\.\z"))throw new ArgumentException("Only the fixed random probe name is accepted.");
    ValidateResolver(resolver);
    // SDK DNS_ADDR_ARRAY header32 + one DNS_ADDR64; sockaddr_in in its first16 bytes.
-   byte[] server=new byte[96];BitConverter.GetBytes((uint)1).CopyTo(server,0);BitConverter.GetBytes((uint)1).CopyTo(server,4);
+   // DNS_ADDR_ARRAY.MaxCount is the structure size in bytes; AddrCount is the element count.
+   byte[] server=new byte[96];BitConverter.GetBytes((uint)server.Length).CopyTo(server,0);BitConverter.GetBytes((uint)1).CopyTo(server,4);
    BitConverter.GetBytes((ushort)2).CopyTo(server,12);BitConverter.GetBytes((ushort)2).CopyTo(server,32);
    server[34]=0;server[35]=53;IPAddress.Parse(resolver).GetAddressBytes().CopyTo(server,36);
    IntPtr servers=Marshal.AllocHGlobal(server.Length);QueryResult result=new QueryResult {Version=1};
