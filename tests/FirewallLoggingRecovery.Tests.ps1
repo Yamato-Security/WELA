@@ -59,6 +59,13 @@ try {
     Reset
     $e=Read-WelaFirewallRecoveryEvidence $journal $results Domain TEST
     Assert ($e.RecoverTo.LogMaxSizeKilobytes -eq 4096 -and $e.Expected.LogAllowed -ceq 'True') 'Exact typed local recovery tuple'
+    if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){
+        $entry.Desired.PathMode='CisV4';$entry.Desired.LogFileName='%SystemRoot%\System32\LogFiles\Firewall\domainfw.log';$row.Desired=Copy-Fixture $entry.Desired
+        $row.After.Local.LogFileName=$entry.Desired.LogFileName;$row.After.Effective.LogFileName=$entry.Desired.LogFileName;Save
+        $migration=Read-WelaFirewallRecoveryEvidence $journal $results Domain TEST
+        Assert ($migration.RecoverTo.LogFileName -ceq 'C:\Logs\Domain.log' -and $migration.Expected.LogFileName -ceq $entry.Desired.LogFileName) 'CIS migration preserves the exact original local recovery path'
+        Reset
+    }
     foreach($bad in @('NotConfigured','true','1')){$v=Copy-Fixture $e.RecoverTo;$v.LogAllowed=$bad;Throws {ConvertTo-WelaFirewallRecoveryTuple $v} 'True/False'}
     foreach($bad in @('4096',0,32768,$true,1.5)){$v=Copy-Fixture $e.RecoverTo;$v.LogMaxSizeKilobytes=$bad;Throws {ConvertTo-WelaFirewallRecoveryTuple $v} 'integer'}
     foreach($path in @('\\host\share\log','C:\Logs\..\other.log','C:\Logs\log:stream','C:\Logs\*.log','%TEMP%\log','C:relative.log','C:\Logs\')){Throws {Resolve-WelaFirewallRecoveryLogPath $path} 'path|unsupported|streams'}

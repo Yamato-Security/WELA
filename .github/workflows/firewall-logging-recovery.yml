@@ -42,6 +42,12 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: firewall-recovery-${{ matrix.os }}-${{ matrix.engine }}
-          path: ${{ runner.temp }}/wela-firewall-recovery-*/
+          path: |
+            ${{ runner.temp }}/wela-firewall-recovery-*/*.json
+            ${{ runner.temp }}/wela-firewall-recovery-*/cli-*.txt
+            ${{ runner.temp }}/wela-firewall-recovery-*/configure-backup/
+            ${{ runner.temp }}/wela-firewall-recovery-*/plan/
+            ${{ runner.temp }}/wela-firewall-recovery-*/restore/
+            ${{ runner.temp }}/wela-firewall-recovery-*/again/
           if-no-files-found: warn
           retention-days: 7
