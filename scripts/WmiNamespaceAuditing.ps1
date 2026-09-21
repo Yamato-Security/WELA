@@ -129,7 +129,10 @@ function Get-WelaWmiMissingAces {
 function New-WelaWmiConnection {
     param([string]$Namespace)
     $options = New-Object System.Management.ConnectionOptions
-    $options.EnablePrivileges = $true
+    # The caller already enables exactly SeSecurityPrivilege and restores it.
+    # Automatic WMI privilege enabling can leave unrelated privileges enabled
+    # on a thread impersonation token (observed SeBackupPrivilege on hosted CI).
+    $options.EnablePrivileges = $false
     $options.Impersonation = [System.Management.ImpersonationLevel]::Impersonate
     $scope = New-Object System.Management.ManagementScope -ArgumentList "\\.\$Namespace", $options
     $scope.Connect()
