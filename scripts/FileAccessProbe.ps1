@@ -1,9 +1,12 @@
 # Explicit one-byte existing-file read and exact local Security4663 evidence.
 function Initialize-WelaFileProbeNative {
     Initialize-WelaWmiProbeNative
-    $source=Join-Path $PSScriptRoot 'FileAccessProbeNative.cs';$hash=(Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
-    if(-not ('Wela.FileAccessProbe.FileHandle' -as [type])){Add-Type -Path $source -ErrorAction Stop;$script:WelaFileProbeNativeHash=$hash}
-    if($script:WelaFileProbeNativeHash -cne $hash){throw 'Loaded file probe helper differs from its source; start a fresh session.'}
+    $source=Join-Path $PSScriptRoot 'FileAccessProbeNative.cs';$bytes=[IO.File]::ReadAllBytes($source);$hash=Get-WelaArrivalHash $bytes
+    if(-not ('Wela.FileAccessProbe.FileHandle' -as [type])){
+        $definition=[Text.UTF8Encoding]::new($false,$true).GetString($bytes).Replace('__WELA_FILE_PROBE_SOURCE_SHA256__',$hash)
+        Add-Type -TypeDefinition $definition -ErrorAction Stop
+    }
+    if([Wela.FileAccessProbe.FileHandle]::SourceSha256 -cne $hash){throw 'Loaded file probe helper differs from its source; start a fresh session.'}
 }
 function Test-WelaFileProbeInteger {param($Value) ($Value -is [int] -or $Value -is [long] -or $Value -is [uint32] -or $Value -is [uint64])}
 function Assert-WelaFileProbePath {
@@ -35,8 +38,9 @@ function Get-WelaFileProbeReaderKey {
 }
 function Assert-WelaFileProbeSnapshot {
     param($Snapshot)
-    foreach($name in @('Path','Identity','DescriptorBase64','StateKey')){if($Snapshot.$name -isnot [string] -or -not $Snapshot.$name){throw 'Incomplete typed file observation.'}}
+    foreach($name in @('Path','NativePath','Identity','DescriptorBase64','StateKey')){if($Snapshot.$name -isnot [string] -or -not $Snapshot.$name){throw 'Incomplete typed file observation.'}}
     Assert-WelaFileProbePath $Snapshot.Path
+    if($Snapshot.NativePath -cnotmatch '^\\Device\\[^\\]+\\'){throw 'Incomplete native NT file path observation.'}
     if($Snapshot.StateKey -cnotmatch '^[a-f0-9]{64}$' -or -not(Test-WelaFileProbeInteger $Snapshot.Size) -or $Snapshot.Size -le 0 -or -not(Test-WelaFileProbeInteger $Snapshot.SecurityInformation) -or $Snapshot.SecurityInformation -ne 511 -or -not(Test-WelaFileProbeInteger $Snapshot.Links) -or $Snapshot.Links -ne 1 -or -not(Test-WelaFileProbeInteger $Snapshot.Attributes) -or ($Snapshot.Attributes -band (16+1024+4096+16384+262144+4194304))){throw 'Only a complete nonempty ordinary single-link leaf-file observation is supported.'}
     $Snapshot.LastWriteUtc=(ConvertTo-WelaArrivalUtc $Snapshot.LastWriteUtc).UtcDateTime.ToString('o')
     if($Snapshot.Aces -isnot [array] -or $Snapshot.Aces.Count -gt 128){throw 'Missing or oversized file audit ACE inventory.'}
@@ -170,7 +174,7 @@ function Test-WelaFileProbeEvent {
         $time=ConvertTo-WelaArrivalUtc $system.TimeCreated.GetAttribute('SystemTime');if($time -lt (ConvertTo-WelaArrivalUtc $Operation.Read.StartedUtc) -or $time -gt (ConvertTo-WelaArrivalUtc $Operation.Read.CompletedUtc)){return $false}
         $data=@{};foreach($node in $doc.SelectSingleNode('/e:Event/e:EventData',$ns).ChildNodes){if($node.NodeType -eq 'Whitespace'){continue};if($node.NodeType -ne 'Element' -or $node.LocalName -cne 'Data' -or $node.NamespaceURI -cne $ns.LookupNamespace('e')){return $false};$name=$node.GetAttribute('Name');if(-not $name -or $data.ContainsKey($name) -or @($node.ChildNodes|Where-Object NodeType -eq Element).Count){return $false};$data[$name]=$node.InnerText}
         foreach($name in @('SubjectUserSid','SubjectUserName','SubjectDomainName','SubjectLogonId','ObjectServer','ObjectType','ObjectName','HandleId','AccessList','AccessMask','ProcessId','ProcessName','ResourceAttributes')){if(-not $data.ContainsKey($name)){return $false}}
-        if($data.Count -ne 13 -or $data.ObjectServer -cne 'Security' -or $data.ObjectType -cne 'File' -or $data.ObjectName -ine $State.File.Path -or $data.ProcessName -ine $State.Engine -or $data.SubjectUserSid -cne $Operation.BeforeToken.Sid -or $data.AccessList.Trim() -cne '%%4416'){return $false}
+        if($data.Count -ne 13 -or $data.ObjectServer -cne 'Security' -or $data.ObjectType -cne 'File' -or ($data.ObjectName -ine $State.File.Path -and $data.ObjectName -ine $State.File.NativePath) -or $data.ProcessName -ine $State.Engine -or $data.SubjectUserSid -cne $Operation.BeforeToken.Sid -or $data.AccessList.Trim() -cne '%%4416'){return $false}
         foreach($name in @('SubjectLogonId','AccessMask','ProcessId','HandleId')){if($data[$name] -cnotmatch '^0x[0-9a-fA-F]+$'){return $false}}
         if([Convert]::ToUInt64($data.SubjectLogonId.Substring(2),16) -ne [Convert]::ToUInt64($Operation.BeforeToken.AuthenticationId.Substring(2),16) -or [Convert]::ToUInt64($data.AccessMask.Substring(2),16) -ne 1 -or [Convert]::ToUInt64($data.ProcessId.Substring(2),16) -ne $Operation.ProcessId -or [Convert]::ToUInt64($data.HandleId.Substring(2),16) -ne [Convert]::ToUInt64($Operation.Read.HandleId.Substring(2),16)){return $false}
         $true

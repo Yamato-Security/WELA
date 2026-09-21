@@ -11,7 +11,7 @@ using System.Text;
 namespace Wela.FileAccessProbe {
  public sealed class Ace { public int Type,Flags,Mask; public string Sid,Binary; public bool Ordinary; }
  public sealed class Observation {
-  public string Path,Identity,LastWriteUtc,DescriptorBase64,StateKey;
+  public string Path,NativePath,Identity,LastWriteUtc,DescriptorBase64,StateKey;
   public long Size; public uint Attributes,Links; public int SecurityInformation; public Ace[] Aces;
  }
  public sealed class ReadReceipt {
@@ -53,6 +53,7 @@ namespace Wela.FileAccessProbe {
   [DllImport("kernel32.dll")] static extern IntPtr LocalFree(IntPtr memory);
   [DllImport("advapi32.dll")] static extern uint GetSecurityInfo(IntPtr handle,uint kind,uint flags,out IntPtr owner,out IntPtr group,out IntPtr dacl,out IntPtr sacl,out IntPtr descriptor);
   [DllImport("advapi32.dll")] static extern uint GetSecurityDescriptorLength(IntPtr descriptor);
+  public const string SourceSha256="__WELA_FILE_PROBE_SOURCE_SHA256__";
   IntPtr handle;readonly bool canRead;bool readAttempted;readonly string selected;
   public static DateTime UtcNow(){long value;GetSystemTimePreciseAsFileTime(out value);return DateTime.FromFileTimeUtc(value);}
   public FileHandle(string path,bool readData) {
@@ -80,15 +81,19 @@ namespace Wela.FileAccessProbe {
    long size=((long)info.SizeHigh<<32)|info.SizeLow;if(size<=0)throw new InvalidOperationException("The selected file must be nonempty.");
    StringBuilder final=new StringBuilder(32768);uint length=GetFinalPathNameByHandleW(handle,final,(uint)final.Capacity,0);
    if(length==0||length>=final.Capacity||!String.Equals(final.ToString(),@"\\?\"+selected,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Native final file path differs from the selected local path.");
-   string actual=final.ToString().Substring(4);IntPtr owner,group,dacl,sacl,descriptor;
+   string actual=final.ToString().Substring(4);
+   // Bind the NT volume name from this same held handle: Security4663 may use it.
+   StringBuilder native=new StringBuilder(32768);uint nativeLength=GetFinalPathNameByHandleW(handle,native,(uint)native.Capacity,2);
+   if(nativeLength==0||nativeLength>=native.Capacity||!System.Text.RegularExpressions.Regex.IsMatch(native.ToString(),@"^\\Device\\[^\\]+\\"))throw new InvalidOperationException("Native NT file path observation failed.");
+   string nativePath=native.ToString();IntPtr owner,group,dacl,sacl,descriptor;
    uint error=GetSecurityInfo(handle,1,0x1ff,out owner,out group,out dacl,out sacl,out descriptor);if(error!=0)throw new Win32Exception((int)error,"Full current SDK descriptor observation (0x1ff) failed.");
    byte[] bytes;try{uint count=GetSecurityDescriptorLength(descriptor);if(count<20||count>131072)throw new InvalidOperationException("File descriptor exceeds its observation bound.");bytes=new byte[count];Marshal.Copy(descriptor,bytes,0,(int)count);}finally{LocalFree(descriptor);}
    RawSecurityDescriptor sd=new RawSecurityDescriptor(bytes,0);List<Ace> entries=new List<Ace>();
    if(sd.SystemAcl!=null)foreach(GenericAce ace in sd.SystemAcl){if(entries.Count>=128)throw new InvalidOperationException("File SACL exceeds 128 entries.");CommonAce common=ace as CommonAce;bool ordinary=common!=null&&!common.IsCallback&&common.AceType==AceType.SystemAudit;byte[] binary=new byte[ace.BinaryLength];ace.GetBinaryForm(binary,0);entries.Add(new Ace{Type=(int)ace.AceType,Flags=(int)ace.AceFlags,Mask=ordinary?common.AccessMask:0,Sid=ordinary?common.SecurityIdentifier.Value:null,Binary=Convert.ToBase64String(binary),Ordinary=ordinary});}
    string identity=info.Volume+":"+info.IndexHigh+":"+info.IndexLow+":"+info.Created,encoded=Convert.ToBase64String(bytes),written=DateTime.FromFileTimeUtc(info.Written).ToString("o");
-   string value=actual.ToUpperInvariant()+"|"+identity+"|"+size+"|"+written+"|"+info.Attributes+"|"+info.Links+"|"+encoded,key;
+   string value=actual.ToUpperInvariant()+"|"+nativePath.ToUpperInvariant()+"|"+identity+"|"+size+"|"+written+"|"+info.Attributes+"|"+info.Links+"|"+encoded,key;
    using(SHA256 sha=SHA256.Create()){key=BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(value))).Replace("-","").ToLowerInvariant();}
-   return new Observation{Path=actual,Identity=identity,Size=size,LastWriteUtc=written,Attributes=info.Attributes,Links=info.Links,DescriptorBase64=encoded,SecurityInformation=511,Aces=entries.ToArray(),StateKey=key};
+   return new Observation{Path=actual,NativePath=nativePath,Identity=identity,Size=size,LastWriteUtc=written,Attributes=info.Attributes,Links=info.Links,DescriptorBase64=encoded,SecurityInformation=511,Aces=entries.ToArray(),StateKey=key};
   }
   public ReadReceipt ReadOne(string expectedKey) {
    if(!canRead||readAttempted)throw new InvalidOperationException("Exactly one explicitly requested data read is permitted.");

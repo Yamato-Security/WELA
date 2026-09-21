@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added explicit `file-access-probe` Plan/Run for one byte read from one existing ordinary local leaf with a matching pre-existing ReadData success SACL. Same-handle DOS/NT identity, exact worker/token/time/handle attribution, full policy/security/source guards and durable private evidence require an actual local Security4663. No content is retained and no policy, ACL or file-data changes are made; failure, forwarding and Sigma readiness remain unverified. Disposable Server 2022/2025 tests cover both PowerShell engines and exact cleanup. (Related #373) (@Shirofune-Security)
+
 - Added opt-in `firewall-recovery` for one completed firewall text-log operation. Strict original journal/result matching, reviewed plan hashes, native operator/source guards, durable receipts and exact four-field PersistentStore restoration preserve enforcement, other profiles and bounded rule/filter configuration. Effective policy stays separately reported; partial writes remain unverified without automatic rollback or Sigma credit. Disposable public-CLI tests cover configuration, drift refusal, recovery, idempotence and exact cleanup. (Related #375) (@Shirofune-Security)
 
 - Added explicit `capi2-probe` Plan/Run for a fixed offline ephemeral certificate-chain build and exact local CAPI2 event 11 evidence, with public certificate/nonce/PID/token/precise-UTC binding, bounded worker/collection and retained artifacts. Existing channel, certificate-store and trust configuration are preserved; no TLS, revocation, remote delivery or Sigma credit is claimed.
