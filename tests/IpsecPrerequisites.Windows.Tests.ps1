@@ -30,6 +30,7 @@ try {
     $evidence=Get-WelaIpsecPrerequisite
     $evidence|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'disabled.json') -Encoding UTF8
     Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop|Select-Object *|Export-Clixml (Join-Path $root 'disabled-native.xml')
+    Get-NetIPsecRule -PolicyStore ActiveStore -ErrorAction Stop|Select-Object *|Export-Clixml (Join-Path $root 'disabled-active-native.xml')
     $owned=@($evidence.Rules|Where-Object Name -eq $name)
     Assert ((Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop).Enabled -eq 'False') 'owned persistent rule is actually disabled'
     Assert ($evidence.Status -ne 'Unknown' -and @($owned|Where-Object Qualifies).Count -eq 0) "disabled rule does not qualify (ActiveStore may omit it): $($evidence.Diagnostic)"

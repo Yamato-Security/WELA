@@ -32,7 +32,7 @@ function Get-WelaIpsecPrerequisite {
                         $enabled = [string]$item.Enabled; $inbound = [string]$item.InboundSecurity; $outbound = [string]$item.OutboundSecurity; $health = [string]$item.PrimaryStatus
                         if (-not $name -or $name.Length -gt 1024 -or $seen.ContainsKey($name) -or $enabled -cnotin @('True','False') -or
                             $inbound -cnotin @('None','Request','Require') -or $outbound -cnotin @('None','Request','Require') -or
-                            $health -cnotin @('OK','Degraded','Error','Unknown')) { throw 'Unrecognized or duplicate native IPsec rule observation.' }
+                            $health -cnotin @('OK','Degraded','Error','Unknown')) { throw "Unrecognized or duplicate native IPsec rule observation: Name='$name', Enabled='$enabled', InboundSecurity='$inbound', OutboundSecurity='$outbound', PrimaryStatus='$health'." }
                         $seen[$name] = $true
                         $qualifies = $enabled -ceq 'True' -and ($inbound -cne 'None' -or $outbound -cne 'None') -and $health -ceq 'OK'
                         $rules += [pscustomobject]@{ Name=$name; Enabled=$enabled; InboundSecurity=$inbound; OutboundSecurity=$outbound; PrimaryStatus=$health; Qualifies=$qualifies }
