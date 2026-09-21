@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added explicit `wec-ingress` Plan/Apply for one new, narrowly scoped Domain TCP5985 collector firewall rule. Actual host/logon/profile/source guards, reviewed hashes, flushed pending evidence and both-store/filter readback refuse drift and existing names; partial creation remains explicit. The existing collector prerequisite recognizes equivalent native dotted netmasks and IPv6 spellings without broadening accepted scopes. Disposable native tests cover creation, collision, replay, collector integration and cleanup without listener, delivery or Sigma claims. (@Shirofune-Security)
+
 - Added explicit `smb-runtime` activation of six native SMB audit switches, with reviewed module/build/ADMX capabilities, typed policy conflicts, complete configuration drift guards and durable per-switch receipts. Signing, encryption, guest access and service settings are preserved; runtime verification stays separate from events, persistence and Sigma credit. Disposable Server 2025 activation/restoration and Server 2022 refusal tests cover PowerShell 5.1/7. (#441) (@Shirofune-Security)
 
 - Added reviewed `wec-state` Plan/Apply for the Enabled flag of one existing native source-initiated subscription. Exact authorization and complete definition checks, operator/logon/token guards, durable pending evidence and native readback preserve other settings; matching states never save or reactivate. Runtime remains separate, and interrupted delivery/bookmark continuity require multi-host validation. Disposable Windows lifecycle tests restore owned resources and service state. (Related #368) (@Shirofune-Security)
