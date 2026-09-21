@@ -120,6 +120,13 @@
     [string]$WecUpdatePlanPath,
     [string]$WecUpdatePlanHash,
     [string]$WecUpdateOutputPath,
+    [ValidateSet('Plan','Apply')][string]$WecStateAction = 'Plan',
+    [string]$WecStateId,
+    [string[]]$WecStateSourceSid,
+    [ValidateSet('Enabled','Disabled')][string]$WecStateDesired,
+    [string]$WecStatePlanPath,
+    [string]$WecStatePlanHash,
+    [string]$WecStateOutputPath,
     [ValidateSet('Audit','Plan','Configure')][string]$DnsAction = 'Audit',
     [ValidateSet('Enabled','Disabled')][string]$DnsState,
     [ValidateSet('Preserve','Circular','Retain')][string]$DnsRetention = 'Preserve',
@@ -182,6 +189,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/WecUpdate.ps1")
+. (Join-Path $ScriptRoot "scripts/WecState.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
@@ -1961,6 +1969,7 @@ Usage:
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
+  ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
@@ -2037,6 +2046,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
+if ($Cmd -eq 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecStateAction','WecStateId','WecStateSourceSid','WecStateDesired','WecStatePlanPath','WecStatePlanHash','WecStateOutputPath','Help')}).Count) {throw 'wec-state accepts only dedicated options.'}
 if ($Cmd -ne 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecUpdate*'}).Count) {throw 'WecUpdate options require wec-update.'}
 if ($Cmd -eq 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecUpdateAction','WecUpdateId','WecUpdateSourceSid','WecUpdateQueryPath','WecUpdateDescription','WecUpdatePlanPath','WecUpdatePlanHash','WecUpdateOutputPath','Help')}).Count) {throw 'wec-update accepts only dedicated options.'}
 if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecRuntime*'}).Count) {
@@ -2236,6 +2247,15 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'wec-state' {
+        if ($Help) {Write-Host 'Usage: wec-state [-WecStateAction Plan] -WecStateId ID -WecStateSourceSid SID -WecStateDesired Enabled|Disabled -WecStateOutputPath new-directory; then Apply with -WecStatePlanPath reviewed-plan.json -WecStatePlanHash SHA256 -WecStateOutputPath new-directory. Only Enabled on an existing subscription. Disable interrupts collection; enable/save activates it. See docs/wec-state.md.';return}
+        $arguments=@{Action=$WecStateAction;OutputPath=$WecStateOutputPath}
+        $map=@{WecStateId='Id';WecStateSourceSid='SourceSids';WecStateDesired='State';WecStatePlanPath='PlanPath';WecStatePlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaWecState @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'wec-update' {
         if ($Help) {Write-Host 'Usage: wec-update [-WecUpdateAction Plan] -WecUpdateId ID -WecUpdateSourceSid SID -WecUpdateQueryPath query.xml -WecUpdateDescription text -WecUpdateOutputPath new-directory; then Apply with -WecUpdatePlanPath reviewed-plan.json -WecUpdatePlanHash SHA256 -WecUpdateOutputPath new-directory. Only query/description on already disabled subscriptions. See docs/wec-update.md.';return}

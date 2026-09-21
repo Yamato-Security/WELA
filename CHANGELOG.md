@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added reviewed `wec-state` Plan/Apply for the Enabled flag of one existing native source-initiated subscription. Exact authorization and complete definition checks, operator/logon/token guards, durable pending evidence and native readback preserve other settings; matching states never save or reactivate. Runtime remains separate, and interrupted delivery/bookmark continuity require multi-host validation. Disposable Windows lifecycle tests restore owned resources and service state. (Related #368) (@Shirofune-Security)
+
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
 
 - Added `adcs-resume` to review and explicitly resume a dedicated pending CA auditing restart. Original journal/results, source and current CA/operator fingerprints, durable intent receipts and fresh/final checks prevent stale-plan replay and preserve observed settings. Dry-run and failed attempts remain explicit, with no event/Sigma credit. Disposable CA tests inject the initial refusal then verify an actual public-CLI restart and request events. Also fixed the existing dedicated CA Configure dry-run CLI guard. (#431) (@Shirofune-Security)
