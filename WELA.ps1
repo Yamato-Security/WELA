@@ -104,6 +104,15 @@
     [string]$EvtxProbePath,
     [string]$EvtxArchivePath,
     [string]$EvtxOutputPath,
+    [ValidateSet('Plan','Restore')][string]$EventRecoveryAction = 'Plan',
+    [string]$EventRecoveryJournalPath,
+    [string]$EventRecoveryOriginalResultsPath,
+    [string]$EventRecoveryLog,
+    [string]$EventRecoveryPlanPath,
+    [string]$EventRecoveryPlanHash,
+    [string]$EventRecoveryOutputPath,
+    [switch]$EventRecoveryAllowShrink,
+    [switch]$EventRecoveryAllowRetentionChange,
     [ValidateSet('Plan','Restore')][string]$RecoveryAction = 'Plan',
     [string]$RecoveryJournalPath,
     [string]$RecoveryOriginalResultsPath,
@@ -174,6 +183,7 @@ Import-Module (Join-Path $ScriptRoot "modules/AuditCatalog.psm1") -ErrorAction S
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
+. (Join-Path $ScriptRoot "scripts/EventLogRecovery.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/ChannelRead.ps1")
@@ -1961,6 +1971,7 @@ Usage:
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
+  ./WELA.ps1 eventlog-recovery -Help # Review restoration of one completed log size/mode write
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
@@ -2037,6 +2048,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'eventlog-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'EventRecovery*'}).Count) {throw 'EventRecovery options require eventlog-recovery.'}
+if ($Cmd -eq 'eventlog-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EventRecoveryAction','EventRecoveryJournalPath','EventRecoveryOriginalResultsPath','EventRecoveryLog','EventRecoveryPlanPath','EventRecoveryPlanHash','EventRecoveryOutputPath','EventRecoveryAllowShrink','EventRecoveryAllowRetentionChange','Help')}).Count) {throw 'eventlog-recovery accepts only dedicated options.'}
 if ($Cmd -ne 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecUpdate*'}).Count) {throw 'WecUpdate options require wec-update.'}
 if ($Cmd -eq 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecUpdateAction','WecUpdateId','WecUpdateSourceSid','WecUpdateQueryPath','WecUpdateDescription','WecUpdatePlanPath','WecUpdatePlanHash','WecUpdateOutputPath','Help')}).Count) {throw 'wec-update accepts only dedicated options.'}
 if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecRuntime*'}).Count) {
@@ -2236,6 +2249,14 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'eventlog-recovery' {
+        if ($Help) {Write-Host 'Usage: eventlog-recovery [-EventRecoveryAction Plan] -EventRecoveryJournalPath before.jsonl -EventRecoveryOriginalResultsPath results.json -EventRecoveryLog channel -EventRecoveryOutputPath new-directory; then Restore with -EventRecoveryPlanPath plan.json -EventRecoveryPlanHash SHA256 -EventRecoveryOutputPath new-directory and applicable -EventRecoveryAllowShrink / -EventRecoveryAllowRetentionChange. See docs/eventlog-recovery.md.';return}
+        $arguments=@{Action=$EventRecoveryAction;OutputPath=$EventRecoveryOutputPath;AllowShrink=$EventRecoveryAllowShrink;AllowRetentionChange=$EventRecoveryAllowRetentionChange}
+        $map=@{EventRecoveryJournalPath='JournalPath';EventRecoveryOriginalResultsPath='OriginalResultsPath';EventRecoveryLog='Log';EventRecoveryPlanPath='PlanPath';EventRecoveryPlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaEventLogRecovery @arguments;$report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'wec-update' {
         if ($Help) {Write-Host 'Usage: wec-update [-WecUpdateAction Plan] -WecUpdateId ID -WecUpdateSourceSid SID -WecUpdateQueryPath query.xml -WecUpdateDescription text -WecUpdateOutputPath new-directory; then Apply with -WecUpdatePlanPath reviewed-plan.json -WecUpdatePlanHash SHA256 -WecUpdateOutputPath new-directory. Only query/description on already disabled subscriptions. See docs/wec-update.md.';return}

@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added reviewed `eventlog-recovery` for one completed profile size/retention write. Matched original and immediate-prewrite evidence, current channel/context/source guards, separate shrink/retention consent, durable pending receipts and native readback preserve unrelated channel settings and refuse drift or replay. Windows fixtures restore original settings; lost events, sustained retention and Sigma readiness are not inferred. (@Shirofune-Security)
+
 - Fixed `wmi-probe` operation timing to use the native precise UTC clock consistently in the parent and worker. Explicit clock receipts and launch/completion bounds preserve exact event correlation; sub-millisecond boundary tests and repeated native public-CLI runs cover timing failures without widening the accepted interval. (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
