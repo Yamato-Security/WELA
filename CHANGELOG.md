@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added explicit `file-access-probe` Plan/Run for one byte read from one existing ordinary local leaf with a matching pre-existing ReadData success SACL. Source/engine targets are refused before hashing. Same-handle DOS/NT identity, exact worker/token/handle attribution over the measured read and identity-readback phase, full policy/security/source guards and durable private evidence require an actual local Security4663. No content is retained and no policy, ACL or file-data changes are made; failure, forwarding and Sigma readiness remain unverified. Disposable Server 2022/2025 tests cover both PowerShell engines and exact cleanup. (Related #373) (@Shirofune-Security)
+
 - Added opt-in `applocker-script-probe` for a fixed native Windows PowerShell5.1 script under an existing Script AuditOnly policy. Actual caller/child logon context, held file bytes, precise UTC and native record boundaries distinguish exact Script8005 allowed and8006 would-block events; denied, capped, ambiguous or drifted runs remain unverified. The disposable four-way Windows suite requires both native decisions and policy/channel/task cleanup, with the protected-AppIDSvc stopping boundary recorded. No configuration changes or Sigma credit. (Related #381) (@Shirofune-Security)
 
 - Reject unbound command-line arguments before dispatch, including unsupported `-WhatIf` and misspelled options on legacy configuration commands. PowerShell common parameters such as `-ErrorAction` and `-Verbose` are also rejected; help and diagnostics explain the automation-wrapper compatibility change. Valid positional arguments and documented `-DryRun` behavior are preserved. Public CLI regressions cover both Windows PowerShell 5.1 and PowerShell 7. (@Shirofune-Security)

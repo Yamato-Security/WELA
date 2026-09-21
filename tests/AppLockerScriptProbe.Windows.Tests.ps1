@@ -130,5 +130,5 @@ if($cleanup.Count){throw ('Native cleanup failed: '+($cleanup -join '; '))}
 if($primary){throw $primary}
 $cleanupReceipt=[pscustomobject]@{Head=$env:GITHUB_SHA;Engine=[string]$PSVersionTable.PSVersion;PolicyRestored=$true;ChannelRestored=$true;TaskRestored=$true;ServiceBefore=$before.Service;ServiceAfter=(Get-WelaAppLockerService);ServiceStateRestored=($before.Service.State -ceq (Get-WelaAppLockerService).State);ServiceStartupPreserved=($before.Service.StartMode -ceq (Get-WelaAppLockerService).StartMode);ProtectedServiceBoundary='If AppIDSvc refuses Stop, its running state is left for disposable VM teardown; no full service-state rollback claim.'}
 [IO.File]::WriteAllText((Join-Path $root 'cleanup.json'),($cleanupReceipt|ConvertTo-Json -Depth 8))
-Write-Host 'Original local/effective GP policy, channel enablement and converter task restored; service startup mode preserved.' 
+Write-Host 'Original local/effective GP policy, channel enablement and converter task restored; service startup mode preserved.'
 $global:LASTEXITCODE=0
