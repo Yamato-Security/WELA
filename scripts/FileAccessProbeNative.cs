@@ -15,7 +15,7 @@ namespace Wela.FileAccessProbe {
   public long Size; public uint Attributes,Links; public int SecurityInformation; public Ace[] Aces;
  }
  public sealed class ReadReceipt {
-  public string StartedUtc,CompletedUtc,Clock,HandleId,BeforeKey,AfterKey;
+  public string StartedUtc,ReadReturnedUtc,CompletedUtc,Clock,Phase,HandleId,BeforeKey,AfterKey;
   public int ReadCalls,BytesRead; public bool Succeeded;
  }
  sealed class SecurityPrivilege : IDisposable {
@@ -98,11 +98,14 @@ namespace Wela.FileAccessProbe {
   public ReadReceipt ReadOne(string expectedKey) {
    if(!canRead||readAttempted)throw new InvalidOperationException("Exactly one explicitly requested data read is permitted.");
    Observation before=Observe();if(!String.Equals(before.StateKey,expectedKey,StringComparison.Ordinal))throw new InvalidOperationException("Selected file changed before its one-byte read.");
-   byte[] buffer=new byte[1];readAttempted=true;uint count=0;DateTime started=UtcNow(),completed;bool success;int error;
-   try{success=ReadFile(handle,buffer,1,out count,IntPtr.Zero);error=Marshal.GetLastWin32Error();completed=UtcNow();}finally{Array.Clear(buffer,0,buffer.Length);}
+   byte[] buffer=new byte[1];readAttempted=true;uint count=0;DateTime started=UtcNow(),returned;bool success;int error;
+   try{success=ReadFile(handle,buffer,1,out count,IntPtr.Zero);error=Marshal.GetLastWin32Error();returned=UtcNow();}finally{Array.Clear(buffer,0,buffer.Length);}
    if(!success)throw new Win32Exception(error,"The one-byte read failed.");if(count!=1)throw new InvalidOperationException("The fixed read did not return exactly one byte.");
    Observation after=Observe();if(after.StateKey!=before.StateKey)throw new InvalidOperationException("Held file identity, data metadata or descriptor changed during the read.");
-   return new ReadReceipt{StartedUtc=started.ToString("o"),CompletedUtc=completed.ToString("o"),Clock="GetSystemTimePreciseAsFileTime",ReadCalls=1,BytesRead=1,Succeeded=true,HandleId="0x"+unchecked((ulong)handle.ToInt64()).ToString("x"),BeforeKey=before.StateKey,AfterKey=after.StateKey};
+   // Measure the real completed phase, including the existing held-handle identity/security readback.
+   // Retain the immediate ReadFile return separately; add no delay or timestamp padding.
+   DateTime completed=UtcNow();
+   return new ReadReceipt{StartedUtc=started.ToString("o"),ReadReturnedUtc=returned.ToString("o"),CompletedUtc=completed.ToString("o"),Phase="OneByteReadAndHeldIdentityReadback",Clock="GetSystemTimePreciseAsFileTime",ReadCalls=1,BytesRead=1,Succeeded=true,HandleId="0x"+unchecked((ulong)handle.ToInt64()).ToString("x"),BeforeKey=before.StateKey,AfterKey=after.StateKey};
   }
   public void Dispose(){if(handle!=IntPtr.Zero){CloseHandle(handle);handle=IntPtr.Zero;}}
  }

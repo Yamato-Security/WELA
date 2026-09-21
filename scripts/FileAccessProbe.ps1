@@ -1,4 +1,51 @@
 # Explicit one-byte existing-file read and exact local Security4663 evidence.
+# Resolve target scope before reading any external native-helper source or hashing dependencies.
+# This small literal helper opens metadata only and never reads target bytes.
+function Initialize-WelaFileProbeScopeNative {
+    if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'The file probe requires native 64-bit Windows.'}
+    $definition=@'
+using System;using System.ComponentModel;using System.Runtime.InteropServices;using System.Text;
+namespace Wela.FileAccessScope {
+ public sealed class Observation {public string Path;public uint Links,Attributes;}
+ public static class Native {
+  public const string SourceSha256="__WELA_FILE_SCOPE_SOURCE_SHA256__";
+  [StructLayout(LayoutKind.Sequential,Pack=4)] struct Info {public uint Attributes;public long Created,Accessed,Written;public uint Volume,SizeHigh,SizeLow,Links,IndexHigh,IndexLow;}
+  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true,ExactSpelling=true)] static extern IntPtr CreateFileW(string path,uint access,uint share,IntPtr security,uint disposition,uint flags,IntPtr template);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool CloseHandle(IntPtr handle);
+  [DllImport("kernel32.dll",SetLastError=true)] static extern bool GetFileInformationByHandle(IntPtr handle,out Info info);
+  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true,ExactSpelling=true)] static extern uint GetFinalPathNameByHandleW(IntPtr handle,StringBuilder path,uint length,uint flags);
+  public static Observation Observe(string path) {
+   IntPtr handle=CreateFileW(path,0x80,7,IntPtr.Zero,3,0x00200000,IntPtr.Zero);
+   if(handle==new IntPtr(-1))throw new Win32Exception(Marshal.GetLastWin32Error(),"Metadata-only target-scope observation failed.");
+   try{Info info;if(!GetFileInformationByHandle(handle,out info))throw new Win32Exception(Marshal.GetLastWin32Error());
+    StringBuilder final=new StringBuilder(32768);uint length=GetFinalPathNameByHandleW(handle,final,(uint)final.Capacity,0);
+    if(length==0||length>=final.Capacity||!final.ToString().StartsWith(@"\\?\",StringComparison.Ordinal))throw new InvalidOperationException("Canonical local target scope is unknown.");
+    return new Observation{Path=final.ToString().Substring(4),Links=info.Links,Attributes=info.Attributes};
+   }finally{CloseHandle(handle);}
+  }
+ }
+}
+'@
+    $hash=Get-WelaArrivalHash ([Text.UTF8Encoding]::new($false).GetBytes($definition))
+    if(-not ('Wela.FileAccessScope.Native' -as [type])){Add-Type -TypeDefinition $definition.Replace('__WELA_FILE_SCOPE_SOURCE_SHA256__',$hash) -ErrorAction Stop}
+    if([Wela.FileAccessScope.Native]::SourceSha256 -cne $hash){throw 'Loaded file scope helper differs; start a fresh session.'}
+}
+function Assert-WelaFileProbeScopeObservation {
+    param([string]$SelectedPath,$Selected,$SourceFile,$Engine)
+    foreach($item in @($Selected,$SourceFile,$Engine)){if($item.Path -isnot [string] -or -not $item.Path){throw 'Incomplete canonical target scope.'};Assert-WelaFileProbePath $item.Path}
+    $sourceRoot=$SourceFile.Path.Substring(0,$SourceFile.Path.LastIndexOf('\')+1)
+    if($Selected.Path.StartsWith($sourceRoot,[StringComparison]::OrdinalIgnoreCase)){throw 'Select a file outside the WELA source tree; implementation targets are unsupported.'}
+    if($Selected.Path.Equals($Engine.Path,[StringComparison]::OrdinalIgnoreCase)){throw 'The active PowerShell engine cannot be the selected file target.'}
+    if($Selected.Path -ine $SelectedPath -or -not(Test-WelaFileProbeInteger $Selected.Links) -or $Selected.Links -ne 1 -or -not(Test-WelaFileProbeInteger $Selected.Attributes) -or ($Selected.Attributes -band 1040)){throw 'Only ordinary canonical single-link file targets are supported; aliases and reparse targets are refused.'}
+}
+function Assert-WelaFileProbeTargetScope {
+    param([string]$Path)
+    Initialize-WelaFileProbeScopeNative
+    $selected=[Wela.FileAccessScope.Native]::Observe($Path)
+    $source=[Wela.FileAccessScope.Native]::Observe((Join-Path $script:ScriptRoot 'WELA.ps1'))
+    $engine=[Wela.FileAccessScope.Native]::Observe((Get-Process -Id $PID -ErrorAction Stop).Path)
+    Assert-WelaFileProbeScopeObservation $Path $selected $source $engine
+}
 function Initialize-WelaFileProbeNative {
     Initialize-WelaWmiProbeNative
     $source=Join-Path $PSScriptRoot 'FileAccessProbeNative.cs';$bytes=[IO.File]::ReadAllBytes($source);$hash=Get-WelaArrivalHash $bytes
@@ -57,7 +104,7 @@ function Get-WelaFileProbeSnapshot {
 }
 function Get-WelaFileProbeState {
     param([string]$Path)
-    Assert-WelaFileProbePath $Path;Initialize-WelaFileProbeNative
+    Assert-WelaFileProbePath $Path;Assert-WelaFileProbeTargetScope $Path;Initialize-WelaFileProbeNative
     $services=@(Get-Service -Name EventLog,Winmgmt,RpcSs -ErrorAction Stop|Sort-Object Name|ForEach-Object {[pscustomobject]@{Name=$_.Name;Status=[string]$_.Status}})
     if($services.Count -ne 3 -or @($services|Where-Object Status -ne 'Running').Count){throw 'EventLog, Winmgmt and RpcSs must already be running.'}
     $null=Get-WelaFileProbeReaderKey (Get-WelaChannelReader)
@@ -117,13 +164,13 @@ function Assert-WelaFileProbeOperation {
     foreach($name in @('Kind','Nonce','Executable','FilePath')){if($Operation.$name -isnot [string]){throw 'Untyped fixed file worker authority.'}}
     if($Operation.Kind -cne 'WelaOneByteFileRead' -or $Operation.Nonce -cne $Nonce -or -not(Test-WelaFileProbeInteger $Operation.ProcessId) -or $Operation.ProcessId -ne $ProcessId -or $Operation.Executable -ine $State.Engine -or $Operation.FilePath -ine $State.File.Path){throw 'Unexpected fixed file worker identity.'}
     $read=$Operation.Read
-    foreach($name in @('Clock','HandleId','BeforeKey','AfterKey')){if($read.$name -isnot [string]){throw 'Untyped native read receipt.'}}
-    if($read.Clock -cne 'GetSystemTimePreciseAsFileTime' -or $read.Succeeded -isnot [bool] -or -not $read.Succeeded -or -not(Test-WelaFileProbeInteger $read.ReadCalls) -or $read.ReadCalls -ne 1 -or -not(Test-WelaFileProbeInteger $read.BytesRead) -or $read.BytesRead -ne 1 -or $read.HandleId -cnotmatch '^0x[0-9a-f]+$' -or [Convert]::ToUInt64($read.HandleId.Substring(2),16) -eq 0 -or $read.BeforeKey -cne $State.File.StateKey -or $read.AfterKey -cne $State.File.StateKey){throw 'Expected exactly one successful byte read from the unchanged held file.'}
-    $start=ConvertTo-WelaArrivalUtc $read.StartedUtc;$end=ConvertTo-WelaArrivalUtc $read.CompletedUtc
-    if($LaunchedUtc -gt $ObservedUtc -or $start -lt $LaunchedUtc -or $end -lt $start -or $end -gt $ObservedUtc -or ($end-$start).TotalSeconds -gt 20){throw 'Invalid precise one-byte native read interval.'}
+    foreach($name in @('Clock','Phase','HandleId','BeforeKey','AfterKey')){if($read.$name -isnot [string]){throw 'Untyped native read receipt.'}}
+    if($read.Phase -cne 'OneByteReadAndHeldIdentityReadback' -or $read.Clock -cne 'GetSystemTimePreciseAsFileTime' -or $read.Succeeded -isnot [bool] -or -not $read.Succeeded -or -not(Test-WelaFileProbeInteger $read.ReadCalls) -or $read.ReadCalls -ne 1 -or -not(Test-WelaFileProbeInteger $read.BytesRead) -or $read.BytesRead -ne 1 -or $read.HandleId -cnotmatch '^0x[0-9a-f]+$' -or [Convert]::ToUInt64($read.HandleId.Substring(2),16) -eq 0 -or $read.BeforeKey -cne $State.File.StateKey -or $read.AfterKey -cne $State.File.StateKey){throw 'Expected exactly one successful byte read from the unchanged held file.'}
+    $start=ConvertTo-WelaArrivalUtc $read.StartedUtc;$returned=ConvertTo-WelaArrivalUtc $read.ReadReturnedUtc;$end=ConvertTo-WelaArrivalUtc $read.CompletedUtc
+    if($LaunchedUtc -gt $ObservedUtc -or $start -lt $LaunchedUtc -or $returned -lt $start -or $end -lt $returned -or $end -gt $ObservedUtc -or ($end-$start).TotalSeconds -gt 20){throw 'Invalid precise one-byte/readback operation interval.'}
     if((Get-WelaFileProbeTokenKey $Operation.BeforeToken) -cne (Get-WelaFileProbeTokenKey $Operation.AfterToken) -or (Get-WelaFileProbeTokenKey $Operation.BeforeToken) -cne (Get-WelaFileProbeTokenKey $State.Token) -or
        (Get-WelaFileProbeReaderKey $Operation.BeforeReader) -cne (Get-WelaFileProbeReaderKey $Operation.AfterReader) -or (Get-WelaFileProbeReaderKey $Operation.BeforeReader -AuthorizationOnly) -cne (Get-WelaFileProbeKey $State.Reader)){throw 'Worker primary token differs from the caller or changed during the native read.'}
-    $read.StartedUtc=$start.UtcDateTime.ToString('o');$read.CompletedUtc=$end.UtcDateTime.ToString('o')
+    $read.StartedUtc=$start.UtcDateTime.ToString('o');$read.ReadReturnedUtc=$returned.UtcDateTime.ToString('o');$read.CompletedUtc=$end.UtcDateTime.ToString('o')
 }
 function Start-WelaFileProbeRead {
     param($State,[string]$RequestPath,[string]$Nonce)
@@ -202,7 +249,7 @@ function Invoke-WelaFileAccessProbe {
             $matches=@($batch.Xml|Where-Object {Test-WelaFileProbeEvent $_ $operation $before});if($matches.Count){break};Start-Sleep -Milliseconds 250
         }while($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds)
         $report.Matches=$matches.Count
-        if($matches.Count -ne 1){$i=0;foreach($xml in @($batch.Xml|Select-Object -First 4)){$i++;$report.Artifacts+=Write-WelaFileProbeArtifact $report.OutputPath $outputKey ('candidate-'+$i+'.xml') $xml};throw 'Exactly one attributable native4663 was not observed in the precise read interval.'}
+        if($matches.Count -ne 1){$i=0;foreach($xml in @($batch.Xml|Select-Object -First 4)){$i++;$report.Artifacts+=Write-WelaFileProbeArtifact $report.OutputPath $outputKey ('candidate-'+$i+'.xml') $xml};throw 'Exactly one attributable native4663 was not observed in the measured one-byte/readback phase.'}
         $report.Artifacts+=Write-WelaFileProbeArtifact $report.OutputPath $outputKey 'event.xml' $matches[0]
         if((Get-WelaFileProbeWatermark) -lt $operation.RecordIdBefore){throw 'Security record boundary moved backwards.'}
         $after=Get-WelaFileProbeState $before.File.Path;$report.After=$after

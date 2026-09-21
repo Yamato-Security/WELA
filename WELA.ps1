@@ -2323,7 +2323,7 @@ switch ($Cmd.ToLower()) {
         if ($report.ExitCode) {exit $report.ExitCode}
     }
     'file-access-probe' {
-        if ($Help) {Write-Host 'Usage: file-access-probe [-FileProbeAction Plan] -FileProbePath C:\Audit\existing-file.txt; Run additionally requires -FileProbeOutputPath C:\Evidence\new-probe [-FileProbeTimeoutSeconds 15]. Reads one byte and discards it. Existing File System success policy, precedence and matching ReadData SACL are required; no policy, ACL or file-data writes. Local4663 success only, no failure/forwarding/Sigma credit. See docs/file-access-probe.md.';return}
+        if ($Help) {Write-Host 'Usage: file-access-probe [-FileProbeAction Plan] -FileProbePath C:\Audit\existing-file.txt; Run additionally requires -FileProbeOutputPath C:\Evidence\new-probe [-FileProbeTimeoutSeconds 15]. Reads one byte and discards it; event matching uses the measured read plus held-handle identity/security readback phase, with the ReadFile return recorded separately. Source-tree/active-engine targets and aliases are refused before hashing. Existing File System success policy, precedence and matching ReadData SACL are required; no policy, ACL or file-data writes. Local4663 success only, no failure/forwarding/Sigma credit. See docs/file-access-probe.md.';return}
         $report=Invoke-WelaFileAccessProbe -Action $FileProbeAction -FilePath $FileProbePath -OutputPath $FileProbeOutputPath -TimeoutSeconds $FileProbeTimeoutSeconds
         $report|ConvertTo-Json -Depth 28|Write-Output
         exit ([int]$report.ExitCode)
