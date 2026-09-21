@@ -22,6 +22,13 @@
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$FirewallAction = 'Audit',
     [ValidateSet('Preserve', 'CisV4')][string]$FirewallPathMode = 'Preserve',
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
+    [ValidateSet('Plan','Restore')][string]$FirewallRecoveryAction = 'Plan',
+    [ValidateSet('Domain','Private','Public')][string]$FirewallRecoveryProfile,
+    [string]$FirewallRecoveryJournalPath,
+    [string]$FirewallRecoveryResultsPath,
+    [string]$FirewallRecoveryPlanPath,
+    [string]$FirewallRecoveryPlanHash,
+    [string]$FirewallRecoveryOutputPath,
     [string]$HtmlPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
     [ValidateSet('Plan','Activate')][string]$SmbRuntimeAction = 'Plan',
@@ -219,6 +226,7 @@ Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorActi
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/ChannelRead.ps1")
+. (Join-Path $ScriptRoot "scripts/FirewallLoggingRecovery.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeProviderPacks.ps1")
 . (Join-Path $ScriptRoot "scripts/DnsAnalytical.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
@@ -1968,6 +1976,7 @@ Usage:
   ./WELA.ps1 firewall-logging -FirewallAction Audit -ResultsPath firewall.json
   ./WELA.ps1 firewall-logging -FirewallAction Plan -FirewallPathMode CisV4
   ./WELA.ps1 firewall-logging -FirewallAction Configure -DryRun
+  ./WELA.ps1 firewall-recovery -Help
   # Firewall text logging is opt-in; it does not change firewall enforcement or rules.
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
@@ -2033,6 +2042,8 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'FirewallRecovery*' }).Count) {throw 'FirewallRecovery options require firewall-recovery. No command was run.'}
+if ($Cmd -eq 'firewall-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','FirewallRecoveryAction','FirewallRecoveryProfile','FirewallRecoveryJournalPath','FirewallRecoveryResultsPath','FirewallRecoveryPlanPath','FirewallRecoveryPlanHash','FirewallRecoveryOutputPath','Auto','DryRun','Help') }).Count)) {throw 'firewall-recovery accepts only dedicated options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
 if ($Cmd -ne 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'SmbRuntime*' }).Count) {throw 'SmbRuntime options require smb-runtime. No command was run.'}
 if ($Cmd -eq 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','SmbRuntimeAction','SmbRuntimeOutputPath','Auto','DryRun','Help') }).Count) {throw 'smb-runtime accepts only its dedicated options, Auto and DryRun. No command was run.'}
@@ -2188,6 +2199,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 if ($DryRun -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
+    -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-runtime' -and $SmbRuntimeAction -eq 'Activate') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
@@ -2517,6 +2529,12 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] WMI namespace auditing: $_" -ForegroundColor Red; exit 1 }
+    }
+    'firewall-recovery' {
+        if ($Help) {Write-Host 'Usage: firewall-recovery [-FirewallRecoveryAction Plan] -FirewallRecoveryProfile Domain|Private|Public -FirewallRecoveryJournalPath before.jsonl -FirewallRecoveryResultsPath results.json -FirewallRecoveryOutputPath new-directory; then -FirewallRecoveryAction Restore -FirewallRecoveryPlanPath plan.json -FirewallRecoveryPlanHash SHA256 -FirewallRecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/firewall-logging-recovery.md.';return}
+        $report=Invoke-WelaFirewallLoggingRecovery -Action $FirewallRecoveryAction -Profile $FirewallRecoveryProfile -JournalPath $FirewallRecoveryJournalPath -ResultsPath $FirewallRecoveryResultsPath -PlanPath $FirewallRecoveryPlanPath -PlanHash $FirewallRecoveryPlanHash -OutputPath $FirewallRecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
+        Write-Host ($report | ConvertTo-Json -Depth 24)
+        if ($report.ExitCode -ne 0) {exit 1}
     }
     'firewall-logging' {
         if ($Help) {
