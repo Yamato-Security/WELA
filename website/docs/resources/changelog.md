@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added opt-in `failed-logon-probe` for one generated, confirmed nonexistent local SAM account attempt with fixed native logon type/provider, precise worker timing and exact Security4625 correlation. Protected receipts preserve raw evidence and unchanged audit/channel/token context; real credentials, domain controllers, remote authentication and Sigma credit are excluded. Disposable Windows tests cover native public runs and exact fixture cleanup. (@Shirofune-Security)
+
 - Fixed `wmi-probe` operation timing to use the native precise UTC clock consistently in the parent and worker. Explicit clock receipts and launch/completion bounds preserve exact event correlation; sub-millisecond boundary tests and repeated native public-CLI runs cover timing failures without widening the accepted interval. (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)

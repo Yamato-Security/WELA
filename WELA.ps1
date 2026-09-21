@@ -42,6 +42,9 @@
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [ValidateSet('Plan','Run')][string]$FailedLogonAction = 'Plan',
+    [string]$FailedLogonOutputPath,
+    [ValidateRange(1,30)][int]$FailedLogonTimeoutSeconds = 15,
     [ValidateSet('Plan','Run')][string]$WmiProbeAction = 'Plan',
     [string]$WmiProbeNamespace,
     [string]$WmiProbeOutputPath,
@@ -167,6 +170,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/RuleEligibility.psm1") -ErrorAction Stop
@@ -1962,6 +1966,7 @@ Usage:
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
+  ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
   ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
@@ -2045,6 +2050,8 @@ if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -li
 if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
     throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
 }
+if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FailedLogon*'}).Count) {throw 'FailedLogon options require failed-logon-probe.'}
+if ($Cmd -eq 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FailedLogonAction','FailedLogonOutputPath','FailedLogonTimeoutSeconds','Help')}).Count) {throw 'failed-logon-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiProbe*'}).Count) {throw 'WmiProbe options require wmi-probe.'}
 if ($Cmd -eq 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiProbeAction','WmiProbeNamespace','WmiProbeOutputPath','WmiProbeTimeoutSeconds','Help')}).Count) {throw 'wmi-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds')}).Count) {throw 'AppLocker probe options require applocker-probe.'}
@@ -2243,6 +2250,12 @@ switch ($Cmd.ToLower()) {
         $map=@{WecUpdateId='Id';WecUpdateSourceSid='SourceSids';WecUpdateQueryPath='QueryPath';WecUpdateDescription='Description';WecUpdatePlanPath='PlanPath';WecUpdatePlanHash='PlanHash'}
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaWecUpdate @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'failed-logon-probe' {
+        if ($Help) {Write-Host 'Usage: failed-logon-probe [-FailedLogonAction Plan|Run] [-FailedLogonOutputPath new-private-directory] [-FailedLogonTimeoutSeconds 1..30]. One fixed nonexistent local account attempt under existing failure auditing. Domain controllers excluded. No real credentials or configuration changes. See docs/failed-logon-probe.md.';return}
+        $report=Invoke-WelaFailedLogonProbe -Action $FailedLogonAction -OutputPath $FailedLogonOutputPath -TimeoutSeconds $FailedLogonTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
