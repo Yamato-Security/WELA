@@ -524,7 +524,7 @@ function Invoke-WelaProfileCommand {
         else { Write-Host "Planning for another role/build: effective state remains Unknown." }
     }
     elseif ($Command -ne 'plan') { throw "Audit and configure require Windows. Offline planning requires explicit -Role and -Build." }
-    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional @planArguments
+    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional -ObserveIpsec:$saclLive @planArguments
     if ($script:ProfileFile) {
         Assert-WelaCustomProfileSource $custom.customSource
         if ($plan.CustomProfileSource.Sha256 -cne $custom.customSource.Sha256) { throw 'Custom profile changed during host assessment.' }
@@ -538,6 +538,9 @@ function Invoke-WelaProfileCommand {
     Write-Host "Audit precedence: $($precedence.State); required SCENoApplyLegacyAuditPolicy=1 (DWORD). $($precedence.Diagnostic)"
     if ($precedence.PolicySource) { Write-Host $precedence.PolicySource.Description }
     Show-WelaAuditProfilePrerequisites -Plan $plan
+    foreach ($policy in $plan.policies) {
+        if ($policy.conditionalPrerequisite) { Write-Host "Conditional prerequisite - $($policy.id): $($policy.conditionalPrerequisite.Status). $($policy.conditionalPrerequisite.Limitations)" -ForegroundColor DarkYellow }
+    }
     Write-Host "Targeted SACL companion plan: $($saclPlan.Mode), $($saclPlan.Targets.Count) targets; $($saclPlan.TelemetryGap)" -ForegroundColor DarkYellow
     $saclPlan.Targets | Select-Object Scope, Path, Rights, Inheritance, PolicyMode, @{Name='PathState';Expression={$_.Observation.PathState}} | Format-Table -AutoSize
     $result = $plan
