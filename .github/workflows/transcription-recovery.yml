@@ -1,0 +1,45 @@
+name: Native transcription policy recovery
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/TranscriptionRecovery.ps1'
+      - 'scripts/PowerShellTranscription.ps1'
+      - 'scripts/AuditRecovery.ps1'
+      - 'tests/TranscriptionRecovery*'
+      - '.github/workflows/transcription-recovery.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  transcription-recovery:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Focused and native public CLI recovery in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/TranscriptionRecovery.Tests.ps1
+          ./tests/TranscriptionRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Focused and native public CLI recovery in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/TranscriptionRecovery.Tests.ps1
+          ./tests/TranscriptionRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Retain native policy and cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: transcription-recovery-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-transcription-recovery-*/
+          if-no-files-found: error

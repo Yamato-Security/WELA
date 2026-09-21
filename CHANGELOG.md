@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added explicit `transcription-recovery` for one completed Windows PowerShell transcription configuration, with independently rebuilt hashed plans, typed local-directory restoration, preserved user/header/other policy, explicit temporary-suspension consent and durable ordered receipts. Disposable native public-CLI tests verify restoration and drift refusal; production sessions, central authorization/collection and Sigma readiness remain unverified. (#376) (@Shirofune-Security)
+
 - Fixed `wmi-probe` operation timing to use the native precise UTC clock consistently in the parent and worker. Explicit clock receipts and launch/completion bounds preserve exact event correlation; sub-millisecond boundary tests and repeated native public-CLI runs cover timing failures without widening the accepted interval. (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
