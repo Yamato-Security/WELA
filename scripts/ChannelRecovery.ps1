@@ -24,8 +24,8 @@ function Assert-WelaChannelRecoverySnapshot {
     Assert-WelaArrivalObject $Value @('Name','State','IsEnabled','LogMode','SecurityDescriptor','MaximumSizeInBytes','ProviderNames','MetadataErrors','Error')
     Assert-WelaChannelRecoveryText $Value @('Name','State','LogMode','SecurityDescriptor')
     if($Value.Name -cne $Channel -or $Value.IsEnabled -isnot [bool] -or $Value.State -cne $(if($Value.IsEnabled){'Enabled'}else{'Disabled'}) -or
-        ($Value.MaximumSizeInBytes -isnot [int] -and $Value.MaximumSizeInBytes -isnot [long]) -or $Value.MaximumSizeInBytes -lt 1048576 -or $Value.MaximumSizeInBytes -gt 2199023255552 -or $Value.MaximumSizeInBytes % 65536 -ne 0 -or
-        $Value.LogMode -cnotin @('Circular','Retain','AutoBackup') -or $null -ne $Value.Error -or $null -eq $Value.MetadataErrors -or @($Value.MetadataErrors.PSObject.Properties).Count -ne 0 -or $Value.ProviderNames -isnot [array] -or $Value.ProviderNames.Count -gt 64){throw 'Original channel snapshot is incomplete, mistyped or unsupported.'}
+        ($Value.MaximumSizeInBytes -isnot [int] -and $Value.MaximumSizeInBytes -isnot [long]) -or $Value.MaximumSizeInBytes -lt 1048576 -or $Value.MaximumSizeInBytes -gt 2199023255552 -or
+        $Value.LogMode -cnotin @('Circular','Retain','AutoBackup') -or $null -ne $Value.Error -or $null -eq $Value.MetadataErrors -or @($Value.MetadataErrors.PSObject.Properties).Count -ne 0 -or ($Value.ProviderNames -isnot [array] -and $Value.ProviderNames -isnot [string]) -or @($Value.ProviderNames).Count -gt 64){throw 'Original channel snapshot is incomplete, mistyped or unsupported.'}
     foreach($name in $Value.ProviderNames){if($name -isnot [string] -or -not $name -or $name.Length -gt 512){throw 'Invalid original provider name.'}}
     $null=Get-WelaChannelRecoveryDescriptorKey $Value.SecurityDescriptor
 }

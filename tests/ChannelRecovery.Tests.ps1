@@ -17,7 +17,7 @@ function Get-WelaChannelReader {[pscustomobject]@{UserSid='TEST';TokenId='token'
 function Get-WelaChannelRecoveryDescriptorKey {param($Sddl) if($Sddl -cnotin @('original','original+read','foreign')){throw 'Invalid fixture descriptor'};$Sddl}
 function Get-WelaChannelAccessPlan {param($SecurityDescriptor) if($SecurityDescriptor -ceq 'original'){[pscustomobject]@{State='GrantRequired';ProposedDescriptor='original+read'}}else{[pscustomobject]@{State='GrantPresent'}}}
 function Test-WelaChannelDescriptorEqual {param($First,$Second) $First -ceq $Second}
-function Get-WelaNativeChannel {param($Name) [pscustomobject][ordered]@{Name=$Name;State=$(if($script:settings.IsEnabled){'Enabled'}else{'Disabled'});IsEnabled=$script:settings.IsEnabled;LogMode=$script:settings.LogMode;SecurityDescriptor=$script:settings.SecurityDescriptor;MaximumSizeInBytes=$script:settings.MaximumSizeInBytes;ProviderNames=@('Microsoft-Windows-CAPI2');MetadataErrors=[pscustomobject]@{};Error=$null}}
+function Get-WelaNativeChannel {param($Name) [pscustomobject][ordered]@{Name=$Name;State=$(if($script:settings.IsEnabled){'Enabled'}else{'Disabled'});IsEnabled=$script:settings.IsEnabled;LogMode=$script:settings.LogMode;SecurityDescriptor=$script:settings.SecurityDescriptor;MaximumSizeInBytes=$script:settings.MaximumSizeInBytes;ProviderNames='Microsoft-Windows-CAPI2';MetadataErrors=[pscustomobject]@{};Error=$null}}
 function Invoke-WelaNative {param($FilePath,$Arguments) foreach($arg in $Arguments){if($arg -like '/ms:*'){$script:settings.MaximumSizeInBytes=[long]$arg.Substring(4)};if($arg -like '/ca:*'){$script:settings.SecurityDescriptor=$arg.Substring(4)};if($arg -ceq '/e:true'){$script:settings.IsEnabled=$true}}}
 function Read-WelaChannelRecoveryState {
  param($Channel)
@@ -39,7 +39,7 @@ function Set-WelaChannelRecoveryField {
 $root=Join-Path ([IO.Path]::GetTempPath()) ('wela-channel-recovery-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $root
 $oldComputer=$env:COMPUTERNAME;$env:COMPUTERNAME='TEST';$channel='Microsoft-Windows-CAPI2/Operational'
 function Original([string]$Dir,[bool]$Grant=$true){
- $script:settings=[pscustomobject][ordered]@{IsEnabled=$false;MaximumSizeInBytes=1048576L;LogMode='Circular';SecurityDescriptor='original'};$script:case='';$script:token='stable';$script:path='preserved';$script:reads=0;$script:writes=0
+ $script:settings=[pscustomobject][ordered]@{IsEnabled=$false;MaximumSizeInBytes=1052672L;LogMode='Circular';SecurityDescriptor='original'};$script:case='';$script:token='stable';$script:path='preserved';$script:reads=0;$script:writes=0
  $profile=Get-WelaNativeChannelProfile;$plans=@(Get-WelaNativeChannelPlan -Profile $profile -GrantEventLogReaders:$Grant|Where-Object {$_.Definition.channel -ceq $channel})
  $context=New-WelaConfigurationContext -Auto -BackupPath "$Dir/journal"
  Set-WelaNativeChannelControls $context $plans $profile.id
@@ -56,7 +56,7 @@ try {
   Assert ($script:writes -eq 0) 'Plan does not mutate.'
   $planPath="$dir/plan/plan.json";$hash=$plan.PlanHash
   if($scenario -eq 'hash'){$hash='f'*64}
-  if($scenario -in @('tamper','duplicate')){$text=[IO.File]::ReadAllText($planPath);if($scenario -eq 'tamper'){$text=$text.Replace('1048576','2097152')}else{$text=$text.Replace('"SchemaVersion":','"SchemaVersion":1,"SchemaVersion":')};[IO.File]::WriteAllText($planPath,$text);$hash=(Get-FileHash $planPath).Hash.ToLowerInvariant()}
+  if($scenario -in @('tamper','duplicate')){$text=[IO.File]::ReadAllText($planPath);if($scenario -eq 'tamper'){$text=$text.Replace('1052672','2097152')}else{$text=$text.Replace('"SchemaVersion":','"SchemaVersion":1,"SchemaVersion":')};[IO.File]::WriteAllText($planPath,$text);$hash=(Get-FileHash $planPath).Hash.ToLowerInvariant()}
   if($scenario -eq 'source'){[IO.File]::AppendAllText("$dir/original.json",' ')}
   if($scenario -eq 'drift'){$script:settings.SecurityDescriptor='foreign'}
   $script:case=$scenario;$script:originalFile="$dir/original.json";$script:reads=0;$script:output="$dir/restore"
@@ -64,13 +64,13 @@ try {
   Assert (($r.ExitCode -eq 0) -eq ($scenario -in @('ok','no-grant'))) "Restore $scenario : $($r.Diagnostic)"
   Assert ($r.ReadyRuleCredit -eq 0 -and (Test-Path "$dir/restore/manifest.json")) 'Outcome evidence is retained without Sigma credit.'
   if($scenario -in @('ok','no-grant')){
-   Assert ($script:settings.SecurityDescriptor -ceq 'original' -and -not $script:settings.IsEnabled -and $script:settings.MaximumSizeInBytes -eq 1048576 -and $r.Status -ceq 'RestoredAndVerified') 'Original changed fields restored.'
+   Assert ($script:settings.SecurityDescriptor -ceq 'original' -and -not $script:settings.IsEnabled -and $script:settings.MaximumSizeInBytes -eq 1052672 -and $r.Status -ceq 'RestoredAndVerified') 'Original changed fields restored.'
    Assert ($r.ConfirmedFields.Count -eq $(if($scenario -eq 'ok'){3}else{2})) 'Only originally changed fields are written and confirmed.'
    $again=Invoke-WelaChannelRecovery Restore -PlanPath $planPath -PlanHash $hash -OutputPath "$dir/replay" -AllowShrink -AllowDisable -AllowRevoke
    Assert ($again.Status -ceq 'Refused') 'Completed old plan cannot be replayed.'
   }elseif($scenario -in @('native-fail','false-success','preservation','token','last-history','last-artifact')){
    Assert ($r.Status -ceq 'RestoreAttemptedUnverified' -and $script:writes -gt 0) 'Possible partial write is explicit; no rollback is inferred.'
-   if($scenario -eq 'native-fail'){Assert ($r.ConfirmedFields.Count -eq 1 -and $script:settings.MaximumSizeInBytes -eq 1048576 -and $script:settings.SecurityDescriptor -ceq 'original+read' -and $script:settings.IsEnabled) 'Second-write failure retains one confirmed step and stops before disable.'}
+   if($scenario -eq 'native-fail'){Assert ($r.ConfirmedFields.Count -eq 1 -and $script:settings.MaximumSizeInBytes -eq 1052672 -and $script:settings.SecurityDescriptor -ceq 'original+read' -and $script:settings.IsEnabled) 'Second-write failure retains one confirmed step and stops before disable.'}
   }else{Assert ($r.Status -ceq 'Refused' -and $script:writes -eq 0) 'Unreviewed or drifted input refuses before write.'}
   foreach($artifact in $r.Artifacts){$matches=(Get-FileHash (Join-Path $r.OutputPath $artifact.Name)).Hash.ToLowerInvariant() -ceq $artifact.Sha256;Assert ($matches -eq (-not ($scenario -eq 'last-artifact' -and $artifact.Name -ceq 'pending-3-IsEnabled.json'))) 'Retained hashes expose the deliberately changed artifact; all other bytes match.'}
  }
