@@ -2255,7 +2255,7 @@ switch ($Cmd.ToLower()) {
         if($report.ExitCode){exit $report.ExitCode}
     }
     'dns-client-probe' {
-        if ($Help) {Write-Host 'Usage: dns-client-probe [-DnsClientProbeAction Plan|Run] -DnsClientProbeResolver approved-IPv4 [-DnsClientProbeOutputPath new-private-directory] [-DnsClientProbeTimeoutSeconds 1..30]. Fixed benign A lookup to wela-<nonce>.wela.invalid. via explicit DNS TCP53 resolver; no configuration changes or Sigma credit. Plan observes prerequisites only. See docs/dns-client-probe.md.';return}
+        if ($Help) {Write-Host 'Usage: dns-client-probe [-DnsClientProbeAction Plan|Run] -DnsClientProbeResolver approved-IPv4 [-DnsClientProbeOutputPath new-private-directory] [-DnsClientProbeTimeoutSeconds 1..30]. Fixed benign A lookup to wela-<nonce>.wela.test. via explicit DNS TCP53 resolver; no configuration changes or Sigma credit. Plan observes prerequisites only. See docs/dns-client-probe.md.';return}
         $report=Invoke-WelaDnsClientProbe -Action $DnsClientProbeAction -Resolver $DnsClientProbeResolver -OutputPath $DnsClientProbeOutputPath -TimeoutSeconds $DnsClientProbeTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}

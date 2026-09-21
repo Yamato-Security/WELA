@@ -27,7 +27,7 @@ namespace Wela.DnsClientProbe {
   }
   public static Result Query(string name,string resolver) {
    if(IntPtr.Size!=8)throw new InvalidOperationException("Native 64-bit process required.");
-   if(name==null||!Regex.IsMatch(name,@"^wela-[a-f0-9]{32}\.wela\.invalid\.\z"))throw new ArgumentException("Only the fixed random probe name is accepted.");
+   if(name==null||!Regex.IsMatch(name,@"^wela-[a-f0-9]{32}\.wela\.test\.\z"))throw new ArgumentException("Only the fixed random probe name is accepted.");
    ValidateResolver(resolver);
    // SDK DNS_ADDR_ARRAY header32 + one DNS_ADDR64; sockaddr_in in its first16 bytes.
    byte[] server=new byte[96];BitConverter.GetBytes((uint)1).CopyTo(server,0);BitConverter.GetBytes((uint)1).CopyTo(server,4);

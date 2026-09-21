@@ -11,7 +11,7 @@ $os=Get-CimInstance Win32_OperatingSystem;$computer=Get-CimInstance Win32_Comput
 if($os.ProductType -ne 3 -or [int]$os.BuildNumber -notin @(20348,26100) -or $computer.PartOfDomain -or $computer.DomainRole -ne 2 -or (Get-WindowsFeature DNS).Installed){throw 'This fixture requires an unjoined Server2022/2025 with no existing DNS role.'}
 $engine=(Get-Command $TestEngine -ErrorAction Stop).Source
 $private=New-WelaArrivalOutput (Join-Path $env:TEMP ('wela-dns-client-native-'+[guid]::NewGuid().ToString('N'))) $PSScriptRoot
-$channel='Microsoft-Windows-DNS-Client/Operational';$zone='wela.invalid';$zoneFile='wela-native-'+[guid]::NewGuid().ToString('N')+'.dns';$zoneFilePath=$null;$zoneFileCreated=$false
+$channel='Microsoft-Windows-DNS-Client/Operational';$zone='wela.test';$zoneFile='wela-native-'+[guid]::NewGuid().ToString('N')+'.dns';$zoneFilePath=$null;$zoneFileCreated=$false
 $beforeFeatures=@(Get-WindowsFeature|Where-Object Installed|ForEach-Object Name);$policies=Get-WelaEffectiveAuditPolicy;$original=Get-WelaNativeChannel $channel
 if($original.State -notin @('Enabled','Disabled') -or $original.MetadataErrors.Count -or $original.Error){throw 'Complete original DNS Client channel state is required before fixture mutation.'}
 $null=Write-WelaArrivalArtifact $private 'original-channel.json' ($original|ConvertTo-Json -Depth 10)
@@ -34,18 +34,18 @@ try {
  if(Test-Path -LiteralPath $zoneFilePath){throw 'Fixture zone file already exists.'}
  # Avoid relying on generated SOA/NS names on an unjoined, suffix-free runner.
  $zoneText=@'
-$ORIGIN wela.invalid.
+$ORIGIN wela.test.
 $TTL 0
-@ IN SOA ns.wela.invalid. hostmaster.wela.invalid. ( 1 3600 600 86400 0 )
-@ IN NS ns.wela.invalid.
+@ IN SOA ns.wela.test. hostmaster.wela.test. ( 1 3600 600 86400 0 )
+@ IN NS ns.wela.test.
 ns IN A 127.0.0.1
 * IN A 192.0.2.1
 '@
  $stream=[IO.File]::Open($zoneFilePath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
- try{$zoneFileCreated=$true;$bytes=[Text.Encoding]::ASCII.GetBytes($zoneText.Replace("`n","`r`n")+"`r`n");$stream.Write($bytes,0,$bytes.Length);$stream.Flush()}finally{$stream.Dispose()}
+ try{$zoneFileCreated=$true;$bytes=[Text.Encoding]::ASCII.GetBytes(($zoneText -replace "\r?\n","`r`n")+"`r`n");$stream.Write($bytes,0,$bytes.Length);$stream.Flush()}finally{$stream.Dispose()}
  Write-Host "Creating owned authoritative zone $zone from new file $zoneFile"
  Add-DnsServerPrimaryZone -Name $zone -ZoneFile $zoneFile -DynamicUpdate None -LoadExisting -ErrorAction Stop;$zoneCreated=$true
- $record=Get-DnsServerResourceRecord -ZoneName $zone -Name '*' -RRType A -ErrorAction Stop
+ $record=@(Get-DnsServerResourceRecord -ZoneName $zone -RRType A -ErrorAction Stop|Where-Object HostName -ceq '*')
  Assert (@($record).Count -eq 1 -and $record.RecordData.IPv4Address.IPAddressToString -ceq '192.0.2.1') 'Loaded owned wildcard A record is exact.'
  # The zone is authoritative and the native request has recursion disabled. No external resolver or answer connection is used.
  if(-not $original.IsEnabled){$channelChanged=$true;Set-ChannelEnabled $true}
@@ -57,7 +57,7 @@ ns IN A 127.0.0.1
  Invoke-Cli @('dns-client-probe','-DnsClientProbeAction','Run','-DnsClientProbeResolver','127.0.0.1','-DnsClientProbeOutputPath',$output)
  $report=ConvertFrom-WelaRecoveryJson ([IO.File]::ReadAllText((Join-Path $output 'manifest.json')))
  Assert ($report.Status -ceq 'NativeDnsLookupObserved' -and $report.ExitCode -eq 0 -and $report.Matches -ge 1 -and $report.ReadyRuleCredit -eq 0 -and $report.ConfigurationChanges -eq 0) 'Actual native3008 correlation is observed without configuration/Sigma credit.'
- Assert ($report.Operation.Query.QueryName -cmatch '^wela-[a-f0-9]{32}\.wela\.invalid\.$' -and $report.Operation.Query.Status -eq 0 -and $report.Operation.Query.ResultStatus -eq 0 -and @($report.Operation.Query.Answers).Count -eq 1 -and $report.Operation.Query.Answers[0].Address -ceq '192.0.2.1') 'Owned authoritative loopback resolver returns the exact fixed A answer.'
+ Assert ($report.Operation.Query.QueryName -cmatch '^wela-[a-f0-9]{32}\.wela\.test\.$' -and $report.Operation.Query.Status -eq 0 -and $report.Operation.Query.ResultStatus -eq 0 -and @($report.Operation.Query.Answers).Count -eq 1 -and $report.Operation.Query.Answers[0].Address -ceq '192.0.2.1') 'Owned authoritative loopback resolver returns the exact fixed A answer.'
  foreach($artifact in $report.Artifacts){Assert ((Get-FileHash -LiteralPath (Join-Path $output $artifact.Name) -Algorithm SHA256).Hash.ToLowerInvariant() -ceq $artifact.Sha256) 'Evidence bytes match recorded SHA256.'}
  foreach($file in Get-ChildItem -LiteralPath $output -Filter 'event-*.xml'){$xml=[IO.File]::ReadAllText($file.FullName);Assert (Test-WelaDnsClientProbeEvent $xml $report.Operation $report.Before) 'Actual persisted3008 XML matches the production validator.';Write-Host $xml}
  Assert ((Get-WelaChannelReadKey (Get-WelaNativeChannel $channel)) -ceq (Get-WelaChannelReadKey $configured)) 'Product preserves the exact configured channel metadata.'
