@@ -9,6 +9,8 @@ function Get-WelaWecStateContext {
     Initialize-WelaWecStateNative
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     try {$context.Reader=[ordered]@{Name=$identity.Name;Sid=$identity.User.Value;AuthenticationType=$identity.AuthenticationType;ImpersonationLevel=[string]$identity.ImpersonationLevel;Groups=@($identity.Groups.Value|Sort-Object);TokenStatistics=[Wela.WecState.Edit]::TokenKey($identity.Token)}}finally{$identity.Dispose()}
+    $channel=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('ForwardedEvents')
+    try {$context|Add-Member NoteProperty DestinationLog ([ordered]@{Name=$channel.LogName;Enabled=$channel.IsEnabled;Mode=[string]$channel.LogMode;MaximumBytes=$channel.MaximumSizeInBytes;Path=$channel.LogFilePath;SecurityDescriptor=$channel.SecurityDescriptor})}finally{$channel.Dispose()}
     $context
 }
 function Get-WelaWecStateReviewKey {
@@ -79,14 +81,15 @@ function Invoke-WelaWecState {
         $sourceInput=Read-WelaWecUpdateFile $PlanPath;$sourcePath=$sourceInput.Path
     }
     $output=New-WelaArrivalOutput $OutputPath $sourcePath
-    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaWecState';Action=$Action;Status='Refused';ExitCode=1;RecordedUtc=[DateTime]::UtcNow.ToString('o');OutputPath=$output;PlanHash=$null;BeforeEnabled=$null;DesiredEnabled=$null;NativeSaveAttempted=$false;After=$null;RuntimeBefore=$null;RuntimeAfter=$null;Artifacts=@();Diagnostic='';ReadyRuleCredit=0;Delivery='Not established';BookmarkContinuity='Not established';Scope='Only Enabled on one existing native source-initiated subscription. Disable interrupts collection; enable/save activates it. No listener, firewall, service or authorization changes. Sysmon excluded.'}
-    $edit=$null
+    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaWecState';Action=$Action;Status='Refused';ExitCode=1;RecordedUtc=[DateTime]::UtcNow.ToString('o');OutputPath=$output;PlanHash=$null;BeforeEnabled=$null;DesiredEnabled=$null;NativeSaveAttempted=$false;NativeErrorCode=$null;After=$null;RuntimeBefore=$null;RuntimeAfter=$null;Artifacts=@();Diagnostic='';ReadyRuleCredit=0;Delivery='Not established';BookmarkContinuity='Not established';Scope='Only Enabled on one existing native source-initiated subscription. Disable interrupts collection; enable/save activates it. No listener, firewall, service or authorization changes. Sysmon excluded.'}
+    $edit=$null;$plan=$null;$before=$null
     try {
         $context=Get-WelaWecStateContext;$contextKey=$context|ConvertTo-Json -Depth 16 -Compress;$sources=Get-WelaWecStateSources
         if($Action -eq 'Plan'){
             $before=Read-WelaWecStateDefinition $Id $SourceSids
             $plan=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaWecStatePlan';Id=$Id;SourceSids=@($SourceSids);ContextKey=(Get-WelaWecStateReviewKey $context);Sources=$sources;BeforeXml=$before.Xml;DesiredEnabled=($State -eq 'Enabled');RecordedUtc=[DateTime]::UtcNow.ToString('o')}
             Assert-WelaWecStatePlan $plan
+            if($plan.DesiredEnabled -and -not $context.DestinationLog.Enabled){throw 'ForwardedEvents must already be enabled before planning activation; no channel changes are made.'}
             $report.RuntimeBefore=Read-WelaWecStateRuntime $Id
             if((Read-WelaWecStateDefinition $Id $SourceSids).WholeKey -cne $before.WholeKey -or ((Get-WelaWecStateContext|ConvertTo-Json -Depth 16 -Compress) -cne $contextKey) -or (Get-WelaWecStateSources) -cne $sources){throw 'Host, reader, implementation or subscription drift during planning.'}
             $planText=$plan|ConvertTo-Json -Depth 20
@@ -95,8 +98,10 @@ function Invoke-WelaWecState {
         }else{
             if($sourceInput.Hash -cne $PlanHash){throw 'Reviewed plan hash differs from the selected file bytes.'}
             $plan=ConvertFrom-WelaArrivalJson $sourceInput.Text;Assert-WelaWecStatePlan $plan;$report.PlanHash=$sourceInput.Hash
+            if($plan.DesiredEnabled -and -not $context.DestinationLog.Enabled){throw 'ForwardedEvents must already be enabled before activation; no channel changes are made.'}
             if($plan.ContextKey -cne (Get-WelaWecStateReviewKey $context) -or $plan.Sources -cne $sources){throw 'Actual host/reader/token/service or implementation sources differ from the reviewed plan.'}
             $before=Get-WelaWecStateDefinition $plan.BeforeXml $plan.SourceSids
+$report.BeforeEnabled=$before.Enabled;$report.DesiredEnabled=$plan.DesiredEnabled
             $report.RuntimeBefore=Read-WelaWecStateRuntime $plan.Id
             if((Read-WelaWecStateDefinition $plan.Id $plan.SourceSids).WholeKey -cne $before.WholeKey){throw 'Current subscription differs from the reviewed complete definition.'}
             $report.Artifacts+=Write-WelaWecUpdateArtifact $output 'reviewed-plan.json' $sourceInput.Text
@@ -117,7 +122,17 @@ function Invoke-WelaWecState {
         $report.BeforeEnabled=$before.Enabled;$report.DesiredEnabled=$plan.DesiredEnabled
         Assert-WelaWecStateArtifacts $output $report.Artifacts
         $report.ExitCode=0
-    }catch{$report.Status=if($report.NativeSaveAttempted){'SaveAttemptedUnverified'}else{'Refused'};$report.ExitCode=1;$report.Diagnostic=$_.Exception.Message}
+    }catch{
+        $report.Status=if($report.NativeSaveAttempted){'SaveAttemptedUnverified'}else{'Refused'};$report.ExitCode=1;$report.Diagnostic=$_.Exception.Message
+        $errorObject=$_.Exception
+        while($errorObject){if($errorObject -is [ComponentModel.Win32Exception]){$report.NativeErrorCode=$errorObject.NativeErrorCode;break};$errorObject=$errorObject.InnerException}
+        if($report.NativeSaveAttempted -and $plan){
+            # A failed activation can still persist Enabled. Never imply rollback.
+            $report.RuntimeAfter=Read-WelaWecStateRuntime $plan.Id
+            try {$report.After=Read-WelaWecStateDefinition $plan.Id $plan.SourceSids;$report.Artifacts+=Write-WelaWecUpdateArtifact $output 'failed-after.xml' $report.After.Xml}
+            catch {$report.Diagnostic+=' Final definition unavailable: '+$_.Exception.Message}
+        }
+    }
     finally{if($edit){$edit.Dispose()}}
     $null=Write-WelaWecUpdateArtifact $output 'manifest.json' ($report|ConvertTo-Json -Depth 32)
     $report

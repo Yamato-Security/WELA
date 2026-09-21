@@ -17,7 +17,7 @@ $script:xml=$base;$script:saves=0;$script:reads=0;$script:contextReads=0;$script
 function Get-WelaWecStateContext {
  $script:contextReads++;$token='11'*56
  if($script:mode -eq 'token-drift' -and $script:contextReads -gt 1){$token='22'*56}
- [pscustomobject][ordered]@{Computer='TEST';HostKey='20348';Reader=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1000';TokenStatistics=$token};Service='Running'}
+ [pscustomobject][ordered]@{Computer='TEST';HostKey='20348';Reader=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1000';TokenStatistics=$token};Service='Running';DestinationLog=[pscustomobject]@{Enabled=($script:mode -ne 'disabled-destination')}}
 }
 function Read-WelaWecStateDefinition {
  param($Id,$SourceSids)
@@ -71,7 +71,7 @@ try {
    switch($scenario){
     context {$text=$text.Replace('TEST','OTHER')}
     duplicate-key {$text=$text.Replace('"SchemaVersion":','"SchemaVersion": 1, "SchemaVersion":')}
-    wrong-type {$text=$text.Replace('"DesiredEnabled": true','"DesiredEnabled": "true"')}
+    wrong-type {$text=$text -replace '"DesiredEnabled":\s*true','"DesiredEnabled": "true"'}
     source-hash {$text=$text.Replace('scripts/WecState.ps1','scripts/Untrusted.ps1')}
    }
    [IO.File]::WriteAllText($planPath,$text);$hash=(Get-FileHash $planPath).Hash.ToLowerInvariant()
@@ -89,6 +89,11 @@ try {
    Assert ($result.RuntimeAfter.Status -eq 'Unknown') 'Unknown runtime does not become healthy or invalidate observed configuration'
   }
  }
+ $script:mode='disabled-destination';$script:xml=$base;$script:saves=0
+ $blocked=Invoke-WelaWecState -Id $id -SourceSids @($sid) -State Enabled -OutputPath (Join-Path $root 'disabled-destination-plan')
+ Assert ($blocked.Status -eq 'Refused' -and $blocked.Diagnostic -match 'ForwardedEvents' -and $script:saves -eq 0) 'Disabled destination is rejected before planning activation'
+ $disabled=Invoke-WelaWecState -Id $id -SourceSids @($sid) -State Disabled -OutputPath (Join-Path $root 'disabled-destination-disable')
+ Assert ($disabled.ExitCode -eq 0) 'Disabled destination does not block a reviewed disable plan'
  foreach($desired in @('Enabled','Disabled')){
   $script:mode='ok';$script:xml=if($desired -eq 'Disabled'){$base}else{$base.Replace('<Enabled>false','<Enabled>true')};$script:saves=0
   $planResult=Invoke-WelaWecState -Id $id -SourceSids @($sid) -State $desired -OutputPath (Join-Path $root ($desired+'-same-plan'))

@@ -14,6 +14,11 @@ $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Key($Value){ConvertTo-Json -InputObject $Value -Depth 16 -Compress}
 function ServiceState {Get-CimInstance Win32_Service -Filter "Name='Wecsvc'"|Select-Object Name,State,StartMode}
+function ChannelState {
+ $c=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('ForwardedEvents')
+ try {[pscustomobject]@{Enabled=$c.IsEnabled;Mode=[string]$c.LogMode;MaximumBytes=$c.MaximumSizeInBytes;Path=$c.LogFilePath;SecurityDescriptor=$c.SecurityDescriptor}}finally{$c.Dispose()}
+}
+function Set-ChannelEnabled([bool]$Enabled){$c=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('ForwardedEvents');try{$c.IsEnabled=$Enabled;$c.SaveChanges()}finally{$c.Dispose()}}
 function Subscriptions {@((Invoke-WelaNative 'wecutil.exe' @('es')).Output|ForEach-Object {$_.ToString().Trim()}|Where-Object {$_})}
 function Invoke-Cli {
  param([string[]]$Arguments,[string]$Output,[bool]$Success=$true)
@@ -28,10 +33,14 @@ if($beforeService.State -notin @('Running','Stopped') -or $beforeService.StartMo
 $nonce=[guid]::NewGuid().ToString('N');$id='WELA-State-Test-'+$nonce;$description='Owned state '+([string][char]0x65e5)+([string][char]0x672c)+([string][char]0x8a9e)+' '+$nonce;$changedDescription=$description
 $sid='S-1-5-21-111111111-222222222-333333333-1234'
 $root=Join-Path $env:RUNNER_TEMP ('wela-wec-state-'+$nonce);$null=New-Item -ItemType Directory $root
-$created=$false;$beforeIds=$null;$primary=$null
+$created=$false;$beforeIds=$null;$primary=$null;$beforeChannel=ChannelState
 try {
  if($beforeService.StartMode -eq 'Disabled'){Set-Service Wecsvc -StartupType Manual}
  if($beforeService.State -eq 'Stopped'){Start-Service Wecsvc}
+ if(-not $beforeChannel.Enabled){Set-ChannelEnabled $true}
+ $duringChannel=ChannelState
+ Assert ($duringChannel.Enabled) 'Disposable fixture enabled only destination channel prerequisite'
+ [pscustomobject]@{Destination=$duringChannel;WinRM=(Get-CimInstance Win32_Service -Filter "Name='WinRM'"|Select-Object Name,State,StartMode);Wecsvc=(ServiceState)}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath (Join-Path $root 'fixture-prerequisites.json') -Encoding UTF8
  $beforeIds=@(Subscriptions);if($beforeIds -contains $id){throw 'Unique ID already exists.'}
  $query='<QueryList><Query Id="0" Path="Application"><Select Path="Application">*[System[(EventID=1)]]</Select></Query></QueryList>'
  $xml=@"
@@ -75,6 +84,7 @@ try {
   Assert (-not(Read-WelaWecStateDefinition $id @($sid)).Enabled) 'Native drift refusal did not enable subscription'
  }finally{$edit.Dispose();$null=Invoke-WelaNative 'wecutil.exe' @('ss',$id,('/d:'+$description))}
  Assert ((Read-WelaWecStateDefinition $id @($sid)).WholeKey -ceq $before.WholeKey) 'Native drift fixture restored original description'
+ Assert ((Key (ChannelState)) -ceq (Key $duringChannel)) 'Product command preserved complete channel configuration'
  Assert ((Key (ServiceState)) -ceq (Key $duringService)) 'Product command preserved service state/startup'
  Write-Host "Native WEC state passed $count assertions on $([Environment]::OSVersion.Version), PowerShell $($PSVersionTable.PSVersion). No real source, listener or bookmark claim."
 }catch{$primary=$_}
@@ -85,13 +95,17 @@ finally {
   if($null -ne $beforeIds -and (Key @($beforeIds|Sort-Object)) -cne (Key @(Subscriptions|Sort-Object))){throw 'Subscription inventory differs after cleanup.'}
  }catch{$errors+=$_.Exception.Message}
  try {
+  if((ChannelState).Enabled -ne $beforeChannel.Enabled){Set-ChannelEnabled $beforeChannel.Enabled}
+  if((Key (ChannelState)) -cne (Key $beforeChannel)){throw 'Original destination channel configuration differs.'}
+ }catch{$errors+=$_.Exception.Message}
+ try {
   if($beforeService.State -eq 'Stopped' -and (Get-Service Wecsvc).Status -ne 'Stopped'){Stop-Service Wecsvc}
   if($beforeService.StartMode -eq 'Disabled'){Set-Service Wecsvc -StartupType Disabled}
   if((Key (Get-WelaRegistryState $serviceKey DelayedAutoStart)) -cne (Key $beforeDelayed)){if($beforeDelayed.ValueExists){$null=New-ItemProperty -LiteralPath $serviceKey -Name DelayedAutoStart -Value $beforeDelayed.Value -PropertyType $beforeDelayed.Type -Force}else{Remove-ItemProperty -LiteralPath $serviceKey -Name DelayedAutoStart -ErrorAction Stop}}
   if((Key (ServiceState)) -cne (Key $beforeService) -or (Key (Get-WelaRegistryState $serviceKey DelayedAutoStart)) -cne (Key $beforeDelayed)){throw 'Original Wecsvc state/startup differs.'}
  }catch{$errors+=$_.Exception.Message}
  if($errors.Count){throw "Fixture cleanup failed; retained $root : $($errors -join '; '); primary failure: $primary"}
- [pscustomobject]@{Passed=($null -eq $primary);Assertions=$count;OriginalSubscriptionsRestored=$true;OriginalServiceRestored=$true;Computer=[Environment]::MachineName;Engine=$PSVersionTable.PSVersion.ToString();Scope='Owned native Enabled transitions only; no real source, listener, forwarding or bookmark proof'}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'acceptance.json') -Encoding UTF8
+ [pscustomobject]@{Passed=($null -eq $primary);Assertions=$count;OriginalSubscriptionsRestored=$true;OriginalServiceRestored=$true;OriginalChannelRestored=$true;Computer=[Environment]::MachineName;Engine=$PSVersionTable.PSVersion.ToString();Scope='Owned native Enabled transitions only; no real source, listener, forwarding or bookmark proof'}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $root 'acceptance.json') -Encoding UTF8
  Write-Host 'Original subscription inventory and Wecsvc state/startup restored.'
 }
 if($primary){throw $primary}
