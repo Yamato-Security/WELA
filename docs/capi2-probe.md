@@ -30,5 +30,5 @@ This probe grants no ready-rule credit. It does not exercise TLS, remote connect
 - [CertGetCertificateChain flags and ownership](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-certgetcertificatechain)
 - [CERT_CHAIN_PARA](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/ns-wincrypt-cert_chain_para), [CERT_CHAIN_CONTEXT](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/ns-wincrypt-cert_chain_context), [CERT_SIMPLE_CHAIN](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/ns-wincrypt-cert_simple_chain) and [CERT_TRUST_STATUS](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/ns-wincrypt-cert_trust_status)
 - [Unnamed CngKey creation is ephemeral](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.cngkey.create)
-- [CertificateRequest.CreateSelfSigned](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.certificaterequest.createselfsigned)
+- [CertificateRequest.Create with a signature generator](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.certificaterequest.create)
 - [GetSystemTimePreciseAsFileTime](https://learn.microsoft.com/en-us/windows/win32/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime)

@@ -13,7 +13,9 @@ try {
  $rsa=[Security.Cryptography.RSACng]::new($key)
  $request=[Security.Cryptography.X509Certificates.CertificateRequest]::new(('CN=WelaCapi2Probe_'+$Nonce),$rsa,[Security.Cryptography.HashAlgorithmName]::SHA256,[Security.Cryptography.RSASignaturePadding]::Pkcs1)
  $now=[DateTimeOffset][Wela.WmiProbe.Native]::UtcNow()
- $certificate=$request.CreateSelfSigned($now.AddMinutes(-5),$now.AddMinutes(5))
+ $generator=[Security.Cryptography.X509Certificates.X509SignatureGenerator]::CreateForRSA($rsa,[Security.Cryptography.RSASignaturePadding]::Pkcs1)
+ $certificate=$request.Create($request.SubjectName,$generator,$now.AddMinutes(-5),$now.AddMinutes(5),[guid]::NewGuid().ToByteArray())
+ if($certificate.HasPrivateKey){throw 'Only a public certificate is expected.'}
  $der=$certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
  $started=[Wela.WmiProbe.Native]::UtcNow()
  $chain=[Wela.Capi2Probe.Native]::Build($der)

@@ -37,5 +37,26 @@ $null=Assert-WelaWmiProbeInterval $operation ([DateTimeOffset]$now.AddSeconds(-2
 $bad=Clone $operation;$bad.Clock='UtcNow';Reject {Assert-WelaWmiProbeInterval $bad ([DateTimeOffset]$now.AddSeconds(-2)) ([DateTimeOffset]$now.AddSeconds(2))} 'Require precise native clock.'
 Reject {Invoke-WelaCapi2Probe -Action Run} 'Run requires a new private output path.'
 Reject {Invoke-WelaCapi2Probe -Action Plan -OutputPath unused} 'Plan creates no files.'
+# Lifecycle fixtures test failure receipts and no-operation planning independently of Windows telemetry.
+$script:FixtureState=$state;$script:FixtureOperation=$operation;$script:FixtureXml=$xml;$script:FixtureMode='success';$script:FixtureStateReads=0;$script:FixtureActions=0
+function Get-WelaCapi2ProbeState {$script:FixtureStateReads++;$value=Clone $script:FixtureState;if($script:FixtureMode -eq 'drift' -and $script:FixtureStateReads -gt 1){$value.Host.UBR++};$value}
+function Get-WelaCapi2ProbeWatermark {if($script:FixtureMode -eq 'denied'){throw 'Reader denied.'};if($script:FixtureMode -eq 'rollback' -and $script:FixtureActions){return [long]0};[long]11}
+function Start-WelaCapi2ProbeBuild {param($State);$script:FixtureActions++;if($script:FixtureMode -eq 'worker'){throw 'Bounded worker failed.'};Clone $script:FixtureOperation}
+function Read-WelaCapi2ProbeEvents {param($Operation);$items=@($script:FixtureXml);if($script:FixtureMode -eq 'none'){$items=@($script:FixtureXml.Replace('800B0109','0'))};if($script:FixtureMode -eq 'duplicate'){$items=@($script:FixtureXml,$script:FixtureXml)};[pscustomobject]@{Xml=$items;Capped=($script:FixtureMode -eq 'cap');Query='fixed-fixture';MaximumEvents=64}}
+$planned=Invoke-WelaCapi2Probe
+Assert ($planned.Status -eq 'PrerequisitesObserved' -and $script:FixtureActions -eq 0 -and -not $planned.OutputPath) 'Plan observes prerequisites without operation or files.'
+$private=Join-Path ([IO.Path]::GetTempPath()) ('wela-capi2-fixture-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $private
+try{
+ foreach($mode in @('success','none','duplicate','cap','drift','rollback','worker','denied')){
+  $script:FixtureMode=$mode;$script:FixtureStateReads=0;$script:FixtureActions=0
+  $out=Join-Path $private $mode;$result=Invoke-WelaCapi2Probe -Action Run -OutputPath $out -TimeoutSeconds 1
+  if($mode -eq 'success'){Assert ($result.Status -eq 'LocalChainEventObserved' -and $result.ExitCode -eq 0 -and (Test-Path "$out/event.xml")) 'Success retains one exact matched event.'}
+  else{Assert ($result.Status -eq 'Unverified' -and $result.ExitCode -eq 1 -and $result.Diagnostic) ('Failure remains explicit: '+$mode)}
+  Assert (Test-Path "$out/manifest.json") 'Every started bundle retains its manifest.'
+  Assert ($script:FixtureActions -le 1 -and $result.ChannelChanges -eq 0 -and $result.StoreChanges -eq 0 -and $result.TrustPolicyChanges -eq 0 -and $result.ReadyRuleCredit -eq 0) 'No operation retry or configuration/coverage credit.'
+  foreach($artifact in $result.Artifacts){Assert ($artifact.Sha256 -ceq (Get-FileHash -LiteralPath (Join-Path $out $artifact.Name)).Hash.ToLowerInvariant()) 'Lifecycle artifact hash matches.'}
+ }
+ Reject {Invoke-WelaCapi2Probe -Action Run -OutputPath (Join-Path $private 'success')} 'Existing evidence cannot be overwritten.'
+}finally{Remove-Item -LiteralPath $private -Recurse -Force}
 Write-Host "PASS: $count portable CAPI2 assertions. No native event proof is claimed."
 $global:LASTEXITCODE=0
