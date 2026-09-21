@@ -48,6 +48,10 @@
     [string]$WmiProbeNamespace,
     [string]$WmiProbeOutputPath,
     [ValidateRange(1,30)][int]$WmiProbeTimeoutSeconds = 15,
+    [ValidateSet('Plan','Run')][string]$FileProbeAction = 'Plan',
+    [string]$FileProbePath,
+    [string]$FileProbeOutputPath,
+    [ValidateRange(1,30)][int]$FileProbeTimeoutSeconds = 15,
     [string[]]$WmiNamespace,
     [switch]$WmiIncludeChildren,
     [string]$RuleEvidencePath,
@@ -184,6 +188,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/FileAccessProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/RuleEligibility.psm1") -ErrorAction Stop
@@ -1952,6 +1957,7 @@ Usage:
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 file-access-probe -Help
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
   ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
   ./WELA.ps1 applocker-readiness -AppLockerAction Plan -AppLockerPolicyPath operator-audit.xml
@@ -2052,6 +2058,8 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
     throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
 }
 
+if ($Cmd -ne 'file-access-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FileProbe*'}).Count) {throw 'FileProbe options require file-access-probe.'}
+if ($Cmd -eq 'file-access-probe' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileProbeAction','FileProbePath','FileProbeOutputPath','FileProbeTimeoutSeconds','Help')}).Count)) {throw 'file-access-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
 if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
 if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
@@ -2263,6 +2271,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaEvtxRecovery -Action $EvtxAction -ProbePath $EvtxProbePath -ArchivePath $EvtxArchivePath -OutputPath $EvtxOutputPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'file-access-probe' {
+        if ($Help) {Write-Host 'Usage: file-access-probe [-FileProbeAction Plan] -FileProbePath C:\Audit\existing-file.txt; Run additionally requires -FileProbeOutputPath C:\Evidence\new-probe [-FileProbeTimeoutSeconds 15]. Reads one byte and discards it. Existing File System success policy, precedence and matching ReadData SACL are required; no policy, ACL or file-data writes. Local4663 success only, no failure/forwarding/Sigma credit. See docs/file-access-probe.md.';return}
+        $report=Invoke-WelaFileAccessProbe -Action $FileProbeAction -FilePath $FileProbePath -OutputPath $FileProbeOutputPath -TimeoutSeconds $FileProbeTimeoutSeconds
+        $report|ConvertTo-Json -Depth 28|Write-Output
+        exit ([int]$report.ExitCode)
     }
     'audit-recovery' {
         if ($Help) {Write-Host 'Usage: audit-recovery [-RecoveryAction Plan] -RecoveryJournalPath before.jsonl -RecoveryOriginalResultsPath results.json -RecoveryControlId IDs -RecoveryOutputPath new-directory; then -RecoveryAction Restore -RecoveryPlanPath reviewed-plan.json -RecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/audit-recovery.md.';return}
