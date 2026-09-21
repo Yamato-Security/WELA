@@ -12,7 +12,7 @@ function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++
 function Key($Value){ConvertTo-Json -InputObject $Value -Depth 16 -Compress}
 function RulesKey {param([string]$Exclude);Key @(Read-WelaIngressRules PersistentStore|Where-Object Name -ne $Exclude|Sort-Object Name|Select-Object Name,DisplayName,Description,Group,Enabled,Profile,Direction,Action,EdgeTraversalPolicy,LooseSourceMapping,LocalOnlyMapping,Owner)}
 $engine=(Get-Process -Id $PID).Path
-function Cli {param([string[]]$Arguments,[int]$Expected=0)
+function Invoke-IngressFixtureCli {param([string[]]$Arguments,[int]$Expected=0)
  $old=$ErrorActionPreference;try{$ErrorActionPreference='Continue';$lines=@(&$engine -NoLogo -NoProfile -NonInteractive -File "$repo/WELA.ps1" @Arguments 2>&1);$code=$LASTEXITCODE}finally{$ErrorActionPreference=$old}
  if(($Expected -eq 0 -and $code -ne 0) -or ($Expected -ne 0 -and $code -eq 0)){throw "CLI $code : $($lines -join ' ')"}
 }
@@ -24,12 +24,12 @@ $root=Join-Path $env:RUNNER_TEMP ('wela-ingress-'+[guid]::NewGuid().ToString('N'
 $primary=$null;$attempted=$false
 try {
  Assert-WelaIngressAbsent $name
- Cli @('wec-ingress','-WecIngressName',$name,'-WecIngressLocalAddress',$local,'-WecIngressRemoteAddress','192.0.2.0/24','-WecIngressOutputPath',"$root/plan")
+ Invoke-IngressFixtureCli @('wec-ingress','-WecIngressName',$name,'-WecIngressLocalAddress',$local,'-WecIngressRemoteAddress','192.0.2.0/24','-WecIngressOutputPath',"$root/plan")
  $plan=Get-Content "$root/plan/manifest.json" -Raw|ConvertFrom-Json
  Assert ($plan.Status -eq 'ReviewRequired' -and -not $plan.NativeCreateAttempted) 'Public Plan is read only'
  Assert ((RulesKey '') -ceq $beforeRules) 'Planning preserves persistent rule inventory and properties'
  $attempted=$true
- Cli @('wec-ingress','-WecIngressAction','Apply','-WecIngressPlanPath',"$root/plan/plan.json",'-WecIngressPlanHash',$plan.PlanHash,'-WecIngressOutputPath',"$root/apply")
+ Invoke-IngressFixtureCli @('wec-ingress','-WecIngressAction','Apply','-WecIngressPlanPath',"$root/plan/plan.json",'-WecIngressPlanHash',$plan.PlanHash,'-WecIngressOutputPath',"$root/apply")
  $apply=Get-Content "$root/apply/manifest.json" -Raw|ConvertFrom-Json
  Assert ($apply.Status -eq 'CreatedAndVerified' -and $apply.NativeCreateAttempted -and $apply.ReadyRuleCredit -eq 0) 'Actual public creation and readback'
  foreach($store in @('PersistentStore','ActiveStore')){Assert-WelaIngressReadback (Read-WelaIngressRule $store $name) $selection;$count++}
@@ -38,7 +38,7 @@ try {
  $collision=$false;try{New-WelaIngressNativeRule $selection}catch{$collision=$true}
  Assert $collision 'Native duplicate-name creation refuses replacement'
  Assert-WelaIngressReadback (Read-WelaIngressRule PersistentStore $name) $selection
- Cli @('wec-ingress','-WecIngressAction','Apply','-WecIngressPlanPath',"$root/plan/plan.json",'-WecIngressPlanHash',$plan.PlanHash,'-WecIngressOutputPath',"$root/replay") 1
+ Invoke-IngressFixtureCli @('wec-ingress','-WecIngressAction','Apply','-WecIngressPlanPath',"$root/plan/plan.json",'-WecIngressPlanHash',$plan.PlanHash,'-WecIngressOutputPath',"$root/replay") 1
  $replay=Get-Content "$root/replay/manifest.json" -Raw|ConvertFrom-Json
  Assert ($replay.Status -eq 'Refused' -and -not $replay.NativeCreateAttempted) 'Plan replay refuses an existing rule'
  Assert ((Key (Get-WelaIngressContext)) -ceq $contextKey) 'Profiles, services, host and address context unchanged'
