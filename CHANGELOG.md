@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added disposable Server 2022/2025 validation of public native channel configuration under Windows PowerShell 5.1 and PowerShell 7. Tests apply enable/size controls and the explicit CAPI2 read-only grant, verify descriptor preservation, journals, larger buffers, DryRun and idempotence, and retain hashed native evidence with exact fixture cleanup. Forwarding, retention-duration and Sigma validation remain separate. (@Shirofune-Security)
+
 - Added opt-in `failed-logon-probe` for one generated, confirmed nonexistent local SAM account attempt with fixed native logon type/provider, precise worker timing and exact Security4625 correlation. Protected receipts preserve raw evidence and unchanged audit/channel/token context; real credentials, domain controllers, remote authentication and Sigma credit are excluded. Disposable Windows tests cover native public runs and exact fixture cleanup. (@Shirofune-Security)
 
 - Added explicit `wec-ingress` Plan/Apply for one new, narrowly scoped Domain TCP5985 collector firewall rule. Actual host/logon/profile/source guards, reviewed hashes, flushed pending evidence and both-store/filter readback refuse drift and existing names; partial creation remains explicit. The existing collector prerequisite recognizes equivalent native dotted netmasks and IPv6 spellings without broadening accepted scopes. Disposable native tests cover creation, collision, replay, collector integration and cleanup without listener, delivery or Sigma claims. (@Shirofune-Security)

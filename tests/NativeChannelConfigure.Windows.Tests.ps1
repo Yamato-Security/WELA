@@ -16,8 +16,8 @@ function Read-Raw([string]$Name){
  $x=New-Object Xml.XmlDocument;$x.XmlResolver=$null;$x.LoadXml(($r.Output -join "`n"));return ,$x
 }
 function Guard-Raw($Xml){
- $x=$Xml.CloneNode($true);$x.DocumentElement.RemoveAttribute('enabled')
- foreach($name in @('enabled','channelAccess','maxSize')){foreach($node in @($x.SelectNodes("//*[local-name()='$name']"))){$null=$node.ParentNode.RemoveChild($node)}}
+ $x=$Xml.CloneNode($true);$x.DocumentElement.RemoveAttribute('enabled');$x.DocumentElement.RemoveAttribute('channelAccess')
+ foreach($node in @($x.SelectNodes("/*/*[local-name()='logging']/*[local-name()='maxSize']"))){$null=$node.ParentNode.RemoveChild($node)}
  return $x.OuterXml
 }
 $engine=(Get-Process -Id $PID).Path
@@ -51,7 +51,7 @@ try{
  $withoutRead=$descriptor.GetSddlForm('All');$access=Get-WelaChannelAccessPlan $withoutRead
  Assert ($access.State -eq 'GrantRequired') 'Prepared actual descriptor supports one lossless read-only grant'
  $null=Invoke-WelaNative wevtutil.exe @('sl',$capi,'/e:false','/ms:1048576',('/ca:'+$withoutRead))
- # A large existing log exposed numeric narrowing in older PowerShell planners.
+ # Existing sizes above the signed 32-bit range must not be narrowed.
  $null=Invoke-WelaNative wevtutil.exe @('sl',$app,'/ms:2147483648')
  $prepared=@{};foreach($name in $raw.Keys){$prepared[$name]=Get-WelaNativeChannel $name}
  $null=Run-Cli 'plan' @('-ChannelAction','Plan','-GrantEventLogReaders')
@@ -93,4 +93,7 @@ finally{
  if($errors.Count){throw "Cleanup failed: $($errors -join '; '); primary: $primary"}
  Write-Host 'Exact original channel metadata and all audit masks verified after cleanup; existing event records/retention duration not claimed.'
 }
+$artifacts=@(Get-ChildItem -LiteralPath $root -File -Recurse|ForEach-Object {[ordered]@{Path=$_.FullName.Substring($root.Length+1);Sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash}})
+$sources=@('WELA.ps1','scripts/Configuration.ps1','scripts/NativeChannelConfiguration.ps1','modules/NativeChannelAccess.psm1','modules/NativeProviders.psm1','modules/EventLogSettings.psm1','tests/NativeChannelConfigure.Windows.Tests.ps1')|ForEach-Object {[ordered]@{Path=$_;Sha256=(Get-FileHash -LiteralPath (Join-Path $repo $_) -Algorithm SHA256).Hash}}
+[ordered]@{Status=$(if($primary){'Failed'}else{'Passed'});Commit=$env:GITHUB_SHA;Engine=$PSVersionTable.PSVersion.ToString();Assertions=$count;Artifacts=$artifacts;Sources=@($sources);EventGenerationVerified=$false;ForwardingVerified=$false;ReadyRuleCredit=0}|ConvertTo-Json -Depth 8|Set-Content "$root/manifest.json" -Encoding UTF8
 if($primary){throw $primary};$global:LASTEXITCODE=0
