@@ -109,6 +109,13 @@
     [string]$EvtxProbePath,
     [string]$EvtxArchivePath,
     [string]$EvtxOutputPath,
+    [ValidateSet('Plan','Restore')][string]$TranscriptRecoveryAction = 'Plan',
+    [string]$TranscriptRecoveryJournalPath,
+    [string]$TranscriptRecoveryOriginalResultsPath,
+    [string]$TranscriptRecoveryPlanPath,
+    [string]$TranscriptRecoveryPlanHash,
+    [string]$TranscriptRecoveryOutputPath,
+    [switch]$TranscriptRecoveryAllowTemporarySuspension,
     [ValidateSet('Plan','Restore')][string]$EventRecoveryAction = 'Plan',
     [string]$EventRecoveryJournalPath,
     [string]$EventRecoveryOriginalResultsPath,
@@ -225,6 +232,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventMeasurement.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/TranscriptionRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -1966,6 +1974,7 @@ Usage:
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 transcription-recovery -Help
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
   ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
   ./WELA.ps1 applocker-readiness -AppLockerAction Plan -AppLockerPolicyPath operator-audit.xml
@@ -2070,6 +2079,8 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
 
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
 if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
+if ($Cmd -ne 'transcription-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'TranscriptRecovery*'}).Count) {throw 'TranscriptRecovery options require transcription-recovery.'}
+if ($Cmd -eq 'transcription-recovery' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','TranscriptRecoveryAction','TranscriptRecoveryJournalPath','TranscriptRecoveryOriginalResultsPath','TranscriptRecoveryPlanPath','TranscriptRecoveryPlanHash','TranscriptRecoveryOutputPath','TranscriptRecoveryAllowTemporarySuspension','Auto','DryRun','Help')}).Count)) {throw 'transcription-recovery accepts only its dedicated options, Auto and DryRun.'}
 if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
 if ($Cmd -eq 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','RecoveryAction','RecoveryJournalPath','RecoveryOriginalResultsPath','RecoveryControlId','RecoveryPlanPath','RecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'audit-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
 
@@ -2167,7 +2178,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -2283,6 +2294,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaEvtxRecovery -Action $EvtxAction -ProbePath $EvtxProbePath -ArchivePath $EvtxArchivePath -OutputPath $EvtxOutputPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'transcription-recovery' {
+        if ($Help) {Write-Host 'Usage: transcription-recovery -TranscriptRecoveryAction Plan -TranscriptRecoveryJournalPath before.jsonl -TranscriptRecoveryOriginalResultsPath results.json -TranscriptRecoveryOutputPath new-directory; Restore uses -TranscriptRecoveryPlanPath, -TranscriptRecoveryPlanHash and new -TranscriptRecoveryOutputPath [-Auto] [-TranscriptRecoveryAllowTemporarySuspension]. DryRun omits output. Temporary suspension can leave machine transcription disabled after an error, drift refusal or process termination; there is no automatic rollback or re-enable. Inspect receipts, current policy and the destination before manual recovery. See docs/transcription-recovery.md.';return}
+        $report=Invoke-WelaTranscriptRecovery -Action $TranscriptRecoveryAction -JournalPath $TranscriptRecoveryJournalPath -OriginalResultsPath $TranscriptRecoveryOriginalResultsPath -PlanPath $TranscriptRecoveryPlanPath -PlanHash $TranscriptRecoveryPlanHash -OutputPath $TranscriptRecoveryOutputPath -AllowTemporarySuspension:$TranscriptRecoveryAllowTemporarySuspension -Auto:$Auto -DryRun:$DryRun
+        $report | ConvertTo-Json -Depth 24 | Write-Output
+        exit ([int]$report.ExitCode)
     }
     'audit-recovery' {
         if ($Help) {Write-Host 'Usage: audit-recovery [-RecoveryAction Plan] -RecoveryJournalPath before.jsonl -RecoveryOriginalResultsPath results.json -RecoveryControlId IDs -RecoveryOutputPath new-directory; then -RecoveryAction Restore -RecoveryPlanPath reviewed-plan.json -RecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/audit-recovery.md.';return}
