@@ -1,0 +1,33 @@
+# Native AppLocker Script probe
+
+Related to #381. `applocker-script-probe` runs one fixed, locally generated `.ps1` file through native 64-bit Windows PowerShell 5.1 and looks for its actual AppLocker Script-collection decision. WELA itself can run in Windows PowerShell 5.1 or PowerShell 7. This command adds no AppLocker policy, starts no service, changes no execution policy or channel, and grants no Sigma readiness credit. Sysmon is out of scope.
+
+```powershell
+.\WELA.ps1 applocker-script-probe
+.\WELA.ps1 applocker-script-probe -AppLockerScriptAction Run -AppLockerScriptOutputPath C:\Evidence\new-script-probe -AppLockerScriptTimeoutSeconds 30
+```
+
+Plan reads prerequisites without launching a child or writing files. Run requires a new private directory on a local fixed drive, with an existing parent. Only reviewed Windows 11 builds and Server 2022/2025 member hosts are accepted; domain controllers are excluded. Client and managed-environment acceptance remains separate from hosted-server CI.
+
+The effective Group Policy Script collection must already contain rules in `AuditOnly` mode. Local and effective GP policy, management observations, AppIDSvc state and MSI and Script channel configuration must be readable. AppIDSvc must already run and the channel must already be enabled. AppLocker CSP policy remains **Unknown**: the native GP cmdlets do not enumerate that authority. Existing enforcement in other collections is preserved and can prevent the fixed native host from starting.
+
+Run creates only the reviewed worker template with a fresh filename and nonce. It launches System32's `WindowsPowerShell\v1.0\powershell.exe` with `-NoLogo -NoProfile -NonInteractive -File`; there is no operator-supplied command, profile loading or execution-policy override. The existing execution policy must permit that locally generated unsigned file. For example, Restricted or AllSigned may prevent completion; that is an unverified result. The report records existing native execution-policy registry values and the inherited process preference, without equating these observations to all application-control authorities.
+
+The worker emits its fixed ready marker, actual Windows PowerShell 5.1 version and language mode, waits for its fixed release marker, emits completion and exits. Before releasing it, WELA observes the real child primary token and compares its user, logon LUID, group attributes and privilege attributes with the actual current caller. Impersonated or restricted callers are refused. Caller token identity and modification state are checked throughout child execution and event queries. Metadata and output preparation precede that interval; final configuration observations are checked separately.
+
+Native PowerShell and generated script files are held read-locked during execution, with SHA256 and volume/file identity checks. Source fingerprints bind the compiled helper to its exact source bytes and are rechecked before launch and after collection. These are consistency observations, not a signature or protection from a local administrator. The generated file is retained with the evidence.
+
+The query starts from an actual current record boundary in `Microsoft-Windows-AppLocker/MSI and Script`. A match requires the reviewed provider GUID, event version, channel, computer, Script collection, actual user SID, child PID, exact unique script path and a native precise-UTC timestamp within the actual process interval. It accepts exactly one of these separate outcomes:
+
+| Event | Report decision | Meaning |
+|---|---|---|
+| 8005 | `Allowed` | A Script rule allowed this file. |
+| 8006 | `AllowedWouldBlockIfEnforced` | The audit-only Script policy would block this file if enforced. |
+
+8005 does not prove a would-block decision. 8007, MSI events sharing the channel, other processes, older records, stale paths, duplicates, unknown versions and timestamps outside the exact interval are rejected. Missing, denied, incomplete, capped or drifted results remain `Unverified` with a nonzero exit code. The bounded query refuses its 256-event or one-MiB cap; only matched XML or at most four candidates containing the owned filename are exported. Child startup is bounded to thirty seconds, completion to ten seconds after release, output drain to five seconds and event polling to the selected 1–30 seconds; individual native event reads have finite timeouts. Owned child termination is attempted and checked on failure. Raw process output is bounded.
+
+`NativeScriptEventObserved` means only that this one local Windows PowerShell 5.1 script generated the retained event under the observed context. It does not prove PowerShell 7 script behavior, other Script formats, MSI/DLL/packaged-app coverage, enforcement behavior, forwarding or backend rule matches. The [separate EXE probe](applocker-probe.md) covers EXE events.
+
+The dedicated Windows workflow requires explicit opt-in on disposable non-domain GitHub-hosted Server 2022/2025 VMs, each under both WELA host engines. It requires initially empty and understood local/effective GP policies. The fixture prepares one Script AuditOnly policy at a time, invokes the verified native PolicyConverter task and a bounded computer-policy refresh, then requires genuine public-command 8006 and 8005 records, source/receipt hashes and unchanged product context. Mocked fixtures never substitute for those events. It restores original local/effective GP policy, channel enablement and the exact PolicyConverter task definition/enabled state and preserves service startup mode. If Windows refuses to stop protected AppIDSvc, the cleanup receipt explicitly records the remaining running state and relies on disposal of that VM; it does not claim full service-state restoration. This fixture must not be run on production hosts.
+
+Microsoft references: [Script rule formats and host enforcement semantics](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/applocker/script-rules-in-applocker), [AppLocker event IDs](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/applocker/using-event-viewer-with-applocker), [native policy refresh and verification](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/applocker/refresh-an-applocker-policy), [Application Identity service](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/applocker/configure-the-application-identity-service).

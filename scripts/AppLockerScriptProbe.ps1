@@ -86,7 +86,7 @@ function Start-WelaAppLockerScriptProcess {
     $template=[IO.File]::ReadAllText((Join-Path $script:ScriptRoot 'scripts/AppLockerScriptWorker.ps1'))
     $scriptBytes=[Text.UTF8Encoding]::new($false).GetBytes((New-WelaAppLockerScriptText $template $nonce))
     $artifact=Write-WelaArrivalArtifact $Root ([IO.Path]::GetFileName($path)) ([Text.UTF8Encoding]::new($false).GetString($scriptBytes))
-    $source=$null;$scriptFile=$null;$process=$null;$started=$false
+    $source=$null;$scriptFile=$null;$process=$null;$started=$false;$stderr=$null
     try {
         $source=[IO.File]::Open($State.Source,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
         $scriptFile=[IO.File]::Open($path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
@@ -115,9 +115,13 @@ function Start-WelaAppLockerScriptProcess {
         if($process.ExitCode -ne 0 -or $out.TrimEnd("`r","`n") -cne ('WELA_SCRIPT_COMPLETE_'+$nonce) -or $err){throw ('The fixed script did not complete correctly. Exit='+$process.ExitCode+' Error='+$err)}
         if((Get-WelaAppLockerScriptKey ((Get-WelaAppLockerScriptReader))) -cne $readerKey -or [Wela.AppLockerScript.Native]::FileId($source.SafeFileHandle.DangerousGetHandle()) -cne $sourceId -or [Wela.AppLockerScript.Native]::FileId($scriptFile.SafeFileHandle.DangerousGetHandle()) -cne $scriptId){throw 'Reader or held file identity changed during script execution.'}
         [pscustomobject][ordered]@{ProcessId=$process.Id;UserSid=$Reader.Sid;ChildToken=$child;NativePowerShell=$State.Source;NativePowerShellSha256=$State.SourceHash;NativePowerShellFileId=$sourceId;ScriptPath=$path;ScriptSha256=$artifact.Sha256;ScriptFileId=$scriptId;ScriptArtifact=$artifact;Nonce=$nonce;Arguments=$info.Arguments;StartedUtc=$start.ToString('o');CompletedUtc=$end.ToString('o');Clock='GetSystemTimePreciseAsFileTime';Ready=$line;Marker=$out.TrimEnd("`r","`n");ExitCode=$process.ExitCode}
+    }catch{
+        $message=$_.Exception.Message
+        if($stderr -and $stderr.Status -eq [Threading.Tasks.TaskStatus]::RanToCompletion){$message+=' Native stderr: '+$stderr.GetAwaiter().GetResult()}
+        throw $message
     }finally{
-        if($process){try{if($started -and -not $process.HasExited){$process.Kill();if(-not $process.WaitForExit(5000)){throw 'Owned script process termination is unconfirmed.'}}}finally{$process.Dispose()}}
-        if($scriptFile){$scriptFile.Dispose()};if($source){$source.Dispose()}
+        try{if($process){try{if($started -and -not $process.HasExited){$process.Kill();if(-not $process.WaitForExit(5000)){throw 'Owned script process termination is unconfirmed.'}}}finally{$process.Dispose()}}}
+        finally{if($scriptFile){$scriptFile.Dispose()};if($source){$source.Dispose()}}
     }
 }
 function Read-WelaAppLockerScriptEvents {
