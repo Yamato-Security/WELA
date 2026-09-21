@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added `adcs-resume` to review and explicitly resume a dedicated pending CA auditing restart. Original journal/results, source and current CA/operator fingerprints, durable intent receipts and fresh/final checks prevent stale-plan replay and preserve observed settings. Dry-run and failed attempts remain explicit, with no event/Sigma credit. Disposable CA tests inject the initial refusal then verify an actual public-CLI restart and request events. Also fixed the existing dedicated CA Configure dry-run CLI guard. (#431) (@Shirofune-Security)
+
 - Added opt-in `event-measurement` for bounded local callback-delivery windows on one explicit built-in Administrative/Operational channel, with monotonic timing, original XML/bookmarks, private evidence and exact native EVTX sample reopening. Caps, missing/stale records, source drift and incomplete exports remain unverified; sample-file bytes do not imply channel growth, retention capacity, backend ingestion or Sigma readiness. (#430) (@Shirofune-Security)
 - Extended explicit `targeted-sacl` child consent with bounded reviewed descendant inventories, fresh preflight/pre-write checks, durable child snapshots, protected-subtree preservation and per-child native inheritance outcomes. Caps, denials, links, new/disappeared children and drift block or fail the run; parent-only behavior stays unchanged. Disposable populated file/registry tests verify inheritance and protection without child-ACE ownership, bulk rollback or Sigma credit. (#429) (@Shirofune-Security)
 

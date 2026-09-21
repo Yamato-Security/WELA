@@ -90,6 +90,13 @@
     [switch]$TargetSaclIncludeChildren,
     [ValidateSet('Audit','Plan','Configure')][string]$AdcsAction = 'Audit',
     [string]$AdcsProfile,
+    [ValidateSet('Plan','Resume')][string]$AdcsResumeAction = 'Plan',
+    [string]$AdcsResumeJournalPath,
+    [string]$AdcsResumeResultsPath,
+    [string]$AdcsResumePlanPath,
+    [string]$AdcsResumePlanHash,
+    [string]$AdcsResumeOutputPath,
+    [switch]$AdcsResumeAllowRestart,
     [switch]$AllowRestart,
     [ValidateSet('Export','Verify')][string]$EvtxAction = 'Verify',
     [string]$EvtxProbePath,
@@ -143,6 +150,7 @@ $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/AdcsRestartResume.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditIntegrity.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
@@ -1948,6 +1956,7 @@ Usage:
   ./WELA.ps1 adcs-auditing -Help    # Dedicated local CA audit settings; restart requires explicit consent
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
+  ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
@@ -1978,6 +1987,8 @@ if ($Cmd -ne 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ 
 if ($Cmd -eq 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','TargetSaclAction','TargetSaclProfile','TargetSaclId','TargetSaclPlanPath','TargetSaclIncludeChildren','IncludeOptional','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
     throw 'targeted-sacl accepts only selected-target, consent and report options. No command was run.'
 }
+if ($Cmd -ne 'adcs-resume' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'AdcsResume*'}).Count) {throw 'AdcsResume options require adcs-resume.'}
+if ($Cmd -eq 'adcs-resume' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AdcsResumeAction','AdcsResumeJournalPath','AdcsResumeResultsPath','AdcsResumePlanPath','AdcsResumePlanHash','AdcsResumeOutputPath','AdcsResumeAllowRestart','DryRun','Help')}).Count) {throw 'adcs-resume accepts only its dedicated options.'}
 if ($Cmd -ne 'adcs-auditing' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('AdcsAction','AdcsProfile','AllowRestart') }).Count) {
     throw 'AD CS options require adcs-auditing. No command was run.'
 }
@@ -2097,7 +2108,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -2162,6 +2173,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaSelectedSacl -Action $TargetSaclAction -Profile $TargetSaclProfile -Ids $TargetSaclId -PlanPath $TargetSaclPlanPath -IncludeOptional:$IncludeOptional -IncludeChildren:$TargetSaclIncludeChildren -DryRun:$DryRun -Auto:$Auto -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
         if ($report.ExitCode) { exit $report.ExitCode }
+    }
+    'adcs-resume' {
+        if ($Help) {Write-Host 'Usage: adcs-resume [-AdcsResumeAction Plan] -AdcsResumeJournalPath before.jsonl -AdcsResumeResultsPath failed.json -AdcsResumeOutputPath new-plan; Resume with -AdcsResumePlanPath reviewed-plan.json -AdcsResumePlanHash SHA256 and either -DryRun or -AdcsResumeAllowRestart -AdcsResumeOutputPath new-receipts. Only an unchanged, already-running CA recorded as RestartPending is eligible. See docs/adcs-restart-resume.md.';return}
+        $report=Invoke-WelaAdcsRestartResume -Action $AdcsResumeAction -JournalPath $AdcsResumeJournalPath -ResultsPath $AdcsResumeResultsPath -PlanPath $AdcsResumePlanPath -PlanHash $AdcsResumePlanHash -OutputPath $AdcsResumeOutputPath -AllowRestart:$AdcsResumeAllowRestart -DryRun:$DryRun
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'adcs-auditing' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 adcs-auditing [-AdcsAction Audit|Plan|Configure] [-AdcsProfile microsoft-identity-ca-2026-09] [-AllowRestart] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath new.json]. Audit is read-only; Plan/Configure requires a source. Filter changes require AllowRestart. Existing stopped CAs are never started. See docs/adcs-auditing.md.'; return }

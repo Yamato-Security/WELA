@@ -79,6 +79,35 @@ try {
     Invoke-TestCli -Arguments @('adcs-auditing','-AdcsAction','Configure','-AdcsProfile','microsoft-identity-ca-2026-09','-AllowRestart','-Auto','-BackupPath',(Join-Path $privateRoot 'repeat-journal'),'-ResultsPath',$repeatPath)
     $repeated=Get-Content -LiteralPath $repeatPath -Raw -Encoding UTF8|ConvertFrom-Json
     if($repeated.Activation -ne 'Unverified' -or @($repeated.Results|Where-Object Status -eq 'Applied').Count -or (Get-WelaAdcsStateKey (Get-WelaAdcsSnapshot)) -cne $stableKey){throw 'Native repeat changed state or claimed historical activation.'}
+    # Test-only fault injection: create an authentic failed Configure result by
+    # refusing its restart. Registry writes/observations and the resumed restart
+    # use real adapters. No injected helper enters the public child CLI process.
+    $null=New-ItemProperty -LiteralPath $stable.Path -Name AuditFilter -Value 0 -PropertyType DWord -Force
+    Restart-WelaAdcsService
+    $pendingPath=Join-Path $privateRoot 'restart-pending.json'
+    $pendingJournal=Join-Path $privateRoot 'restart-pending-journal'
+    $restartImplementation=(Get-Command Restart-WelaAdcsService).ScriptBlock
+    try {
+        function Restart-WelaAdcsService { throw 'Disposable fixture: restart deliberately refused after real filter write.' }
+        $pendingResult=Invoke-WelaAdcsCommand -Action Configure -Profile microsoft-identity-ca-2026-09 -AllowRestart -Auto -BackupPath $pendingJournal -ResultsPath $pendingPath
+    } finally { Set-Item -Path Function:Restart-WelaAdcsService -Value $restartImplementation }
+    if($pendingResult.ExitCode -ne 1 -or $pendingResult.Activation -cne 'RestartPending' -or $pendingResult.PolicyState -cne 'PolicyMatches'){throw 'Injected restart refusal did not leave authentic pending evidence with real AuditFilter127.'}
+    $pendingKey=Get-WelaAdcsStateKey (Get-WelaAdcsSnapshot)
+    $resumePlanRoot=Join-Path $privateRoot 'restart-plan'
+    Invoke-TestCli -Arguments @('adcs-resume','-AdcsResumeJournalPath',(Join-Path $pendingJournal 'before.jsonl'),'-AdcsResumeResultsPath',$pendingPath,'-AdcsResumeOutputPath',$resumePlanRoot)
+    $resumePlanPath=Join-Path $resumePlanRoot 'plan.json'
+    $resumeHash=(Get-FileHash -LiteralPath $resumePlanPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    Invoke-TestCli -Arguments @('adcs-resume','-AdcsResumeAction','Resume','-AdcsResumePlanPath',$resumePlanPath,'-AdcsResumePlanHash',$resumeHash,'-DryRun')
+    if((Get-WelaAdcsStateKey (Get-WelaAdcsSnapshot)) -cne $pendingKey){throw 'Public resume DryRun changed the pending CA.'}
+    $resumeOutput=Join-Path $privateRoot 'restart-receipts'
+    Invoke-TestCli -Arguments @('adcs-resume','-AdcsResumeAction','Resume','-AdcsResumePlanPath',$resumePlanPath,'-AdcsResumePlanHash',$resumeHash,'-AdcsResumeAllowRestart','-AdcsResumeOutputPath',$resumeOutput)
+    $resumed=Get-Content -LiteralPath (Join-Path $resumeOutput 'result.json') -Raw -Encoding UTF8|ConvertFrom-Json
+    if($resumed.ExitCode -ne 0 -or $resumed.Status -cne 'RestartObserved' -or -not $resumed.RestartAttempted -or $resumed.ReadyRuleCredit -ne 0 -or $resumed.EventGeneration -cne 'Unverified'){throw 'Public resume did not verify the actual restart with explicit evidence limits.'}
+    foreach($artifact in $resumed.Artifacts){if((Get-FileHash -LiteralPath (Join-Path $resumeOutput $artifact.Name)).Hash.ToLowerInvariant() -cne $artifact.Sha256){throw 'Public resume receipt hash mismatch.'}}
+    $stable=Get-WelaAdcsSnapshot;$stableKey=Get-WelaAdcsStateKey $stable
+    Invoke-TestCli -Arguments @('adcs-resume','-AdcsResumeAction','Resume','-AdcsResumePlanPath',$resumePlanPath,'-AdcsResumePlanHash',$resumeHash,'-AdcsResumeAllowRestart','-AdcsResumeOutputPath',(Join-Path $privateRoot 'replay')) -ExpectedExit 1
+    if((Get-WelaAdcsStateKey (Get-WelaAdcsSnapshot)) -cne $stableKey -or (Test-Path -LiteralPath (Join-Path $privateRoot 'replay'))){throw 'Consumed pending plan restarted the CA again or created output.'}
+    Write-Host 'Native pending-restart recovery passed: real filter write, injected refusal, public plan/dry-run, actual service restart, hashed receipts and replay rejection.'
     # This public CSR has no corresponding private key in the repository or runner.
     # A pending request cannot produce a usable leaf certificate; never approve it.
     $csrPath=Join-Path $PSScriptRoot 'fixtures/adcs-pending-probe.csr'
@@ -174,4 +203,4 @@ try {
     if($passed){Remove-Item -LiteralPath $privateRoot -Recurse -Force}
 }
 $global:LASTEXITCODE=0
-Write-Host 'PASS: actual public CA configuration, idempotence, pending-request events and exact audit/created-CA restoration. Requested OS feature removal can await hosted-runner disposal, as recorded separately.'
+Write-Host 'PASS: actual public CA configuration, idempotence, pending-restart resume, pending-request events and exact audit/created-CA restoration. Requested OS feature removal can await hosted-runner disposal, as recorded separately.'
