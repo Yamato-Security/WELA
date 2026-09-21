@@ -18,6 +18,8 @@ or result-file error also exits with status 1.
 .\WELA.ps1 configure -Auto -ResultsPath .\results.json
 ```
 
+Unknown named options and other arguments left unbound by PowerShell are rejected before command dispatch. This includes unsupported `-WhatIf`, `-Confirm` and misspelled `-DryRun` options, even with `-Auto`. Use each command's `-Help` for its supported preview options; `-DryRun` is accepted only where documented. Valid positional binding and PowerShell's unambiguous parameter abbreviations remain supported.
+
 Keep the complete WELA directory, including `scripts/Configuration.ps1`. Choose a
 recovery path whose parent directory is writable only by the operators who manage
 these settings. The backup directory must not already exist. Without `-BackupPath`,
