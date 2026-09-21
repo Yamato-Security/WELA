@@ -1,0 +1,47 @@
+name: Guarded firewall logging recovery
+on:
+  push:
+    paths: ['WELA.ps1', 'scripts/FirewallLogging*', 'scripts/Configuration.ps1', 'scripts/AuditRecovery.ps1', 'scripts/WefArrival.ps1', 'scripts/WecUpdate.ps1', 'scripts/ChannelRead*', 'tests/FirewallLoggingRecovery*', '.github/workflows/firewall-logging-recovery.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  firewall-recovery:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Focused and public CLI fixtures (powershell)
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/FirewallLoggingRecovery.Tests.ps1
+          ./tests/FirewallLoggingRecovery.Cli.Tests.ps1
+      - name: Disposable native configuration and recovery (powershell)
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/FirewallLoggingRecovery.Windows.Tests.ps1 -AllowDisposableLoggingWrite
+      - name: Focused and public CLI fixtures (pwsh)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/FirewallLoggingRecovery.Tests.ps1
+          ./tests/FirewallLoggingRecovery.Cli.Tests.ps1
+      - name: Disposable native configuration and recovery (pwsh)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/FirewallLoggingRecovery.Windows.Tests.ps1 -AllowDisposableLoggingWrite
+      - name: Retain native configuration and cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: firewall-recovery-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-firewall-recovery-*/
+          if-no-files-found: warn
+          retention-days: 7
