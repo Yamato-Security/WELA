@@ -24,6 +24,8 @@
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
     [string]$HtmlPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
+    [ValidateSet('Plan','Activate')][string]$SmbRuntimeAction = 'Plan',
+    [string]$SmbRuntimeOutputPath,
     [ValidateSet('Audit', 'Plan', 'Configure', 'Rollback')][string]$AdSaclAction = 'Audit',
     [string]$AdServer,
     [ValidateSet('MdiDomain', 'MdiConfiguration', 'PkiObjects')][string[]]$AdSaclProfile,
@@ -123,6 +125,13 @@
     [string]$WecUpdatePlanPath,
     [string]$WecUpdatePlanHash,
     [string]$WecUpdateOutputPath,
+    [ValidateSet('Plan','Apply')][string]$WecStateAction = 'Plan',
+    [string]$WecStateId,
+    [string[]]$WecStateSourceSid,
+    [ValidateSet('Enabled','Disabled')][string]$WecStateDesired,
+    [string]$WecStatePlanPath,
+    [string]$WecStatePlanHash,
+    [string]$WecStateOutputPath,
     [ValidateSet('Audit','Plan','Configure')][string]$DnsAction = 'Audit',
     [ValidateSet('Enabled','Disabled')][string]$DnsState,
     [ValidateSet('Preserve','Circular','Retain')][string]$DnsRetention = 'Preserve',
@@ -159,6 +168,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AuditIntegrity.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/SmbRuntimeActivation.ps1")
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeValidation.ps1")
@@ -186,6 +196,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/WecUpdate.ps1")
+. (Join-Path $ScriptRoot "scripts/WecState.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
@@ -528,7 +539,7 @@ function Invoke-WelaProfileCommand {
         else { Write-Host "Planning for another role/build: effective state remains Unknown." }
     }
     elseif ($Command -ne 'plan') { throw "Audit and configure require Windows. Offline planning requires explicit -Role and -Build." }
-    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional @planArguments
+    $plan = Get-WelaAuditProfilePlan -Profile $script:Profile -Role $context.Role -Build $context.Build -Current $current -IncludeOptional:$script:IncludeOptional -ObserveIpsec:$saclLive @planArguments
     if ($script:ProfileFile) {
         Assert-WelaCustomProfileSource $custom.customSource
         if ($plan.CustomProfileSource.Sha256 -cne $custom.customSource.Sha256) { throw 'Custom profile changed during host assessment.' }
@@ -542,6 +553,9 @@ function Invoke-WelaProfileCommand {
     Write-Host "Audit precedence: $($precedence.State); required SCENoApplyLegacyAuditPolicy=1 (DWORD). $($precedence.Diagnostic)"
     if ($precedence.PolicySource) { Write-Host $precedence.PolicySource.Description }
     Show-WelaAuditProfilePrerequisites -Plan $plan
+    foreach ($policy in $plan.policies) {
+        if ($policy.conditionalPrerequisite) { Write-Host "Conditional prerequisite - $($policy.id): $($policy.conditionalPrerequisite.Status). $($policy.conditionalPrerequisite.Limitations)" -ForegroundColor DarkYellow }
+    }
     Write-Host "Targeted SACL companion plan: $($saclPlan.Mode), $($saclPlan.Targets.Count) targets; $($saclPlan.TelemetryGap)" -ForegroundColor DarkYellow
     $saclPlan.Targets | Select-Object Scope, Path, Rights, Inheritance, PolicyMode, @{Name='PathState';Expression={$_.Observation.PathState}} | Format-Table -AutoSize
     $result = $plan
@@ -1927,6 +1941,8 @@ Usage:
   # Firewall text logging is opt-in; it does not change firewall enforcement or rules.
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
+  ./WELA.ps1 smb-runtime -SmbRuntimeAction Plan
+  ./WELA.ps1 smb-runtime -SmbRuntimeAction Activate -SmbRuntimeOutputPath C:\Evidence\new-smb -Auto
   ./WELA.ps1 rule-eligibility -ResultsPath eligibility.json -HtmlPath eligibility.html
   ./WELA.ps1 event-measurement -MeasurementChannel Security
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
@@ -1965,6 +1981,7 @@ Usage:
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
+  ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
@@ -1983,6 +2000,8 @@ Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
 if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
+if ($Cmd -ne 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'SmbRuntime*' }).Count) {throw 'SmbRuntime options require smb-runtime. No command was run.'}
+if ($Cmd -eq 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','SmbRuntimeAction','SmbRuntimeOutputPath','Auto','DryRun','Help') }).Count) {throw 'smb-runtime accepts only its dedicated options, Auto and DryRun. No command was run.'}
 if ($Cmd -eq 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ChannelReadName','ChannelReadOutputPath','Help') }).Count) { throw 'channel-read accepts only dedicated channel/output options. No command was run.' }
 
 if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
@@ -2042,6 +2061,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
+if ($Cmd -eq 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecStateAction','WecStateId','WecStateSourceSid','WecStateDesired','WecStatePlanPath','WecStatePlanHash','WecStateOutputPath','Help')}).Count) {throw 'wec-state accepts only dedicated options.'}
 if ($Cmd -ne 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecUpdate*'}).Count) {throw 'WecUpdate options require wec-update.'}
 if ($Cmd -eq 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecUpdateAction','WecUpdateId','WecUpdateSourceSid','WecUpdateQueryPath','WecUpdateDescription','WecUpdatePlanPath','WecUpdatePlanHash','WecUpdateOutputPath','Help')}).Count) {throw 'wec-update accepts only dedicated options.'}
 if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecRuntime*'}).Count) {
@@ -2126,6 +2147,7 @@ if ($DryRun -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure'
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
+    -not ($Cmd -eq 'smb-runtime' -and $SmbRuntimeAction -eq 'Activate') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
     -not ($Cmd -eq 'channel-settings' -and $ChannelAction -eq 'Configure') -and
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
@@ -2243,6 +2265,15 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'wec-state' {
+        if ($Help) {Write-Host 'Usage: wec-state [-WecStateAction Plan] -WecStateId ID -WecStateSourceSid SID -WecStateDesired Enabled|Disabled -WecStateOutputPath new-directory; then Apply with -WecStatePlanPath reviewed-plan.json -WecStatePlanHash SHA256 -WecStateOutputPath new-directory. Only Enabled on an existing subscription. Disable interrupts collection; enable/save activates it. See docs/wec-state.md.';return}
+        $arguments=@{Action=$WecStateAction;OutputPath=$WecStateOutputPath}
+        $map=@{WecStateId='Id';WecStateSourceSid='SourceSids';WecStateDesired='State';WecStatePlanPath='PlanPath';WecStatePlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaWecState @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'wec-update' {
         if ($Help) {Write-Host 'Usage: wec-update [-WecUpdateAction Plan] -WecUpdateId ID -WecUpdateSourceSid SID -WecUpdateQueryPath query.xml -WecUpdateDescription text -WecUpdateOutputPath new-directory; then Apply with -WecUpdatePlanPath reviewed-plan.json -WecUpdatePlanHash SHA256 -WecUpdateOutputPath new-directory. Only query/description on already disabled subscriptions. See docs/wec-update.md.';return}
@@ -2429,6 +2460,14 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] Firewall logging: $_" -ForegroundColor Red; exit 1 }
+    }
+    'smb-runtime' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 smb-runtime [-SmbRuntimeAction Plan|Activate] [-SmbRuntimeOutputPath new-local-directory] [-Auto] [-DryRun]. Activates only six native SMB audit switches; policy and security settings are preserved. See docs/smb-runtime-activation.md.';return}
+        try {
+            $report=Invoke-WelaSmbRuntimeActivation -Action $SmbRuntimeAction -OutputPath $SmbRuntimeOutputPath -Auto:$Auto -DryRun:$DryRun
+            $report
+            if($report.ExitCode){exit $report.ExitCode}
+        }catch{Write-Host "[Failed] SMB runtime activation: $_" -ForegroundColor Red;exit 1}
     }
     'smb-auditing' {
         if ($Help) {

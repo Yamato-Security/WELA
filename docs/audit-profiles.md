@@ -88,3 +88,5 @@ For recovery, review the journal and restore the exact prior registry value/type
 RSoP schema references: [registry policy](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/policy/rsop-registrypolicysetting), [numeric security setting](https://learn.microsoft.com/en-us/previous-versions/aa375064(v=vs.85)), and [security registry value](https://learn.microsoft.com/en-us/previous-versions/aa375052(v=vs.85)). Tests use these actual property shapes; they do not substitute a shared synthetic schema.
 
 Targeted file/registry SACL prerequisites are included as a read-only companion plan. See [targeted SACL planning](targeted-sacl-planning.md) for per-user gaps, source distinctions and `-SaclMode Skip`.
+
+The stronger profile's optional IPsec Main Mode control additionally requires positive local native prerequisite evidence during shared planning/configuration. See [conditional IPsec prerequisites](ipsec-prerequisites.md) for scope, statuses and fresh pre-write checks.
