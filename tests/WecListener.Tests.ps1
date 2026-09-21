@@ -8,6 +8,12 @@ $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Reject([scriptblock]$Action,[string]$Pattern='.'){$message='';try{&$Action|Out-Null}catch{$message=$_.Exception.Message};Assert ($message -match $Pattern) "Expected refusal $Pattern, got: $message; input: $bad; action: $Action"}
 function Copy-TestListener($Value){Get-WelaListenerKey $Value|ConvertFrom-Json}
+$special=[pscustomobject]@{Xml='<a x="v">&</a>';Name="O'Neil"}
+$specialKey=Get-WelaListenerKey $special
+Assert ($specialKey -notmatch "[<>&']" -and $specialKey.Contains('\u003c') -and $specialKey.Contains('\u0027')) 'Context JSON spelling is consistent across native5.1 and host7.'
+Assert (($specialKey|ConvertFrom-Json).Xml -ceq $special.Xml -and ($specialKey|ConvertFrom-Json).Name -ceq $special.Name) 'Canonical JSON escaping preserves exact values.'
+Assert ((Get-WelaListenerKey (Copy-TestListener ([pscustomobject]@{Nested=$specialKey}))) -ceq (Get-WelaListenerKey ([pscustomobject]@{Nested=$specialKey}))) 'Nested context JSON keeps its reviewed value.'
+
 $selection=Get-WelaListenerSelection 'test-host' '192.0.2.10'
 $xml='<cfg:Listener xmlns:cfg="http://schemas.microsoft.com/wbem/wsman/1/config/listener" xml:lang="en-US"><cfg:Address>IP:192.0.2.10</cfg:Address><cfg:Transport>HTTP</cfg:Transport><cfg:Port>5985</cfg:Port><cfg:Hostname/><cfg:Enabled>true</cfg:Enabled><cfg:URLPrefix>wsman</cfg:URLPrefix><cfg:CertificateThumbprint/><cfg:ListeningOn>192.0.2.10</cfg:ListeningOn></cfg:Listener>'
 Assert ($selection.ComputerName -ceq 'TEST-HOST') 'Actual computer selection is canonical.'
@@ -87,7 +93,7 @@ try {
   if($scenario -eq 'hash'){$hash='f'*64}
   if($scenario -in @('schema','duplicate-json','context')){
    $text=[IO.File]::ReadAllText($path)
-   if($scenario -eq 'schema'){$text=$text.Replace('"SchemaVersion": 1','"SchemaVersion": true')}
+   if($scenario -eq 'schema'){$text=$text -replace '"SchemaVersion"\s*:\s*1','"SchemaVersion": true'}
    if($scenario -eq 'duplicate-json'){$text=$text.Replace('"SchemaVersion":','"SchemaVersion":1,"SchemaVersion":')}
    if($scenario -eq 'context'){$text=$text.Replace('TEST-HOST','OTHER-HOST')}
    [IO.File]::WriteAllText($path,$text);$hash=(Get-FileHash $path).Hash.ToLowerInvariant()

@@ -18,14 +18,14 @@ Plan writes review artifacts, including `plan.json` and `manifest.json` with `Pl
 
 The fixed desired listener is `Address=IP:<selected IPv4>`, transport `HTTP`, port `5985`, URL prefix `wsman`, enabled, with blank hostname and certificate thumbprint. Wildcard listeners, any existing HTTP5985 listener and an existing selected Address/Transport pair prevent creation. WELA leaves those listeners in place for manual review. It does not narrow, replace, disable or remove an existing endpoint.
 
-The plan binds the actual machine, operator/logon context, assigned address, implementation and original WinRM configuration/policy/listeners and firewall observations. Apply checks the reviewed hash and fresh context, writes pending evidence before its single creation attempt, then checks actual native configuration and `ListeningOn`. The fixed local creation worker uses the trusted native Windows PowerShell 5.1 engine under both Windows PowerShell 5.1 and PowerShell 7 hosts, with no execution-policy override. Its actual process, token and engine are retained as evidence. A host that cannot run this fixed adapter must resolve that prerequisite before applying.
+The plan binds the actual machine, operator/logon context, assigned address, implementation and original WinRM configuration/policy/listeners and firewall observations. Apply checks the reviewed hash and fresh context, writes pending evidence before its single creation attempt, then checks actual native configuration and `ListeningOn`. The fixed local creation worker uses the trusted native Windows PowerShell 5.1 engine under both Windows PowerShell 5.1 and PowerShell 7 hosts, with the fixed native 5.1 module directory and no execution-policy override. Its actual process, token and engine are retained as evidence. A host that cannot run this fixed adapter must resolve that prerequisite before applying.
 
 | Result | Meaning |
 | --- | --- |
 | `ReviewRequired` | Plan artifacts are ready for review; no listener was created. |
 | `CreatedAndVerified` | The new listener and expected native readback were observed, with the required preservation checks. |
 | `Refused` | Preconditions, evidence or context failed before a creation attempt. |
-| `CreateAttemptedUnverified` | Creation was attempted but the final state could not be completely verified. Review the pending/native evidence and current listeners before taking further action. |
+| `CreateAttemptedUnverified` | The adapter started and creation was attempted or cannot be ruled out; the final state could not be completely verified. Review the pending/native evidence and current listeners before taking further action. |
 
 No atomic Windows compare-and-set is available; another administrator or policy process can race observation and creation. There is no automatic rollback. An interrupted process can leave pending evidence and a created listener without a completed report. Use the retained original and current snapshots to identify what changed; this command never deletes a listener as a recovery shortcut.
 

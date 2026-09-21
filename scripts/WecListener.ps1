@@ -1,5 +1,11 @@
 # One reviewed exact-IP HTTP listener; native creation always runs in Windows PowerShell 5.1.
-function Get-WelaListenerKey {param($Value) ConvertTo-Json -InputObject $Value -Depth 24 -Compress}
+function Get-WelaListenerKey {
+    param($Value)
+    # Windows PowerShell 5.1 escapes these HTML characters even with default JSON settings.
+    # Normalize the same spelling in both engines before binding nested context strings.
+    $json=ConvertTo-Json -InputObject $Value -Depth 24 -Compress
+    $json.Replace('<','\u003c').Replace('>','\u003e').Replace('&','\u0026').Replace("'",'\u0027')
+}
 function Get-WelaListenerSelection {
     param($ComputerName,$LocalAddress)
     if($ComputerName -isnot [string] -or $ComputerName -cnotmatch '^[A-Za-z0-9][A-Za-z0-9-]{0,62}$'){throw 'Select the actual local computer name.'}
@@ -30,7 +36,7 @@ function ConvertFrom-WelaListenerXml {
     $listening=@($root.ChildNodes|Where-Object {$_.NodeType -eq 'Element' -and $_.LocalName -ceq 'ListeningOn'}|ForEach-Object InnerText|Sort-Object)
     if($listening.Count -gt 64 -or @($listening|Sort-Object -Unique).Count -ne $listening.Count){throw 'Ambiguous or excessive ListeningOn addresses.'}
     foreach($value in $listening){$ip=$null;if(-not [Net.IPAddress]::TryParse($value,[ref]$ip)){throw 'Invalid native ListeningOn address.'}}
-    $result.ListeningOn=$listening;$result.PolicyOwned=$policy;$result.XmlKey=Get-WelaWefXmlKey $root;$result.RawXml=$Xml
+    $result.ListeningOn=$listening;$result.PolicyOwned=$policy;$result.RawXml=$Xml
     [pscustomobject]$result
 }
 function Read-WelaListenerInventory {
@@ -206,6 +212,7 @@ function Start-WelaListenerAdapter {
     foreach($path in @($State.Adapter.Engine,$State.Adapter.Worker,$RequestPath)){if($path.Contains('"') -or $path.EndsWith('\') -or $path -match '[\x00-\x1f]'){throw 'Unsupported native adapter path.'}}
     $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$State.Adapter.Engine
     $info.Arguments='-NoLogo -NoProfile -NonInteractive -File "'+$State.Adapter.Worker+'" -RequestPath "'+$RequestPath+'" -RequestHash '+$RequestHash
+    $info.EnvironmentVariables['PSModulePath']=Join-Path ([Environment]::SystemDirectory) 'WindowsPowerShell/v1.0/Modules'
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.StandardOutputEncoding=[Text.UTF8Encoding]::new($false);$info.StandardErrorEncoding=[Text.UTF8Encoding]::new($false)
     Initialize-WelaListenerPipe
     $result=[pscustomobject][ordered]@{Started=$false;ProcessId=$null;ExitCode=$null;TimedOut=$false;TerminationConfirmed=$false;Receipt=$null;Diagnostic=''};$process=[Diagnostics.Process]::new();$process.StartInfo=$info
