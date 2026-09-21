@@ -59,7 +59,7 @@ function Get-WelaEventRecoveryDefinition {
     foreach($state in @($initial.Before,$fresh.Before,$row.After)){Assert-WelaEventRecoveryState $state $Log}
     if((Get-WelaRecoveryKey $fresh.Before) -cne (Get-WelaRecoveryKey $row.BeforeWrite)){throw 'Immediate prewrite and final BeforeWrite evidence differ.'}
     if($row.After.IsEnabled -ne $fresh.Before.IsEnabled){throw 'Channel enable state changed during original operation.'}
-    $bytes=if($initial.Desired.SizeMode -ceq 'Exact'){$initial.Desired.MaximumSizeInBytes}else{[math]::Max($fresh.Before.MaximumSizeInBytes,$initial.Desired.MaximumSizeInBytes)}
+    $bytes=if($initial.Desired.SizeMode -ceq 'Exact'){$initial.Desired.MaximumSizeInBytes}else{[math]::Max([long]$fresh.Before.MaximumSizeInBytes,[long]$initial.Desired.MaximumSizeInBytes)}
     $mode=if($null -ne $initial.Desired.LogMode){$initial.Desired.LogMode}else{$fresh.Before.LogMode}
     if($row.After.MaximumSizeInBytes -ne $bytes -or $row.After.LogMode -cne $mode){throw 'Final state includes unexplained drift beyond the original size/mode write.'}
     $expected=Get-WelaEventRecoveryPair $row.After;$recover=Get-WelaEventRecoveryPair $fresh.Before
