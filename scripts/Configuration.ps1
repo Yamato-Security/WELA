@@ -1,6 +1,4 @@
 # Execution helpers for configure. Compatible with Windows PowerShell 5.1.
-. (Join-Path $PSScriptRoot 'IpsecPrerequisites.ps1')
-
 function Invoke-WelaNative {
     param([string]$FilePath, [string[]]$Arguments)
     # Windows PowerShell sends native stderr through the error stream. Collect it

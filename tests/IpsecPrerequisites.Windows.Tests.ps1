@@ -40,7 +40,12 @@ try {
     $evidence|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'exemption.json') -Encoding UTF8
     Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop|Select-Object *|Export-Clixml (Join-Path $root 'exemption-native.xml')
     Assert ($evidence.Status -ne 'Unknown' -and @($owned|Where-Object Qualifies).Count -eq 0) "real exemption-only rule does not qualify: $($evidence.Diagnostic)"
-    Set-NetIPsecRule -Name $name -PolicyStore PersistentStore -InboundSecurity Request -OutboundSecurity Request -ErrorAction Stop
+    # Converting to an exemption clears its authentication-set references. Recreate
+    # only this owned fixture so New-NetIPsecRule supplies valid native defaults.
+    Remove-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop
+    $created=$false
+    $null=New-NetIPsecRule -Name $name -DisplayName $name -PolicyStore PersistentStore -Profile Any -Enabled True -LocalAddress 192.0.2.250 -RemoteAddress 192.0.2.251 -InboundSecurity Request -OutboundSecurity Request -ErrorAction Stop
+    $created=$true
     $evidence=Get-WelaIpsecPrerequisite
     $evidence|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'positive.json') -Encoding UTF8
     Get-NetIPsecRule -Name $name -PolicyStore ActiveStore -ErrorAction Stop|Select-Object *|Export-Clixml (Join-Path $root 'positive-native.xml')
@@ -87,7 +92,7 @@ try {
         Assert ($row.Status -eq 'Applied') 'independent baseline prerequisite remains applicable after owned-rule removal'
     }
 } finally {
-    if($created){Remove-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop}
+    if(@(Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction SilentlyContinue).Count){Remove-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop}
     foreach($id in $before.Keys){Set-WelaEffectiveAuditPolicy -Guid $id -Mask $before[$id] -Mode exact}
     if($precedence.ValueExists){Set-ItemProperty -LiteralPath $precedencePath -Name SCENoApplyLegacyAuditPolicy -Type $precedence.Type -Value $precedence.Value -ErrorAction Stop}
     else {Remove-ItemProperty -LiteralPath $precedencePath -Name SCENoApplyLegacyAuditPolicy -ErrorAction SilentlyContinue}
@@ -97,6 +102,7 @@ try {
     Assert (($precedence|ConvertTo-Json -Compress) -ceq ($afterPrecedence|ConvertTo-Json -Compress)) 'typed precedence/absence restored'
     $afterRules=@(Get-NetIPsecRule -PolicyStore ActiveStore -ErrorAction Stop|Select-Object Name,Enabled,InboundSecurity,OutboundSecurity,PrimaryStatus|Sort-Object Name|ConvertTo-Json -Depth 5 -Compress)
     Assert (($beforeRules -join '') -ceq ($afterRules -join '')) 'native rule inventory restored exactly'
+    Assert (@(Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction SilentlyContinue).Count -eq 0) 'owned persistent rule removed'
     $cleanup=$true
     [pscustomobject]@{CleanupVerified=$cleanup;Checks=$script:checks;Engine=$PSVersionTable.PSVersion.ToString();Computer=$env:COMPUTERNAME;NoTrafficGenerated=$true}|ConvertTo-Json|Set-Content (Join-Path $root 'cleanup.json') -Encoding UTF8
 }
