@@ -48,6 +48,7 @@ function Assert-WelaCapi2ProbeCertificate {
  if($der.Length -lt 128 -or $der.Length -gt 8192){throw 'Certificate DER exceeds its evidence bound.'}
  $certificate=[Security.Cryptography.X509Certificates.X509Certificate2]::new($der)
  try{
+  if([Convert]::ToBase64String($certificate.RawData) -cne $Operation.CertificateDerBase64){throw 'Public certificate evidence must contain exactly one canonical DER object.'}
   if($certificate.Subject -cne ('CN=WelaCapi2Probe_'+$Nonce) -or $certificate.Issuer -cne $certificate.Subject -or $Operation.Subject -cne $certificate.Subject -or $Operation.Thumbprint -cne $certificate.Thumbprint -or $certificate.Extensions.Count -ne 0 -or $certificate.HasPrivateKey -or $certificate.SignatureAlgorithm.Value -cne '1.2.840.113549.1.1.11' -or $certificate.PublicKey.Oid.Value -cne '1.2.840.113549.1.1.1'){throw 'Certificate DER does not describe the fixed ephemeral self-signed probe.'}
   $rsa=[Security.Cryptography.X509Certificates.RSACertificateExtensions]::GetRSAPublicKey($certificate)
   try{if($rsa.get_KeySize() -ne 2048){throw 'Unexpected probe RSA key size.'}}finally{$rsa.Dispose()}
