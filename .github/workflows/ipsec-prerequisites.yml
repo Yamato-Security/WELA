@@ -24,12 +24,18 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Portable classifier and mutation-boundary tests
-        shell: ${{ matrix.engine }}
-        run: ./tests/IpsecPrerequisites.Tests.ps1
-      - name: Owned native rules and public configure with exact restoration
-        shell: ${{ matrix.engine }}
-        run: ./tests/IpsecPrerequisites.Windows.Tests.ps1 -AllowDisposablePolicyWrite -AllowDisposableIpsecRule
+      - name: Native prerequisite and public configure proof in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/IpsecPrerequisites.Tests.ps1
+          ./tests/IpsecPrerequisites.Windows.Tests.ps1 -AllowDisposablePolicyWrite -AllowDisposableIpsecRule
+      - name: Native prerequisite and public configure proof in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/IpsecPrerequisites.Tests.ps1
+          ./tests/IpsecPrerequisites.Windows.Tests.ps1 -AllowDisposablePolicyWrite -AllowDisposableIpsecRule
       - name: Retain native observations and restoration evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
