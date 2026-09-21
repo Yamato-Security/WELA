@@ -58,7 +58,11 @@ namespace Wela.EventMeasurementV1 {
             if (seconds < 1 || seconds > 60 || maximum < 1 || maximum > 1024) throw new ArgumentOutOfRangeException();
             this.seconds=seconds; this.maximum=maximum; callback=OnEvent;
             bookmark=EvtCreateBookmark(null);
-            if (bookmark==IntPtr.Zero) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), "EvtCreateBookmark failed");
+            if (bookmark==IntPtr.Zero) {
+                int bookmarkError=Marshal.GetLastWin32Error();
+                finished.Dispose();
+                throw new System.ComponentModel.Win32Exception(bookmarkError, "EvtCreateBookmark failed");
+            }
             Stopwatch opening=Stopwatch.StartNew();
             subscription=EvtSubscribe(IntPtr.Zero, IntPtr.Zero, channel, "*", IntPtr.Zero, IntPtr.Zero, callback, 0x10001);
             int error=Marshal.GetLastWin32Error();
