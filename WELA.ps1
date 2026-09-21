@@ -61,6 +61,10 @@
     [string]$WmiProbeNamespace,
     [string]$WmiProbeOutputPath,
     [ValidateRange(1,30)][int]$WmiProbeTimeoutSeconds = 15,
+    [ValidateSet('Plan','Run')][string]$FileProbeAction = 'Plan',
+    [string]$FileProbePath,
+    [string]$FileProbeOutputPath,
+    [ValidateRange(1,30)][int]$FileProbeTimeoutSeconds = 15,
     [string[]]$WmiNamespace,
     [switch]$WmiIncludeChildren,
     [string]$RuleEvidencePath,
@@ -179,6 +183,9 @@
     [switch]$AllowDnsTraceReset,
     [string[]]$WecRuntimeId,
     [ValidateRange(1,512)][int]$WecRuntimeMaximumSources=128,
+    [ValidateSet('Plan','Run')][string]$AppLockerScriptAction = 'Plan',
+    [string]$AppLockerScriptOutputPath,
+    [ValidateRange(1,30)][int]$AppLockerScriptTimeoutSeconds = 15,
     [ValidateSet('Plan','Run')][string]$AppLockerProbeAction = 'Plan',
     [string]$AppLockerProbeOutputPath,
     [ValidateRange(1,30)][int]$AppLockerProbeTimeoutSeconds = 15,
@@ -217,8 +224,10 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/AppLockerScriptProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/FileAccessProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
@@ -1948,6 +1957,10 @@ function Get-WelaUserProfiles {
 }
 
 $usage = @"
+WELA.ps1 accepts only its documented script parameters. PowerShell common parameters
+(-ErrorAction, -Verbose, -WarningAction, -InformationAction) are not supported.
+Remove these options from automation wrappers; check WELA's exit code instead.
+
 Usage:
   ./WELA.ps1 dns-analytical -Help  # Dedicated DNS Server direct-channel lifecycle
   ./WELA.ps1 wec-runtime -WecRuntimeId subscription-id -ResultsPath new-runtime.json
@@ -1994,6 +2007,7 @@ Usage:
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 file-access-probe -Help
   ./WELA.ps1 transcription-recovery -Help
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
   ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
@@ -2036,6 +2050,7 @@ Usage:
   ./WELA.ps1 capi2-probe -Help       # Fixed offline chain and matched CAPI2 event 11 evidence
   ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
+  ./WELA.ps1 applocker-script-probe -Help # Collect a fixed native Script8005/8006 event
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
   ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
@@ -2101,6 +2116,8 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
     throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
 }
 
+if ($Cmd -ne 'file-access-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FileProbe*'}).Count) {throw 'FileProbe options require file-access-probe.'}
+if ($Cmd -eq 'file-access-probe' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileProbeAction','FileProbePath','FileProbeOutputPath','FileProbeTimeoutSeconds','Help')}).Count)) {throw 'file-access-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
 if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
 if ($Cmd -ne 'transcription-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'TranscriptRecovery*'}).Count) {throw 'TranscriptRecovery options require transcription-recovery.'}
@@ -2138,6 +2155,8 @@ if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object 
 if ($Cmd -eq 'failed-logon-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FailedLogonAction','FailedLogonOutputPath','FailedLogonTimeoutSeconds','Help')}).Count)) {throw 'failed-logon-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiProbe*'}).Count) {throw 'WmiProbe options require wmi-probe.'}
 if ($Cmd -eq 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiProbeAction','WmiProbeNamespace','WmiProbeOutputPath','WmiProbeTimeoutSeconds','Help')}).Count) {throw 'wmi-probe accepts only dedicated probe options.'}
+if ($Cmd -ne 'applocker-script-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'AppLockerScript*'}).Count) {throw 'AppLockerScript options require applocker-script-probe.'}
+if ($Cmd -eq 'applocker-script-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AppLockerScriptAction','AppLockerScriptOutputPath','AppLockerScriptTimeoutSeconds','Help')}).Count)) {throw 'applocker-script-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds')}).Count) {throw 'AppLocker probe options require applocker-probe.'}
 if ($Cmd -eq 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds','Help')}).Count) {throw 'applocker-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('ArrivalProbePath','ArrivalOutputPath')}).Count) {
@@ -2241,6 +2260,13 @@ if ($Cmd -ne 'ldap-diagnostics' -and @($PSBoundParameters.Keys | Where-Object { 
     throw 'LDAP options require the dedicated ldap-diagnostics command. No command was run.'
 }
 
+# Plain scripts retain unknown named options in $args. Check them before every
+# dispatch, including the profile shortcut, so an unsupported -WhatIf or typo
+# cannot accidentally reach a writer. Keep dedicated option diagnostics above.
+if ($args.Count -gt 0) {
+    throw 'Unsupported trailing arguments. PowerShell common parameters (for example -ErrorAction or -Verbose) are not supported. Check -Help for documented options; no command was run.'
+}
+
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
     Invoke-WelaProfileCommand -Command $Cmd.ToLower()
     return
@@ -2324,6 +2350,12 @@ switch ($Cmd.ToLower()) {
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
     }
+    'file-access-probe' {
+        if ($Help) {Write-Host 'Usage: file-access-probe [-FileProbeAction Plan] -FileProbePath C:\Audit\existing-file.txt; Run additionally requires -FileProbeOutputPath C:\Evidence\new-probe [-FileProbeTimeoutSeconds 15]. Reads one byte and discards it; event matching uses the measured read plus held-handle identity/security readback phase, with the ReadFile return recorded separately. Source-tree/active-engine targets and aliases are refused before hashing. Existing File System success policy, precedence and matching ReadData SACL are required; no policy, ACL or file-data writes. Local4663 success only, no failure/forwarding/Sigma credit. See docs/file-access-probe.md.';return}
+        $report=Invoke-WelaFileAccessProbe -Action $FileProbeAction -FilePath $FileProbePath -OutputPath $FileProbeOutputPath -TimeoutSeconds $FileProbeTimeoutSeconds
+        $report|ConvertTo-Json -Depth 28|Write-Output
+        exit ([int]$report.ExitCode)
+    }
     'transcription-recovery' {
         if ($Help) {Write-Host 'Usage: transcription-recovery -TranscriptRecoveryAction Plan -TranscriptRecoveryJournalPath before.jsonl -TranscriptRecoveryOriginalResultsPath results.json -TranscriptRecoveryOutputPath new-directory; Restore uses -TranscriptRecoveryPlanPath, -TranscriptRecoveryPlanHash and new -TranscriptRecoveryOutputPath [-Auto] [-TranscriptRecoveryAllowTemporarySuspension]. DryRun omits output. Temporary suspension can leave machine transcription disabled after an error, drift refusal or process termination; there is no automatic rollback or re-enable. Inspect receipts, current policy and the destination before manual recovery. See docs/transcription-recovery.md.';return}
         $report=Invoke-WelaTranscriptRecovery -Action $TranscriptRecoveryAction -JournalPath $TranscriptRecoveryJournalPath -OriginalResultsPath $TranscriptRecoveryOriginalResultsPath -PlanPath $TranscriptRecoveryPlanPath -PlanHash $TranscriptRecoveryPlanHash -OutputPath $TranscriptRecoveryOutputPath -AllowTemporarySuspension:$TranscriptRecoveryAllowTemporarySuspension -Auto:$Auto -DryRun:$DryRun
@@ -2398,6 +2430,12 @@ switch ($Cmd.ToLower()) {
     'wmi-probe' {
         if ($Help) {Write-Host 'Usage: wmi-probe [-WmiProbeAction Plan|Run] -WmiProbeNamespace root\default [-WmiProbeOutputPath new-private-directory] [-WmiProbeTimeoutSeconds 1..30]. Fixed local read only; requires existing matching SACL and auditing. No policy changes, remote access or Sigma credit. See docs/wmi-probe.md.';return}
         $report=Invoke-WelaWmiProbe -Action $WmiProbeAction -Namespace $WmiProbeNamespace -OutputPath $WmiProbeOutputPath -TimeoutSeconds $WmiProbeTimeoutSeconds
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'applocker-script-probe' {
+        if ($Help) {Write-Host 'Usage: applocker-script-probe [-AppLockerScriptAction Plan|Run] [-AppLockerScriptOutputPath new-private-directory] [-AppLockerScriptTimeoutSeconds 1..30]. Requires existing Script AuditOnly policy, running AppIDSvc and enabled MSI and Script channel. Fixed native Windows PowerShell5.1 script, no policy changes or Sigma credit. See docs/applocker-script-probe.md.';return}
+        $report=Invoke-WelaAppLockerScriptProbe -Action $AppLockerScriptAction -OutputPath $AppLockerScriptOutputPath -TimeoutSeconds $AppLockerScriptTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
@@ -2711,6 +2749,7 @@ switch ($Cmd.ToLower()) {
             Write-Host "  -BackupPath  New directory for the pre-change recovery journal (unique default beside WELA)"
             Write-Host "  -ResultsPath Save structured per-control outcomes as JSON"
             Write-Host ""
+            Write-Host "PowerShell common parameters (-ErrorAction, -Verbose, -WarningAction, -InformationAction) are not supported. Remove them from wrappers and check the exit code."
             Write-Host "Without -Profile, configure applies the YamatoSecurity native logging settings. -Profile applies advanced audit policy and its precedence prerequisite. -DryRun and recovery/results options work with both."
             Write-Host ""
             return

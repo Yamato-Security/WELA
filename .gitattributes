@@ -69,4 +69,10 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/WecRuntime* text eol=lf
 /tests/WecState* text eol=lf
 
+<<<<<<< HEAD
 /scripts/WecListener* text eol=lf
+=======
+# Existing-file read receipts bind identical native/worker source bytes.
+/scripts/FileAccessProbe* text eol=lf
+/tests/FileAccessProbe* text eol=lf
+>>>>>>> feat/373-native-file-access-probe
