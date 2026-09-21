@@ -3,6 +3,8 @@ $repo=Split-Path $PSScriptRoot -Parent
 . "$repo/scripts/AppLockerReadiness.ps1"
 . "$repo/scripts/WefArrival.ps1"
 . "$repo/scripts/AppLockerScriptProbe.ps1"
+# Mocking Get-Service skips the cmdlet's normal .NET Framework assembly load.
+if(-not ('System.ServiceProcess.ServiceControllerStatus' -as [type])){Add-Type -AssemblyName System.ServiceProcess -ErrorAction Stop}
 $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Reject([scriptblock]$Action,[string]$Pattern){$message='';try{&$Action|Out-Null}catch{$message=$_.Exception.Message};Assert ($message -match $Pattern) "Expected $Pattern; got $message"}
