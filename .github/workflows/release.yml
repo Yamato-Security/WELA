@@ -41,7 +41,7 @@ jobs:
           Copy-Item -Recurse -Path ./scripts -Destination release-binaries/
           Copy-Item -Recurse -Path ./modules -Destination release-binaries/
           New-Item -ItemType Directory -Path release-binaries/docs -Force | Out-Null
-          Copy-Item -Path ./docs/gpo-audit-packages.md, ./docs/gpo-package-deployment.md, ./docs/gpo-creation.md, ./docs/wmi-probe.md, ./docs/ipsec-prerequisites.md -Destination release-binaries/docs/
+          Copy-Item -Path ./docs/gpo-audit-packages.md, ./docs/gpo-package-deployment.md, ./docs/gpo-creation.md, ./docs/wmi-probe.md, ./docs/wec-state.md, ./docs/wec-update.md, ./docs/wec-runtime.md, ./docs/wef-deployment.md, ./docs/native-channel-access.md, ./docs/eventlog-settings.md, ./docs/channel-read.md, ./docs/native-rule-eligibility.md, ./docs/native-validation.md, ./docs/wef-arrival.md, ./docs/ipsec-prerequisites.md -Destination release-binaries/docs/
 
       - name: Set Artifact Name
         if: contains(matrix.info.os, 'windows') == true

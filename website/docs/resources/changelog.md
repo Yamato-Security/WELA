@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added reviewed `wec-state` Plan/Apply for the Enabled flag of one existing native source-initiated subscription. Exact authorization and complete definition checks, operator/logon/token guards, durable pending evidence and native readback preserve other settings; matching states never save or reactivate. Runtime remains separate, and interrupted delivery/bookmark continuity require multi-host validation. Disposable Windows lifecycle tests restore owned resources and service state. (Related #368) (@Shirofune-Security)
+
 - Added native prerequisite evidence for the stronger profile's optional IPsec Main Mode auditing. Effective-store rule and current association observations distinguish scoped applicability, absence and unknown results; both shared configuration paths recheck before writing and preserve explicit selection/custom-profile intent. Native disposable-rule tests cover Server 2022/2025 and PowerShell 5.1/7 with exact audit-policy restoration, without negotiation/event or Sigma claims. (#370) (@Shirofune-Security)
 
 - Fixed `wmi-probe` operation timing to use the native precise UTC clock consistently in the parent and worker. Explicit clock receipts and launch/completion bounds preserve exact event correlation; sub-millisecond boundary tests and repeated native public-CLI runs cover timing failures without widening the accepted interval. (@Shirofune-Security)
