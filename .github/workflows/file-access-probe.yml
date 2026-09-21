@@ -1,0 +1,45 @@
+name: Native one-byte file access probe
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/FileAccessProbe*'
+      - 'tests/FileAccessProbe*'
+      - '.github/workflows/file-access-probe.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  file-access-probe:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Public CLI and actual file read in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/FileAccessProbe.Tests.ps1
+          ./tests/FileAccessProbe.Cli.Tests.ps1
+          ./tests/FileAccessProbe.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Public CLI and actual file read in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/FileAccessProbe.Tests.ps1
+          ./tests/FileAccessProbe.Cli.Tests.ps1
+          ./tests/FileAccessProbe.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Retain genuine XML, receipts and exact cleanup
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: file-access-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-file-access-*/
+          if-no-files-found: error
