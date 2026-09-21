@@ -70,6 +70,12 @@ function Get-WelaChannelReadFailure {
     $state=if($code -eq 5){'Denied'}elseif($absent -or $code -in @(2,3,15007)){'Absent'}else{'Unknown'}
     [pscustomobject]@{Status=$state;NativeError=$code;Diagnostic=$Exception.Message}
 }
+function Assert-WelaChannelQueryStatus {
+    param([string]$Channel,[object[]]$LogStatus)
+    # A native status is attributable only to the one exact channel queried.
+    if($LogStatus.Count -ne 1 -or $LogStatus[0].LogName -cne $Channel -or $LogStatus[0].StatusCode -isnot [int]){throw 'Query status is incomplete, mismatched or mistyped.'}
+    if($LogStatus[0].StatusCode -ne 0){throw [ComponentModel.Win32Exception]::new($LogStatus[0].StatusCode)}
+}
 function Read-WelaChannelLatest {
     param([string]$Channel)
     $reader=$null;$event=$null
@@ -80,7 +86,7 @@ function Read-WelaChannelLatest {
         $reader=[Diagnostics.Eventing.Reader.EventLogReader]::new($query);$reader.BatchSize=1
         $event=$reader.ReadEvent([TimeSpan]::FromMilliseconds(5000))
         $result.LogStatus=@($reader.LogStatus|ForEach-Object{[pscustomobject]@{LogName=$_.LogName;StatusCode=$_.StatusCode}})
-        if($result.LogStatus.Count -ne 1 -or $result.LogStatus[0].LogName -cne $Channel -or $result.LogStatus[0].StatusCode -ne 0){throw 'Query status is incomplete, mismatched or failed.'}
+        Assert-WelaChannelQueryStatus -Channel $Channel -LogStatus $result.LogStatus
         if($null -eq $event){$result.Status='ReadAllowedEmpty'}else{
             if($event.LogName -cne $Channel -or $null -eq $event.RecordId -or $event.RecordId -le 0 -or -not $event.ProviderName -or $event.ProviderName.Length -gt 512 -or -not $event.MachineName -or $event.MachineName.Length -gt 255){throw 'Returned event provenance is incomplete or mismatches the selected local channel.'}
             # Only bounded System metadata is exported. Message, payload and raw XML remain unexported.

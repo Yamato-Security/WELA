@@ -8,6 +8,27 @@ function Refuses([scriptblock]$action){$caught=$false;try{&$action|Out-Null}catc
 foreach($channels in @(@(),@('Sysmon'),@('ForwardedEvents'),@('Security','Security'),@('security'),@('Security','System','Application','Windows PowerShell','Microsoft-Windows-CAPI2/Operational','Microsoft-Windows-DNS-Client/Operational','Microsoft-Windows-LSA/Operational','Microsoft-Windows-PowerShell/Operational','Microsoft-Windows-SMBClient/Operational'))){Refuses {Get-WelaChannelReadSelection $channels}}
 Assert (@(Get-WelaChannelReadSelection @('Security','System')).Count -eq 2) 'Reviewed channels accepted'
 foreach($case in @(@(5,'Denied'),@(15007,'Absent'),@(2,'Absent'),@(87,'Unknown'),@(1460,'Unknown'))){$failure=Get-WelaChannelReadFailure ([ComponentModel.Win32Exception]::new($case[0]));Assert ($failure.Status -eq $case[1]) 'Native numeric error classification'}
+# Exercise the production LogStatus guard and classifier together; no native query mocking.
+Assert-WelaChannelQueryStatus 'Security' @([pscustomobject]@{LogName='Security';StatusCode=0})
+Assert $true 'One successful matching query status is accepted'
+foreach($case in @(@(5,'Denied'),@(2,'Absent'),@(3,'Absent'),@(15007,'Absent'),@(1460,'Unknown'),@(87,'Unknown'))){
+    $failure=$null
+    try{Assert-WelaChannelQueryStatus 'Security' @([pscustomobject]@{LogName='Security';StatusCode=$case[0]})}catch{$failure=Get-WelaChannelReadFailure $_.Exception}
+    Assert ($null -ne $failure -and $failure.Status -eq $case[1] -and $failure.NativeError -eq $case[0]) 'Matching nonzero LogStatus preserves exact native classification'
+}
+foreach($status in @(
+    @{Rows=@()},
+    @{Rows=@([pscustomobject]@{LogName='System';StatusCode=5})},
+    @{Rows=@([pscustomobject]@{LogName='security';StatusCode=5})},
+    @{Rows=@([pscustomobject]@{LogName='Security';StatusCode=5},[pscustomobject]@{LogName='Security';StatusCode=5})},
+    @{Rows=@([pscustomobject]@{LogName='Security'})},
+    @{Rows=@([pscustomobject]@{LogName='Security';StatusCode=$null})},
+    @{Rows=@([pscustomobject]@{LogName='Security';StatusCode='5'})}
+)){
+    $failure=$null
+    try{Assert-WelaChannelQueryStatus 'Security' $status.Rows}catch{$failure=Get-WelaChannelReadFailure $_.Exception}
+    Assert ($null -ne $failure -and $failure.Status -eq 'Unknown' -and $null -eq $failure.NativeError) 'Unattributable or malformed query status stays unknown'
+}
 if([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT){
     Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogNotFoundException]::new('synthetic absent channel'))).Status -eq 'Absent') 'Actual EventLogNotFoundException classification'
     Assert ((Get-WelaChannelReadFailure ([Diagnostics.Eventing.Reader.EventLogException]::new('native code unexposed'))).Status -eq 'Unknown') 'EventLogException without exposed native code stays unknown'
