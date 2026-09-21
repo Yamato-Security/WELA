@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
+
 - Added `adcs-resume` to review and explicitly resume a dedicated pending CA auditing restart. Original journal/results, source and current CA/operator fingerprints, durable intent receipts and fresh/final checks prevent stale-plan replay and preserve observed settings. Dry-run and failed attempts remain explicit, with no event/Sigma credit. Disposable CA tests inject the initial refusal then verify an actual public-CLI restart and request events. Also fixed the existing dedicated CA Configure dry-run CLI guard. (#431) (@Shirofune-Security)
 
 - Added opt-in `event-measurement` for bounded local callback-delivery windows on one explicit built-in Administrative/Operational channel, with monotonic timing, original XML/bookmarks, private evidence and exact native EVTX sample reopening. Caps, missing/stale records, source drift and incomplete exports remain unverified; sample-file bytes do not imply channel growth, retention capacity, backend ingestion or Sigma readiness. (#430) (@Shirofune-Security)

@@ -33,6 +33,8 @@
     [string]$ChannelProfile = 'microsoft-wef-appendix-c',
     [ValidateSet('Baseline', 'Suspect', 'Both')][string]$WefQuerySet = 'Both',
     [switch]$GrantEventLogReaders,
+    [string[]]$ChannelReadName,
+    [string]$ChannelReadOutputPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$WefAction = 'Audit',
     [string]$WefConfigPath,
     [string]$RetentionConfigPath,
@@ -174,6 +176,7 @@ Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
+. (Join-Path $ScriptRoot "scripts/ChannelRead.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeProviderPacks.ps1")
 . (Join-Path $ScriptRoot "scripts/DnsAnalytical.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
@@ -1897,6 +1900,7 @@ Usage:
   ./WELA.ps1 ldap-diagnostics -LdapAction Audit
   ./WELA.ps1 ldap-diagnostics -LdapAction Plan -LdapMode Diagnostic -LdapSearchTimeMs 100
   ./WELA.ps1 ldap-diagnostics -LdapAction Configure -LdapMode Diagnostic -LdapSearchTimeMs 100 -DryRun
+  ./WELA.ps1 channel-read -Help  # Actual current-token local read access
   ./WELA.ps1 channel-settings -ChannelAction Audit -WefQuerySet Both -ResultsPath channels.json
   ./WELA.ps1 channel-settings -ChannelAction Plan -GrantEventLogReaders
   ./WELA.ps1 channel-settings -ChannelAction Configure -GrantEventLogReaders -DryRun
@@ -1972,6 +1976,9 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
+if ($Cmd -eq 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ChannelReadName','ChannelReadOutputPath','Help') }).Count) { throw 'channel-read accepts only dedicated channel/output options. No command was run.' }
 
 if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
 if ($Cmd -eq 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','MeasurementAction','MeasurementChannel','MeasurementSeconds','MeasurementMaximumEvents','MeasurementOutputPath','MeasurementExportEvtx','Help')}).Count) {throw 'event-measurement accepts only its dedicated options. No command was run.'}
@@ -2360,6 +2367,13 @@ switch ($Cmd.ToLower()) {
         if ($ProviderAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'Provider pack configuration requires Administrator privileges.' }
         $report=Invoke-WelaProviderPackCommand -Action $ProviderAction -Names $ProviderPack -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
+        if ($report.ExitCode) { exit $report.ExitCode }
+    }
+    'channel-read' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 channel-read -ChannelReadName Security,Microsoft-Windows-CAPI2/Operational -ChannelReadOutputPath new-local-directory. Read-only current primary-token query; no credentials or configuration changes. See docs/channel-read.md.'; return }
+        $report=Invoke-WelaChannelRead -Channels $ChannelReadName -OutputPath $ChannelReadOutputPath
+        $report.Results | Select-Object Channel,AccessVerified,@{n='QueryStatus';e={$_.Query.Status}} | Format-Table -AutoSize | Out-Host
+        Write-Host ('Channel read evidence: '+(Join-Path $report.OutputPath 'result.json'))
         if ($report.ExitCode) { exit $report.ExitCode }
     }
     'channel-settings' {
