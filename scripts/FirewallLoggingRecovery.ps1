@@ -135,27 +135,27 @@ function Read-WelaFirewallRecoveryEvidence {
     $journal=Read-WelaWecUpdateFile $JournalPath;$resultFile=Read-WelaWecUpdateFile $ResultsPath
     $entries=@($journal.Text -split '\r?\n' | Where-Object {$_ -match '\S'} | ForEach-Object {ConvertFrom-WelaRecoveryJson $_})
     $results=ConvertFrom-WelaRecoveryJson $resultFile.Text
-    if($entries.Count -lt 1 -or $entries.Count -gt 3 -or $results.Scope -cne 'firewall-text-logging-only' -or $results.DryRun -isnot [bool] -or $results.DryRun -or $results.Results -isnot [array] -or $results.Results.Count -lt 1 -or $results.Results.Count -gt 3){throw 'Dedicated completed non-dry-run firewall configuration evidence is required.'}
+    if($entries.Count -lt 1 -or $entries.Count -gt 3 -or $results.Scope -isnot [string] -or $results.Scope -cne 'firewall-text-logging-only' -or $results.DryRun -isnot [bool] -or $results.DryRun -or $results.Results -isnot [array] -or $results.Results.Count -lt 1 -or $results.Results.Count -gt 3){throw 'Dedicated completed non-dry-run firewall configuration evidence is required.'}
     $seen=@{};$final=@{}
     foreach($entry in $entries){
-        if(($entry.Version -isnot [int] -and $entry.Version -isnot [long]) -or $entry.Version -ne 1 -or $entry.Kind -cne 'FirewallTextLog' -or
+        if(($entry.Version -isnot [int] -and $entry.Version -isnot [long]) -or $entry.Version -ne 1 -or $entry.Kind -isnot [string] -or $entry.Kind -cne 'FirewallTextLog' -or
             $entry.Id -cnotin @('FirewallTextLog/Domain','FirewallTextLog/Private','FirewallTextLog/Public') -or $seen.ContainsKey($entry.Id) -or $entry.ComputerName -isnot [string] -or $entry.ComputerName -ine $Computer){throw 'Unknown, duplicate or wrong-host firewall journal entry.'}
         if((ConvertTo-WelaArrivalUtc $entry.RecordedUtc) -gt [DateTimeOffset]::UtcNow.AddMinutes(1)){throw 'Journal timestamp is in the future.'}
         $seen[$entry.Id]=$entry
     }
     foreach($row in $results.Results){
-        if($row.Kind -cne 'FirewallTextLog' -or $row.Id -cnotin @('FirewallTextLog/Domain','FirewallTextLog/Private','FirewallTextLog/Public') -or $final.ContainsKey($row.Id)){throw 'Unknown or duplicate firewall result.'}
+        if($row.Kind -isnot [string] -or $row.Kind -cne 'FirewallTextLog' -or $row.Id -cnotin @('FirewallTextLog/Domain','FirewallTextLog/Private','FirewallTextLog/Public') -or $final.ContainsKey($row.Id)){throw 'Unknown or duplicate firewall result.'}
         $final[$row.Id]=$row
     }
     $id="FirewallTextLog/$Profile"
-    if(-not $seen.ContainsKey($id) -or -not $final.ContainsKey($id) -or $final[$id].Status -cne 'Applied'){throw 'One selected completed Applied firewall operation is required; partial/failed writes need manual review.'}
+    if(-not $seen.ContainsKey($id) -or -not $final.ContainsKey($id) -or $final[$id].Status -isnot [string] -or $final[$id].Status -cne 'Applied'){throw 'One selected completed Applied firewall operation is required; partial/failed writes need manual review.'}
     $entry=$seen[$id];$row=$final[$id]
     foreach($field in @('Before','Desired','Target')){if((Get-WelaFirewallRecoveryKey $entry.$field) -cne (Get-WelaFirewallRecoveryKey $row.$field)){throw "Journal/result $field mismatch."}}
     Assert-WelaArrivalObject $entry.Target @('Name','PolicyStore')
-    if($entry.Target.Name -cne $Profile -or $entry.Target.PolicyStore -cne 'PersistentStore'){throw 'Only the exact selected local PersistentStore profile is recoverable.'}
+    if($entry.Target.Name -isnot [string] -or $entry.Target.PolicyStore -isnot [string] -or $entry.Target.Name -cne $Profile -or $entry.Target.PolicyStore -cne 'PersistentStore'){throw 'Only the exact selected local PersistentStore profile is recoverable.'}
     Assert-WelaArrivalObject $entry.Desired @('LogAllowed','LogBlocked','MinimumSizeKiB','LogFileName','PathMode')
     $desired=$entry.Desired
-    if($desired.LogAllowed -cne 'True' -or $desired.LogBlocked -cne 'True' -or ($desired.MinimumSizeKiB -isnot [int] -and $desired.MinimumSizeKiB -isnot [long]) -or $desired.MinimumSizeKiB -lt 16384 -or $desired.MinimumSizeKiB -gt 32767 -or $desired.PathMode -cnotin @('Preserve','CisV4')){throw 'Unsupported original firewall desired state.'}
+    if($desired.LogAllowed -isnot [string] -or $desired.LogBlocked -isnot [string] -or $desired.LogAllowed -cne 'True' -or $desired.LogBlocked -cne 'True' -or ($desired.MinimumSizeKiB -isnot [int] -and $desired.MinimumSizeKiB -isnot [long]) -or $desired.MinimumSizeKiB -lt 16384 -or $desired.MinimumSizeKiB -gt 32767 -or $desired.PathMode -cnotin @('Preserve','CisV4')){throw 'Unsupported original firewall desired state.'}
     foreach($snapshot in @($entry.Before.Local,$entry.Before.Effective,$row.After.Local,$row.After.Effective)){
         $null=ConvertTo-WelaFirewallRecoveryTuple $snapshot -Snapshot
         if($snapshot.Name -cne $Profile){throw 'Original snapshot profile differs from selected profile.'}
@@ -169,7 +169,7 @@ function Read-WelaFirewallRecoveryEvidence {
     $desiredPath=Resolve-WelaFirewallRecoveryLogPath $desired.LogFileName
     $plannedPath=if($desired.PathMode -ceq 'CisV4'){Resolve-WelaFirewallRecoveryLogPath $path}else{Resolve-WelaFirewallRecoveryLogPath $entry.Before.Effective.LogFileName}
     if($desiredPath -ine $plannedPath -or $effective.LogAllowed -cne 'True' -or $effective.LogBlocked -cne 'True' -or $effective.LogMaxSizeKilobytes -lt $desired.MinimumSizeKiB -or
-        (Resolve-WelaFirewallRecoveryLogPath $effective.LogFileName) -ine $desiredPath -or $row.After.Access.State -cne 'VerifiedExplicitGrant'){throw 'Recorded effective After does not confirm the original logging configuration.'}
+        (Resolve-WelaFirewallRecoveryLogPath $effective.LogFileName) -ine $desiredPath -or $row.After.Access.State -isnot [string] -or $row.After.Access.State -cne 'VerifiedExplicitGrant'){throw 'Recorded effective After does not confirm the original logging configuration.'}
     if((Get-WelaFirewallRecoveryKey $before) -ceq (Get-WelaFirewallRecoveryKey $expected)){throw 'Selected evidence records no local logging change.'}
     [pscustomobject][ordered]@{Id=$id;Profile=$Profile;Journal=[pscustomobject]@{Path=$journal.Path;Sha256=$journal.Hash};OriginalResults=[pscustomobject]@{Path=$resultFile.Path;Sha256=$resultFile.Hash};Expected=$expected;RecoverTo=$before}
 }
@@ -212,7 +212,7 @@ function Invoke-WelaFirewallLoggingRecovery {
             if($source.Hash -cne $PlanHash){throw 'Reviewed plan SHA256 differs from the selected file.'}
             $plan=ConvertFrom-WelaRecoveryJson $source.Text
             Assert-WelaArrivalObject $plan @('SchemaVersion','Kind','Profile','Control','State','HistoricalIdentity')
-            if(($plan.SchemaVersion -isnot [int] -and $plan.SchemaVersion -isnot [long]) -or $plan.SchemaVersion -ne 1 -or $plan.Kind -cne 'WelaFirewallLoggingRecoveryPlan' -or $plan.Profile -cnotin @('Domain','Private','Public')){throw 'Unsupported firewall recovery plan.'}
+            if(($plan.SchemaVersion -isnot [int] -and $plan.SchemaVersion -isnot [long]) -or $plan.SchemaVersion -ne 1 -or $plan.Kind -isnot [string] -or $plan.Kind -cne 'WelaFirewallLoggingRecoveryPlan' -or $plan.Profile -cnotin @('Domain','Private','Public')){throw 'Unsupported firewall recovery plan.'}
             $report.PlanSha256=$source.Hash
             Assert-WelaFirewallRecoveryInputs $plan $source.Path $source.Hash
             $current=Get-WelaFirewallRecoveryState;$report.Before=$current

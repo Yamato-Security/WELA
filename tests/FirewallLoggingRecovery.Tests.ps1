@@ -71,7 +71,11 @@ try {
     foreach($path in @('\\host\share\log','C:\Logs\..\other.log','C:\Logs\log:stream','C:\Logs\*.log','%TEMP%\log','C:relative.log','C:\Logs\','C:\Logs\CON.log','C:\Logs\log.','C:\Logs\log ','C:\Logs\\log')){Throws {Resolve-WelaFirewallRecoveryLogPath $path} 'path|unsupported|streams'}
     $v=Copy-Fixture $e.RecoverTo;$v|Add-Member Extra 1;Throws {ConvertTo-WelaFirewallRecoveryTuple $v} 'Unexpected'
     foreach($change in @(
-        {$script:row.Status='Failed'},{$script:entry.Target.PolicyStore='ActiveStore';$script:row.Target=Copy-Fixture $entry.Target},
+        {$script:row.Status='Failed'},{$script:row.Status=$true},{$script:row.After.Access.State=$true},
+        {$script:entry.Target.Name=$true;$script:row.Target=Copy-Fixture $entry.Target},
+        {$script:entry.Target.PolicyStore=$true;$script:row.Target=Copy-Fixture $entry.Target},
+        {$script:entry.Desired.LogAllowed=$true;$script:row.Desired=Copy-Fixture $entry.Desired},
+        {$script:entry.Target.PolicyStore='ActiveStore';$script:row.Target=Copy-Fixture $entry.Target},
         {$script:row.After.Local.LogMaxSizeKilobytes=20000},{$script:row.After.Local.LogFileName='C:\Other.log'},
         {$script:row.After.Access.State='Unknown'},{$script:entry.ComputerName='OTHER'},
         {$script:row.Before.Local.LogBlocked='True'},{$script:entry.Desired.MinimumSizeKiB='16384';$script:row.Desired=Copy-Fixture $entry.Desired}
