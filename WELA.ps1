@@ -117,6 +117,13 @@
     [string]$RecoveryOutputPath,
     [string]$ArrivalProbePath,
     [string]$ArrivalOutputPath,
+    [ValidateSet('Plan','Apply')][string]$WecIngressAction = 'Plan',
+    [string]$WecIngressName,
+    [string[]]$WecIngressLocalAddress,
+    [string[]]$WecIngressRemoteAddress,
+    [string]$WecIngressPlanPath,
+    [string]$WecIngressPlanHash,
+    [string]$WecIngressOutputPath,
     [ValidateSet('Plan','Apply')][string]$WecUpdateAction = 'Plan',
     [string]$WecUpdateId,
     [string[]]$WecUpdateSourceSid,
@@ -196,6 +203,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
 . (Join-Path $ScriptRoot "scripts/WecUpdate.ps1")
+. (Join-Path $ScriptRoot "scripts/WecIngress.ps1")
 . (Join-Path $ScriptRoot "scripts/WecState.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
@@ -1981,6 +1989,7 @@ Usage:
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
+  ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
@@ -2061,6 +2070,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecIngress*'}).Count) {throw 'WecIngress options require wec-ingress.'}
+if ($Cmd -eq 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecIngressAction','WecIngressName','WecIngressLocalAddress','WecIngressRemoteAddress','WecIngressPlanPath','WecIngressPlanHash','WecIngressOutputPath','Help')}).Count) {throw 'wec-ingress accepts only dedicated options.'}
 if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
 if ($Cmd -eq 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecStateAction','WecStateId','WecStateSourceSid','WecStateDesired','WecStatePlanPath','WecStatePlanHash','WecStateOutputPath','Help')}).Count) {throw 'wec-state accepts only dedicated options.'}
 if ($Cmd -ne 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecUpdate*'}).Count) {throw 'WecUpdate options require wec-update.'}
@@ -2265,6 +2276,14 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'wec-ingress' {
+        if ($Help) {Write-Host 'Usage: wec-ingress [-WecIngressAction Plan] -WecIngressName WELA-WEC-name -WecIngressLocalAddress IPv4 -WecIngressRemoteAddress IPv4/CIDR -WecIngressOutputPath new-directory; then Apply with -WecIngressPlanPath plan.json -WecIngressPlanHash SHA256 -WecIngressOutputPath new-directory. Creates one new Domain TCP5985 rule. See docs/wec-ingress.md.';return}
+        $arguments=@{Action=$WecIngressAction;OutputPath=$WecIngressOutputPath}
+        $map=@{WecIngressName='Name';WecIngressLocalAddress='LocalAddress';WecIngressRemoteAddress='RemoteAddress';WecIngressPlanPath='PlanPath';WecIngressPlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaWecIngress @arguments;$report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'wec-state' {
         if ($Help) {Write-Host 'Usage: wec-state [-WecStateAction Plan] -WecStateId ID -WecStateSourceSid SID -WecStateDesired Enabled|Disabled -WecStateOutputPath new-directory; then Apply with -WecStatePlanPath reviewed-plan.json -WecStatePlanHash SHA256 -WecStateOutputPath new-directory. Only Enabled on an existing subscription. Disable interrupts collection; enable/save activates it. See docs/wec-state.md.';return}
