@@ -1,5 +1,6 @@
 $ErrorActionPreference='Stop';$repo=Split-Path $PSScriptRoot -Parent;$engine=(Get-Process -Id $PID).Path;$count=0
 $cases=@(
+ @{Args=@('failed-logon-probe','-FailedLogonAction','Run','-WhatIf');Code=1;Pattern='only dedicated'},
  @{Args=@('failed-logon-probe','-Help');Code=0;Pattern='nonexistent local account'},
  @{Args=@('configure','-FailedLogonAction','Run','-Auto');Code=1;Pattern='require failed-logon-probe'},
  @{Args=@('failed-logon-probe','-Help','-Auto');Code=1;Pattern='only dedicated'},

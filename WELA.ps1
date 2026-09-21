@@ -2083,7 +2083,7 @@ if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -no
     throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
 }
 if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FailedLogon*'}).Count) {throw 'FailedLogon options require failed-logon-probe.'}
-if ($Cmd -eq 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FailedLogonAction','FailedLogonOutputPath','FailedLogonTimeoutSeconds','Help')}).Count) {throw 'failed-logon-probe accepts only dedicated probe options.'}
+if ($Cmd -eq 'failed-logon-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FailedLogonAction','FailedLogonOutputPath','FailedLogonTimeoutSeconds','Help')}).Count)) {throw 'failed-logon-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiProbe*'}).Count) {throw 'WmiProbe options require wmi-probe.'}
 if ($Cmd -eq 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiProbeAction','WmiProbeNamespace','WmiProbeOutputPath','WmiProbeTimeoutSeconds','Help')}).Count) {throw 'wmi-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds')}).Count) {throw 'AppLocker probe options require applocker-probe.'}
