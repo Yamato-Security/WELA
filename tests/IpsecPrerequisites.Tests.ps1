@@ -18,7 +18,7 @@ foreach ($candidate in @((Rule False),(Rule True None None))) {
     $evidence=Get-WelaIpsecPrerequisite -ReadRules {$script:rule} -ReadAssociations {}
     Assert ($evidence.Status -eq 'NotObservedWithinScope' -and -not $evidence.Rules[0].Qualifies) 'disabled and exemption-only policies do not qualify'
 }
-foreach ($candidate in @((Rule true Require Request Error),(Rule true Require Request Unknown),(Rule Maybe),([pscustomobject]@{Name='missing'}))) {
+foreach ($candidate in @((Rule True Require Request Error),(Rule True Require Request Unknown),(Rule Maybe),([pscustomobject]@{Name='missing'}))) {
     $script:rule=$candidate
     Assert ((Get-WelaIpsecPrerequisite -ReadRules {$script:rule} -ReadAssociations {}).Status -eq 'Unknown') 'invalid or unhealthy policy stays unknown'
 }

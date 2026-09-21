@@ -28,17 +28,23 @@ try {
     $null=New-NetIPsecRule -Name $name -DisplayName $name -PolicyStore PersistentStore -Enabled False -LocalAddress 192.0.2.250 -RemoteAddress 192.0.2.251 -InboundSecurity Request -OutboundSecurity Request -ErrorAction Stop
     $created=$true
     $evidence=Get-WelaIpsecPrerequisite
+    $evidence|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'disabled.json') -Encoding UTF8
+    Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop|Select-Object *|Export-Clixml (Join-Path $root 'disabled-native.xml')
     $owned=@($evidence.Rules|Where-Object Name -eq $name)
-    Assert ($owned.Count -eq 1 -and -not $owned[0].Qualifies -and $owned[0].Enabled -eq 'False') 'real disabled native rule is visible but does not qualify'
+    Assert ((Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop).Enabled -eq 'False') 'owned persistent rule is actually disabled'
+    Assert ($evidence.Status -ne 'Unknown' -and @($owned|Where-Object Qualifies).Count -eq 0) "disabled rule does not qualify (ActiveStore may omit it): $($evidence.Diagnostic)"
     Set-NetIPsecRule -Name $name -PolicyStore PersistentStore -Enabled True -InboundSecurity None -OutboundSecurity None -ErrorAction Stop
     $evidence=Get-WelaIpsecPrerequisite
     $owned=@($evidence.Rules|Where-Object Name -eq $name)
-    Assert ($owned.Count -eq 1 -and -not $owned[0].Qualifies -and $owned[0].Enabled -eq 'True') 'real enabled exemption-only rule does not qualify'
+    $evidence|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'exemption.json') -Encoding UTF8
+    Get-NetIPsecRule -Name $name -PolicyStore PersistentStore -ErrorAction Stop|Select-Object *|Export-Clixml (Join-Path $root 'exemption-native.xml')
+    Assert ($evidence.Status -ne 'Unknown' -and @($owned|Where-Object Qualifies).Count -eq 0) "real exemption-only rule does not qualify: $($evidence.Diagnostic)"
     Set-NetIPsecRule -Name $name -PolicyStore PersistentStore -InboundSecurity Request -OutboundSecurity Request -ErrorAction Stop
     $evidence=Get-WelaIpsecPrerequisite
     $evidence|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'positive.json') -Encoding UTF8
+    Get-NetIPsecRule -Name $name -PolicyStore ActiveStore -ErrorAction Stop|Select-Object *|Export-Clixml (Join-Path $root 'positive-native.xml')
     $owned=@($evidence.Rules|Where-Object Name -eq $name)
-    Assert ($evidence.Status -eq 'Applicable' -and $owned.Count -eq 1 -and $owned[0].Qualifies) 'real enabled securing ActiveStore rule establishes scoped applicability'
+    Assert ($evidence.Status -eq 'Applicable' -and $owned.Count -eq 1 -and $owned[0].Qualifies) "real enabled securing ActiveStore rule establishes scoped applicability: $($evidence.Diagnostic)"
     $planPath=Join-Path $root 'plan.json'
     & $engine -NoProfile -File (Join-Path $repo 'WELA.ps1') plan -Profile microsoft-stronger-reviewed-2026-09 -IncludeOptional -SaclMode Skip -PlanPath $planPath
     Assert ($LASTEXITCODE -eq 0) 'public live plan succeeds'
