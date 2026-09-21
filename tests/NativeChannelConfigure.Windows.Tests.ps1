@@ -17,7 +17,7 @@ function Read-Raw([string]$Name){
 }
 function Guard-Raw($Xml){
  $x=$Xml.CloneNode($true);$x.DocumentElement.RemoveAttribute('enabled')
- foreach($name in @('channelAccess','maxSize')){foreach($node in @($x.SelectNodes("//*[local-name()='$name']"))){$null=$node.ParentNode.RemoveChild($node)}}
+ foreach($name in @('enabled','channelAccess','maxSize')){foreach($node in @($x.SelectNodes("//*[local-name()='$name']"))){$null=$node.ParentNode.RemoveChild($node)}}
  return $x.OuterXml
 }
 $engine=(Get-Process -Id $PID).Path
@@ -25,6 +25,7 @@ $root=Join-Path $env:RUNNER_TEMP ('wela-channel-configure-'+[guid]::NewGuid().To
 $profile=Get-WelaNativeChannelProfile
 $before=@{};$raw=@{};$policies=Get-WelaEffectiveAuditPolicy
 foreach($control in $profile.controls){$name=$control.channel;$before[$name]=Get-WelaNativeChannel $name;if(Test-WelaNativeChannelSnapshot $before[$name]){$raw[$name]=Read-Raw $name}}
+$rawEvidence=@{};foreach($name in $raw.Keys){$rawEvidence[$name]=$raw[$name].OuterXml};$rawEvidence|ConvertTo-Json -Depth 4|Set-Content "$root/raw-before.json" -Encoding UTF8
 $before|ConvertTo-Json -Depth 14|Set-Content "$root/before.json" -Encoding UTF8
 $missing=@($before.Values|Where-Object State -eq 'Not installed').Count
 $expected=if($missing){1}else{0}
@@ -75,6 +76,7 @@ try{
  Assert (-not (Test-Path "$root/repeat-journal/before.jsonl")) 'Idempotent invocation journals no write'
  $journal=@(Get-Content "$root/grant-journal/before.jsonl"|ForEach-Object {$_|ConvertFrom-Json})
  Assert ($journal.Count -eq 1 -and $journal[0].Target.Channel -eq $capi -and (Test-WelaChannelDescriptorEqual $journal[0].Before.SecurityDescriptor $withoutRead)) 'Durable actual pre-grant journal preserves the original descriptor'
+ $rawAfter=@{};foreach($name in $raw.Keys){$rawAfter[$name]=(Read-Raw $name).OuterXml};$rawAfter|ConvertTo-Json -Depth 4|Set-Content "$root/raw-configured.json" -Encoding UTF8
  foreach($name in $raw.Keys){Assert ((Guard-Raw (Read-Raw $name)) -ceq (Guard-Raw $raw[$name])) 'Native channel path/retention/provider metadata remain unchanged'}
  Write-Host "PASS: $count native public channel configuration assertions."
 }catch{$primary=$_}
