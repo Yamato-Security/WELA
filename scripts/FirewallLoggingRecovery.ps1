@@ -39,6 +39,10 @@ function Get-WelaFirewallRecoverySources {
 function Get-WelaFirewallRecoveryContext {
     $reader=Get-WelaChannelReader
     if(-not $reader.ElevatedAdministrator){throw 'Firewall recovery requires the actual non-impersonated elevated administrator.'}
+    # Observe service state before connecting to native WMI/NetSecurity providers.
+    # A read must not be used to start prerequisites implicitly.
+    $services=@(Get-Service -Name Winmgmt,MpsSvc,BFE -ErrorAction Stop | Sort-Object Name | ForEach-Object {[pscustomobject]@{Name=$_.Name;Status=[string]$_.Status}})
+    if($services.Count -ne 3 -or @($services | Where-Object Status -cne 'Running').Count){throw 'Winmgmt, MpsSvc and BFE must already be running; recovery starts no services.'}
     $os=Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
     $computer=Get-CimInstance Win32_ComputerSystem -ErrorAction Stop
     $build=[int]$os.BuildNumber
@@ -48,7 +52,7 @@ function Get-WelaFirewallRecoveryContext {
     $guid=[guid]::Empty
     if(-not $machine.ValueExists -or $machine.Type -cne 'String' -or -not [guid]::TryParse([string]$machine.Value,[ref]$guid) -or $guid -eq [guid]::Empty){throw 'Actual machine identity is unavailable.'}
     $revision=Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR -ErrorAction Stop
-    [pscustomobject][ordered]@{Computer=[Environment]::MachineName;MachineGuid=$guid.ToString();Build=$build;UBR=$revision.UBR;ProductType=[int]$os.ProductType;DomainRole=[int]$computer.DomainRole;Domain=[string]$computer.Domain;DomainJoined=[bool]$computer.PartOfDomain
+    [pscustomobject][ordered]@{Computer=[Environment]::MachineName;MachineGuid=$guid.ToString();Build=$build;UBR=$revision.UBR;ProductType=[int]$os.ProductType;DomainRole=[int]$computer.DomainRole;Domain=[string]$computer.Domain;DomainJoined=[bool]$computer.PartOfDomain;Services=$services
         Reader=[pscustomobject]@{UserSid=$reader.UserSid;UserName=$reader.UserName;AuthenticationId=$reader.AuthenticationId;GroupSids=$reader.GroupSids;ElevatedAdministrator=$reader.ElevatedAdministrator;Impersonation=$reader.Impersonation}
         Engine=$PSVersionTable.PSVersion.ToString()}
 }
