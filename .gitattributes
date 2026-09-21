@@ -39,6 +39,7 @@ modules/WecSubscriptionXml.cs text eol=lf
 scripts/AppLockerProbe.ps1 text eol=lf
 tests/AppLockerProbe*.ps1 text eol=lf
 
+tests/SelectedSaclFixtureProtection.cs text eol=lf
 # Fixed local WMI probe source/worker fingerprints.
 /scripts/WmiProbe*.ps1 text eol=lf
 /scripts/WmiProbeNative.cs text eol=lf
