@@ -17,3 +17,5 @@ Check-Cli @('smb-runtime','-DryRun') $false 'DryRun is supported only'
 Check-Cli @('smb-runtime','-SmbRuntimeAction','Activate','-DryRun','-Help') $true 'smb-runtime'
 Check-Cli @('smb-runtime','-BackupPath','unused','-Help') $false 'dedicated options'
 Write-Host "PASS: $script:checks public SMB runtime CLI guards"
+# Expected child failures are assertions, not the enclosing Actions step result.
+$global:LASTEXITCODE=0

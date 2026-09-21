@@ -82,3 +82,4 @@ try {
     }else{$cleanup | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $evidence 'acceptance.json') -Encoding UTF8}
     Write-Host "Native SMB evidence: $evidence"
 }
+$global:LASTEXITCODE=0
