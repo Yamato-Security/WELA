@@ -1,0 +1,47 @@
+name: Guarded event-log size and mode recovery
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  eventlog-recovery:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Fixtures and public guards in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/EventLogRecovery.Tests.ps1
+          ./tests/EventLogRecovery.Cli.Tests.ps1
+      - name: Native channel restoration in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/EventLogRecovery.Windows.Tests.ps1 -AllowDisposableChannelWrite
+      - name: Fixtures and public guards in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/EventLogRecovery.Tests.ps1
+          ./tests/EventLogRecovery.Cli.Tests.ps1
+      - name: Native channel restoration in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/EventLogRecovery.Windows.Tests.ps1 -AllowDisposableChannelWrite
+      - name: Retain owned fixture evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: eventlog-recovery-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-event-recovery-*/
+          if-no-files-found: warn
+          retention-days: 7

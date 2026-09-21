@@ -22,6 +22,13 @@
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$FirewallAction = 'Audit',
     [ValidateSet('Preserve', 'CisV4')][string]$FirewallPathMode = 'Preserve',
     [ValidateRange(16384, 32767)][int]$FirewallMinimumSizeKiB = 16384,
+    [ValidateSet('Plan','Restore')][string]$FirewallRecoveryAction = 'Plan',
+    [ValidateSet('Domain','Private','Public')][string]$FirewallRecoveryProfile,
+    [string]$FirewallRecoveryJournalPath,
+    [string]$FirewallRecoveryResultsPath,
+    [string]$FirewallRecoveryPlanPath,
+    [string]$FirewallRecoveryPlanHash,
+    [string]$FirewallRecoveryOutputPath,
     [string]$HtmlPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
     [ValidateSet('Plan','Activate')][string]$SmbRuntimeAction = 'Plan',
@@ -44,6 +51,9 @@
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [ValidateSet('Plan','Run')][string]$Capi2ProbeAction = 'Plan',
+    [string]$Capi2ProbeOutputPath,
+    [ValidateRange(1,30)][int]$Capi2ProbeTimeoutSeconds = 15,
     [ValidateSet('Plan','Run')][string]$FailedLogonAction = 'Plan',
     [string]$FailedLogonOutputPath,
     [ValidateRange(1,30)][int]$FailedLogonTimeoutSeconds = 15,
@@ -109,6 +119,22 @@
     [string]$EvtxProbePath,
     [string]$EvtxArchivePath,
     [string]$EvtxOutputPath,
+    [ValidateSet('Plan','Restore')][string]$TranscriptRecoveryAction = 'Plan',
+    [string]$TranscriptRecoveryJournalPath,
+    [string]$TranscriptRecoveryOriginalResultsPath,
+    [string]$TranscriptRecoveryPlanPath,
+    [string]$TranscriptRecoveryPlanHash,
+    [string]$TranscriptRecoveryOutputPath,
+    [switch]$TranscriptRecoveryAllowTemporarySuspension,
+    [ValidateSet('Plan','Restore')][string]$EventRecoveryAction = 'Plan',
+    [string]$EventRecoveryJournalPath,
+    [string]$EventRecoveryOriginalResultsPath,
+    [string]$EventRecoveryLog,
+    [string]$EventRecoveryPlanPath,
+    [string]$EventRecoveryPlanHash,
+    [string]$EventRecoveryOutputPath,
+    [switch]$EventRecoveryAllowShrink,
+    [switch]$EventRecoveryAllowRetentionChange,
     [ValidateSet('Plan','Restore')][string]$RecoveryAction = 'Plan',
     [string]$RecoveryJournalPath,
     [string]$RecoveryOriginalResultsPath,
@@ -187,6 +213,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
@@ -195,9 +222,11 @@ Import-Module (Join-Path $ScriptRoot "modules/AuditCatalog.psm1") -ErrorAction S
 Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
+. (Join-Path $ScriptRoot "scripts/EventLogRecovery.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/ChannelRead.ps1")
+. (Join-Path $ScriptRoot "scripts/FirewallLoggingRecovery.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeProviderPacks.ps1")
 . (Join-Path $ScriptRoot "scripts/DnsAnalytical.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
@@ -215,6 +244,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventMeasurement.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/TranscriptionRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -1946,6 +1976,7 @@ Usage:
   ./WELA.ps1 firewall-logging -FirewallAction Audit -ResultsPath firewall.json
   ./WELA.ps1 firewall-logging -FirewallAction Plan -FirewallPathMode CisV4
   ./WELA.ps1 firewall-logging -FirewallAction Configure -DryRun
+  ./WELA.ps1 firewall-recovery -Help
   # Firewall text logging is opt-in; it does not change firewall enforcement or rules.
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
@@ -1956,6 +1987,7 @@ Usage:
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 transcription-recovery -Help
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
   ./WELA.ps1 applocker-readiness -ResultsPath applocker.json
   ./WELA.ps1 applocker-readiness -AppLockerAction Plan -AppLockerPolicyPath operator-audit.xml
@@ -1989,9 +2021,11 @@ Usage:
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
+  ./WELA.ps1 eventlog-recovery -Help # Review restoration of one completed log size/mode write
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
+  ./WELA.ps1 capi2-probe -Help       # Fixed offline chain and matched CAPI2 event 11 evidence
   ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
@@ -2008,6 +2042,8 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'FirewallRecovery*' }).Count) {throw 'FirewallRecovery options require firewall-recovery. No command was run.'}
+if ($Cmd -eq 'firewall-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','FirewallRecoveryAction','FirewallRecoveryProfile','FirewallRecoveryJournalPath','FirewallRecoveryResultsPath','FirewallRecoveryPlanPath','FirewallRecoveryPlanHash','FirewallRecoveryOutputPath','Auto','DryRun','Help') }).Count)) {throw 'firewall-recovery accepts only dedicated options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
 if ($Cmd -ne 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'SmbRuntime*' }).Count) {throw 'SmbRuntime options require smb-runtime. No command was run.'}
 if ($Cmd -eq 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','SmbRuntimeAction','SmbRuntimeOutputPath','Auto','DryRun','Help') }).Count) {throw 'smb-runtime accepts only its dedicated options, Auto and DryRun. No command was run.'}
@@ -2059,6 +2095,8 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
 
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
 if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
+if ($Cmd -ne 'transcription-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'TranscriptRecovery*'}).Count) {throw 'TranscriptRecovery options require transcription-recovery.'}
+if ($Cmd -eq 'transcription-recovery' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','TranscriptRecoveryAction','TranscriptRecoveryJournalPath','TranscriptRecoveryOriginalResultsPath','TranscriptRecoveryPlanPath','TranscriptRecoveryPlanHash','TranscriptRecoveryOutputPath','TranscriptRecoveryAllowTemporarySuspension','Auto','DryRun','Help')}).Count)) {throw 'transcription-recovery accepts only its dedicated options, Auto and DryRun.'}
 if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
 if ($Cmd -eq 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','RecoveryAction','RecoveryJournalPath','RecoveryOriginalResultsPath','RecoveryControlId','RecoveryPlanPath','RecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'audit-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
 
@@ -2070,6 +2108,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'eventlog-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'EventRecovery*'}).Count) {throw 'EventRecovery options require eventlog-recovery.'}
+if ($Cmd -eq 'eventlog-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EventRecoveryAction','EventRecoveryJournalPath','EventRecoveryOriginalResultsPath','EventRecoveryLog','EventRecoveryPlanPath','EventRecoveryPlanHash','EventRecoveryOutputPath','EventRecoveryAllowShrink','EventRecoveryAllowRetentionChange','Help')}).Count)) {throw 'eventlog-recovery accepts only dedicated options.'}
 if ($Cmd -ne 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecIngress*'}).Count) {throw 'WecIngress options require wec-ingress.'}
 if ($Cmd -eq 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecIngressAction','WecIngressName','WecIngressLocalAddress','WecIngressRemoteAddress','WecIngressPlanPath','WecIngressPlanHash','WecIngressOutputPath','Help')}).Count) {throw 'wec-ingress accepts only dedicated options.'}
 if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
@@ -2082,6 +2122,8 @@ if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -li
 if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
     throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
 }
+if ($Cmd -ne 'capi2-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Capi2Probe*'}).Count) {throw 'Capi2Probe options require capi2-probe.'}
+if ($Cmd -eq 'capi2-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','Capi2ProbeAction','Capi2ProbeOutputPath','Capi2ProbeTimeoutSeconds','Help')}).Count)) {throw 'capi2-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FailedLogon*'}).Count) {throw 'FailedLogon options require failed-logon-probe.'}
 if ($Cmd -eq 'failed-logon-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FailedLogonAction','FailedLogonOutputPath','FailedLogonTimeoutSeconds','Help')}).Count)) {throw 'failed-logon-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiProbe*'}).Count) {throw 'WmiProbe options require wmi-probe.'}
@@ -2154,9 +2196,10 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
+    -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-runtime' -and $SmbRuntimeAction -eq 'Activate') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
@@ -2271,11 +2314,25 @@ switch ($Cmd.ToLower()) {
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
     }
+    'transcription-recovery' {
+        if ($Help) {Write-Host 'Usage: transcription-recovery -TranscriptRecoveryAction Plan -TranscriptRecoveryJournalPath before.jsonl -TranscriptRecoveryOriginalResultsPath results.json -TranscriptRecoveryOutputPath new-directory; Restore uses -TranscriptRecoveryPlanPath, -TranscriptRecoveryPlanHash and new -TranscriptRecoveryOutputPath [-Auto] [-TranscriptRecoveryAllowTemporarySuspension]. DryRun omits output. Temporary suspension can leave machine transcription disabled after an error, drift refusal or process termination; there is no automatic rollback or re-enable. Inspect receipts, current policy and the destination before manual recovery. See docs/transcription-recovery.md.';return}
+        $report=Invoke-WelaTranscriptRecovery -Action $TranscriptRecoveryAction -JournalPath $TranscriptRecoveryJournalPath -OriginalResultsPath $TranscriptRecoveryOriginalResultsPath -PlanPath $TranscriptRecoveryPlanPath -PlanHash $TranscriptRecoveryPlanHash -OutputPath $TranscriptRecoveryOutputPath -AllowTemporarySuspension:$TranscriptRecoveryAllowTemporarySuspension -Auto:$Auto -DryRun:$DryRun
+        $report | ConvertTo-Json -Depth 24 | Write-Output
+        exit ([int]$report.ExitCode)
+    }
     'audit-recovery' {
         if ($Help) {Write-Host 'Usage: audit-recovery [-RecoveryAction Plan] -RecoveryJournalPath before.jsonl -RecoveryOriginalResultsPath results.json -RecoveryControlId IDs -RecoveryOutputPath new-directory; then -RecoveryAction Restore -RecoveryPlanPath reviewed-plan.json -RecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/audit-recovery.md.';return}
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'eventlog-recovery' {
+        if ($Help) {Write-Host 'Usage: eventlog-recovery [-EventRecoveryAction Plan] -EventRecoveryJournalPath before.jsonl -EventRecoveryOriginalResultsPath results.json -EventRecoveryLog channel -EventRecoveryOutputPath new-directory; then Restore with -EventRecoveryPlanPath plan.json -EventRecoveryPlanHash SHA256 -EventRecoveryOutputPath new-directory and applicable -EventRecoveryAllowShrink / -EventRecoveryAllowRetentionChange. See docs/eventlog-recovery.md.';return}
+        $arguments=@{Action=$EventRecoveryAction;OutputPath=$EventRecoveryOutputPath;AllowShrink=$EventRecoveryAllowShrink;AllowRetentionChange=$EventRecoveryAllowRetentionChange}
+        $map=@{EventRecoveryJournalPath='JournalPath';EventRecoveryOriginalResultsPath='OriginalResultsPath';EventRecoveryLog='Log';EventRecoveryPlanPath='PlanPath';EventRecoveryPlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaEventLogRecovery @arguments;$report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'wec-ingress' {
         if ($Help) {Write-Host 'Usage: wec-ingress [-WecIngressAction Plan] -WecIngressName WELA-WEC-name -WecIngressLocalAddress IPv4 -WecIngressRemoteAddress IPv4/CIDR -WecIngressOutputPath new-directory; then Apply with -WecIngressPlanPath plan.json -WecIngressPlanHash SHA256 -WecIngressOutputPath new-directory. Creates one new Domain TCP5985 rule. See docs/wec-ingress.md.';return}
@@ -2300,6 +2357,12 @@ switch ($Cmd.ToLower()) {
         $map=@{WecUpdateId='Id';WecUpdateSourceSid='SourceSids';WecUpdateQueryPath='QueryPath';WecUpdateDescription='Description';WecUpdatePlanPath='PlanPath';WecUpdatePlanHash='PlanHash'}
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaWecUpdate @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'capi2-probe' {
+        if ($Help) {Write-Host 'Usage: capi2-probe [-Capi2ProbeAction Plan|Run] [-Capi2ProbeOutputPath new-private-directory] [-Capi2ProbeTimeoutSeconds 1..30]. Fixed offline ephemeral certificate-chain build; requires an enabled readable CAPI2 channel. No configuration, trust, TLS or Sigma claim. See docs/capi2-probe.md.';return}
+        $report=Invoke-WelaCapi2Probe -Action $Capi2ProbeAction -OutputPath $Capi2ProbeOutputPath -TimeoutSeconds $Capi2ProbeTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
@@ -2466,6 +2529,12 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] WMI namespace auditing: $_" -ForegroundColor Red; exit 1 }
+    }
+    'firewall-recovery' {
+        if ($Help) {Write-Host 'Usage: firewall-recovery [-FirewallRecoveryAction Plan] -FirewallRecoveryProfile Domain|Private|Public -FirewallRecoveryJournalPath before.jsonl -FirewallRecoveryResultsPath results.json -FirewallRecoveryOutputPath new-directory; then -FirewallRecoveryAction Restore -FirewallRecoveryPlanPath plan.json -FirewallRecoveryPlanHash SHA256 -FirewallRecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/firewall-logging-recovery.md.';return}
+        $report=Invoke-WelaFirewallLoggingRecovery -Action $FirewallRecoveryAction -Profile $FirewallRecoveryProfile -JournalPath $FirewallRecoveryJournalPath -ResultsPath $FirewallRecoveryResultsPath -PlanPath $FirewallRecoveryPlanPath -PlanHash $FirewallRecoveryPlanHash -OutputPath $FirewallRecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
+        Write-Host ($report | ConvertTo-Json -Depth 24)
+        if ($report.ExitCode -ne 0) {exit 1}
     }
     'firewall-logging' {
         if ($Help) {
