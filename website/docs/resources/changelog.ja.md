@@ -7,6 +7,8 @@
 
 **改善:**
 
+- 既存の Script AuditOnly ポリシーに対し、固定の Windows PowerShell5.1 スクリプトを実行する `applocker-script-probe` を追加しました。実行者と子プロセスのログオン、保持したファイル、高精度 UTC とイベント記録境界を確認し、Script8005 の許可と8006 の監査専用ブロック判定を区別します。拒否・上限・重複・状態変化は未検証とし、設定変更や Sigma の評価加算は行いません。使い捨て Windows の4構成で両イベントとポリシー・チャネル・タスクの復元を検証し、保護された AppIDSvc を停止できない場合は明記します。 (関連 #381) (@Shirofune-Security)
+
 - 従来の設定コマンドでも、未対応の `-WhatIf` や入力ミスなどの未認識引数を実行前に拒否するようにしました。`-ErrorAction` や `-Verbose` などの PowerShell 共通パラメーターも拒否するため、自動化ラッパーへの影響をヘルプと診断に明記しました。正しい位置指定引数と文書化された `-DryRun` の動作は維持し、Windows PowerShell 5.1 と PowerShell 7 で公開CLIを検証します。 (@Shirofune-Security)
 
 - Windows PowerShell 5.1 と PowerShell 7、使い捨ての Server 2022/2025 で標準チャネル設定の公開CLIを検証するテストを追加しました。有効化・サイズ・CAPI2読み取り専用権限の適用、既存記述子と大きいバッファーの保持、変更前記録、DryRun、再実行時の無変更、元設定への復元を確認し、ハッシュ付きの証拠を保存します。転送・保存期間・Sigmaの検証は別途必要です。 (@Shirofune-Security)
