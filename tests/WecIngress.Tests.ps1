@@ -29,6 +29,11 @@ try {
  Reject {Get-WelaIngressSelection '*' @('10.10.10.10') @('192.0.2.1')} 'name'
  $selection=Get-WelaIngressSelection 'WELA-WEC-Test' @('10.10.10.10') @('192.0.2.0/24')
  $observation=Read-WelaIngressRule PersistentStore $selection.Name;Assert-WelaIngressReadback $observation $selection
+ foreach($package in @($null,'')){$observation.Filters.Application.Package=$package;Assert-WelaIngressReadback $observation $selection;$count++}
+ $observation.Filters.Application.Package='S-1-15-2-1';Reject {Assert-WelaIngressReadback $observation $selection} 'Package'
+ $observation.Filters.Application.PSObject.Properties.Remove('Package');Reject {Assert-WelaIngressReadback $observation $selection} 'Package'
+ $observation.Filters.Application|Add-Member NoteProperty Package 'Any'
+ $evidence=ConvertTo-WelaIngressEvidence $observation;Assert ($evidence.Application.Package.Present -and $evidence.Application.Package.Value -eq 'Any') 'Evidence preserves explicit inspected fields'
  foreach($field in @('Enabled','Direction','Profile','Action','EdgeTraversalPolicy','LooseSourceMapping','LocalOnlyMapping','PolicyStoreSourceType','Description','Group','DisplayName','Name')){
    $saved=$observation.Rule.$field;$observation.Rule.$field='unexpected';Reject {Assert-WelaIngressReadback $observation $selection} 'differs';$observation.Rule.$field=$saved
  }

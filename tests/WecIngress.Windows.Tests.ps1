@@ -43,7 +43,10 @@ try {
  Assert ($replay.Status -eq 'Refused' -and -not $replay.NativeCreateAttempted) 'Plan replay refuses an existing rule'
  Assert ((Key (Get-WelaIngressContext)) -ceq $contextKey) 'Profiles, services, host and address context unchanged'
  Write-Host "Native WEC ingress passed $count assertions on $([Environment]::OSVersion.Version), PowerShell $($PSVersionTable.PSVersion). No listener or traffic created."
-}catch{$primary=$_}
+}catch{
+ $primary=$_
+ foreach($store in @('PersistentStore','ActiveStore')){try{$snapshot=ConvertTo-WelaIngressEvidence (Read-WelaIngressRule $store $name);Write-Host ($snapshot|ConvertTo-Json -Depth 8)}catch{Write-Host "Diagnostic read $store : $($_.Exception.Message)"}}
+}
 finally {
  $errors=@()
  try {

@@ -37,3 +37,11 @@ jobs:
         if: matrix.engine == 'pwsh'
         shell: pwsh
         run: ./tests/WecIngress.Windows.Tests.ps1 -AllowDisposableFirewallRule
+      - name: Retain owned fixture evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wec-ingress-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-ingress-*/
+          if-no-files-found: warn
+          retention-days: 7

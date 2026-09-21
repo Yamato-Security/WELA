@@ -75,6 +75,28 @@ function Read-WelaIngressRule {
     }
     [pscustomobject]@{Store=$Store;Rule=$r;Filters=$filters}
 }
+function ConvertTo-WelaIngressEvidence {
+    param($Observed)
+    # Project the inspected fields, not recursive CIM class/session metadata.
+    $fields=[ordered]@{
+        Rule=@('Name','DisplayName','Description','Group','Enabled','Profile','Direction','Action','EdgeTraversalPolicy','LooseSourceMapping','LocalOnlyMapping','PolicyStoreSourceType','Owner','Platform','PrimaryStatus','EnforcementStatus')
+        Port=@('Protocol','LocalPort','RemotePort','IcmpType','DynamicTarget')
+        Address=@('LocalAddress','RemoteAddress')
+        Application=@('Program','Package')
+        Service=@('Service');Interface=@('InterfaceAlias');InterfaceType=@('InterfaceType')
+        Security=@('Authentication','Encryption','OverrideBlockRules','LocalUser','RemoteUser','RemoteMachine')
+    }
+    $result=[ordered]@{Store=$Observed.Store}
+    foreach($kind in $fields.Keys){
+        $item=if($kind -eq 'Rule'){$Observed.Rule}else{$Observed.Filters[$kind]};$values=[ordered]@{}
+        foreach($name in $fields[$kind]){
+            $property=$item.PSObject.Properties[$name]
+            $values[$name]=[ordered]@{Present=($null -ne $property);Value=$(if($null -eq $property -or $null -eq $property.Value){$null}else{@($property.Value|ForEach-Object {[string]$_})})}
+        }
+        $result[$kind]=$values
+    }
+    [pscustomobject]$result
+}
 function Assert-WelaIngressReadback {
     param($Observed,$Selection)
     $r=$Observed.Rule;$f=$Observed.Filters
@@ -86,7 +108,11 @@ function Assert-WelaIngressReadback {
     $local=@($f.Address.LocalAddress|ForEach-Object {ConvertTo-WelaIngressAddress $_}|Sort-Object)
     $remote=@($f.Address.RemoteAddress|ForEach-Object {ConvertTo-WelaIngressAddress $_ -Remote -Observed}|Sort-Object)
     if(($local -join '|') -cne ($Selection.LocalAddresses -join '|') -or ($remote -join '|') -cne ($Selection.RemoteAddresses -join '|')){throw 'Address filters differ.'}
-    foreach($pair in @(@('Application','Program'),@('Application','Package'),@('Service','Service'),@('Interface','InterfaceAlias'),@('InterfaceType','InterfaceType'),@('Security','LocalUser'),@('Security','RemoteUser'),@('Security','RemoteMachine'))){if([string]$f[$pair[0]].($pair[1]) -ne 'Any'){throw "Unexpected $($pair -join '/') filter."}}
+    foreach($pair in @(@('Application','Program'),@('Service','Service'),@('Interface','InterfaceAlias'),@('InterfaceType','InterfaceType'),@('Security','LocalUser'),@('Security','RemoteUser'),@('Security','RemoteMachine'))){if([string]$f[$pair[0]].($pair[1]) -ne 'Any'){throw "Unexpected $($pair -join '/') filter: '$($f[$pair[0]].($pair[1]))'."}}
+    # Native Package is a nullable SID, unlike the Program 'Any' alias. A
+    # present empty/null Package means no package restriction; missing is unknown.
+    $package=$f.Application.PSObject.Properties['Package']
+    if($null -eq $package -or ($null -ne $package.Value -and ($package.Value -isnot [string] -or $package.Value -cnotin @('','Any')))){throw 'Unexpected or missing Application/Package filter.'}
     if([string]$f.Security.Authentication -ne 'NotRequired' -or [string]$f.Security.Encryption -ne 'NotRequired' -or [string]$f.Security.OverrideBlockRules -ne 'False'){throw 'Security filter differs.'}
 }
 function Assert-WelaIngressPlan {
@@ -107,6 +133,7 @@ function Invoke-WelaWecIngress {
         if(-not $PlanPath -or $PlanHash -cnotmatch '^[a-f0-9]{64}$' -or $Name -or $LocalAddress -or $RemoteAddress){throw 'Apply accepts only a reviewed plan path, SHA256 and new output.'}
         $inputFile=Read-WelaWecUpdateFile $PlanPath
     }
+    $ErrorActionPreference='Stop'
     $sourcePath=if($inputFile){$inputFile.Path}else{Join-Path (Split-Path $PSScriptRoot -Parent) 'WELA.ps1'}
     $output=New-WelaArrivalOutput $OutputPath $sourcePath
     $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaCollectorIngress';Action=$Action;Status='Refused';ExitCode=1;OutputPath=$output;PlanHash=$null;NativeCreateAttempted=$false;Artifacts=@();Diagnostic='';ReadyRuleCredit=0;Scope='One local Domain-profile TCP5985 IPv4 allow rule only. Other rules may allow broader access; no listener, service, authentication, subscription, packet delivery or Sigma proof. Sysmon excluded.'}
@@ -133,7 +160,7 @@ function Invoke-WelaWecIngress {
             $report.NativeCreateAttempted=$true;New-WelaIngressNativeRule $selection
             foreach($store in @('PersistentStore','ActiveStore')){
                 $observed=Read-WelaIngressRule $store $selection.Name
-                $report.Artifacts+=Write-WelaWecUpdateArtifact $output ($store+'-after.json') ($observed|ConvertTo-Json -Depth 8)
+                $report.Artifacts+=Write-WelaWecUpdateArtifact $output ($store+'-after.json') ((ConvertTo-WelaIngressEvidence $observed)|ConvertTo-Json -Depth 8)
                 Assert-WelaIngressReadback $observed $selection
             }
             if((Read-WelaWecUpdateFile $PlanPath).Hash -cne $PlanHash -or (Get-WelaIngressSources) -cne $sources -or (Get-WelaIngressContext|ConvertTo-Json -Depth 16 -Compress) -cne $key){throw 'Context, code or plan changed after creation.'}
