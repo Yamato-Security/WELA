@@ -175,6 +175,8 @@ function Invoke-WelaChannelRecovery {
             Assert-WelaChannelRecoveryCurrent $definition (Read-WelaChannelRecoveryState $definition.Channel) $definition.RecoverTo $plan.Guard
             if((Get-WelaChannelRecoveryKey (Get-WelaChannelReader)) -cne $token){throw 'Actual token changed before final confirmation.'}
             if((Get-WelaChannelRecoveryKey (Get-WelaChannelRecoveryContext)) -cne $contextKey -or (Get-WelaChannelRecoverySources) -cne $sources -or (Read-WelaWecUpdateFile $PlanPath).Hash -cne $PlanHash){throw 'Final host/operator, source or reviewed plan changed.'}
+            if((Read-WelaWecUpdateFile $definition.Journal.Path).Hash -cne $definition.Journal.Hash -or (Read-WelaWecUpdateFile $definition.OriginalResults.Path).Hash -cne $definition.OriginalResults.Hash){throw 'Original historical evidence changed during restoration.'}
+            foreach($artifact in $report.Artifacts){if((Read-WelaWecUpdateFile (Join-Path $output $artifact.Name)).Hash -cne $artifact.Sha256){throw 'Saved recovery evidence changed during restoration.'}}
             $report.Status='RestoredAndVerified';$report.ExitCode=0
         }
     }catch{

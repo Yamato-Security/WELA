@@ -33,6 +33,8 @@ function Set-WelaChannelRecoveryField {
  if($script:case -ne 'false-success'){$script:settings.$Field=$Definition.RecoverTo.$Field}
  if($script:case -eq 'preservation'){$script:path='changed'}
  if($script:case -eq 'token'){$script:token='changed'}
+ if($script:writes -eq 3 -and $script:case -eq 'last-history'){[IO.File]::AppendAllText($script:originalFile,' ')}
+ if($script:writes -eq 3 -and $script:case -eq 'last-artifact'){[IO.File]::AppendAllText((Join-Path $script:output 'pending-3-IsEnabled.json'),' ')}
 }
 $root=Join-Path ([IO.Path]::GetTempPath()) ('wela-channel-recovery-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $root
 $oldComputer=$env:COMPUTERNAME;$env:COMPUTERNAME='TEST';$channel='Microsoft-Windows-CAPI2/Operational'
@@ -47,7 +49,7 @@ function Original([string]$Dir,[bool]$Grant=$true){
  Assert ($r.Results.Count -eq 1 -and $r.Results[0].Status -ceq 'Applied') 'Actual shared configuration callbacks produce original journal/result evidence.'
 }
 try {
- foreach($scenario in @('ok','no-grant','no-shrink','no-disable','no-revoke','hash','tamper','duplicate','drift','fresh-drift','source','native-fail','false-success','preservation','token')){
+ foreach($scenario in @('ok','no-grant','no-shrink','no-disable','no-revoke','hash','tamper','duplicate','drift','fresh-drift','source','native-fail','false-success','preservation','token','last-history','last-artifact')){
   $dir=Join-Path $root $scenario;$null=New-Item -ItemType Directory $dir;Original $dir ($scenario -ne 'no-grant')
   $plan=Invoke-WelaChannelRecovery -JournalPath "$dir/journal/before.jsonl" -OriginalResultsPath "$dir/original.json" -Channel $channel -OutputPath "$dir/plan"
   Assert ($plan.Status -ceq 'ReviewRequired' -and $plan.ExitCode -eq 0) "Plan $scenario : $($plan.Diagnostic)"
@@ -57,7 +59,7 @@ try {
   if($scenario -in @('tamper','duplicate')){$text=[IO.File]::ReadAllText($planPath);if($scenario -eq 'tamper'){$text=$text.Replace('1048576','2097152')}else{$text=$text.Replace('"SchemaVersion":','"SchemaVersion":1,"SchemaVersion":')};[IO.File]::WriteAllText($planPath,$text);$hash=(Get-FileHash $planPath).Hash.ToLowerInvariant()}
   if($scenario -eq 'source'){[IO.File]::AppendAllText("$dir/original.json",' ')}
   if($scenario -eq 'drift'){$script:settings.SecurityDescriptor='foreign'}
-  $script:case=$scenario;$script:reads=0;$script:output="$dir/restore"
+  $script:case=$scenario;$script:originalFile="$dir/original.json";$script:reads=0;$script:output="$dir/restore"
   $r=Invoke-WelaChannelRecovery Restore -PlanPath $planPath -PlanHash $hash -OutputPath $script:output -AllowShrink:($scenario -ne 'no-shrink') -AllowDisable:($scenario -ne 'no-disable') -AllowRevoke:($scenario -notin @('no-revoke','no-grant'))
   Assert (($r.ExitCode -eq 0) -eq ($scenario -in @('ok','no-grant'))) "Restore $scenario : $($r.Diagnostic)"
   Assert ($r.ReadyRuleCredit -eq 0 -and (Test-Path "$dir/restore/manifest.json")) 'Outcome evidence is retained without Sigma credit.'
@@ -66,11 +68,11 @@ try {
    Assert ($r.ConfirmedFields.Count -eq $(if($scenario -eq 'ok'){3}else{2})) 'Only originally changed fields are written and confirmed.'
    $again=Invoke-WelaChannelRecovery Restore -PlanPath $planPath -PlanHash $hash -OutputPath "$dir/replay" -AllowShrink -AllowDisable -AllowRevoke
    Assert ($again.Status -ceq 'Refused') 'Completed old plan cannot be replayed.'
-  }elseif($scenario -in @('native-fail','false-success','preservation','token')){
+  }elseif($scenario -in @('native-fail','false-success','preservation','token','last-history','last-artifact')){
    Assert ($r.Status -ceq 'RestoreAttemptedUnverified' -and $script:writes -gt 0) 'Possible partial write is explicit; no rollback is inferred.'
    if($scenario -eq 'native-fail'){Assert ($r.ConfirmedFields.Count -eq 1 -and $script:settings.MaximumSizeInBytes -eq 1048576 -and $script:settings.SecurityDescriptor -ceq 'original+read' -and $script:settings.IsEnabled) 'Second-write failure retains one confirmed step and stops before disable.'}
   }else{Assert ($r.Status -ceq 'Refused' -and $script:writes -eq 0) 'Unreviewed or drifted input refuses before write.'}
-  foreach($artifact in $r.Artifacts){Assert ((Get-FileHash (Join-Path $r.OutputPath $artifact.Name)).Hash.ToLowerInvariant() -ceq $artifact.Sha256) 'Receipt hashes match retained bytes.'}
+  foreach($artifact in $r.Artifacts){$matches=(Get-FileHash (Join-Path $r.OutputPath $artifact.Name)).Hash.ToLowerInvariant() -ceq $artifact.Sha256;Assert ($matches -eq (-not ($scenario -eq 'last-artifact' -and $artifact.Name -ceq 'pending-3-IsEnabled.json'))) 'Retained hashes expose the deliberately changed artifact; all other bytes match.'}
  }
  $dir=Join-Path $root 'history';$null=New-Item -ItemType Directory $dir;Original $dir
  $savedResult=[IO.File]::ReadAllText("$dir/original.json");$savedJournal=[IO.File]::ReadAllText("$dir/journal/before.jsonl")
