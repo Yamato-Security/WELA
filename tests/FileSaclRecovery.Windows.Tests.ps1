@@ -42,8 +42,10 @@ try {
     Initialize-WelaFileSaclRecoveryNative
     Set-ItemProperty -LiteralPath $precedencePath -Name SCENoApplyLegacyAuditPolicy -Value 1 -Type DWord
     Set-WelaEffectiveAuditPolicy -Guid '0CCE921D-69AE-11D9-BED3-505054503030' -Mask 3 -Mode minimum
+    # ASD has the same explicit opt-in file prerequisite without WEF screenshot
+    # companion registry rows, so this isolated catalog can contain one file only.
     $context=Get-WelaSelectedSaclContext
-    $target=@((Get-WelaSelectedSaclCatalog -Profile wela-2.2.0 -IncludeOptional -Context $context).Rows)
+    $target=@((Get-WelaSelectedSaclCatalog -Profile asd-native-2021-10 -IncludeOptional -Context $context).Rows)
     Assert ($target.Count -eq 1 -and $target[0].Definition.Path -ceq $file) 'Installed fixture catalog selects only the owned leaf.'
     $id=$target[0].Id;$definition=$target[0].Definition
     foreach($case in @('empty','unrelated')){
@@ -55,7 +57,7 @@ try {
         }
         $before=Get-WelaSelectedSaclSnapshot $definition
         $original=Join-Path $caseDir 'original.json';$backup=Join-Path $caseDir 'receipts';$configured=Join-Path $caseDir 'configured.json'
-        Run-Wela @('targeted-sacl','-TargetSaclAction','Plan','-TargetSaclProfile','wela-2.2.0','-TargetSaclId',$id,'-IncludeOptional','-ResultsPath',$original)
+        Run-Wela @('targeted-sacl','-TargetSaclAction','Plan','-TargetSaclProfile','asd-native-2021-10','-TargetSaclId',$id,'-IncludeOptional','-ResultsPath',$original)
         Run-Wela @('targeted-sacl','-TargetSaclAction','Configure','-TargetSaclPlanPath',$original,'-TargetSaclId',$id,'-IncludeOptional','-Auto','-BackupPath',$backup,'-ResultsPath',$configured)
         $completedAddition=Json $configured
         Assert ($completedAddition.Results[0].Status -ceq 'Applied' -and $completedAddition.ExitCode -eq 0) 'Original public Configure supplied genuine Applied result and receipt pair.'
