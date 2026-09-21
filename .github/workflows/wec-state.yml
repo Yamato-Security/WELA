@@ -1,0 +1,48 @@
+name: Reviewed existing WEC subscription state
+on:
+  push:
+    paths: ['WELA.ps1', 'scripts/WecState*', 'tests/WecState*', '.github/workflows/wec-state.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wec-state:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Portable guards in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WecState.Tests.ps1
+          ./tests/WecState.Cli.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
+      - name: Actual owned Enabled transitions in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WecState.Windows.Tests.ps1 -AllowDisposableSubscription
+      - name: Portable guards in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WecState.Tests.ps1
+          ./tests/WecState.Cli.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
+      - name: Actual owned Enabled transitions in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WecState.Windows.Tests.ps1 -AllowDisposableSubscription
+      - name: Retain native state evidence and cleanup receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wec-state-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-wec-state-*
+          if-no-files-found: ignore
+          retention-days: 7
