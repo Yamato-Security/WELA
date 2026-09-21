@@ -16,16 +16,19 @@ function Get-WelaCapi2ProbeChannel {
 }
 function Get-WelaCapi2ProbeState {
  Initialize-WelaCapi2ProbeNative
+ $services=@(Get-Service -Name Winmgmt,CryptSvc,EventLog -ErrorAction Stop|Sort-Object Name|ForEach-Object {[pscustomobject]@{Name=$_.Name;Status=[string]$_.Status}})
+ if($services.Count -ne 3 -or @($services|Where-Object Status -ne 'Running').Count){throw 'Winmgmt, CryptSvc and EventLog must already be running; the probe starts no service.'}
  $token=[Wela.WmiProbe.Native]::Snapshot();$hostState=Get-WelaChannelReadHost
  $provider=[Diagnostics.Eventing.Reader.ProviderMetadata]::new('Microsoft-Windows-CAPI2')
  try{$event=@($provider.Events|Where-Object Id -eq 11);$metadata=[pscustomobject]@{Name=$provider.Name;Guid=$provider.Id.ToString();Event11Versions=@($event|ForEach-Object Version);LogNames=@($provider.LogLinks|ForEach-Object LogName|Sort-Object)}}finally{$provider.Dispose()}
  $engine=(Get-Process -Id $PID).Path
- $state=[pscustomobject][ordered]@{Computer=[Environment]::MachineName;Host=$hostState;Token=$token;Channel=(Get-WelaCapi2ProbeChannel);Provider=$metadata;Engine=$engine;EngineHash=(Get-FileHash -LiteralPath $engine -Algorithm SHA256).Hash.ToLowerInvariant();Sources=(Get-WelaCapi2ProbeSources)}
+ $state=[pscustomobject][ordered]@{Computer=[Environment]::MachineName;Host=$hostState;Services=$services;Token=$token;Channel=(Get-WelaCapi2ProbeChannel);Provider=$metadata;Engine=$engine;EngineHash=(Get-FileHash -LiteralPath $engine -Algorithm SHA256).Hash.ToLowerInvariant();Sources=(Get-WelaCapi2ProbeSources)}
  if((Get-WelaWmiProbeTokenKey $token) -cne (Get-WelaWmiProbeTokenKey ([Wela.WmiProbe.Native]::Snapshot()))){throw 'Token changed during CAPI2 prerequisite observation.'}
  $state
 }
 function Get-WelaCapi2ProbeStateKey {
  param($State)
+ if(@($State.Services).Count -ne 3 -or (@($State.Services.Name|Sort-Object) -join ',') -cne 'CryptSvc,EventLog,Winmgmt' -or @($State.Services|Where-Object Status -cne 'Running').Count){throw 'Required native services must already be running.'}
  if($State.Host.Build -notin @(20348,26100) -or $State.Host.ProductType -notin @(2,3) -or -not $State.Host.UBR -or $State.Host.Computer -cne $State.Computer){throw 'CAPI2 probe requires an observed Server 2022/2025 build and patch context.'}
  if($State.Channel.Enabled -isnot [bool] -or -not $State.Channel.Enabled -or $State.Channel.Name -cne 'Microsoft-Windows-CAPI2/Operational' -or $State.Channel.Type -cne 'Operational' -or $State.Channel.Provider -cne 'Microsoft-Windows-CAPI2' -or -not $State.Channel.SecurityDescriptor){throw 'CAPI2 Operational must already be enabled with an observed descriptor.'}
  if($State.Provider.Name -cne 'Microsoft-Windows-CAPI2' -or $State.Provider.Guid -ine '5bbca4a8-b209-48dc-a8c7-b23d3e5216fb' -or @($State.Provider.Event11Versions).Count -ne 1 -or $State.Provider.Event11Versions[0] -ne 0 -or $State.Channel.Name -cnotin $State.Provider.LogNames){throw 'Unreviewed CAPI2 provider or event11 schema version.'}
@@ -89,6 +92,13 @@ function Read-WelaCapi2ProbeEvents {
   [pscustomobject]@{Xml=$xml;Capped=($records.Count -ge 64);Query=$query;MaximumEvents=64}
  }finally{foreach($record in $records){$record.Dispose()}}
 }
+function Test-WelaCapi2XmlChildren {
+ param($Node,[string[]]$Names)
+ $children=@($Node.ChildNodes|Where-Object NodeType -eq Element)
+ if($children.Count -ne $Names.Count -or @($Node.ChildNodes|Where-Object {$_.NodeType -notin @('Element','Whitespace')}).Count){return $false}
+ foreach($name in $Names){if(@($children|Where-Object {$_.LocalName -ceq $name -and $_.NamespaceURI -ceq 'http://schemas.microsoft.com/win/2004/08/events/event'}).Count -ne 1){return $false}}
+ $true
+}
 function Test-WelaCapi2ProbeEvent {
  param([string]$Xml,$Operation,$State)
  $reader=$null
@@ -107,13 +117,21 @@ function Test-WelaCapi2ProbeEvent {
   # Namespace and exact paths are pinned to native event11, never a recursive name search.
   if(@($data.ChildNodes|Where-Object NodeType -eq Element).Count -ne 1){return $false}
   $chain=$data.SelectNodes('e:CertGetCertificateChain',$ns);if($chain.Count -ne 1){return $false};$chain=$chain[0]
-  $fields=@{};foreach($name in @('Certificate','Flags','ChainEngineInfo','CertificateChain','EventAuxInfo','Result')){$nodes=$chain.SelectNodes("e:$name",$ns);if($nodes.Count -ne 1){return $false};$fields[$name]=$nodes[0]}
+  $names=@('Certificate','ExtendedKeyUsage','URLRetrievalTimeout','Flags','ChainEngineInfo','CertificateChain','EventAuxInfo','CorrelationAuxInfo','Result')
+  if(-not(Test-WelaCapi2XmlChildren $chain $names)){return $false}
+  $fields=@{};foreach($name in $names){$nodes=$chain.SelectNodes("e:$name",$ns);if($nodes.Count -ne 1){return $false};$fields[$name]=$nodes[0]}
+  if($fields.ExtendedKeyUsage.HasChildNodes -or $fields.URLRetrievalTimeout.InnerText -cne 'PT1S' -or -not(Test-WelaCapi2XmlChildren $fields.CertificateChain @('TrustStatus','ChainElement'))){return $false}
+  foreach($flag in @('CERT_CHAIN_CACHE_ONLY_URL_RETRIEVAL','CERT_CHAIN_REVOCATION_CHECK_CACHE_ONLY','CERT_CHAIN_DISABLE_AUTH_ROOT_AUTO_UPDATE','CERT_CHAIN_DISABLE_AIA')){if($fields.Flags.GetAttribute($flag) -cne 'true'){return $false}}
+  if($fields.EventAuxInfo.HasAttribute('impersonateToken') -and $fields.EventAuxInfo.GetAttribute('impersonateToken') -cne $Operation.BeforeToken.Sid){return $false}
   $cert=$fields.Certificate
   if($cert.GetAttribute('fileRef') -cne ($Operation.Thumbprint+'.cer') -or $cert.GetAttribute('subjectName') -cne ('WelaCapi2Probe_'+$Operation.Nonce) -or $fields.Flags.GetAttribute('value') -ine '80002104' -or $fields.ChainEngineInfo.GetAttribute('context') -cne 'user' -or $fields.EventAuxInfo.GetAttribute('ProcessName') -ine $Operation.ProcessName -or $fields.Result.GetAttribute('value') -ine '800B0109'){return $false}
   $error=$fields.CertificateChain.SelectNodes('e:TrustStatus/e:ErrorStatus',$ns);$elements=$fields.CertificateChain.SelectNodes('e:ChainElement',$ns)
   if($error.Count -ne 1 -or $error[0].GetAttribute('value') -cne '20' -or $elements.Count -ne 1){return $false}
   $elementCert=$elements[0].SelectNodes('e:Certificate',$ns);$elementError=$elements[0].SelectNodes('e:TrustStatus/e:ErrorStatus',$ns)
   if($elementCert.Count -ne 1 -or $elementCert[0].GetAttribute('fileRef') -cne $cert.GetAttribute('fileRef') -or $elementCert[0].GetAttribute('subjectName') -cne $cert.GetAttribute('subjectName') -or $elementError.Count -ne 1 -or $elementError[0].GetAttribute('value') -cne '20'){return $false}
+  if(-not(Test-WelaCapi2XmlChildren $elements[0] @('Certificate','SignatureAlgorithm','PublicKeyAlgorithm','TrustStatus','ApplicationUsage','IssuanceUsage'))){return $false}
+  $signature=$elements[0].SelectSingleNode('e:SignatureAlgorithm',$ns);$publicKey=$elements[0].SelectSingleNode('e:PublicKeyAlgorithm',$ns)
+  if($signature.GetAttribute('oid') -cne '1.2.840.113549.1.1.11' -or $signature.GetAttribute('hashName') -cne 'SHA256' -or $signature.GetAttribute('publicKeyName') -cne 'RSA' -or $publicKey.GetAttribute('oid') -cne '1.2.840.113549.1.1.1' -or $publicKey.GetAttribute('publicKeyLength') -cne '2048'){return $false}
   return $true
  }catch{return $false}finally{if($reader){$reader.Dispose()}}
 }

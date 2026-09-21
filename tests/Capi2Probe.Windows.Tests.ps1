@@ -25,7 +25,7 @@ $engine=(Get-Process -Id $PID).Path;$original=Get-WelaCapi2ProbeChannel;$origina
 $root=New-WelaArrivalOutput (Join-Path $env:RUNNER_TEMP ('wela-capi2-native-'+[guid]::NewGuid().ToString('N'))) $PSScriptRoot
 $null=Write-WelaArrivalArtifact $root 'channel-original.json' ($original|ConvertTo-Json)
 $null=Write-WelaArrivalArtifact $root 'stores-original.json' ($originalStores|ConvertTo-Json -Depth 8)
-$failure=$null;$cleanupErrors=@();$nonces=@();$thumbprints=@();$changed=$false
+$failure=$null;$cleanupErrors=@();$nonces=@();$thumbprints=@();$changed=$false;$channelRestored=$false;$storesPreserved=$false
 try{
  $channel=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new($original.Name)
  try{if(-not $channel.IsEnabled){$changed=$true;$channel.IsEnabled=$true;$channel.SaveChanges()}}finally{$channel.Dispose()}
@@ -53,9 +53,9 @@ try{
  }
 }catch{$failure=$_}
 finally{
- try{$channel=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new($original.Name);try{if($channel.IsEnabled -ne $original.Enabled){$channel.IsEnabled=$original.Enabled;$channel.SaveChanges()}}finally{$channel.Dispose()};$restored=Get-WelaCapi2ProbeChannel;$null=Write-WelaArrivalArtifact $root 'channel-restored.json' ($restored|ConvertTo-Json);if((Key $restored) -cne (Key $original)){throw 'Original channel configuration was not restored.'}}catch{$cleanupErrors+='Channel restoration: '+$_.Exception.Message}
- try{$storesAfter=Read-Stores;$null=Write-WelaArrivalArtifact $root 'stores-after.json' ($storesAfter|ConvertTo-Json -Depth 8);if((Key $storesAfter) -cne (Key $originalStores)){throw 'Certificate store inventory changed.'}}catch{$cleanupErrors+='Store observation: '+$_.Exception.Message}
- $null=Write-WelaArrivalArtifact $root 'cleanup.json' ([pscustomobject]@{ChangedEnabled=$changed;Failure=$(if($failure){$failure.Exception.Message}else{$null});CleanupErrors=$cleanupErrors;ChannelRestored=($cleanupErrors.Count -eq 0);Complete=($null -eq $failure -and $cleanupErrors.Count -eq 0);Evidence=$root}|ConvertTo-Json)
+ try{$channel=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new($original.Name);try{if($channel.IsEnabled -ne $original.Enabled){$channel.IsEnabled=$original.Enabled;$channel.SaveChanges()}}finally{$channel.Dispose()};$restored=Get-WelaCapi2ProbeChannel;$null=Write-WelaArrivalArtifact $root 'channel-restored.json' ($restored|ConvertTo-Json);if((Key $restored) -cne (Key $original)){throw 'Original channel configuration was not restored.'};$channelRestored=$true}catch{$cleanupErrors+='Channel restoration: '+$_.Exception.Message}
+ try{$storesAfter=Read-Stores;$null=Write-WelaArrivalArtifact $root 'stores-after.json' ($storesAfter|ConvertTo-Json -Depth 8);if((Key $storesAfter) -cne (Key $originalStores)){throw 'Certificate store inventory changed.'};$storesPreserved=$true}catch{$cleanupErrors+='Store observation: '+$_.Exception.Message}
+ $null=Write-WelaArrivalArtifact $root 'cleanup.json' ([pscustomobject]@{ChangedEnabled=$changed;Failure=$(if($failure){$failure.Exception.Message}else{$null});CleanupErrors=$cleanupErrors;ChannelRestored=$channelRestored;SelectedStoresPreserved=$storesPreserved;Complete=($null -eq $failure -and $cleanupErrors.Count -eq 0);Evidence=$root}|ConvertTo-Json)
 }
 if($failure){throw $failure};if($cleanupErrors.Count){throw ($cleanupErrors -join '; ')}
 Write-Host "PASS: $script:count actual CAPI2 assertions across $ProbeRuns independent public runs; original channel restored and selected certificate inventories preserved."
