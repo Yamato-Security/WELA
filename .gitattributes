@@ -61,3 +61,5 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 
 /scripts/Capi2Probe* text eol=lf
 /tests/Capi2Probe* text eol=lf
+
+/scripts/CustomAuditProfiles.ps1 text eol=lf

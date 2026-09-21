@@ -7,6 +7,8 @@ $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Reject([scriptblock]$Action,$Message){$failed=$false;try{&$Action|Out-Null}catch{$failed=$true};Assert $failed $Message}
 function Clone($Value){ConvertFrom-WelaArrivalJson ($Value|ConvertTo-Json -Depth 24)}
+$sources=Get-WelaCapi2ProbeSources|ConvertFrom-Json
+Assert ($sources.'scripts/CustomAuditProfiles.ps1' -ceq (Get-FileHash -LiteralPath "$repo/scripts/CustomAuditProfiles.ps1" -Algorithm SHA256).Hash.ToLowerInvariant()) 'Strict worker-receipt parser implementation is included in source identity.'
 $nonce='0123456789abcdef0123456789abcdef';$now=[DateTime]::UtcNow
 $token=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1001';Name='HOST\user';AuthenticationId='0x1234';AuthenticationType='NTLM';Groups=@([pscustomobject]@{Sid='S-1-5-32-545';Attributes=7});Privileges=@()}
 $state=[pscustomobject]@{Computer='HOST';Services=@([pscustomobject]@{Name='CryptSvc';Status='Running'},[pscustomobject]@{Name='EventLog';Status='Running'},[pscustomobject]@{Name='Winmgmt';Status='Running'});Host=[pscustomobject]@{Computer='HOST';Build=20348;UBR=1;ProductType=3;DomainJoined=$false;Domain='WORKGROUP'};Token=$token;Channel=[pscustomobject]@{Name='Microsoft-Windows-CAPI2/Operational';Enabled=$true;SecurityDescriptor='O:SYG:SYD:(A;;1;;;SY)';Type='Operational';Provider='Microsoft-Windows-CAPI2'};Provider=[pscustomobject]@{Name='Microsoft-Windows-CAPI2';Guid='5bbca4a8-b209-48dc-a8c7-b23d3e5216fb';Event11Versions=@(0);LogNames=@('Microsoft-Windows-CAPI2/Operational')}}

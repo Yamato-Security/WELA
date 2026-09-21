@@ -7,7 +7,7 @@ function Initialize-WelaCapi2ProbeNative {
 }
 function Get-WelaCapi2ProbeSources {
  $sources=[ordered]@{}
- foreach($name in @('WELA.ps1','scripts/Capi2Probe.ps1','scripts/Capi2ProbeWorker.ps1','scripts/Capi2ProbeNative.cs','scripts/WmiProbe.ps1','scripts/WmiProbeNative.cs','scripts/ChannelRead.ps1','scripts/WefArrival.ps1','modules/AuditProfiles.psm1')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot ('../'+$name)) -Algorithm SHA256).Hash.ToLowerInvariant()}
+ foreach($name in @('WELA.ps1','scripts/Capi2Probe.ps1','scripts/Capi2ProbeWorker.ps1','scripts/Capi2ProbeNative.cs','scripts/WmiProbe.ps1','scripts/WmiProbeNative.cs','scripts/ChannelRead.ps1','scripts/WefArrival.ps1','modules/AuditProfiles.psm1','scripts/CustomAuditProfiles.ps1')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot ('../'+$name)) -Algorithm SHA256).Hash.ToLowerInvariant()}
  $sources|ConvertTo-Json -Compress
 }
 function Get-WelaCapi2ProbeChannel {
