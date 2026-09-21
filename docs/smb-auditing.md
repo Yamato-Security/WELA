@@ -30,6 +30,8 @@ Microsoft's Policy CSP pages list **26100.3613** as the availability floor for t
 
 ## Policy registry versus effective runtime
 
+The separate explicit [`smb-runtime` activation command](smb-runtime-activation.md) can activate the six native audit Booleans through reviewed SMB setters, with policy-conflict and complete configuration guards. This policy command does not invoke it automatically. Both operations keep event generation and policy persistence separate from current configuration observations.
+
 Reports keep `Policy` (the actual policy-registry value/type) separate from `Runtime` (the corresponding property of `Get-SmbServerConfiguration` or `Get-SmbClientConfiguration`). WELA never substitutes the policy DWORD for a runtime observation:
 
 - `Observed`: the getter exposes an actual Boolean. `RuntimeState=Active` means that Boolean was True, not that representative events were generated. False is `NotActive` before the desired policy exists, or `PendingVerification` when the policy registry contains DWORD 1. A correctly written/read-back policy therefore succeeds even when the runtime Boolean remains False. Pending verification does **not** assert propagation delay, a future activation deadline, or that a policy refresh/restart will fix the discrepancy. Its cause and activation timing are unknown; investigate and repeat Audit independently. WELA performs no refresh/restart and never weakens security to make a Boolean change.
