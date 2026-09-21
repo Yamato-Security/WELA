@@ -168,6 +168,12 @@
     [string]$WecUpdatePlanPath,
     [string]$WecUpdatePlanHash,
     [string]$WecUpdateOutputPath,
+    [ValidateSet('Plan','Apply')][string]$WecAuthorizationAction = 'Plan',
+    [string]$WecAuthorizationId,
+    [string[]]$WecAuthorizationSourceSid,
+    [string]$WecAuthorizationPlanPath,
+    [string]$WecAuthorizationPlanHash,
+    [string]$WecAuthorizationOutputPath,
     [ValidateSet('Plan','Apply')][string]$WecStateAction = 'Plan',
     [string]$WecStateId,
     [string[]]$WecStateSourceSid,
@@ -250,6 +256,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/WecIngress.ps1")
 . (Join-Path $ScriptRoot "scripts/WecListener.ps1")
 . (Join-Path $ScriptRoot "scripts/WecState.ps1")
+. (Join-Path $ScriptRoot "scripts/WecAuthorization.ps1")
 . (Join-Path $ScriptRoot "scripts/RetentionHealth.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
@@ -2045,6 +2052,7 @@ Usage:
   ./WELA.ps1 eventlog-recovery -Help # Review restoration of one completed log size/mode write
   ./WELA.ps1 wec-listener -Help      # Review one fixed-address native HTTP5985 listener
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
+  ./WELA.ps1 wec-authorization -Help # Review source SID authorization on a disabled subscription
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 capi2-probe -Help       # Fixed offline chain and matched CAPI2 event 11 evidence
@@ -2139,6 +2147,8 @@ if ($Cmd -ne 'wec-listener' -and @($PSBoundParameters.Keys | Where-Object {$_ -l
 if ($Cmd -eq 'wec-listener' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecListenerAction','WecListenerComputerName','WecListenerLocalAddress','WecListenerPlanPath','WecListenerPlanHash','WecListenerOutputPath','Help')}).Count)) {throw 'wec-listener accepts only dedicated options.'}
 if ($Cmd -ne 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecIngress*'}).Count) {throw 'WecIngress options require wec-ingress.'}
 if ($Cmd -eq 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecIngressAction','WecIngressName','WecIngressLocalAddress','WecIngressRemoteAddress','WecIngressPlanPath','WecIngressPlanHash','WecIngressOutputPath','Help')}).Count) {throw 'wec-ingress accepts only dedicated options.'}
+if ($Cmd -ne 'wec-authorization' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecAuthorization*'}).Count) {throw 'WecAuthorization options require wec-authorization.'}
+if ($Cmd -eq 'wec-authorization' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecAuthorizationAction','WecAuthorizationId','WecAuthorizationSourceSid','WecAuthorizationPlanPath','WecAuthorizationPlanHash','WecAuthorizationOutputPath','Help')}).Count)) {throw 'wec-authorization accepts only dedicated options.'}
 if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
 if ($Cmd -eq 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecStateAction','WecStateId','WecStateSourceSid','WecStateDesired','WecStatePlanPath','WecStatePlanHash','WecStateOutputPath','Help')}).Count) {throw 'wec-state accepts only dedicated options.'}
 if ($Cmd -ne 'wec-update' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecUpdate*'}).Count) {throw 'WecUpdate options require wec-update.'}
@@ -2396,6 +2406,13 @@ switch ($Cmd.ToLower()) {
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaWecIngress @arguments;$report
         if($report.ExitCode){exit $report.ExitCode}
+    }
+    'wec-authorization' {
+        if ($Help) {Write-Host 'Usage: wec-authorization [-WecAuthorizationAction Plan] -WecAuthorizationId ID -WecAuthorizationSourceSid desired-SID1,desired-SID2 -WecAuthorizationOutputPath new-directory; then Apply with -WecAuthorizationPlanPath plan.json -WecAuthorizationPlanHash SHA256 -WecAuthorizationOutputPath new-directory. Only the explicit source SID authorization of one already disabled subscription. No SID resolution or forwarding proof. See docs/wec-authorization.md.';return}
+        $arguments=@{Action=$WecAuthorizationAction;OutputPath=$WecAuthorizationOutputPath}
+        foreach($pair in @(@('WecAuthorizationId','Id'),@('WecAuthorizationSourceSid','SourceSids'),@('WecAuthorizationPlanPath','PlanPath'),@('WecAuthorizationPlanHash','PlanHash'))){if($PSBoundParameters.ContainsKey($pair[0])){$arguments[$pair[1]]=$PSBoundParameters[$pair[0]]}}
+        $report=Invoke-WelaWecAuthorization @arguments;$report
+        if($report.ExitCode -ne 0){exit $report.ExitCode}
     }
     'wec-state' {
         if ($Help) {Write-Host 'Usage: wec-state [-WecStateAction Plan] -WecStateId ID -WecStateSourceSid SID -WecStateDesired Enabled|Disabled -WecStateOutputPath new-directory; then Apply with -WecStatePlanPath reviewed-plan.json -WecStatePlanHash SHA256 -WecStateOutputPath new-directory. Only Enabled on an existing subscription. Disable interrupts collection; enable/save activates it. See docs/wec-state.md.';return}
