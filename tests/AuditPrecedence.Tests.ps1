@@ -1,5 +1,6 @@
 # Mocked registry/audit policy; no Windows policy changes.
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot '../modules/AuditProfiles.psm1') -Force
 . (Join-Path $PSScriptRoot '../scripts/Configuration.ps1')
 $script:assertions = 0
 $script:paths = @()
