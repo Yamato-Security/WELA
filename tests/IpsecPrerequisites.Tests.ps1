@@ -13,12 +13,12 @@ $positive=Get-WelaIpsecPrerequisite -ReadRules {$script:rule} -ReadAssociations 
 Assert ($positive.Status -eq 'Applicable' -and $positive.Rules[0].Qualifies) 'healthy effective securing rule qualifies'
 $none=Get-WelaIpsecPrerequisite -ReadRules {} -ReadAssociations {}
 Assert ($none.Status -eq 'NotObservedWithinScope' -and $none.Limitations -match 'legacy IPsec') 'empty complete inventory is scope-limited absence'
-foreach ($candidate in @((Rule False),(Rule True None None))) {
+foreach ($candidate in @((Rule False),(Rule False Require Request Inactive),(Rule True None None))) {
     $script:rule=$candidate
     $evidence=Get-WelaIpsecPrerequisite -ReadRules {$script:rule} -ReadAssociations {}
     Assert ($evidence.Status -eq 'NotObservedWithinScope' -and -not $evidence.Rules[0].Qualifies) 'disabled and exemption-only policies do not qualify'
 }
-foreach ($candidate in @((Rule True Require Request Error),(Rule True Require Request Unknown),(Rule Maybe),([pscustomobject]@{Name='missing'}))) {
+foreach ($candidate in @((Rule True Require Request Error),(Rule True Require Request Unknown),(Rule True Require Request Inactive),(Rule Maybe),([pscustomobject]@{Name='missing'}))) {
     $script:rule=$candidate
     Assert ((Get-WelaIpsecPrerequisite -ReadRules {$script:rule} -ReadAssociations {}).Status -eq 'Unknown') 'invalid or unhealthy policy stays unknown'
 }

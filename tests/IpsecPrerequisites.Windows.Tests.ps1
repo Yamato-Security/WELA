@@ -25,7 +25,7 @@ try {
     $baseline|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'baseline.json') -Encoding UTF8
     Assert ($baseline.Status -ne 'Unknown') "both native sources are readable: $($baseline.Diagnostic)"
     # Both endpoints are documentation-only addresses; no packets or negotiations are generated.
-    $null=New-NetIPsecRule -Name $name -DisplayName $name -PolicyStore PersistentStore -Enabled False -LocalAddress 192.0.2.250 -RemoteAddress 192.0.2.251 -InboundSecurity Request -OutboundSecurity Request -ErrorAction Stop
+    $null=New-NetIPsecRule -Name $name -DisplayName $name -PolicyStore PersistentStore -Profile Any -Enabled False -LocalAddress 192.0.2.250 -RemoteAddress 192.0.2.251 -InboundSecurity Request -OutboundSecurity Request -ErrorAction Stop
     $created=$true
     $evidence=Get-WelaIpsecPrerequisite
     $evidence|ConvertTo-Json -Depth 10|Set-Content (Join-Path $root 'disabled.json') -Encoding UTF8
