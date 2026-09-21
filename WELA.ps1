@@ -144,6 +144,9 @@
     [switch]$AllowDnsTraceReset,
     [string[]]$WecRuntimeId,
     [ValidateRange(1,512)][int]$WecRuntimeMaximumSources=128,
+    [ValidateSet('Plan','Run')][string]$AppLockerScriptAction = 'Plan',
+    [string]$AppLockerScriptOutputPath,
+    [ValidateRange(1,30)][int]$AppLockerScriptTimeoutSeconds = 15,
     [ValidateSet('Plan','Run')][string]$AppLockerProbeAction = 'Plan',
     [string]$AppLockerProbeOutputPath,
     [ValidateRange(1,30)][int]$AppLockerProbeTimeoutSeconds = 15,
@@ -182,6 +185,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AdObjectSacl.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerReadiness.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/AppLockerScriptProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
@@ -1989,6 +1993,7 @@ Usage:
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
+  ./WELA.ps1 applocker-script-probe -Help # Collect a fixed native Script8005/8006 event
   ./WELA.ps1 applocker-probe -Help   # Collect a fixed native AppLocker EXE event
   ./WELA.ps1 wef-arrival -Help       # Verify exact native probe presence on the local collector
   ./WELA.ps1 native-validation -Help   # Collect a fixed native 4688 probe without changing policy
@@ -2079,6 +2084,8 @@ if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -no
 }
 if ($Cmd -ne 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiProbe*'}).Count) {throw 'WmiProbe options require wmi-probe.'}
 if ($Cmd -eq 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiProbeAction','WmiProbeNamespace','WmiProbeOutputPath','WmiProbeTimeoutSeconds','Help')}).Count) {throw 'wmi-probe accepts only dedicated probe options.'}
+if ($Cmd -ne 'applocker-script-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'AppLockerScript*'}).Count) {throw 'AppLockerScript options require applocker-script-probe.'}
+if ($Cmd -eq 'applocker-script-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AppLockerScriptAction','AppLockerScriptOutputPath','AppLockerScriptTimeoutSeconds','Help')}).Count)) {throw 'applocker-script-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds')}).Count) {throw 'AppLocker probe options require applocker-probe.'}
 if ($Cmd -eq 'applocker-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','AppLockerProbeAction','AppLockerProbeOutputPath','AppLockerProbeTimeoutSeconds','Help')}).Count) {throw 'applocker-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'wef-arrival' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('ArrivalProbePath','ArrivalOutputPath')}).Count) {
@@ -2299,6 +2306,12 @@ switch ($Cmd.ToLower()) {
     'wmi-probe' {
         if ($Help) {Write-Host 'Usage: wmi-probe [-WmiProbeAction Plan|Run] -WmiProbeNamespace root\default [-WmiProbeOutputPath new-private-directory] [-WmiProbeTimeoutSeconds 1..30]. Fixed local read only; requires existing matching SACL and auditing. No policy changes, remote access or Sigma credit. See docs/wmi-probe.md.';return}
         $report=Invoke-WelaWmiProbe -Action $WmiProbeAction -Namespace $WmiProbeNamespace -OutputPath $WmiProbeOutputPath -TimeoutSeconds $WmiProbeTimeoutSeconds
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'applocker-script-probe' {
+        if ($Help) {Write-Host 'Usage: applocker-script-probe [-AppLockerScriptAction Plan|Run] [-AppLockerScriptOutputPath new-private-directory] [-AppLockerScriptTimeoutSeconds 1..30]. Requires existing Script AuditOnly policy, running AppIDSvc and enabled MSI and Script channel. Fixed native Windows PowerShell5.1 script, no policy changes or Sigma credit. See docs/applocker-script-probe.md.';return}
+        $report=Invoke-WelaAppLockerScriptProbe -Action $AppLockerScriptAction -OutputPath $AppLockerScriptOutputPath -TimeoutSeconds $AppLockerScriptTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
