@@ -1,4 +1,12 @@
 # Explicit recovery of one completed Windows PowerShell transcription policy write.
+function Copy-WelaTranscriptRecoveryValue {
+    param($Value)
+    # Windows PowerShell 5.1 annotates a root array emitted by ConvertFrom-Json;
+    # serializing that annotated array can introduce synthetic value/count keys.
+    # Keep arrays nested during the JSON roundtrip and emit their actual items.
+    $holder=ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey ([pscustomobject]@{Data=$Value}))
+    $holder.Data
+}
 function Get-WelaTranscriptRecoverySources {
     $sources=[ordered]@{}
     foreach($name in @('WELA.ps1','scripts/TranscriptionRecovery.ps1','scripts/PowerShellTranscription.ps1','scripts/Configuration.ps1','scripts/AuditRecovery.ps1','scripts/ControlApplicability.ps1','scripts/ChannelRead.ps1','scripts/ChannelReadNative.cs','scripts/WefArrival.ps1')) {
@@ -96,7 +104,10 @@ function New-WelaTranscriptRecoveryPlan {
     $before=$entry.Before;$after=$last.After
     foreach($snapshot in @($before,$after)) {
         if($snapshot.Capability.Status -cne 'Supported' -or $snapshot.Policy -isnot [array] -or $snapshot.Policy.Count -ne 2 -or
-           $snapshot.Policy[0].View -cne 'Registry64' -or $snapshot.Policy[1].View -cne 'Registry32'){throw 'Both canonical shared registry views are required.'}
+           $snapshot.Policy[0].View -cne 'Registry64' -or $snapshot.Policy[1].View -cne 'Registry32'){
+            $policyType=if($null -eq $snapshot.Policy){'<null>'}else{$snapshot.Policy.GetType().FullName}
+            throw "Both canonical shared registry views are required. Capability=$($snapshot.Capability.Status); PolicyType=$policyType; Count=$(@($snapshot.Policy).Count); Views=$(@($snapshot.Policy.View) -join ','); Observation=$(Get-WelaRecoveryKey $snapshot)"
+        }
         Test-WelaTranscriptSharedPolicy $snapshot.Policy
         foreach($name in @('EnableTranscripting','OutputDirectory')){Assert-WelaTranscriptRecoveryValue $snapshot.Policy[0].Machine.$name $name}
     }
@@ -105,9 +116,9 @@ function New-WelaTranscriptRecoveryPlan {
        (Get-WelaTranscriptRecoveryTypedKey $before.Policy[0].Machine.EnableInvocationHeader) -cne (Get-WelaTranscriptRecoveryTypedKey $after.Policy[0].Machine.EnableInvocationHeader)){throw 'Original configuration did not preserve user/header policy.'}
     $current=Get-WelaTranscriptState $entry.Target.OutputDirectory
     if((Get-WelaRecoveryKey $current.Policy) -cne (Get-WelaRecoveryKey $after.Policy) -or (Get-WelaRecoveryKey $current.Destination) -cne (Get-WelaRecoveryKey $after.Destination)){throw 'Current policy/destination differs from the original final After state.'}
-    $target=ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey $after.Policy)
+    $target=Copy-WelaTranscriptRecoveryValue $after.Policy
     foreach($view in $target){foreach($name in @('EnableTranscripting','OutputDirectory')) {
-        $view.Machine.$name=ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey $before.Policy[0].Machine.$name)
+        $view.Machine.$name=Copy-WelaTranscriptRecoveryValue $before.Policy[0].Machine.$name
         # Keep the existing key; absence recovery removes only the selected value.
         $view.Machine.$name.KeyExists=$true
     }}
@@ -197,7 +208,7 @@ function Invoke-WelaTranscriptRecovery {
     $output=New-WelaRecoveryOutput $OutputPath
     $outputObservation=Get-WelaTranscriptDestination $output
     $report=[pscustomobject][ordered]@{Status='Failed';ExitCode=1;OutputPath=$output;PlanSha256=$source.Sha256;Steps=@();Before=$plan.ExpectedPolicy;After=$null;Diagnostic='';SigmaEvtxCredit=0;Scope='Two typed Windows PowerShell machine transcription values only; no transcript, session adoption, central collection or policy persistence proof.'}
-    $expected=ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey $plan.ExpectedPolicy)
+    $expected=Copy-WelaTranscriptRecoveryValue $plan.ExpectedPolicy
     try {
         if(-not $Auto -and (Read-Host 'Restore the reviewed transcription values, including any explicitly consented temporary suspension? (y/N)') -cnotin @('y','Y')){$report.Status='Declined';$report.ExitCode=0}
         else {
@@ -206,13 +217,13 @@ function Invoke-WelaTranscriptRecovery {
             foreach($step in $plan.Steps) {
                 $sequence++
                 Assert-WelaTranscriptRecoveryBindings $plan $expected $source.Path $source.Sha256
-                $receipt=[pscustomobject]@{Sequence=$sequence;Status='Pending';RecordedUtc=[datetime]::UtcNow.ToString('o');PlanSha256=$source.Sha256;Step=$step;Before=(ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey $expected));After=$null}
+                $receipt=[pscustomobject]@{Sequence=$sequence;Status='Pending';RecordedUtc=[datetime]::UtcNow.ToString('o');PlanSha256=$source.Sha256;Step=$step;Before=(Copy-WelaTranscriptRecoveryValue $expected);After=$null}
                 Write-WelaTranscriptRecoveryArtifact $outputObservation ('{0:d3}-pending.json' -f $sequence) $receipt
                 Assert-WelaTranscriptRecoveryBindings $plan $expected $source.Path $source.Sha256
                 Set-WelaTranscriptRecoveryValue $step.Name $step.Value
-                foreach($view in $expected){$view.Machine.($step.Name)=ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey $step.Value)}
+                foreach($view in $expected){$view.Machine.($step.Name)=Copy-WelaTranscriptRecoveryValue $step.Value}
                 Assert-WelaTranscriptRecoveryBindings $plan $expected $source.Path $source.Sha256
-                $receipt.Status='Confirmed';$receipt.After=ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey $expected)
+                $receipt.Status='Confirmed';$receipt.After=Copy-WelaTranscriptRecoveryValue $expected
                 Write-WelaTranscriptRecoveryArtifact $outputObservation ('{0:d3}-confirmed.json' -f $sequence) $receipt
                 $report.Steps += [pscustomobject]@{Sequence=$sequence;Name=$step.Name;Status='Confirmed';Value=$step.Value}
             }

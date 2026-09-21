@@ -14,7 +14,7 @@ $script:checks=0;$root=Join-Path ([IO.Path]::GetTempPath()) ('wela-transcript-re
 $null=New-Item -ItemType Directory $root
 function Assert($Value,[string]$Message){if(-not $Value){throw "FAIL: $Message"};$script:checks++}
 function Reject([scriptblock]$Action,[string]$Pattern){$message='';try{& $Action|Out-Null}catch{$message=$_.Exception.Message};Assert ($message -match $Pattern) "Expected '$Pattern', got '$message'"}
-function Copy-Value($Value){ConvertFrom-WelaRecoveryJson (Get-WelaRecoveryKey $Value)}
+function Copy-Value($Value){Copy-WelaTranscriptRecoveryValue $Value}
 function Typed($Value,$Type='DWord'){[pscustomobject]@{KeyExists=$true;ValueExists=($null -ne $Value);Value=$Value;Type=$(if($null -ne $Value){$Type}else{$null})}}
 function Get-WelaTranscriptRecoveryContext {[pscustomobject]@{Host=[pscustomobject]@{Computer='fixture';MachineGuid=$script:machine};Reader='fixture-reader'}}
 function Get-WelaTranscriptRecoverySources {[pscustomobject]@{Code=$script:code}}
