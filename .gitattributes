@@ -58,3 +58,8 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/WmiNamespaceAuditing.ps1 text eol=lf
 /scripts/WefArrival.ps1 text eol=lf
 /tests/WmiProbe*.ps1 text eol=lf
+
+# Named registry recovery binds implementation bytes across checkouts.
+/scripts/NamedRegistryRecovery* text eol=lf
+/scripts/AuditRecovery.ps1 text eol=lf
+/tests/NamedRegistryRecovery* text eol=lf

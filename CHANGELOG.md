@@ -2,6 +2,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Extend `audit-recovery` to restore three named process/PowerShell logging DWORDs from completed journals, with native value-only writes, neighboring-data guards and retained registry keys.
+
 **Improvements:**
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
