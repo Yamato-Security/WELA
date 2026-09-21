@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added opt-in `channel-recovery` for one completed native channel-settings operation. Strict journal/result reconstruction, reviewed plan hashes, exact current descriptor/settings, separate shrink/disable/read-revocation consent and per-field durable receipts restore only originally changed fields. Native public Configure/Restore tests cover refusal, partial outcomes and exact fixture cleanup; event loss, retention, forwarding and Sigma readiness remain separate. (Related #367, #365) (@Shirofune-Security)
+
 - Added disposable Server 2022/2025 validation of public native channel configuration under Windows PowerShell 5.1 and PowerShell 7. Tests apply enable/size controls and the explicit CAPI2 read-only grant, verify descriptor preservation, journals, larger buffers, DryRun and idempotence, and retain hashed native evidence with exact fixture cleanup. Forwarding, retention-duration and Sigma validation remain separate. (@Shirofune-Security)
 
 - Added opt-in `firewall-recovery` for one completed firewall text-log operation. Strict original journal/result matching, reviewed plan hashes, native operator/source guards, durable receipts and exact four-field PersistentStore restoration preserve enforcement, other profiles and bounded rule/filter configuration. Effective policy stays separately reported; partial writes remain unverified without automatic rollback or Sigma credit. Disposable public-CLI tests cover configuration, drift refusal, recovery, idempotence and exact cleanup. (Related #375) (@Shirofune-Security)

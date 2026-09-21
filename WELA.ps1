@@ -126,6 +126,16 @@
     [string]$TranscriptRecoveryPlanHash,
     [string]$TranscriptRecoveryOutputPath,
     [switch]$TranscriptRecoveryAllowTemporarySuspension,
+    [ValidateSet('Plan','Restore')][string]$ChannelRecoveryAction = 'Plan',
+    [string]$ChannelRecoveryJournalPath,
+    [string]$ChannelRecoveryOriginalResultsPath,
+    [string]$ChannelRecoveryChannel,
+    [string]$ChannelRecoveryPlanPath,
+    [string]$ChannelRecoveryPlanHash,
+    [string]$ChannelRecoveryOutputPath,
+    [switch]$ChannelRecoveryAllowShrink,
+    [switch]$ChannelRecoveryAllowDisable,
+    [switch]$ChannelRecoveryAllowRevoke,
     [ValidateSet('Plan','Restore')][string]$EventRecoveryAction = 'Plan',
     [string]$EventRecoveryJournalPath,
     [string]$EventRecoveryOriginalResultsPath,
@@ -223,6 +233,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeProviders.psm1") -ErrorActio
 Import-Module (Join-Path $ScriptRoot "modules/EventLogSettings.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/EventLogConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/EventLogRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/ChannelRecovery.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/NativeChannelConfiguration.ps1")
 . (Join-Path $ScriptRoot "scripts/ChannelRead.ps1")
@@ -2021,6 +2032,7 @@ Usage:
   ./WELA.ps1 score -Help    # Separate configuration compliance and evidence-qualified readiness
   ./WELA.ps1 intune-export -Help      # Offline native audit OMA-URI/Graph artifacts; no tenant changes
   ./WELA.ps1 adcs-resume -Help       # Review a pending CA auditing restart
+  ./WELA.ps1 channel-recovery -Help  # Review one completed channel-settings operation
   ./WELA.ps1 eventlog-recovery -Help # Review restoration of one completed log size/mode write
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
@@ -2108,6 +2120,8 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
     if ($Cmd -eq 'profiles' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ProfileFile','Help') }).Count) { throw 'profiles -ProfileFile lists the selected file and accepts no assessment/configuration options.' }
 }
 
+if ($Cmd -ne 'channel-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'ChannelRecovery*'}).Count) {throw 'ChannelRecovery options require channel-recovery.'}
+if ($Cmd -eq 'channel-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','ChannelRecoveryAction','ChannelRecoveryJournalPath','ChannelRecoveryOriginalResultsPath','ChannelRecoveryChannel','ChannelRecoveryPlanPath','ChannelRecoveryPlanHash','ChannelRecoveryOutputPath','ChannelRecoveryAllowShrink','ChannelRecoveryAllowDisable','ChannelRecoveryAllowRevoke','Help')}).Count)) {throw 'channel-recovery accepts only dedicated options.'}
 if ($Cmd -ne 'eventlog-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'EventRecovery*'}).Count) {throw 'EventRecovery options require eventlog-recovery.'}
 if ($Cmd -eq 'eventlog-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EventRecoveryAction','EventRecoveryJournalPath','EventRecoveryOriginalResultsPath','EventRecoveryLog','EventRecoveryPlanPath','EventRecoveryPlanHash','EventRecoveryOutputPath','EventRecoveryAllowShrink','EventRecoveryAllowRetentionChange','Help')}).Count)) {throw 'eventlog-recovery accepts only dedicated options.'}
 if ($Cmd -ne 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecIngress*'}).Count) {throw 'WecIngress options require wec-ingress.'}
@@ -2325,6 +2339,13 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaAuditRecovery -Action $RecoveryAction -JournalPath $RecoveryJournalPath -OriginalResultsPath $RecoveryOriginalResultsPath -ControlId $RecoveryControlId -PlanPath $RecoveryPlanPath -OutputPath $RecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'channel-recovery' {
+        if ($Help) {Write-Host 'Usage: channel-recovery [-ChannelRecoveryAction Plan] -ChannelRecoveryJournalPath before.jsonl -ChannelRecoveryOriginalResultsPath results.json -ChannelRecoveryChannel exact-channel -ChannelRecoveryOutputPath new-directory; then Restore with -ChannelRecoveryPlanPath plan.json -ChannelRecoveryPlanHash SHA256 -ChannelRecoveryOutputPath new-directory and applicable -ChannelRecoveryAllowShrink / -ChannelRecoveryAllowDisable / -ChannelRecoveryAllowRevoke. Shrink may discard records; disable stops generation; revoke may interrupt readers. See docs/channel-recovery.md.';return}
+        $arguments=@{Action=$ChannelRecoveryAction;OutputPath=$ChannelRecoveryOutputPath;AllowShrink=$ChannelRecoveryAllowShrink;AllowDisable=$ChannelRecoveryAllowDisable;AllowRevoke=$ChannelRecoveryAllowRevoke}
+        $map=@{ChannelRecoveryJournalPath='JournalPath';ChannelRecoveryOriginalResultsPath='OriginalResultsPath';ChannelRecoveryChannel='Channel';ChannelRecoveryPlanPath='PlanPath';ChannelRecoveryPlanHash='PlanHash'}
+        foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
+        $report=Invoke-WelaChannelRecovery @arguments;$report;exit $report.ExitCode
     }
     'eventlog-recovery' {
         if ($Help) {Write-Host 'Usage: eventlog-recovery [-EventRecoveryAction Plan] -EventRecoveryJournalPath before.jsonl -EventRecoveryOriginalResultsPath results.json -EventRecoveryLog channel -EventRecoveryOutputPath new-directory; then Restore with -EventRecoveryPlanPath plan.json -EventRecoveryPlanHash SHA256 -EventRecoveryOutputPath new-directory and applicable -EventRecoveryAllowShrink / -EventRecoveryAllowRetentionChange. See docs/eventlog-recovery.md.';return}

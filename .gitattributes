@@ -68,3 +68,7 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/WecState* text eol=lf
 /scripts/WecRuntime* text eol=lf
 /tests/WecState* text eol=lf
+
+# Reviewed channel restoration binds exact installed source bytes.
+/scripts/ChannelRecovery.ps1 text eol=lf
+/tests/ChannelRecovery*.ps1 text eol=lf
