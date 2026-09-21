@@ -31,6 +31,8 @@
     [string]$FirewallRecoveryOutputPath,
     [string]$HtmlPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$SmbAction = 'Audit',
+    [ValidateSet('Plan','Activate')][string]$SmbRuntimeAction = 'Plan',
+    [string]$SmbRuntimeOutputPath,
     [ValidateSet('Audit', 'Plan', 'Configure', 'Rollback')][string]$AdSaclAction = 'Audit',
     [string]$AdServer,
     [ValidateSet('MdiDomain', 'MdiConfiguration', 'PkiObjects')][string[]]$AdSaclProfile,
@@ -170,6 +172,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AuditIntegrity.ps1")
 . (Join-Path $ScriptRoot "scripts/FirewallLogging.ps1")
 . (Join-Path $ScriptRoot "scripts/SmbAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/SmbRuntimeActivation.ps1")
 . (Join-Path $ScriptRoot "scripts/LdapDiagnostics.ps1")
 . (Join-Path $ScriptRoot "scripts/ControlApplicability.ps1")
 . (Join-Path $ScriptRoot "scripts/NativeValidation.ps1")
@@ -1943,6 +1946,8 @@ Usage:
   # Firewall text logging is opt-in; it does not change firewall enforcement or rules.
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
+  ./WELA.ps1 smb-runtime -SmbRuntimeAction Plan
+  ./WELA.ps1 smb-runtime -SmbRuntimeAction Activate -SmbRuntimeOutputPath C:\Evidence\new-smb -Auto
   ./WELA.ps1 rule-eligibility -ResultsPath eligibility.json -HtmlPath eligibility.html
   ./WELA.ps1 event-measurement -MeasurementChannel Security
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
@@ -2001,6 +2006,8 @@ Write-Host ""
 if ($Cmd -ne 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'FirewallRecovery*' }).Count) {throw 'FirewallRecovery options require firewall-recovery. No command was run.'}
 if ($Cmd -eq 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','FirewallRecoveryAction','FirewallRecoveryProfile','FirewallRecoveryJournalPath','FirewallRecoveryResultsPath','FirewallRecoveryPlanPath','FirewallRecoveryPlanHash','FirewallRecoveryOutputPath','Auto','DryRun','Help') }).Count) {throw 'firewall-recovery accepts only dedicated options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
+if ($Cmd -ne 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'SmbRuntime*' }).Count) {throw 'SmbRuntime options require smb-runtime. No command was run.'}
+if ($Cmd -eq 'smb-runtime' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','SmbRuntimeAction','SmbRuntimeOutputPath','Auto','DryRun','Help') }).Count) {throw 'smb-runtime accepts only its dedicated options, Auto and DryRun. No command was run.'}
 if ($Cmd -eq 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','ChannelReadName','ChannelReadOutputPath','Help') }).Count) { throw 'channel-read accepts only dedicated channel/output options. No command was run.' }
 
 if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
@@ -2145,6 +2152,7 @@ if ($DryRun -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure'
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
+    -not ($Cmd -eq 'smb-runtime' -and $SmbRuntimeAction -eq 'Activate') -and
     -not ($Cmd -eq 'powershell-transcription' -and $TranscriptionAction -eq 'Configure') -and
     -not ($Cmd -eq 'channel-settings' -and $ChannelAction -eq 'Configure') -and
     -not ($Cmd -in @('wef-source','wec-collector') -and $WefAction -eq 'Configure') -and
@@ -2457,6 +2465,14 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] Firewall logging: $_" -ForegroundColor Red; exit 1 }
+    }
+    'smb-runtime' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 smb-runtime [-SmbRuntimeAction Plan|Activate] [-SmbRuntimeOutputPath new-local-directory] [-Auto] [-DryRun]. Activates only six native SMB audit switches; policy and security settings are preserved. See docs/smb-runtime-activation.md.';return}
+        try {
+            $report=Invoke-WelaSmbRuntimeActivation -Action $SmbRuntimeAction -OutputPath $SmbRuntimeOutputPath -Auto:$Auto -DryRun:$DryRun
+            $report
+            if($report.ExitCode){exit $report.ExitCode}
+        }catch{Write-Host "[Failed] SMB runtime activation: $_" -ForegroundColor Red;exit 1}
     }
     'smb-auditing' {
         if ($Help) {
