@@ -104,6 +104,14 @@
     [string]$EvtxProbePath,
     [string]$EvtxArchivePath,
     [string]$EvtxOutputPath,
+    [ValidateSet('Plan','Restore')][string]$FileSaclRecoveryAction = 'Plan',
+    [string]$FileSaclRecoveryOriginalPlanPath,
+    [string]$FileSaclRecoveryPendingPath,
+    [string]$FileSaclRecoveryConfirmedPath,
+    [string]$FileSaclRecoveryResultsPath,
+    [string]$FileSaclRecoveryPlanPath,
+    [string]$FileSaclRecoveryPlanHash,
+    [string]$FileSaclRecoveryOutputPath,
     [ValidateSet('Plan','Restore')][string]$RecoveryAction = 'Plan',
     [string]$RecoveryJournalPath,
     [string]$RecoveryOriginalResultsPath,
@@ -192,6 +200,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventMeasurement.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/FileSaclRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
 $PowerShellPolicyRoots = @(
@@ -2026,6 +2035,8 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
 
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
 if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
+if ($Cmd -ne 'file-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FileSaclRecovery*'}).Count) {throw 'FileSaclRecovery options require file-sacl-recovery. No command was run.'}
+if ($Cmd -eq 'file-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileSaclRecoveryAction','FileSaclRecoveryOriginalPlanPath','FileSaclRecoveryPendingPath','FileSaclRecoveryConfirmedPath','FileSaclRecoveryResultsPath','FileSaclRecoveryPlanPath','FileSaclRecoveryPlanHash','FileSaclRecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'file-sacl-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
 if ($Cmd -eq 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','RecoveryAction','RecoveryJournalPath','RecoveryOriginalResultsPath','RecoveryControlId','RecoveryPlanPath','RecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'audit-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
 
@@ -2115,7 +2126,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'file-sacl-recovery' -and $FileSaclRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'smb-auditing' -and $SmbAction -eq 'Configure') -and
@@ -2230,6 +2241,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaEvtxRecovery -Action $EvtxAction -ProbePath $EvtxProbePath -ArchivePath $EvtxArchivePath -OutputPath $EvtxOutputPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'file-sacl-recovery' {
+        if ($Help) {Write-Host 'Usage: file-sacl-recovery [-FileSaclRecoveryAction Plan] -FileSaclRecoveryOriginalPlanPath original-plan.json -FileSaclRecoveryPendingPath target.pending.json -FileSaclRecoveryConfirmedPath target.confirmed.json -FileSaclRecoveryResultsPath original-results.json -FileSaclRecoveryOutputPath new-directory; then -FileSaclRecoveryAction Restore -FileSaclRecoveryPlanPath reviewed-plan.json -FileSaclRecoveryPlanHash SHA256 with -DryRun, or -Auto -FileSaclRecoveryOutputPath new-directory. Removes only one proven explicit leaf-file audit ACE. See docs/file-sacl-recovery.md.';return}
+        $report=Invoke-WelaFileSaclRecovery -Action $FileSaclRecoveryAction -OriginalPlanPath $FileSaclRecoveryOriginalPlanPath -PendingPath $FileSaclRecoveryPendingPath -ConfirmedPath $FileSaclRecoveryConfirmedPath -ResultsPath $FileSaclRecoveryResultsPath -PlanPath $FileSaclRecoveryPlanPath -PlanHash $FileSaclRecoveryPlanHash -OutputPath $FileSaclRecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
+        $report | ConvertTo-Json -Depth 30 | Write-Output
+        if ($report.ExitCode) {exit $report.ExitCode};return
     }
     'audit-recovery' {
         if ($Help) {Write-Host 'Usage: audit-recovery [-RecoveryAction Plan] -RecoveryJournalPath before.jsonl -RecoveryOriginalResultsPath results.json -RecoveryControlId IDs -RecoveryOutputPath new-directory; then -RecoveryAction Restore -RecoveryPlanPath reviewed-plan.json -RecoveryOutputPath new-directory [-Auto], or -DryRun without output. See docs/audit-recovery.md.';return}
