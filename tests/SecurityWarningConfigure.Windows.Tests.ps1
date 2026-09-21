@@ -16,13 +16,17 @@ function Key($Value){ConvertTo-Json -InputObject $Value -Depth 25 -Compress}
 function Masks($Value){@($Value.Keys|Sort-Object|ForEach-Object{"$_=$($Value[$_])"}) -join ';'}
 function Warning {Get-WelaRegistryState $path $name}
 function Unselected {
-    $key=Get-Item -LiteralPath $path
+    # Own these .NET handles; disposing a provider-cached Get-Item key breaks later WinPS5.1 reads.
+    $baseKey=[Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine,[Microsoft.Win32.RegistryView]::Registry64)
+    $key=$null
     try{
+        $key=$baseKey.OpenSubKey('SYSTEM\CurrentControlSet\Services\Eventlog\Security')
+        if(-not $key){throw 'Existing Security registry key is unavailable.'}
         $values=@(foreach($n in @($key.GetValueNames()|Sort-Object)){
             if($n -ine $name){[pscustomobject][ordered]@{Name=$n;Type=[string]$key.GetValueKind($n);Value=$key.GetValue($n,$null,[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)}}
         })
         $subkeys=@($key.GetSubKeyNames()|Sort-Object)
-    }finally{$key.Dispose()}
+    }finally{if($key){$key.Dispose()};$baseKey.Dispose()}
     [pscustomobject][ordered]@{OtherSecurityValues=$values;SecuritySubkeys=$subkeys;SecurityAcl=(Get-Acl -LiteralPath $path).Sddl;SecurityChannel=Get-WelaNativeChannel Security;ApplicationChannel=Get-WelaNativeChannel Application;OneSettings=Get-WelaRegistryState 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection' EnableOneSettingsAuditing;CrashOnAuditFail=Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' CrashOnAuditFail;EventLogService=[string](Get-Service EventLog).Status}
 }
 function Public([string]$Label,[string[]]$Arguments,[int]$Expected=0){
