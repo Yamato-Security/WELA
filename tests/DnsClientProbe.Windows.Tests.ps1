@@ -53,6 +53,10 @@ try {
  $passed=$true;Write-Host "PASS: $script:count native DNS Client checks through $TestEngine."
 }catch{
  Write-Host ('Native DNS Client failure: '+($_|Out-String));Write-Host $_.ScriptStackTrace
+ if($zoneCreated){foreach($variant in 0..4){
+  $diagnostic=[Diagnostics.Process]::new();$info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$engine;$info.Arguments='-NoLogo -NoProfile -NonInteractive -File "'+(Join-Path $PSScriptRoot 'DnsClientProbe.Diagnostics.ps1')+'" -Variant '+$variant;$info.UseShellExecute=$false;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$diagnostic.StartInfo=$info
+  try{$null=$diagnostic.Start();$stdout=$diagnostic.StandardOutput.ReadToEndAsync();$stderr=$diagnostic.StandardError.ReadToEndAsync();if(-not $diagnostic.WaitForExit(20000)){throw 'Owned diagnostic worker timeout.'};if(-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($stdout,$stderr),5000)){throw 'Diagnostic output timeout.'};Write-Host ('Owned ABI variant '+$variant+' exit '+$diagnostic.ExitCode);Write-Host $stdout.Result;Write-Host $stderr.Result}catch{Write-Host $_}finally{if(-not $diagnostic.HasExited){$diagnostic.Kill();$null=$diagnostic.WaitForExit(5000)};$diagnostic.Dispose()}
+ }}
  # Small owned diagnostics only; avoid dumping unrelated channel payloads.
  if(Test-Path (Join-Path $private 'evidence')){Get-ChildItem (Join-Path $private 'evidence') -File|Where-Object {$_.Name -in @('manifest.json','operation.json','worker.json') -or $_.Name -like 'candidate-*.xml'}|ForEach-Object{Write-Host $_.Name;Write-Host ([IO.File]::ReadAllText($_.FullName))}}
  throw

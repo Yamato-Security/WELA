@@ -17,7 +17,8 @@ namespace Wela.DnsClientProbe {
   }
   [StructLayout(LayoutKind.Sequential)] struct QueryResult { public uint Version,Status; public ulong Options; public IntPtr Records,Reserved; }
   [StructLayout(LayoutKind.Sequential)] struct Record { public IntPtr Next,Name; public ushort Type,Length; public uint Flags,Ttl,Reserved; }
-  [DllImport("dnsapi.dll",CharSet=CharSet.Unicode)] static extern uint DnsQueryEx(ref Request request,ref QueryResult result,IntPtr cancel);
+  // DnsQueryEx is the documented exact export; do not allow a W-suffixed name probe.
+  [DllImport("dnsapi.dll",EntryPoint="DnsQueryEx",ExactSpelling=true)] static extern uint DnsQueryEx(ref Request request,ref QueryResult result,IntPtr cancel);
   [DllImport("dnsapi.dll")] static extern void DnsRecordListFree(IntPtr records,int freeType);
   public static string ValidateResolver(string resolver) {
    if(resolver==null||!Regex.IsMatch(resolver,@"^(0|[1-9][0-9]{0,2})(\.(0|[1-9][0-9]{0,2})){3}$"))throw new ArgumentException("One canonical dotted-decimal IPv4 resolver is required.");
@@ -30,10 +31,11 @@ namespace Wela.DnsClientProbe {
    if(name==null||!Regex.IsMatch(name,@"^wela-[a-f0-9]{32}\.wela\.test\.\z"))throw new ArgumentException("Only the fixed random probe name is accepted.");
    ValidateResolver(resolver);
    // SDK DNS_ADDR_ARRAY header32 + one DNS_ADDR64; sockaddr_in in its first16 bytes.
-   // DNS_ADDR_ARRAY.MaxCount is the structure size in bytes; AddrCount is the element count.
-   byte[] server=new byte[96];BitConverter.GetBytes((uint)server.Length).CopyTo(server,0);BitConverter.GetBytes((uint)1).CopyTo(server,4);
-   BitConverter.GetBytes((ushort)2).CopyTo(server,12);BitConverter.GetBytes((ushort)2).CopyTo(server,32);
-   server[34]=0;server[35]=53;IPAddress.Parse(resolver).GetAddressBytes().CopyTo(server,36);
+   // Match Microsoft Windows-classic-samples/DNSAsyncQuery CreateDnsServerList:
+   // one address, unspecified aggregate family, sockaddr IPv4 with default DNS port.
+   byte[] server=new byte[96];BitConverter.GetBytes((uint)1).CopyTo(server,0);BitConverter.GetBytes((uint)1).CopyTo(server,4);
+   BitConverter.GetBytes((ushort)2).CopyTo(server,32);
+   IPAddress.Parse(resolver).GetAddressBytes().CopyTo(server,36);
    IntPtr servers=Marshal.AllocHGlobal(server.Length);QueryResult result=new QueryResult {Version=1};
    try {
     Marshal.Copy(server,0,servers,server.Length);
