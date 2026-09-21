@@ -122,6 +122,12 @@
     [ValidateSet('Plan','Run')][string]$AppLockerProbeAction = 'Plan',
     [string]$AppLockerProbeOutputPath,
     [ValidateRange(1,30)][int]$AppLockerProbeTimeoutSeconds = 15,
+    [ValidateSet('Plan','Run')][string]$MeasurementAction = 'Plan',
+    [string]$MeasurementChannel,
+    [ValidateRange(1,60)][int]$MeasurementSeconds = 10,
+    [ValidateRange(1,1024)][int]$MeasurementMaximumEvents = 256,
+    [string]$MeasurementOutputPath,
+    [switch]$MeasurementExportEvtx,
     [switch]$Help
 )
 
@@ -172,6 +178,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
 . (Join-Path $ScriptRoot "scripts/EvtxRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/EventMeasurement.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
 
@@ -1905,6 +1912,8 @@ Usage:
   ./WELA.ps1 smb-auditing -SmbAction Audit -ResultsPath smb-audit.json
   ./WELA.ps1 smb-auditing -SmbAction Plan
   ./WELA.ps1 rule-eligibility -ResultsPath eligibility.json -HtmlPath eligibility.html
+  ./WELA.ps1 event-measurement -MeasurementChannel Security
+  ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
@@ -1955,6 +1964,8 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
+if ($Cmd -eq 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','MeasurementAction','MeasurementChannel','MeasurementSeconds','MeasurementMaximumEvents','MeasurementOutputPath','MeasurementExportEvtx','Help')}).Count) {throw 'event-measurement accepts only its dedicated options. No command was run.'}
 if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'Dns*' -or $_ -eq 'AllowDnsTraceReset' }).Count) {
     throw 'DNS analytical options require dns-analytical. No command was run.'
 }
@@ -2125,6 +2136,14 @@ if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'confi
 }
 
 switch ($Cmd.ToLower()) {
+    'event-measurement' {
+        if ($Help) {Write-Host 'Usage: ./WELA.ps1 event-measurement -MeasurementChannel EXACT_NAME [-MeasurementAction Plan|Run] [-MeasurementSeconds 1..60] [-MeasurementMaximumEvents 1..1024] [-MeasurementOutputPath NEW_DIRECTORY] [-MeasurementExportEvtx]. Plan reads actual source/reader state; Run records bounded local deliveries without changing logging. See docs/event-measurement.md.';return}
+        if ([string]::IsNullOrWhiteSpace($MeasurementChannel)) {throw 'event-measurement requires an exact -MeasurementChannel.'}
+        $measurement=Invoke-WelaEventMeasurement -Action $MeasurementAction -Channel $MeasurementChannel -Seconds $MeasurementSeconds -MaximumEvents $MeasurementMaximumEvents -OutputPath $MeasurementOutputPath -ExportEvtx:$MeasurementExportEvtx
+        if ($measurement.Before) {$measurement.Before.Configuration | Format-List | Out-Host; $measurement.Before.Reader | Select-Object Computer,HostKey,Reader | Format-List | Out-Host}
+        $measurement | Select-Object Action,Status,Channel,ObservedDeliveries,ObservedDeliveriesPerSecond,Evtx,Diagnostic,OutputPath | Format-List | Out-Host
+        exit $measurement.ExitCode
+    }
     'dns-analytical' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 dns-analytical [-DnsAction Audit|Plan|Configure] [-DnsState Enabled|Disabled] [-DnsRetention Preserve|Circular|Retain] [-DnsMinimumBytes bytes] [-DnsArchiveMaximumBytes bytes] [-AllowDnsTraceReset] [-Auto] [-DryRun] [-BackupPath new-private-directory] [-ResultsPath new.json]. Configure requires explicit DnsState and reset consent for changes; archives stopped traces before reset. See docs/dns-analytical.md.'; return }
         $report=Invoke-WelaDnsAnalytical -Action $DnsAction -State $DnsState -Retention $DnsRetention -MinimumBytes $DnsMinimumBytes -ArchiveMaximumBytes $DnsArchiveMaximumBytes -AllowTraceReset:$AllowDnsTraceReset -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
