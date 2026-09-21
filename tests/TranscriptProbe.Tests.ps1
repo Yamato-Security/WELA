@@ -8,9 +8,9 @@ function Rejects([scriptblock]$action){$caught=$false;try{&$action|Out-Null}catc
 function Clone($object){$object|ConvertTo-Json -Depth 20|ConvertFrom-Json}
 $header="**********************`nWindows PowerShell transcript start`nStart time: {0:yyyyMMddHHmmss}`nUsername: {1}`nRunAs User: {2}`nConfiguration Name: {3}`nMachine: {4} ({5})`nHost Application: {6}`nProcess ID: {7}`n{8}`n**********************"
 $footer="**********************`nWindows PowerShell transcript end`nEnd time: {0:yyyyMMddHHmmss}`n**********************"
-$operation=[pscustomobject]@{Resources=[pscustomobject]@{TranscriptPrologue=$header;TranscriptEpilogue=$footer};Nonce=('a'*32);ProcessId=123;HeaderUser='HOST\writer';BeforeToken=[pscustomobject]@{Name='HOST\writer'};Computer='HOST';OsVersion='Microsoft Windows NT 10.0.20348.0';CommandLine='powershell.exe fixed';EngineVersion='5.1.20348.1000';StartOffsetMinutes=0;LaunchedUtc='2026-09-21T00:00:00.1000000Z';StartedUtc='2026-09-21T00:00:01.0000000Z';CompletedUtc='2026-09-21T00:00:02.0000000Z';ExitedUtc='2026-09-21T00:00:03.0000000Z'}
+$operation=[pscustomobject]@{Resources=[pscustomobject]@{TranscriptPrologue=$header;TranscriptEpilogue=$footer};Nonce=('a'*32);ProcessId=123;HeaderUser='HOST\writer';BeforeToken=[pscustomobject]@{Name='HOST\writer'};Computer='HOST';OsVersion='Microsoft Windows NT 10.0.20348.0';CommandLine='"powershell.exe" fixed';HeaderCommandLine='powershell.exe fixed';EngineVersion='5.1.20348.1000';StartOffsetMinutes=0;LaunchedUtc='2026-09-21T00:00:00.1000000Z';StartedUtc='2026-09-21T00:00:01.0000000Z';CompletedUtc='2026-09-21T00:00:02.0000000Z';ExitedUtc='2026-09-21T00:00:03.0000000Z'}
 function MakeText($op){
-    $begin=[string]::Format([Globalization.CultureInfo]::InvariantCulture,$op.Resources.TranscriptPrologue,@([DateTime]::new(2026,9,21,0,0,0),$op.HeaderUser,$op.BeforeToken.Name,'',$op.Computer,$op.OsVersion,$op.CommandLine,$op.ProcessId,('PSVersion: '+$op.EngineVersion+"`nPSEdition: Desktop`n")))
+    $begin=[string]::Format([Globalization.CultureInfo]::InvariantCulture,$op.Resources.TranscriptPrologue,@([DateTime]::new(2026,9,21,0,0,0),$op.HeaderUser,$op.BeforeToken.Name,'',$op.Computer,$op.OsVersion,$op.HeaderCommandLine,$op.ProcessId,('PSVersion: '+$op.EngineVersion+"`nPSEdition: Desktop`n")))
     $end=[string]::Format([Globalization.CultureInfo]::InvariantCulture,$op.Resources.TranscriptEpilogue,[DateTime]::new(2026,9,21,0,0,2))
     $begin+"`nWELA-TRANSCRIPT-BEGIN:"+$op.Nonce+':'+$op.ProcessId+"`nWELA-TRANSCRIPT-END:"+$op.Nonce+':'+$op.ProcessId+"`n"+$end+"`n"
 }
@@ -18,6 +18,7 @@ $text=MakeText $operation
 Assert (Test-WelaTranscriptProbeText $text $operation) 'Complete native transcript framing and markers match'
 foreach($case in @(
     $text.Replace('Process ID: 123','Process ID: 124'),
+    $text.Replace('Host Application: powershell.exe fixed','Host Application: powershell.exe other'),
     $text.Replace('RunAs User: HOST\writer','RunAs User: HOST\other'),
     $text.Replace('PSVersion: 5.1.20348.1000','PSVersion: 7.5.0'),
     $text.Replace('PSEdition: Desktop','PSEdition: Core'),
