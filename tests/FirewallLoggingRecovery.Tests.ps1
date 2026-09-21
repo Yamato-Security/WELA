@@ -105,6 +105,15 @@ try {
     $cim=[pscustomobject]@{CimClass=[pscustomobject]@{CimClassName='MSFT_NetFirewallRule'};CimInstanceProperties=@([pscustomobject]@{Name='Enabled';Value=1;CimType='UInt16'},[pscustomobject]@{Name='Status';Value='volatile';CimType='String'})}
     $key=ConvertTo-WelaFirewallRecoveryCim $cim @('Status');Assert ($key.Enabled.Type -eq 'UInt16' -and -not $key.PSObject.Properties['Status']) 'Rule hash preserves typed configuration while excluding named diagnostics'
     $cim.CimInstanceProperties[0].Value=[DateTime]::UtcNow;Throws {ConvertTo-WelaFirewallRecoveryCim $cim} 'Unsupported native property type'
+    # A prerequisite read must not connect to WMI while its services are stopped.
+    $script:providerReads=0;$script:serviceStatus='Stopped'
+    function Get-WelaChannelReader {[pscustomobject]@{ElevatedAdministrator=$true}}
+    function Get-Service {param($Name,$ErrorAction) foreach($n in $Name){[pscustomobject]@{Name=$n;Status=$script:serviceStatus}}}
+    function Get-CimInstance {$script:providerReads++;throw 'Native provider boundary reached'}
+    Throws {Get-WelaFirewallRecoveryContext} 'must already be running'
+    Assert ($providerReads -eq 0) 'Stopped services are refused before any native provider connection'
+    $script:serviceStatus='Running';Throws {Get-WelaFirewallRecoveryContext} 'Native provider boundary reached'
+    Assert ($providerReads -eq 1) 'Running services permit the first native provider read'
 } finally {Remove-Item -LiteralPath $root -Recurse -Force}
 $global:LASTEXITCODE=0
 Write-Host "Firewall logging recovery: $script:assertions assertions passed."
