@@ -1,4 +1,4 @@
-$ErrorActionPreference='Stop';$script:ScriptRoot=Split-Path $PSScriptRoot -Parent
+﻿$ErrorActionPreference='Stop';$script:ScriptRoot=Split-Path $PSScriptRoot -Parent
 . (Join-Path $script:ScriptRoot 'scripts/WefArrival.ps1')
 . (Join-Path $script:ScriptRoot 'scripts/PowerShellTranscription.ps1')
 . (Join-Path $script:ScriptRoot 'scripts/TranscriptProbe.ps1')

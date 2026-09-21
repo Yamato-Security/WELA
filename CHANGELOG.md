@@ -4,7 +4,7 @@
 
 **Improvements:**
 
-- Added opt-in `transcript-probe` to verify a fixed current-account Windows PowerShell 5.1 child produces its own completed automatic transcript in an already enabled local destination. Actual token/logon, native header/footer, nonce/PID/time, bounded file identity and source checks preserve unverified outcomes without changing policy or ACLs, invoking explicit transcription or granting Sigma/EVTX credit. Added disposable standard-writer success/denial tests for Server 2022/2025 under both WELA host engines. (@Shirofune-Security)
+- Added opt-in `transcript-probe` to verify a fixed current-account Windows PowerShell 5.1 child produces its own completed automatic transcript in an already enabled local destination. Actual token/logon, native header/footer, nonce/PID/time, bounded file identity and source checks preserve unverified outcomes without changing policy or ACLs, invoking explicit transcription or granting Sigma/EVTX credit. Added disposable standard-writer success/denial tests for Server 2022/2025 under both WELA host engines. (#436) (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
 

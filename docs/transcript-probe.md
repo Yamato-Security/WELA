@@ -46,7 +46,7 @@ The inventory covers only the previous, current and next local calendar-date fol
 
 The worker has a 30-second deadline. Each redirected output stream retains at most 64 KiB, with bounded pipe-drain and termination waits. The report includes explicit diagnostics for refusal and incomplete evidence; no fallback obtains a positive result.
 
-A completed Run writes `result.json`, `worker.json` and the exact matching `transcript.txt` bytes into the protected output. Failed runs that reached output preparation keep diagnostic artifacts and exit nonzero. Prerequisite failures can occur before an output directory exists. Source transcripts are retained in their configured destination; WELA never removes them.
+A completed Run writes `result.json`, `worker.json` and the exact matching `transcript.txt` bytes into the protected output. The result also retains bounded fixed-worker stdout/stderr and launch/exit observations, including when worker validation fails. Failed runs that reached output preparation keep diagnostic artifacts and exit nonzero. Prerequisite failures can occur before an output directory exists. Source transcripts are retained in their configured destination; WELA never removes them.
 
 ## Validation
 

@@ -81,7 +81,7 @@ function Assert-WelaTranscriptProbeInventory {
     }
 }
 function Start-WelaTranscriptProbeWorker {
-    param($State,[string]$Nonce,$ParentToken)
+    param($State,[string]$Nonce,$ParentToken,$LaunchEvidence)
     $worker=Join-Path $PSScriptRoot 'TranscriptProbeWorker.ps1'
     $arguments=@('-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',$worker,'-Nonce',$Nonce)
     $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$State.Engine
@@ -91,10 +91,12 @@ function Start-WelaTranscriptProbeWorker {
     $process=[Diagnostics.Process]::new();$process.StartInfo=$info;$started=$false;$launched=[DateTime]::UtcNow
     try{
         if(-not $process.Start()){throw 'Fixed transcript worker did not start.'};$started=$true
+        $LaunchEvidence.ProcessId=$process.Id;$LaunchEvidence.LaunchedUtc=$launched.ToString('o')
         $stdout=[Wela.TranscriptProbe.Item]::Drain($process.StandardOutput,65536);$stderr=[Wela.TranscriptProbe.Item]::Drain($process.StandardError,65536)
         if(-not $process.WaitForExit(30000)){throw 'Fixed transcript worker exceeded thirty seconds.'}
-        $exited=[DateTime]::UtcNow
+        $exited=[DateTime]::UtcNow;$LaunchEvidence.ExitedUtc=$exited.ToString('o');$LaunchEvidence.ExitCode=$process.ExitCode
         if(-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($stdout,$stderr),3000)){throw 'Worker output pipes did not close within their bound.'}
+        $LaunchEvidence.Stdout=$stdout.Result;$LaunchEvidence.Stderr=$stderr.Result
         if($stdout.Result.Exceeded -or $stderr.Result.Exceeded -or $stdout.Result.Error -or $stderr.Result.Error){throw 'Worker output is oversized or incomplete.'}
         if($process.ExitCode -ne 0 -or $stderr.Result.Text){throw ('Fixed native5.1 worker failed; exit '+$process.ExitCode+'. No transcript fallback was attempted.')}
         $lines=@(($stdout.Result.Text -replace "`r`n","`n").TrimEnd("`r","`n") -split "`n")
@@ -169,7 +171,7 @@ function Invoke-WelaTranscriptProbe {
         $before=Get-WelaTranscriptProbeInventory $directoryPath $dates
         if($Action -eq 'Plan'){return [pscustomobject]@{SchemaVersion=1;Kind='WelaAutomaticTranscriptPlan';Action='Plan';ExitCode=0;Status='ReadyToProbe';State=$state;Inventory=$before;Token=[Wela.WmiProbe.Native]::Snapshot();ReadyRuleCredit=0;SigmaEvtxCredit=0;WriterAuthorization='Unverified';Scope='One new native Windows PowerShell5.1 automatic transcript under this local current identity only'}}
         $output=New-WelaArrivalOutput $OutputPath $directoryPath
-        $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaAutomaticTranscriptProbe';Action='Run';Status='Unverified';ExitCode=1;RecordedUtc=[DateTime]::UtcNow.ToString('o');Before=$state;After=$null;InventoryBefore=$before;InventoryAfter=$null;ParentBefore=$null;ParentAfter=$null;Worker=$null;Transcript=$null;Artifacts=@();Diagnostic='';OutputPath=$output;ReadyRuleCredit=0;SigmaEvtxCredit=0;ConfigurationChanges=0;WriterAuthorization='Unverified';PowerShell7Sessions='Not assessed';Collection='Not verified';Scope='One fixed native5.1 completed automatic text transcript; no retention, immutable-storage or EVTX/Sigma claim'}
+        $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaAutomaticTranscriptProbe';Action='Run';Status='Unverified';ExitCode=1;RecordedUtc=[DateTime]::UtcNow.ToString('o');Before=$state;After=$null;InventoryBefore=$before;InventoryAfter=$null;ParentBefore=$null;ParentAfter=$null;Worker=$null;WorkerLaunch=[pscustomobject]@{ProcessId=$null;LaunchedUtc=$null;ExitedUtc=$null;ExitCode=$null;Stdout=$null;Stderr=$null};Transcript=$null;Artifacts=@();Diagnostic='';OutputPath=$output;ReadyRuleCredit=0;SigmaEvtxCredit=0;ConfigurationChanges=0;WriterAuthorization='Unverified';PowerShell7Sessions='Not assessed';Collection='Not verified';Scope='One fixed native5.1 completed automatic text transcript; no retention, immutable-storage or EVTX/Sigma claim'}
         try{
             # Prepare metadata and evidence storage before capturing the actual process-token interval.
             foreach($folder in $before.Folders|Where-Object Exists){$held=[Wela.TranscriptProbe.Item]::Directory($folder.Observation.Path);$heldFolders+= $held;if((Get-WelaTranscriptProbeObjectKey $held.Snapshot() -Directory) -cne (Get-WelaTranscriptProbeObjectKey $folder.Observation -Directory)){throw 'Date-directory changed before worker.'}}
@@ -179,7 +181,7 @@ function Invoke-WelaTranscriptProbe {
             # Newly created unrelated files during preparation become baseline, never candidate evidence.
             $before=$inventory;$report.InventoryBefore=$before
             $token=[Wela.WmiProbe.Native]::Snapshot();$report.ParentBefore=$token
-            $operation=Start-WelaTranscriptProbeWorker $state ([guid]::NewGuid().ToString('N')) $token;$report.Worker=$operation
+            $operation=Start-WelaTranscriptProbeWorker $state ([guid]::NewGuid().ToString('N')) $token $report.WorkerLaunch;$report.Worker=$operation
             $after=Get-WelaTranscriptProbeInventory $directoryPath $dates;$report.InventoryAfter=$after;Assert-WelaTranscriptProbeInventory $before $after
             foreach($folder in $after.Folders|Where-Object Exists){$held=[Wela.TranscriptProbe.Item]::Directory($folder.Observation.Path);$heldFolders+=$held;if((Get-WelaTranscriptProbeObjectKey $held.Snapshot() -Directory) -cne (Get-WelaTranscriptProbeObjectKey $folder.Observation -Directory)){throw 'Date directory changed after worker.'}}
             $candidates=@($after.Files|Where-Object{$_.Identity -cnotin @($before.Files.Identity)})
