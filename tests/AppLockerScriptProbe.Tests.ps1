@@ -6,10 +6,29 @@ $repo=Split-Path $PSScriptRoot -Parent
 $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Reject([scriptblock]$Action,[string]$Pattern){$message='';try{&$Action|Out-Null}catch{$message=$_.Exception.Message};Assert ($message -match $Pattern) "Expected $Pattern; got $message"}
+# Prove stopped service refusal happens before the actual state reader reaches CIM.
+$script:missingService='';$script:scm=@();$script:cimCalls=0
+function Get-Service {param($Name);$script:scm+=$Name;[pscustomobject]@{Name=$Name;Status=$(if($Name -ceq $script:missingService){[ServiceProcess.ServiceControllerStatus]::Stopped}else{[ServiceProcess.ServiceControllerStatus]::Running})}}
+function Get-WelaAppLockerHost {$script:cimCalls++;throw 'CIM boundary reached after SCM checks'}
+foreach($name in @('Winmgmt','EventLog','AppIDSvc')){
+ $script:missingService=$name;$script:scm=@();$script:cimCalls=0
+ Reject {Get-WelaAppLockerScriptState} ($name+' must already be running')
+ Assert ($script:cimCalls -eq 0) 'Stopped service refusal precedes all CIM observations'
+}
+$script:missingService='';$script:scm=@();$script:cimCalls=0
+Reject {Get-WelaAppLockerScriptState} 'CIM boundary reached after SCM checks'
+Assert (($script:scm -join ',') -ceq 'Winmgmt,EventLog,AppIDSvc' -and $script:cimCalls -eq 1) 'All direct SCM checks precede the first CIM observation'
 $policy='<AppLockerPolicy Version="1"><RuleCollection Type="Script" EnforcementMode="AuditOnly"><FilePathRule Id="12345678-1234-1234-1234-123456789abc" Name="Windows" UserOrGroupSid="S-1-1-0" Action="Allow"><Conditions><FilePathCondition Path="%WINDIR%\*" /></Conditions></FilePathRule></RuleCollection></AppLockerPolicy>'
-$state=[pscustomobject]@{Host=[pscustomobject]@{Status='Candidate';Is64BitProcess=$true;PartOfDomain=$false;ProductType=3;Build=20348};MachineGuid='11111111-1111-1111-1111-111111111111';Management=[pscustomobject]@{Status='Observed'};Computer='TEST';Domain='WORKGROUP';Reader=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1000'};EffectivePolicy=[pscustomobject]@{Status='Observed';Policy=(ConvertFrom-WelaAppLockerXml $policy)};Service=[pscustomobject]@{Status='Observed';State='Running';StartMode='Manual'};Channel=[pscustomobject]@{Name='Microsoft-Windows-AppLocker/MSI and Script';Enabled=$true;SecurityDescriptor='O:SYG:SYD:(A;;0x1;;;SY)'};Source='C:\Windows\System32\cmd.ps1';SourceHash=('a'*64)}
+$state=[pscustomobject]@{Services=@([pscustomobject]@{Name='Winmgmt';Status='Running'},[pscustomobject]@{Name='EventLog';Status='Running'},[pscustomobject]@{Name='AppIDSvc';Status='Running'});Host=[pscustomobject]@{Status='Candidate';Is64BitProcess=$true;PartOfDomain=$false;ProductType=3;Build=20348};MachineGuid='11111111-1111-1111-1111-111111111111';Management=[pscustomobject]@{Status='Observed'};Computer='TEST';Domain='WORKGROUP';Reader=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1000'};EffectivePolicy=[pscustomobject]@{Status='Observed';Policy=(ConvertFrom-WelaAppLockerXml $policy)};Service=[pscustomobject]@{Status='Observed';State='Running';StartMode='Manual'};Channel=[pscustomobject]@{Name='Microsoft-Windows-AppLocker/MSI and Script';Enabled=$true;SecurityDescriptor='O:SYG:SYD:(A;;0x1;;;SY)'};Source='C:\Windows\System32\cmd.ps1';SourceHash=('a'*64)}
 $state|Add-Member NoteProperty LocalPolicy ($state.EffectivePolicy|ConvertTo-Json -Depth 20|ConvertFrom-Json)
 $null=Get-WelaAppLockerScriptStateKey $state;Assert $true 'Valid audit-only prereqs'
+foreach($parent in @('Host','LocalPolicy','EffectivePolicy','Service','Management')){
+ $saved=$state.$parent.Status;$state.$parent.Status=$true
+ Reject {Get-WelaAppLockerScriptStateKey $state} 'typed string'
+ $state.$parent.Status=$saved
+}
+$state.Services[0].Status=$true;Reject {Get-WelaAppLockerScriptStateKey $state} 'preflight';$state.Services[0].Status='Running'
+
 foreach($mode in @('Enabled','NotConfigured')){$state.EffectivePolicy.Policy=ConvertFrom-WelaAppLockerXml ($policy.Replace('AuditOnly',$mode));Reject {Get-WelaAppLockerScriptStateKey $state} 'AuditOnly'}
 $state.EffectivePolicy.Policy=ConvertFrom-WelaAppLockerXml $policy
 $state.Service.State='Stopped';Reject {Get-WelaAppLockerScriptStateKey $state} 'already be running';$state.Service.State='Running'

@@ -36,7 +36,19 @@ function Get-WelaAppLockerScriptExecutionPolicy {
     }
     [pscustomobject]$values
 }
+function Get-WelaAppLockerScriptServices {
+    # Direct SCM observations precede every CIM connection; observation must not
+    # implicitly start stopped WMI or AppLocker generation dependencies.
+    $rows=@()
+    foreach($name in @('Winmgmt','EventLog','AppIDSvc')) {
+        $service=Get-Service -Name $name -ErrorAction Stop
+        if($null -eq $service -or $service.Name -ine $name -or $service.Status -ne [ServiceProcess.ServiceControllerStatus]::Running){throw ($name+' must already be running; no CIM connection or child was started.')}
+        $rows+=[pscustomobject]@{Name=$name;Status=[string]$service.Status}
+    }
+    $rows
+}
 function Get-WelaAppLockerScriptState {
+    $services=@(Get-WelaAppLockerScriptServices)
     $hostState=Get-WelaAppLockerHost
     $computer=Get-CimInstance Win32_ComputerSystem -ErrorAction Stop
     $version=Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -ErrorAction Stop
@@ -44,14 +56,17 @@ function Get-WelaAppLockerScriptState {
     $channel=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('Microsoft-Windows-AppLocker/MSI and Script')
     try {$log=[ordered]@{Name=$channel.LogName;Enabled=$channel.IsEnabled;SecurityDescriptor=$channel.SecurityDescriptor;MaximumSize=$channel.MaximumSizeInBytes;Mode=[string]$channel.LogMode;LogFilePath=$channel.LogFilePath}}finally{$channel.Dispose()}
     $source=Resolve-WelaArrivalPath (Join-Path ([Environment]::SystemDirectory) 'WindowsPowerShell\v1.0\powershell.exe')
-    [pscustomobject][ordered]@{Host=$hostState;MachineGuid=$machine.MachineGuid;UBR=$version.UBR;Computer=[Environment]::MachineName;Domain=[string]$computer.Domain;LocalPolicy=(Get-WelaAppLockerPolicySnapshot Local);EffectivePolicy=(Get-WelaAppLockerPolicySnapshot Effective);Management=(Get-WelaAppLockerManagement);Service=(Get-WelaAppLockerService);Channel=$log;ExecutionPolicy=(Get-WelaAppLockerScriptExecutionPolicy);Source=$source;SourceHash=(Get-FileHash -LiteralPath $source -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+    [pscustomobject][ordered]@{Services=$services;Host=$hostState;MachineGuid=$machine.MachineGuid;UBR=$version.UBR;Computer=[Environment]::MachineName;Domain=[string]$computer.Domain;LocalPolicy=(Get-WelaAppLockerPolicySnapshot Local);EffectivePolicy=(Get-WelaAppLockerPolicySnapshot Effective);Management=(Get-WelaAppLockerManagement);Service=(Get-WelaAppLockerService);Channel=$log;ExecutionPolicy=(Get-WelaAppLockerScriptExecutionPolicy);Source=$source;SourceHash=(Get-FileHash -LiteralPath $source -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
 }
 function Get-WelaAppLockerScriptStateKey {
     param($State)
+    foreach($status in @($State.Host.Status,$State.LocalPolicy.Status,$State.EffectivePolicy.Status,$State.Service.Status,$State.Service.State,$State.Management.Status)){if($status -isnot [string]){throw 'Native context status must be a typed string.'}}
+    $services=@($State.Services)
+    if($services.Count -ne 3 -or @($services|Where-Object{$_.Name -isnot [string] -or $_.Status -isnot [string] -or $_.Status -cne 'Running'}).Count -or (($services.Name -join ',') -cne 'Winmgmt,EventLog,AppIDSvc')){throw 'Complete running-service preflight evidence is required.'}
     if($State.Host.Status -cne 'Candidate' -or $State.Host.Is64BitProcess -isnot [bool] -or -not $State.Host.Is64BitProcess -or $State.Host.ProductType -notin @(1,3) -or ($State.Host.ProductType -eq 1 -and $State.Host.Build -notin @(22000,22621,22631,26100,26200)) -or ($State.Host.ProductType -eq 3 -and $State.Host.Build -notin @(20348,26100))){throw 'A reviewed native Windows 11 or Server 2022/2025 member host is required; DCs are excluded.'}
     foreach($policy in @($State.LocalPolicy,$State.EffectivePolicy)){if($policy.Status -cne 'Observed' -or $policy.Policy.HasUnknownPolicyData -isnot [bool] -or $policy.Policy.HasUnknownPolicyData){throw 'Local and effective GP policy must be readable and understood.'}}
     $collection=@($State.EffectivePolicy.Policy.Collections|Where-Object Type -CEQ 'Script')
-    if($collection.Count -ne 1 -or $collection[0].EnforcementMode -cne 'AuditOnly' -or $collection[0].RuleCount -lt 1){throw 'An existing nonempty effective Script AuditOnly collection is required.'}
+    if($collection.Count -ne 1 -or $collection[0].EnforcementMode -isnot [string] -or $collection[0].EnforcementMode -cne 'AuditOnly' -or ($collection[0].RuleCount -isnot [int] -and $collection[0].RuleCount -isnot [long]) -or $collection[0].RuleCount -lt 1){throw 'An existing nonempty effective Script AuditOnly collection is required.'}
     if($State.Service.Status -cne 'Observed' -or $State.Service.State -cne 'Running'){throw 'AppIDSvc must already be running.'}
     if($State.Channel.Enabled -isnot [bool] -or -not $State.Channel.Enabled -or $State.Channel.Name -cne 'Microsoft-Windows-AppLocker/MSI and Script' -or -not $State.Channel.SecurityDescriptor){throw 'The native MSI and Script channel must already be enabled and readable.'}
     if($State.Management.Status -cne 'Observed' -or $State.SourceHash -cnotmatch '^[a-f0-9]{64}$' -or -not $State.MachineGuid -or -not $State.Computer){throw 'Incomplete management, machine or source observation.'}
