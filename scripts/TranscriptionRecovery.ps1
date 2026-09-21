@@ -69,8 +69,8 @@ function Assert-WelaTranscriptRecoveryValue {
         if($null -ne $Value.Type -or $null -ne $Value.Value){throw 'Absent transcription value has inconsistent state.'}
     } elseif(-not $Value.KeyExists){throw 'A present transcription value requires an existing key.'}
     elseif($Name -eq 'EnableTranscripting') {
-        if($Value.Type -cne 'DWord' -or ($Value.Value -isnot [int] -and $Value.Value -isnot [long]) -or $Value.Value -notin @(0,1)){throw 'Only DWORD 0/1 or absent enablement can be restored; other types require manual recovery.'}
-    } elseif($Value.Type -cne 'String' -or $Value.Value -isnot [string] -or -not $Value.Value){throw 'Only a nonempty REG_SZ or absent output directory can be restored.'}
+        if($Value.Type -isnot [string] -or $Value.Type -cne 'DWord' -or ($Value.Value -isnot [int] -and $Value.Value -isnot [long]) -or $Value.Value -notin @(0,1)){throw 'Only DWORD 0/1 or absent enablement can be restored; other types require manual recovery.'}
+    } elseif($Value.Type -isnot [string] -or $Value.Type -cne 'String' -or $Value.Value -isnot [string] -or -not $Value.Value){throw 'Only a nonempty REG_SZ or absent output directory can be restored.'}
 }
 function Get-WelaTranscriptRecoveryTypedKey {
     param($Value)
@@ -91,20 +91,26 @@ function New-WelaTranscriptRecoveryPlan {
     $journal=Read-WelaTranscriptRecoveryFile $JournalPath;$resultFile=Read-WelaTranscriptRecoveryFile $OriginalResultsPath
     $entries=@($journal.Text -split '\r?\n'|Where-Object {$_ -match '\S'}|ForEach-Object {ConvertFrom-WelaRecoveryJson $_})
     $results=ConvertFrom-WelaRecoveryJson $resultFile.Text
+    foreach($field in @('ExitCode','Failed','Skipped')) {
+        if(($results.$field -isnot [int] -and $results.$field -isnot [long]) -or $results.$field -ne 0){throw 'Completed transcription history requires integer zero exit/failure/skipped counters.'}
+    }
     if($entries.Count -ne 1 -or $results.Results -isnot [array] -or $results.Results.Count -ne 1 -or $results.DryRun -isnot [bool] -or $results.DryRun -or
-       $results.ExitCode -ne 0 -or $results.Failed -ne 0 -or $results.Skipped -ne 0 -or $results.Action -cne 'Configure' -or $results.Scope -cne 'windows-powershell-transcription-policy-only'){throw 'Recovery requires one completed Applied transcription Configure journal/result, without other controls or partial outcomes.'}
+       $results.Action -isnot [string] -or $results.Action -cne 'Configure' -or $results.Scope -isnot [string] -or $results.Scope -cne 'windows-powershell-transcription-policy-only'){throw 'Recovery requires one completed Applied transcription Configure journal/result, without other controls or partial outcomes.'}
     $entry=$entries[0];$last=$results.Results[0]
-    if($entry.Version -ne 1 -or $entry.ComputerName -isnot [string] -or $entry.ComputerName -ine $context.Host.Computer -or $entry.Id -cne 'PowerShellTranscription/CisV4L2' -or
-       $entry.Kind -cne 'PowerShellTranscription' -or $last.Status -cne 'Applied' -or $last.Id -cne $entry.Id -or $last.Kind -cne $entry.Kind){throw 'Wrong host, control, schema or incomplete transcription history.'}
-    $time=[datetimeoffset]::MinValue
-    if($entry.RecordedUtc -isnot [string] -or $entry.RecordedUtc -notmatch '(Z|\+00:00)$' -or -not [datetimeoffset]::TryParse($entry.RecordedUtc,[ref]$time) -or $time -gt [datetimeoffset]::UtcNow.AddMinutes(1)){throw 'Original journal requires a valid UTC timestamp.'}
+    if(($entry.Version -isnot [int] -and $entry.Version -isnot [long]) -or $entry.Version -ne 1 -or $entry.ComputerName -isnot [string] -or $entry.ComputerName -ine $context.Host.Computer -or
+       $entry.Id -isnot [string] -or $entry.Id -cne 'PowerShellTranscription/CisV4L2' -or $entry.Kind -isnot [string] -or $entry.Kind -cne 'PowerShellTranscription' -or
+       $last.Status -isnot [string] -or $last.Status -cne 'Applied' -or $last.Id -isnot [string] -or $last.Id -cne $entry.Id -or $last.Kind -isnot [string] -or $last.Kind -cne $entry.Kind){throw 'Wrong host, control, schema or incomplete transcription history.'}
+    $time=ConvertTo-WelaArrivalUtc $entry.RecordedUtc
+    if($time -gt [datetimeoffset]::UtcNow.AddMinutes(1)){throw 'Original journal requires a valid UTC timestamp.'}
     foreach($field in @('Before','Target','Desired')){if((Get-WelaRecoveryKey $entry.$field) -cne (Get-WelaRecoveryKey $last.$field)){throw "Original journal/result $field differs."}}
-    if($entry.Target.Hive -cne 'LocalMachine' -or $entry.Target.SubKey -cne 'SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription' -or $entry.Desired.EnableTranscripting.Type -cne 'DWord' -or $entry.Desired.EnableTranscripting.Value -ne 1 -or
-       $entry.Desired.OutputDirectory.Type -cne 'String' -or $entry.Desired.OutputDirectory.Value -cne $entry.Target.OutputDirectory -or $entry.Desired.EnableInvocationHeader -cne 'Preserve'){throw 'Unsupported transcription target or desired state.'}
+    if($entry.Target.Hive -isnot [string] -or $entry.Target.Hive -cne 'LocalMachine' -or $entry.Target.SubKey -isnot [string] -or $entry.Target.SubKey -cne 'SOFTWARE\Policies\Microsoft\Windows\PowerShell\Transcription' -or $entry.Target.OutputDirectory -isnot [string] -or
+       $entry.Desired.EnableTranscripting.Type -isnot [string] -or $entry.Desired.EnableTranscripting.Type -cne 'DWord' -or ($entry.Desired.EnableTranscripting.Value -isnot [int] -and $entry.Desired.EnableTranscripting.Value -isnot [long]) -or $entry.Desired.EnableTranscripting.Value -ne 1 -or
+       $entry.Desired.OutputDirectory.Type -isnot [string] -or $entry.Desired.OutputDirectory.Type -cne 'String' -or $entry.Desired.OutputDirectory.Value -isnot [string] -or $entry.Desired.OutputDirectory.Value -cne $entry.Target.OutputDirectory -or
+       $entry.Desired.EnableInvocationHeader -isnot [string] -or $entry.Desired.EnableInvocationHeader -cne 'Preserve'){throw 'Unsupported transcription target or desired state.'}
     $before=$entry.Before;$after=$last.After
     foreach($snapshot in @($before,$after)) {
-        if($snapshot.Capability.Status -cne 'Supported' -or $snapshot.Policy -isnot [array] -or $snapshot.Policy.Count -ne 2 -or
-           $snapshot.Policy[0].View -cne 'Registry64' -or $snapshot.Policy[1].View -cne 'Registry32'){
+        if($snapshot.Capability.Status -isnot [string] -or $snapshot.Capability.Status -cne 'Supported' -or $snapshot.Policy -isnot [array] -or $snapshot.Policy.Count -ne 2 -or
+           $snapshot.Policy[0].View -isnot [string] -or $snapshot.Policy[0].View -cne 'Registry64' -or $snapshot.Policy[1].View -isnot [string] -or $snapshot.Policy[1].View -cne 'Registry32'){
             $policyType=if($null -eq $snapshot.Policy){'<null>'}else{$snapshot.Policy.GetType().FullName}
             throw "Both canonical shared registry views are required. Capability=$($snapshot.Capability.Status); PolicyType=$policyType; Count=$(@($snapshot.Policy).Count); Views=$(@($snapshot.Policy.View) -join ','); Observation=$(Get-WelaRecoveryKey $snapshot)"
         }
@@ -195,7 +201,7 @@ function Invoke-WelaTranscriptRecovery {
     $source=Read-WelaTranscriptRecoveryFile $PlanPath
     if($source.Sha256 -cne $PlanHash){throw 'Supplied reviewed plan hash differs.'}
     $plan=ConvertFrom-WelaRecoveryJson $source.Text
-    if($plan.Kind -cne 'WelaTranscriptionRecoveryPlan' -or $plan.SchemaVersion -ne 1){throw 'Unsupported transcription recovery plan.'}
+    if($plan.Kind -isnot [string] -or $plan.Kind -cne 'WelaTranscriptionRecoveryPlan' -or ($plan.SchemaVersion -isnot [int] -and $plan.SchemaVersion -isnot [long]) -or $plan.SchemaVersion -ne 1){throw 'Unsupported transcription recovery plan.'}
     $rebuilt=New-WelaTranscriptRecoveryPlan $plan.Journal.Path $plan.OriginalResults.Path
     if((Get-WelaRecoveryKey $rebuilt) -cne (Get-WelaRecoveryKey $plan)){throw 'Reviewed plan differs from independently rebuilt original evidence and current observations.'}
     Assert-WelaTranscriptRecoveryBindings $plan $plan.ExpectedPolicy $source.Path $source.Sha256

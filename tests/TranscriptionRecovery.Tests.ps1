@@ -2,9 +2,18 @@ $ErrorActionPreference='Stop'
 $script:ScriptRoot=Split-Path $PSScriptRoot -Parent
 . (Join-Path $script:ScriptRoot 'scripts/Configuration.ps1')
 . (Join-Path $script:ScriptRoot 'scripts/AuditRecovery.ps1')
+. (Join-Path $script:ScriptRoot 'scripts/WefArrival.ps1')
 . (Join-Path $script:ScriptRoot 'scripts/PowerShellTranscription.ps1')
 . (Join-Path $script:ScriptRoot 'scripts/TranscriptionRecovery.ps1')
 $script:artifactWriter=(Get-Command Write-WelaRecoveryArtifact).ScriptBlock
+$script:jsonReader=(Get-Command ConvertFrom-WelaRecoveryJson).ScriptBlock
+function ConvertFrom-WelaRecoveryJson {
+    param($Text)
+    $value=& $script:jsonReader $Text
+    # Older PowerShell 7 JSON readers materialize an explicit UTC timestamp.
+    if($script:legacyJsonDate -and $value.RecordedUtc -is [string]){$value.RecordedUtc=[datetime]::Parse($value.RecordedUtc,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind)}
+    $value
+}
 function Write-WelaRecoveryArtifact {
     param($Path,$Value)
     if($script:failArtifact -and [IO.Path]::GetFileName($Path) -eq $script:failArtifact){throw 'injected durable artifact failure'}
@@ -34,7 +43,7 @@ function Set-WelaTranscriptRecoveryValue {
 }
 function Read-Host {param($Prompt) if($script:promptDrift){$script:policy[0].Machine.EnableInvocationHeader=Typed 1;$script:policy[1].Machine.EnableInvocationHeader=Typed 1};'y'}
 function New-Fixture($Enable=1,$Directory='C:\Old') {
-    $script:machine='stable';$script:code='stable';$script:acl='private';$script:protected=@('module','script-block','unrelated');$script:writes=0;$script:failWrite=-1;$script:driftWrite=-1;$script:promptDrift=$false;$script:failArtifact=$null
+    $script:machine='stable';$script:code='stable';$script:acl='private';$script:protected=@('module','script-block','unrelated');$script:writes=0;$script:failWrite=-1;$script:driftWrite=-1;$script:promptDrift=$false;$script:failArtifact=$null;$script:legacyJsonDate=$false
     $script:fixture=Join-Path $root ([guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $script:fixture
     $beforePolicy=@(foreach($view in @('Registry64','Registry32')){[pscustomobject]@{View=$view;Machine=[pscustomobject]@{EnableTranscripting=(Typed $Enable);OutputDirectory=(Typed $Directory String);EnableInvocationHeader=(Typed 0)};CurrentUser=[pscustomobject]@{EnableTranscripting=(Typed $null);OutputDirectory=(Typed $null);EnableInvocationHeader=(Typed $null)}}})
     $script:policy=Copy-Value $beforePolicy
@@ -101,6 +110,49 @@ try {
         Save-History
         Reject {Plan-Fixture} 'history|Applied|differs|DWORD|shared|Shared'
         Assert ($script:writes -eq 0) 'unsupported or inconsistent source evidence never mutates'
+    }
+    foreach($alter in @('status','action','scope','id','kind','result-id','result-kind','version','exit','failed-count','skipped-count','hive','subkey','target-directory','desired-enable-type','desired-enable-value','desired-output-type','desired-output-value','header-intent','capability','view64','view32','before-enable-type','before-output-type')) {
+        New-Fixture
+        switch($alter){
+            'status' {$script:original.Results[0].Status=$true}
+            'action' {$script:original.Action=$true}
+            'scope' {$script:original.Scope=$true}
+            'id' {$script:entry.Id=$true;$script:original.Results[0].Id=$true}
+            'kind' {$script:entry.Kind=$true;$script:original.Results[0].Kind=$true}
+            'result-id' {$script:original.Results[0].Id=$true}
+            'result-kind' {$script:original.Results[0].Kind=$true}
+            'version' {$script:entry.Version=$true}
+            'exit' {$script:original.ExitCode=$false}
+            'failed-count' {$script:original.Failed=$false}
+            'skipped-count' {$script:original.Skipped=$false}
+            'hive' {$script:entry.Target.Hive=$true}
+            'subkey' {$script:entry.Target.SubKey=$true}
+            'target-directory' {$script:entry.Target.OutputDirectory=$true}
+            'desired-enable-type' {$script:entry.Desired.EnableTranscripting.Type=$true}
+            'desired-enable-value' {$script:entry.Desired.EnableTranscripting.Value=$true}
+            'desired-output-type' {$script:entry.Desired.OutputDirectory.Type=$true}
+            'desired-output-value' {$script:entry.Desired.OutputDirectory.Value=$true}
+            'header-intent' {$script:entry.Desired.EnableInvocationHeader=$true}
+            'capability' {$script:entry.Before.Capability.Status=$true}
+            'view64' {$script:entry.Before.Policy[0].View=$true}
+            'view32' {$script:entry.Before.Policy[1].View=$true}
+            'before-enable-type' {foreach($view in $script:entry.Before.Policy){$view.Machine.EnableTranscripting.Type=$true}}
+            'before-output-type' {foreach($view in $script:entry.Before.Policy){$view.Machine.OutputDirectory.Type=$true}}
+        }
+        Save-History
+        Reject {Plan-Fixture} 'history|Applied|Unsupported|registry views|DWORD|REG_SZ'
+        Assert ($script:writes -eq 0 -and -not (Test-Path (Join-Path $script:fixture 'plan'))) "Boolean $alter evidence is rejected before plan creation or mutation"
+    }
+    New-Fixture;$script:legacyJsonDate=$true;Plan-Fixture
+    Assert ($script:planResult.Status -eq 'Planned' -and $script:writes -eq 0) 'explicit UTC DateTime from older PowerShell JSON readers remains valid history'
+    Reject {ConvertTo-WelaArrivalUtc ([datetime]::SpecifyKind([datetime]::Now,[DateTimeKind]::Unspecified))} 'explicit UTC'
+    foreach($alter in @('Kind','SchemaVersion')) {
+        New-Fixture;Plan-Fixture
+        $tampered=ConvertFrom-WelaRecoveryJson (Get-Content -LiteralPath $script:planPath -Raw);$tampered.$alter=$true
+        Get-WelaRecoveryKey $tampered|Set-Content -LiteralPath $script:planPath -Encoding UTF8
+        $script:restoreParameters.PlanHash=(Get-FileHash -LiteralPath $script:planPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        Reject {Invoke-WelaTranscriptRecovery @script:restoreParameters -AllowTemporarySuspension} 'Unsupported transcription recovery plan'
+        Assert ($script:writes -eq 0 -and -not (Test-Path $script:restoreOutput)) "Boolean reviewed plan $alter is rejected before output or mutation"
     }
     foreach($alter in @('source','host','policy','directory','protected','plan')) {
         New-Fixture;Plan-Fixture

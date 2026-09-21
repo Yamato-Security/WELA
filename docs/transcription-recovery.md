@@ -1,6 +1,6 @@
 # Recover Windows PowerShell transcription policy
 
-`transcription-recovery` reviews and restores the two machine values changed by one completed `powershell-transcription -TranscriptionAction Configure` run. It requires that run's original `before.jsonl` and final JSON result, exactly one `Applied` control named `PowerShellTranscription/CisV4L2`, and current policy/directory observations that still match its final `After` evidence. Failed, partial, skipped and already-compliant configuration records require manual review.
+`transcription-recovery` reviews and restores the two machine values changed by one completed `powershell-transcription -TranscriptionAction Configure` run. It requires that run's original `before.jsonl` and final JSON result, exactly one `Applied` control named `PowerShellTranscription/CisV4L2`, and current policy/directory observations that still match its final `After` evidence. Status, control, target and registry-type discriminators require actual strings; schema and outcome counters require integers. Boolean values cannot stand in for those fields. Failed, partial, skipped and already-compliant configuration records require manual review.
 
 ```powershell
 ./WELA.ps1 transcription-recovery -TranscriptRecoveryAction Plan `
