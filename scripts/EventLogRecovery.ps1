@@ -1,15 +1,16 @@
 # Restore one completed profile size/mode write; never replay arbitrary wevtutil arguments.
 function Get-WelaEventRecoverySources {
     $sources=[ordered]@{}
-    foreach($name in @('WELA.ps1','scripts/EventLogRecovery.ps1','scripts/EventLogConfiguration.ps1','modules/EventLogSettings.psm1','config/eventlog_profiles.json','scripts/Configuration.ps1','scripts/AuditRecovery.ps1','scripts/ChannelRead.ps1','scripts/ChannelReadNative.cs','scripts/WefArrival.ps1','scripts/WecUpdate.ps1','modules/AuditProfiles.psm1','scripts/CustomAuditProfiles.ps1')){
+    foreach($name in @('WELA.ps1','scripts/EventLogRecovery.ps1','scripts/EventLogConfiguration.ps1','modules/EventLogSettings.psm1','config/eventlog_profiles.json','scripts/Configuration.ps1','scripts/ControlApplicability.ps1','scripts/AuditRecovery.ps1','scripts/ChannelRead.ps1','scripts/ChannelReadNative.cs','scripts/WefArrival.ps1','scripts/WecUpdate.ps1','modules/AuditProfiles.psm1','scripts/CustomAuditProfiles.ps1')){
         $sources[$name]=(Get-FileHash -LiteralPath (Join-Path $script:ScriptRoot $name) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
     }
     $sources|ConvertTo-Json -Compress
 }
 function Get-WelaEventRecoveryContext {
+    foreach($name in @('Winmgmt','EventLog')){if((Get-Service -Name $name -ErrorAction Stop).Status -ne 'Running'){throw 'Native observation services must already be running.'}}
     $reader=Get-WelaChannelReader
     if(-not $reader.ElevatedAdministrator){throw 'An elevated native Windows operator is required.'}
-    [pscustomobject][ordered]@{Host=(Get-WelaRecoveryHost);Reader=[ordered]@{Sid=$reader.UserSid;Logon=$reader.AuthenticationId;Groups=$reader.GroupSids}}
+    [pscustomobject][ordered]@{Host=(Get-WelaRecoveryHost);ReviewedHost=(Get-WelaChannelReadHost);Reader=[ordered]@{Sid=$reader.UserSid;Logon=$reader.AuthenticationId;Groups=$reader.GroupSids}}
 }
 function Read-WelaEventRecoveryChannel {
     param([string]$Log)

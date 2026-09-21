@@ -10,6 +10,8 @@ Import-Module "$repo/modules/EventLogSettings.psm1" -Force
 $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Reject([scriptblock]$Action,[string]$Pattern){$message='';try{&$Action|Out-Null}catch{$message=$_.Exception.Message};Assert ($message -match $Pattern) "Expected $Pattern; got $message"}
+$sources=ConvertFrom-WelaArrivalJson (Get-WelaEventRecoverySources)
+Assert ($sources.'scripts/ControlApplicability.ps1' -ceq (Get-FileHash "$repo/scripts/ControlApplicability.ps1").Hash.ToLowerInvariant()) 'Actual host identity/context implementation is fingerprinted.'
 $root=Join-Path ([IO.Path]::GetTempPath()) ('wela-event-recovery-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $root
 $oldComputer=$env:COMPUTERNAME;$env:COMPUTERNAME='TEST'
 function Get-WelaEventRecoveryContext {[pscustomobject][ordered]@{Host=[ordered]@{Computer='TEST';MachineGuid='1'};Reader='S-1-5-21-fixture'}}
