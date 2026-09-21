@@ -1,6 +1,7 @@
 $ErrorActionPreference='Stop';$repo=Split-Path $PSScriptRoot -Parent
 $engine=(Get-Process -Id $PID).Path;$count=0
 $cases=@(
+ @{Args=@('eventlog-recovery','-EventRecoveryAction','Restore','-WhatIf');Code=1;Pattern='only dedicated'},
  @{Args=@('eventlog-recovery','-Help');Code=0;Pattern='AllowShrink'},
  @{Args=@('configure','-EventRecoveryAction','Restore','-Auto');Code=1;Pattern='require eventlog-recovery'},
  @{Args=@('eventlog-recovery','-Help','-Profile','wela-2.2.0');Code=1;Pattern='only dedicated'},

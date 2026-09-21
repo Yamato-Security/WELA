@@ -2077,7 +2077,7 @@ if ($PSBoundParameters.ContainsKey('ProfileFile')) {
 }
 
 if ($Cmd -ne 'eventlog-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'EventRecovery*'}).Count) {throw 'EventRecovery options require eventlog-recovery.'}
-if ($Cmd -eq 'eventlog-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EventRecoveryAction','EventRecoveryJournalPath','EventRecoveryOriginalResultsPath','EventRecoveryLog','EventRecoveryPlanPath','EventRecoveryPlanHash','EventRecoveryOutputPath','EventRecoveryAllowShrink','EventRecoveryAllowRetentionChange','Help')}).Count) {throw 'eventlog-recovery accepts only dedicated options.'}
+if ($Cmd -eq 'eventlog-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EventRecoveryAction','EventRecoveryJournalPath','EventRecoveryOriginalResultsPath','EventRecoveryLog','EventRecoveryPlanPath','EventRecoveryPlanHash','EventRecoveryOutputPath','EventRecoveryAllowShrink','EventRecoveryAllowRetentionChange','Help')}).Count)) {throw 'eventlog-recovery accepts only dedicated options.'}
 if ($Cmd -ne 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecIngress*'}).Count) {throw 'WecIngress options require wec-ingress.'}
 if ($Cmd -eq 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecIngressAction','WecIngressName','WecIngressLocalAddress','WecIngressRemoteAddress','WecIngressPlanPath','WecIngressPlanHash','WecIngressOutputPath','Help')}).Count) {throw 'wec-ingress accepts only dedicated options.'}
 if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}

@@ -34,6 +34,8 @@ try{
  $plan=Get-Content "$root/plan/manifest.json" -Raw|ConvertFrom-Json
  Assert ($plan.Status -eq 'ReviewRequired' -and (Get-WelaRecoveryKey (Read-WelaEventRecoveryChannel $log)) -ceq (Get-WelaRecoveryKey $configured)) 'Public Plan makes no channel changes'
  $apply=@('eventlog-recovery','-EventRecoveryAction','Restore','-EventRecoveryPlanPath',"$root/plan/plan.json",'-EventRecoveryPlanHash',$plan.PlanHash)
+ Invoke-RecoveryFixtureCli ($apply+@('-EventRecoveryOutputPath',"$root/unknown-option",'-EventRecoveryAllowShrink','-EventRecoveryAllowRetentionChange','-WhatIf')) 1
+ Assert (-not (Test-Path "$root/unknown-option") -and (Get-WelaRecoveryKey (Read-WelaEventRecoveryChannel $log)) -ceq (Get-WelaRecoveryKey $configured)) 'Unknown WhatIf refuses before output or native restoration'
  Invoke-RecoveryFixtureCli ($apply+@('-EventRecoveryOutputPath',"$root/without-consent")) 1
  $refused=Get-Content "$root/without-consent/manifest.json" -Raw|ConvertFrom-Json
  Assert ($refused.Status -eq 'Refused' -and -not $refused.NativeWriteAttempted) 'Shrinking requires independent explicit consent'
