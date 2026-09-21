@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added explicit `capi2-probe` Plan/Run for a fixed offline ephemeral certificate-chain build and exact local CAPI2 event 11 evidence, with public certificate/nonce/PID/token/precise-UTC binding, bounded worker/collection and retained artifacts. Existing channel, certificate-store and trust configuration are preserved; no TLS, revocation, remote delivery or Sigma credit is claimed.
+
 - Added explicit `transcription-recovery` for one completed Windows PowerShell transcription configuration, with independently rebuilt hashed plans, typed local-directory restoration, preserved user/header/other policy, explicit temporary-suspension consent and durable ordered receipts. Help and recovery guidance warn that interrupted suspension can leave machine transcription disabled without automatic rollback or re-enable. Disposable native public-CLI tests verify restoration and drift refusal; production sessions, central authorization/collection and Sigma readiness remain unverified. (#376) (@Shirofune-Security)
 
 - Added reviewed `eventlog-recovery` for one completed profile size/retention write. Matched original and immediate-prewrite evidence, current channel/context/source guards, separate shrink/retention consent, durable pending receipts and native readback preserve unrelated channel settings and refuse drift or replay. Windows fixtures restore original settings; lost events, sustained retention and Sigma readiness are not inferred. (@Shirofune-Security)
