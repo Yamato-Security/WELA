@@ -8,7 +8,7 @@ namespace Wela.DnsClientProbe {
  public sealed class Answer { public string Name, Address; public ushort Type; public uint Flags; }
  public sealed class Result { public uint Status, ResultStatus; public ulong Options; public string QueryName, Resolver; public Answer[] Answers; }
  public static class Native {
-  public static string SourceSha256;
+  public const string SourceSha256="__WELA_DNS_CLIENT_SOURCE_SHA256__";
   // TCP, no recursion; bypass cache/local-name/hosts/NetBT/multicast/suffixes/IDN.
   public const ulong Options=0x002019ee;
   [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)] struct Request {

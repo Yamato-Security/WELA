@@ -4,7 +4,7 @@
 
 **Improvements:**
 
-- Added opt-in `dns-client-probe` for one fixed benign A lookup to an explicitly selected IPv4 resolver, with default prerequisite planning, bounded native DNS execution and exact local event 3008 correlation. Private hashed evidence preserves native status, context and correlation limits without changing Windows settings. The original DNS rule/channel mismatch remains explicit and Sigma credit stays zero. Added disposable authoritative-loopback DNS acceptance tests for Server 2022/2025 and PowerShell 5.1/7. (@Shirofune-Security)
+- Added opt-in `dns-client-probe` for one fixed benign A lookup to an explicitly selected IPv4 resolver, with default prerequisite planning, bounded native DNS execution and exact local event 3008 correlation. Private hashed evidence preserves native status, context and correlation limits without changing Windows settings. The original DNS rule/channel mismatch remains explicit and Sigma credit stays zero. Added disposable authoritative-loopback DNS acceptance tests for Server 2022/2025 and PowerShell 5.1/7. (#434) (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
 
