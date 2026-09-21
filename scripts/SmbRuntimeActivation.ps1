@@ -9,27 +9,34 @@ function Get-WelaSmbRuntimeSources {
     [pscustomobject]$result
 }
 
+function Assert-WelaSmbRuntimeCommand {
+    param($Command,[ValidateSet('Server','Client')][string]$Side,[ValidateSet('Get','Set')][string]$Verb,[string]$ModuleBase)
+    # SmbShare exports functions from these native nested CDXML modules.
+    if($Command.Name -cne "$Verb-Smb${Side}Configuration" -or $Command.ModuleName -cne "Smb${Side}Configuration" -or
+        [string]$Command.CommandType -cne 'Function' -or [IO.Path]::GetFullPath($Command.Module.ModuleBase) -ine $ModuleBase){
+        $observed=[pscustomobject]@{Name=$Command.Name;ModuleName=$Command.ModuleName;ModuleBase=$Command.Module.ModuleBase;Type=[string]$Command.CommandType}
+        throw "SMB commands must resolve to the reviewed native SmbShare CDXML module. Expected $ModuleBase; observed $(Get-WelaSmbRuntimeKey $observed)"
+    }
+    if($Verb -eq 'Set') {
+        $component=if($Side -eq 'Server'){'LanmanServer'}else{'LanmanWorkstation'}
+        foreach($definition in @(Get-WelaSmbAuditDefinitions | Where-Object Component -eq $component)) {
+            if(-not $Command.Parameters.ContainsKey($definition.Name) -or $Command.Parameters[$definition.Name].ParameterType -ne [bool]) {
+                throw "Native setter lacks the exact Boolean parameter $($definition.Name)."
+            }
+        }
+    }
+}
+
 function Get-WelaSmbRuntimeCommands {
-    $base=[IO.Path]::GetFullPath((Join-Path $env:windir 'System32/WindowsPowerShell/v1.0/Modules/SmbShare'))
+    $base=[IO.Path]::GetFullPath((Join-Path ([Environment]::SystemDirectory) 'WindowsPowerShell/v1.0/Modules/SmbShare'))
     $commands=[ordered]@{}
     foreach($side in @('Server','Client')) {
         foreach($verb in @('Get','Set')) {
             $name="SmbShare\$verb-Smb${side}Configuration"
             $found=@(Get-Command -Name $name -ErrorAction Stop)
-            if($found.Count -ne 1 -or $found[0].ModuleName -cne 'SmbShare' -or
-                [IO.Path]::GetFullPath($found[0].Module.ModuleBase) -ine $base) {
-                $observed=@($found | ForEach-Object {[pscustomobject]@{Name=$_.Name;ModuleName=$_.ModuleName;ModuleBase=$_.Module.ModuleBase;Type=$_.CommandType.ToString()}})
-                throw "SMB commands must resolve to the native Windows SmbShare module. Expected $base; observed $(Get-WelaSmbRuntimeKey $observed)"
-            }
-            if($verb -eq 'Set') {
-                $component=if($side -eq 'Server'){'LanmanServer'}else{'LanmanWorkstation'}
-                foreach($definition in @(Get-WelaSmbAuditDefinitions | Where-Object Component -eq $component)) {
-                    if(-not $found[0].Parameters.ContainsKey($definition.Name) -or $found[0].Parameters[$definition.Name].ParameterType -ne [bool]) {
-                        throw "Native setter lacks the exact Boolean parameter $($definition.Name)."
-                    }
-                }
-            }
-            $commands[$name]=[pscustomobject]@{ModuleBase=$base;ModuleVersion=$found[0].Module.Version.ToString();CommandType=$found[0].CommandType.ToString()}
+            if($found.Count -ne 1){throw 'Expected exactly one native module-qualified SMB command.'}
+            Assert-WelaSmbRuntimeCommand -Command $found[0] -Side $side -Verb $verb -ModuleBase $base
+            $commands[$name]=[pscustomobject]@{ModuleName=$found[0].ModuleName;ModuleBase=$base;ModuleVersion=$found[0].Module.Version.ToString();CommandType=$found[0].CommandType.ToString()}
         }
     }
     $files=@(Get-ChildItem -LiteralPath $base -File -Recurse -ErrorAction Stop | Where-Object Extension -in @('.psd1','.psm1','.cdxml','.dll','.ps1xml') | Sort-Object FullName)

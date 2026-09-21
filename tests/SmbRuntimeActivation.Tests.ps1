@@ -9,6 +9,19 @@ function Assert($Condition,[string]$Message){if(-not $Condition){throw "FAIL: $M
 function Reject([scriptblock]$Code,[string]$Message){$failed=$false;try{& $Code}catch{$failed=$true};Assert $failed $Message}
 Reject {Set-WelaSmbRuntimeFlag 'LanmanWorkstation/EnableInsecureGuestLogons'} 'security parameter refused by actual setter adapter'
 Reject {Set-WelaSmbRuntimeFlag 'LanmanServer/auditinsecureguestlogon'} 'mis-cased control refused'
+$nativeModuleBase=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+$command=[pscustomobject]@{Name='Set-SmbServerConfiguration';ModuleName='SmbServerConfiguration';CommandType='Function';Module=[pscustomobject]@{ModuleBase=$nativeModuleBase};Parameters=@{}}
+foreach($definition in @(Get-WelaSmbAuditDefinitions | Where-Object Component -eq LanmanServer)){$command.Parameters[$definition.Name]=[pscustomobject]@{ParameterType=[bool]}}
+Assert-WelaSmbRuntimeCommand $command Server Set $nativeModuleBase
+Assert $true 'actual nested native CDXML module metadata accepted'
+$command.ModuleName='Other'
+Reject {Assert-WelaSmbRuntimeCommand $command Server Set $nativeModuleBase} 'foreign module refused'
+$command.ModuleName='SmbServerConfiguration'
+Reject {Assert-WelaSmbRuntimeCommand $command Server Set ($nativeModuleBase+'other')} 'unexpected module directory refused'
+$command.Parameters.AuditInsecureGuestLogon.ParameterType=[string]
+Reject {Assert-WelaSmbRuntimeCommand $command Server Set $nativeModuleBase} 'mistyped native parameter refused'
+$command.Parameters.Remove('AuditInsecureGuestLogon')
+Reject {Assert-WelaSmbRuntimeCommand $command Server Set $nativeModuleBase} 'missing native parameter refused'
 function FixtureConfiguration {
     param([string]$Side='Server')
     $component=if($Side -eq 'Server'){'LanmanServer'}else{'LanmanWorkstation'}
