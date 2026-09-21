@@ -130,7 +130,7 @@ function Start-WelaFileProbeRead {
     $fresh=Get-WelaFileProbeState $State.File.Path
     if((Get-WelaFileProbeStateKey $fresh) -cne (Get-WelaFileProbeStateKey $State)){throw 'File probe prerequisites drifted before worker launch.'}
     $watermark=Get-WelaFileProbeWatermark;$worker=Join-Path $PSScriptRoot 'FileAccessProbeWorker.ps1'
-    $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$State.Engine;$info.Arguments='-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'+$worker+'" -RequestPath "'+$RequestPath+'" -Nonce '+$Nonce
+    $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$State.Engine;$info.Arguments='-NoLogo -NoProfile -NonInteractive -File "'+$worker+'" -RequestPath "'+$RequestPath+'" -Nonce '+$Nonce
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
     $info.StandardOutputEncoding=[Text.UTF8Encoding]::new($false,$true);$info.StandardErrorEncoding=$info.StandardOutputEncoding;$process=$null
     try {
