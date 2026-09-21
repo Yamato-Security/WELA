@@ -36,6 +36,14 @@ foreach($field in @('UserName','Domain','MissingAccountStatus','LogonType','Logo
  }
  Reject {Assert-WelaFailedLogonOperation $bad $state $nonce 456 $launch $observed} 'Unexpected|interval|token|observation'
 }
+foreach($field in @('Nonce','Executable','UserName','Domain','Clock','TokenType','Impersonation','ElevatedAdministrator')){
+ $bad=Clone $operation
+ if($field -in @('Nonce','Executable')){$bad.$field=$true}
+ elseif($field -in @('TokenType','Impersonation')){$bad.BeforeToken.$field=$true}
+ elseif($field -eq 'ElevatedAdministrator'){$bad.BeforeToken.ElevatedAdministrator='true'}
+ else{$bad.Attempt.$field=$true}
+ Reject {Assert-WelaFailedLogonOperation $bad $state $nonce 456 $launch $observed} 'receipt type|primary-token observation'
+}
 foreach($api in @('LogonUserW','NetUserGetInfo','GetSystemTimePreciseAsFileTime')){
  $import=[Wela.FailedLogonProbe.Native].GetMethod($api,[Reflection.BindingFlags]'NonPublic,Static').GetCustomAttributes([Runtime.InteropServices.DllImportAttribute],$false)[0]
  Assert ($import.ExactSpelling -and $import.EntryPoint -ceq $api) ('Exact native binding '+$api)
