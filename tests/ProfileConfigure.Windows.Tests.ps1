@@ -23,6 +23,10 @@ function Channels { @(foreach($name in @('Security','System','Application','Forw
 function TypedPrecedence {Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy}
 $before=Get-WelaEffectiveAuditPolicy;$precedence=TypedPrecedence;$channels=Channels
 $hostState=Get-WelaHostContext
+$actualOs=Get-CimInstance Win32_OperatingSystem | Select-Object Version,BuildNumber,ProductType
+$actualComputer=Get-CimInstance Win32_ComputerSystem | Select-Object DomainRole,PartOfDomain
+$patch=Get-ItemPropertyValue -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR
+Assert ($actualOs.ProductType -eq 3 -and $actualComputer.DomainRole -eq 2 -and -not $actualComputer.PartOfDomain) 'Fixture records an actual standalone server, without simulating domain membership.'
 Assert ($hostState.Role -eq 'MemberServer' -and $hostState.Build -in @(20348,26100)) 'Only the actual hosted server context is supported by this fixture.'
 $catalog=Join-Path $repo 'config/audit_profiles.json';$example=Join-Path $repo 'config/custom-audit-profile.example.json'
 $catalogHash=(Get-FileHash $catalog).Hash;$exampleHash=(Get-FileHash $example).Hash
@@ -35,7 +39,7 @@ Save 'profile.json' $custom
 $sourceHash=(Get-FileHash $profilePath).Hash.ToLowerInvariant()
 $ids=@{Creation='0CCE922B-69AE-11D9-BED3-505054503030';Termination='0CCE922C-69AE-11D9-BED3-505054503030';Share='0CCE9244-69AE-11D9-BED3-505054503030';File='0CCE921D-69AE-11D9-BED3-505054503030'}
 $base=@('-Profile','custom-native-acceptance','-ProfileFile',$profilePath,'-SaclMode','Skip')
-Save 'original.json' @{Host=$hostState;Engine=$PSVersionTable.PSVersion.ToString();Masks=$before;Precedence=$precedence;Channels=$channels;Sources=@{Custom=$sourceHash;Catalog=$catalogHash;Example=$exampleHash}}
+Save 'original.json' @{Host=$hostState;NativeOS=$actualOs;NativeComputer=$actualComputer;UBR=$patch;Engine=$PSVersionTable.PSVersion.ToString();Masks=$before;Precedence=$precedence;Channels=$channels;Sources=@{Custom=$sourceHash;Catalog=$catalogHash;Example=$exampleHash}}
 try{
     # Fixture-only initial values distinguish exact, minimum, optional and NC semantics.
     $null=New-ItemProperty -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name SCENoApplyLegacyAuditPolicy -PropertyType DWord -Value 0 -Force
@@ -90,7 +94,11 @@ try{
 }catch{$failure=$_.ToString();throw}finally{
     try{
         $now=Get-WelaEffectiveAuditPolicy
-        foreach($guid in $before.Keys){if($now[$guid] -ne $before[$guid]){Set-WelaEffectiveAuditPolicy -Guid $guid -Mask $before[$guid] -Mode exact}}
+        foreach($guid in $before.Keys){
+            if($now[$guid] -ne $before[$guid]){
+                try{Set-WelaEffectiveAuditPolicy -Guid $guid -Mask $before[$guid] -Mode exact}catch{$cleanupErrors+="$guid : $($_.ToString())"}
+            }
+        }
     }catch{$cleanupErrors+=$_.ToString()}
     try{
         if($precedence.ValueExists){$null=New-ItemProperty -LiteralPath 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name SCENoApplyLegacyAuditPolicy -PropertyType $precedence.Type -Value $precedence.Value -Force}
