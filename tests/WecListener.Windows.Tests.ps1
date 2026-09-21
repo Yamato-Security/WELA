@@ -31,6 +31,7 @@ function ReadFirewall {@(NetSecurity\Get-NetFirewallRule -PolicyStore ActiveStor
 $adapter=Join-Path $root 'checkpoint-native51.ps1'
 @'
 param([string]$ListenerAddress,[string]$PayloadPath)
+$env:PSModulePath=[IO.Path]::Combine([Environment]::SystemDirectory,'WindowsPowerShell\v1.0\Modules')
 $ErrorActionPreference='Stop';[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $identity=[Security.Principal.WindowsIdentity]::GetCurrent();try{$sid=$identity.User.Value}finally{$identity.Dispose()}
 $r=[ordered]@{EngineMajor=$PSVersionTable.PSVersion.Major;Engine=$PSVersionTable.PSVersion.ToString();ProcessId=$PID;UserSid=$sid;Status='Failed';Xml='';Diagnostic=''}
@@ -91,6 +92,7 @@ try {
     Public @('wec-listener','-WecListenerAction','Apply','-WecListenerPlanPath',$planPath,'-WecListenerPlanHash',$plan.PlanHash,'-WecListenerOutputPath',$applyDir)
     $applied=Get-Content (Join-Path $applyDir 'manifest.json') -Raw|ConvertFrom-Json
     Assert ($applied.Status -ceq 'CreatedAndVerified' -and $applied.AdapterStarted -and $applied.NativeCreateAttempted -and $applied.Adapter.TerminationConfirmed -and $applied.Adapter.Receipt.EngineVersion -match '^5\.1\.') 'Public Apply uses the verified native5.1 adapter and confirms native creation.'
+    Assert ($applied.Adapter.Receipt.ModulePath -ceq [IO.Path]::Combine([Environment]::SystemDirectory,'WindowsPowerShell\v1.0\Modules')) 'Actual adapter startup retains only the fixed native5.1 module directory.'
     Assert ($applied.Adapter.Receipt.ProcessId -eq $applied.Adapter.ProcessId -and $applied.Adapter.Receipt.Reader.UserSid -eq $fullOriginal.Local.Reader.UserSid -and $applied.Adapter.Receipt.Reader.AuthenticationId -eq $fullOriginal.Local.Reader.AuthenticationId) 'Actual native worker PID/account/logon is bound.'
     Assert ($applied.ReadyRuleCredit -eq 0 -and $applied.ServiceChanges -eq 0 -and $applied.AuthenticationChanges -eq 0 -and $applied.FirewallChanges -eq 0) 'No unrelated configuration changes or detection credit.'
     foreach($artifact in $applied.Artifacts){Assert ((Get-FileHash (Join-Path $applyDir $artifact.Name)).Hash.ToLowerInvariant() -ceq $artifact.Sha256) 'Retained public artifact hash matches.'}
@@ -122,3 +124,6 @@ try {
     Save 'cleanup.json' @{Failure=$failure;CleanupErrors=$cleanupErrors;FullConfigurationPreserved=$configurationOk;ListenersRestored=$listenersOk;ServicesRestored=$servicesOk;FirewallPreserved=$firewallOk;Complete=($configurationOk -and $listenersOk -and $servicesOk -and $firewallOk -and -not $cleanupErrors.Count);DisposableBoundary='Fixture temporarily replaced ordinary original HTTP listeners and restored their captured configuration; product creation must refuse overlap.'}
     if(-not $configurationOk -or -not $listenersOk -or -not $servicesOk -or -not $firewallOk -or $cleanupErrors.Count){throw 'Native checkpoint cleanup incomplete; inspect retained artifacts.'}
 }
+
+# Negative public CLI probes intentionally return 1; successful complete cleanup ends the fixture with 0.
+exit 0

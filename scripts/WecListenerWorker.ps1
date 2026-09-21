@@ -1,4 +1,5 @@
 param([string]$RequestPath,[string]$RequestHash)
+$env:PSModulePath=[IO.Path]::Combine([Environment]::SystemDirectory,'WindowsPowerShell\v1.0\Modules')
 $ErrorActionPreference='Stop';[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 if($args.Count -or $PSVersionTable.PSVersion.Major -ne 5 -or -not [Environment]::Is64BitProcess){throw 'Only the fixed native Windows PowerShell 5.1 listener adapter is supported.'}
 $script:ScriptRoot=Split-Path $PSScriptRoot -Parent

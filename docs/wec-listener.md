@@ -1,6 +1,6 @@
 # Reviewed local WEC HTTP listener
 
-`wec-listener` plans and creates one new native WinRM listener for the WEC collector prerequisites. It supports an explicitly selected IPv4 address assigned to the actual local Server 2022/2025 standalone or member server. WinRM, WMI and the firewall services must already be running. Domain controllers, remote hosts and listener updates are outside this command's scope.
+`wec-listener` plans and creates one new native WinRM listener for the WEC collector prerequisites. It supports an explicitly selected IPv4 address assigned to the actual local Server 2022/2025 standalone or member server. WinRM, WMI and the firewall services must already be running. Existing WinRM policy values require manual review and cause refusal. Domain controllers, remote hosts and listener updates are outside this command's scope.
 
 ```powershell
 # Use an actual assigned local IPv4 address and a new private directory.

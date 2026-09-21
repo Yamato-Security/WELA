@@ -114,7 +114,7 @@ function Get-WelaListenerState {
     $engine=Join-Path ([Environment]::SystemDirectory) 'WindowsPowerShell/v1.0/powershell.exe';$worker=Join-Path $PSScriptRoot 'WecListenerWorker.ps1'
     $cmd=Get-Command 'Microsoft.WSMan.Management\Get-WSManInstance' -CommandType Cmdlet -ErrorAction Stop;$assembly=$cmd.ImplementingType.Assembly.Location
     if(-not $assembly -or $cmd.ModuleName -cne 'Microsoft.WSMan.Management'){throw 'Native WSMan reader source is unavailable.'}
-    [pscustomobject][ordered]@{Local=$local;Profiles=$profiles;Rules=$digests;NativeFirewall=$native;NativeReader=[ordered]@{Path=$assembly;Sha256=(Get-FileHash $assembly -Algorithm SHA256).Hash};Adapter=[ordered]@{Engine=$engine;EngineSha256=(Get-FileHash $engine -Algorithm SHA256).Hash;Worker=$worker;WorkerSha256=(Get-FileHash $worker -Algorithm SHA256).Hash};Sources=Get-WelaListenerSources}
+    [pscustomobject][ordered]@{Local=$local;Profiles=$profiles;Rules=$digests;NativeFirewall=$native;NativeReader=[ordered]@{Path=$assembly;Sha256=(Get-FileHash $assembly -Algorithm SHA256).Hash};Adapter=[ordered]@{ModulePath=[IO.Path]::Combine([Environment]::SystemDirectory,'WindowsPowerShell\v1.0\Modules');Engine=$engine;EngineSha256=(Get-FileHash $engine -Algorithm SHA256).Hash;Worker=$worker;WorkerSha256=(Get-FileHash $worker -Algorithm SHA256).Hash};Sources=Get-WelaListenerSources}
 }
 function Get-WelaListenerReviewKey {
     param($State,[switch]$ExcludeSelected,$Selection)
@@ -145,7 +145,7 @@ function Get-WelaListenerWorkerContextKey {
 }
 function Invoke-WelaListenerWorkerRequest {
     param([string]$RequestPath,[string]$RequestHash)
-    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaNative51ListenerCreate';Status='Refused';NativeCreateAttempted=$false;ProcessId=$PID;Engine=[Diagnostics.Process]::GetCurrentProcess().MainModule.FileName;EngineVersion=$PSVersionTable.PSVersion.ToString();Reader=$null;Selection=$null;CreatedXml=$null;After=@();Diagnostic='';NativeHResult=$null}
+    $report=[pscustomobject][ordered]@{SchemaVersion=1;Kind='WelaNative51ListenerCreate';Status='Refused';NativeCreateAttempted=$false;ProcessId=$PID;Engine=[Diagnostics.Process]::GetCurrentProcess().MainModule.FileName;EngineVersion=$PSVersionTable.PSVersion.ToString();ModulePath=[string]$env:PSModulePath;Reader=$null;Selection=$null;CreatedXml=$null;After=@();Diagnostic='';NativeHResult=$null}
     $held=$null
     try {
         if($PSVersionTable.PSVersion.Major -ne 5 -or $RequestHash -cnotmatch '^[a-f0-9]{64}$'){throw 'A hashed fixed native Windows PowerShell5.1 request is required.'}
@@ -202,8 +202,8 @@ function Close-WelaListenerAdapterProcess {
 }
 function Assert-WelaListenerAdapterReceipt {
     param($Receipt,$State,[int]$ProcessId,[int]$ExitCode)
-        Assert-WelaArrivalObject $receipt @('SchemaVersion','Kind','Status','NativeCreateAttempted','ProcessId','Engine','EngineVersion','Reader','Selection','CreatedXml','After','Diagnostic','NativeHResult')
-        if(($receipt.SchemaVersion -isnot [int] -and $receipt.SchemaVersion -isnot [long]) -or $receipt.SchemaVersion -ne 1 -or $receipt.Kind -isnot [string] -or $receipt.Kind -cne 'WelaNative51ListenerCreate' -or $receipt.NativeCreateAttempted -isnot [bool] -or ($receipt.ProcessId -isnot [int] -and $receipt.ProcessId -isnot [long]) -or $receipt.ProcessId -ne $ProcessId -or $receipt.Engine -isnot [string] -or $receipt.Engine -ine $State.Adapter.Engine -or $receipt.EngineVersion -isnot [string] -or $receipt.EngineVersion -cnotmatch '^5\.1\.[0-9]+\.[0-9]+$' -or $receipt.Status -isnot [string] -or $receipt.Status -cnotin @('Created','Refused','CreateAttemptedUnverified') -or $receipt.Diagnostic -isnot [string]){throw 'Native adapter receipt has inconsistent identity or status.'}
+        Assert-WelaArrivalObject $receipt @('SchemaVersion','Kind','Status','NativeCreateAttempted','ProcessId','Engine','EngineVersion','ModulePath','Reader','Selection','CreatedXml','After','Diagnostic','NativeHResult')
+        if(($receipt.SchemaVersion -isnot [int] -and $receipt.SchemaVersion -isnot [long]) -or $receipt.SchemaVersion -ne 1 -or $receipt.Kind -isnot [string] -or $receipt.Kind -cne 'WelaNative51ListenerCreate' -or $receipt.NativeCreateAttempted -isnot [bool] -or ($receipt.ProcessId -isnot [int] -and $receipt.ProcessId -isnot [long]) -or $receipt.ProcessId -ne $ProcessId -or $receipt.Engine -isnot [string] -or $receipt.Engine -ine $State.Adapter.Engine -or $receipt.ModulePath -isnot [string] -or $receipt.ModulePath -cne $State.Adapter.ModulePath -or $receipt.EngineVersion -isnot [string] -or $receipt.EngineVersion -cnotmatch '^5\.1\.[0-9]+\.[0-9]+$' -or $receipt.Status -isnot [string] -or $receipt.Status -cnotin @('Created','Refused','CreateAttemptedUnverified') -or $receipt.Diagnostic -isnot [string]){throw 'Native adapter receipt has inconsistent identity or status.'}
         if($receipt.Reader -and (Get-WelaListenerReaderKey $receipt.Reader) -cne (Get-WelaListenerReaderKey $State.Local.Reader)){throw 'Native adapter did not run under the reviewed actual account/logon.'}
         if($receipt.Status -ceq 'Created' -and (-not $receipt.Reader -or -not $receipt.NativeCreateAttempted -or $ExitCode -ne 0 -or $receipt.Diagnostic)){throw 'Native adapter success receipt is incomplete.'}
 }
@@ -212,7 +212,7 @@ function Start-WelaListenerAdapter {
     foreach($path in @($State.Adapter.Engine,$State.Adapter.Worker,$RequestPath)){if($path.Contains('"') -or $path.EndsWith('\') -or $path -match '[\x00-\x1f]'){throw 'Unsupported native adapter path.'}}
     $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$State.Adapter.Engine
     $info.Arguments='-NoLogo -NoProfile -NonInteractive -File "'+$State.Adapter.Worker+'" -RequestPath "'+$RequestPath+'" -RequestHash '+$RequestHash
-    $info.EnvironmentVariables['PSModulePath']=Join-Path ([Environment]::SystemDirectory) 'WindowsPowerShell/v1.0/Modules'
+    $info.EnvironmentVariables['PSModulePath']=$State.Adapter.ModulePath
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.StandardOutputEncoding=[Text.UTF8Encoding]::new($false);$info.StandardErrorEncoding=[Text.UTF8Encoding]::new($false)
     Initialize-WelaListenerPipe
     $result=[pscustomobject][ordered]@{Started=$false;ProcessId=$null;ExitCode=$null;TimedOut=$false;TerminationConfirmed=$false;Receipt=$null;Diagnostic=''};$process=[Diagnostics.Process]::new();$process.StartInfo=$info
