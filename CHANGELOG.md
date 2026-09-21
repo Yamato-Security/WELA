@@ -4,7 +4,7 @@
 
 **Improvements:**
 
-- Added explicit `transcription-recovery` for one completed Windows PowerShell transcription configuration, with independently rebuilt hashed plans, typed local-directory restoration, preserved user/header/other policy, explicit temporary-suspension consent and durable ordered receipts. Disposable native public-CLI tests verify restoration and drift refusal; production sessions, central authorization/collection and Sigma readiness remain unverified. (#376) (@Shirofune-Security)
+- Added explicit `transcription-recovery` for one completed Windows PowerShell transcription configuration, with independently rebuilt hashed plans, typed local-directory restoration, preserved user/header/other policy, explicit temporary-suspension consent and durable ordered receipts. Help and recovery guidance warn that interrupted suspension can leave machine transcription disabled without automatic rollback or re-enable. Disposable native public-CLI tests verify restoration and drift refusal; production sessions, central authorization/collection and Sigma readiness remain unverified. (#376) (@Shirofune-Security)
 
 - Added explicit `wec-ingress` Plan/Apply for one new, narrowly scoped Domain TCP5985 collector firewall rule. Actual host/logon/profile/source guards, reviewed hashes, flushed pending evidence and both-store/filter readback refuse drift and existing names; partial creation remains explicit. The existing collector prerequisite recognizes equivalent native dotted netmasks and IPv6 spellings without broadening accepted scopes. Disposable native tests cover creation, collision, replay, collector integration and cleanup without listener, delivery or Sigma claims. (@Shirofune-Security)
 
