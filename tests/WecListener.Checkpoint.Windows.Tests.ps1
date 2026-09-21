@@ -17,16 +17,38 @@ function ReadListeners {
 function Key($Value){ConvertTo-Json -InputObject @($Value|Select-Object Address,Transport,Port,Hostname,Enabled,URLPrefix,CertificateThumbprint,ListeningOn) -Depth 10 -Compress}
 function ReadServices {@(Get-CimInstance Win32_Service -Filter "Name='WinRM' OR Name='Wecsvc' OR Name='MpsSvc' OR Name='BFE'"|Sort-Object Name|Select-Object Name,StartMode,State)}
 function ReadFirewall {@(NetSecurity\Get-NetFirewallRule -PolicyStore ActiveStore|Sort-Object Name|Select-Object Name,Enabled,Profile,Direction,Action,PolicyStoreSourceType)}
+$adapter=Join-Path $root 'checkpoint-native51.ps1'
+@'
+param([string]$ListenerAddress,[string]$PayloadPath)
+$ErrorActionPreference='Stop';[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
+$identity=[Security.Principal.WindowsIdentity]::GetCurrent();try{$sid=$identity.User.Value}finally{$identity.Dispose()}
+$r=[ordered]@{EngineMajor=$PSVersionTable.PSVersion.Major;Engine=$PSVersionTable.PSVersion.ToString();ProcessId=$PID;UserSid=$sid;Status='Failed';Xml='';Diagnostic=''}
+try {
+ if($PSVersionTable.PSVersion.Major -ne 5 -or $ListenerAddress -notmatch '^(\*|IP:[0-9.]+)$'){throw 'Only fixture native5.1 HTTP selectors are supported.'}
+ $held=[IO.File]::Open($PayloadPath,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+ try {$v=Microsoft.WSMan.Management\New-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet @{Address=$ListenerAddress;Transport='HTTP'} -FilePath $PayloadPath -ErrorAction Stop;$r.Xml=[string]$v.OuterXml;$r.Status='Created'}finally{$held.Dispose()}
+}catch{$r.Diagnostic=$_.ToString()}
+$r|ConvertTo-Json -Compress
+if($r.Status -ne 'Created'){exit 1}
+'@|Set-Content -LiteralPath $adapter -Encoding UTF8
 function NewCheckpointListener($Selector,$Values) {
     $doc=[Xml.XmlDocument]::new();$element=$doc.CreateElement('cfg','Listener','http://schemas.microsoft.com/wbem/wsman/1/config/listener');$null=$doc.AppendChild($element)
     foreach($name in @('Port','Hostname','Enabled','URLPrefix','CertificateThumbprint')){$child=$doc.CreateElement('cfg',$name,$element.NamespaceURI);$child.InnerText=[string]$Values[$name];$null=$element.AppendChild($child)}
-    $payload=Join-Path $root ('native-listener-'+[guid]::NewGuid().ToString('N')+'.xml')
-    [IO.File]::WriteAllText($payload,$doc.OuterXml,[Text.UTF8Encoding]::new($false))
-    $held=[IO.File]::Open($payload,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+    $payload=Join-Path $root ('native-listener-'+[guid]::NewGuid().ToString('N')+'.xml');[IO.File]::WriteAllText($payload,$doc.OuterXml,[Text.UTF8Encoding]::new($false))
+    $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=Join-Path ([Environment]::SystemDirectory) 'WindowsPowerShell/v1.0/powershell.exe'
+    $info.Arguments='-NoLogo -NoProfile -NonInteractive -File "'+$adapter+'" -ListenerAddress "'+$Selector.Address+'" -PayloadPath "'+$payload+'"'
+    $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true;$info.StandardOutputEncoding=[Text.UTF8Encoding]::new($false);$info.StandardErrorEncoding=[Text.UTF8Encoding]::new($false)
+    $process=[Diagnostics.Process]::new();$process.StartInfo=$info
     try {
-        $result=Microsoft.WSMan.Management\New-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet $Selector -FilePath $payload -ErrorAction Stop
-        [string]$result.OuterXml
-    }finally{$held.Dispose()}
+        if(-not $process.Start()){throw 'Native5.1 adapter did not start.'};$childId=$process.Id;$stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()
+        if(-not $process.WaitForExit(20000)){throw 'Native5.1 adapter timed out.'};$text=$stdout.Result;$errorText=$stderr.Result
+        if($errorText -or $text.Length -gt 65536){throw 'Unexpected native adapter output.'}
+        $receipt=$text|ConvertFrom-Json;Save ('adapter-'+[guid]::NewGuid().ToString('N')+'.json') $receipt
+        $identity=[Security.Principal.WindowsIdentity]::GetCurrent();try{$sid=$identity.User.Value}finally{$identity.Dispose()}
+        Assert ($receipt.EngineMajor -eq 5 -and $receipt.ProcessId -eq $childId -and $receipt.UserSid -ceq $sid) 'Actual native5.1 child identity must match the invoking account and observed PID.'
+        if($process.ExitCode -ne 0 -or $receipt.Status -cne 'Created'){throw $receipt.Diagnostic}
+        [string]$receipt.Xml
+    }finally{if($process.Id -and -not $process.HasExited){$process.Kill();$null=$process.WaitForExit(5000)};$process.Dispose()}
 }
 
 $services=ReadServices;$firewall=ReadFirewall;$original=$null;$removed=@();$created=$false;$failure=$null;$cleanupErrors=@();$count=0
@@ -38,7 +60,7 @@ try {
     $original=ReadListeners;Save 'listeners-original.json' $original;Save 'services-original.json' $services;Save 'firewall-original.json' $firewall
     # Replacement is a fixture-only, disposable-VM operation. Product must refuse overlaps.
     foreach($listener in @($original|Where-Object Transport -eq 'HTTP')){
-        Assert ($listener.Port -eq '5985' -and $listener.URLPrefix -eq 'wsman' -and $listener.Enabled -in @('true','false') -and -not $listener.CertificateThumbprint -and $listener.RawXml -notmatch 'Source="GPO"') 'Only ordinary local HTTP fixture listeners can be temporarily replaced.'
+        Assert ($listener.Address -match '^(\*|IP:[0-9.]+)$' -and $listener.Port -eq '5985' -and $listener.URLPrefix -eq 'wsman' -and $listener.Enabled -in @('true','false') -and -not $listener.CertificateThumbprint -and $listener.RawXml -notmatch 'Source="GPO"') 'Only ordinary local HTTP fixture listeners can be temporarily replaced.'
         Microsoft.WSMan.Management\Remove-WSManInstance -ResourceURI 'http://schemas.microsoft.com/wbem/wsman/1/config/listener' -SelectorSet @{Address=$listener.Address;Transport='HTTP'} -ErrorAction Stop
         $removed+=$listener
     }
