@@ -30,7 +30,7 @@ try{
   $manifest=ConvertFrom-WelaArrivalJson ([IO.File]::ReadAllText((Join-Path $out 'manifest.json')))
   Write-Host ($manifest|ConvertTo-Json -Depth 18)
   foreach($file in @(Get-ChildItem -LiteralPath $out -Filter '*.xml')){Write-Host ([IO.File]::ReadAllText($file.FullName))}
-  Assert ($code -eq 0 -and $manifest.Status -eq 'LocalFailedLogonObserved' -and $manifest.ExitCode -eq 0) ('Native public probe failed: '+$manifest.Diagnostic+' '+$cli)
+  Assert ($code -eq 0 -and $manifest.Status -eq 'LocalFailedLogonObserved' -and $manifest.ExitCode -eq 0) ('Native public probe failed with exit '+$code+': '+$manifest.Diagnostic)
   Assert ($manifest.Matches -eq 1 -and $manifest.ReadyRuleCredit -eq 0 -and $manifest.PolicyChanges -eq 0 -and $manifest.AccountChanges -eq 0) 'One exact event, no mutation or Sigma credit.'
   Assert ($manifest.Operation.Attempt.NativeError -eq 1326 -and $manifest.Operation.Attempt.MissingAccountStatus -eq 2221 -and -not $manifest.Operation.Attempt.Succeeded) 'Actual local account absence and failed LogonUser receipt.'
   Assert (Test-WelaFailedLogonEvent ([IO.File]::ReadAllText((Join-Path $out 'event.xml'))) $manifest.Operation $manifest.Before) 'Actual4625 satisfies exact identity/process/type/status/time checks.'

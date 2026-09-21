@@ -109,7 +109,7 @@ function Test-WelaFailedLogonEvent {
             if($node.NodeType -ne 'Element' -or $node.LocalName -cne 'Data' -or $node.NamespaceURI -cne $ns.LookupNamespace('e') -or @($node.ChildNodes|Where-Object NodeType -eq Element).Count){return $false}
             $name=$node.GetAttribute('Name');if(-not $name -or $map.ContainsKey($name)){return $false};$map[$name]=$node.InnerText
         }
-        if($map.TargetUserName -cne $Operation.Attempt.UserName -or $map.TargetDomainName -notin @('.',$State.Host.Computer) -or $map.TargetUserSid -cne 'S-1-0-0' -or $map.LogonType -cne '3' -or $map.AuthenticationPackageName -cne 'NTLM' -or $map.Status -ine '0xc000006d' -or $map.SubStatus -ine '0xc0000064' -or $map.ProcessName -ine $Operation.Executable -or $map.SubjectUserSid -cne $Operation.BeforeToken.UserSid){return $false}
+        if($map.TargetUserName -cne $Operation.Attempt.UserName -or $map.TargetDomainName -notin @('.',$State.Host.Computer) -or $map.TargetUserSid -cne 'S-1-0-0' -or $map.LogonType -cne '3' -or $map.AuthenticationPackageName -cne 'MICROSOFT_AUTHENTICATION_PACKAGE_V1_0' -or $map.Status -ine '0xc000006d' -or $map.SubStatus -ine '0xc0000064' -or $map.ProcessName -ine $Operation.Executable -or $map.SubjectUserSid -cne $Operation.BeforeToken.UserSid){return $false}
         if($map.ProcessId -cnotmatch '^0x[0-9a-fA-F]+$' -or $map.SubjectLogonId -cnotmatch '^0x[0-9a-fA-F]+$' -or [Convert]::ToInt64($map.ProcessId.Substring(2),16) -ne $Operation.ProcessId -or [Convert]::ToUInt64($map.SubjectLogonId.Substring(2),16) -ne [Convert]::ToUInt64($Operation.BeforeToken.AuthenticationId,16)){return $false}
         return $true
     }catch{return $false}finally{if($reader){$reader.Dispose()}}
