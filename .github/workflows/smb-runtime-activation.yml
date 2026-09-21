@@ -25,13 +25,27 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Focused guard, journal and partial-failure regressions
-        shell: ${{ matrix.shell }}
+      - name: Focused regressions in Windows PowerShell 5.1
+        if: matrix.shell == 'powershell'
+        shell: powershell
         run: |
           ./tests/SmbRuntimeActivation.Tests.ps1
           ./tests/SmbRuntimeActivation.Cli.Tests.ps1
-      - name: Actual native activation, refusal and restoration
-        shell: ${{ matrix.shell }}
+      - name: Native activation and restoration in Windows PowerShell 5.1
+        if: matrix.shell == 'powershell'
+        shell: powershell
+        env:
+          WELA_DISPOSABLE_SMB_ACTIVATION: 'true'
+        run: ./tests/SmbRuntimeActivation.Windows.Tests.ps1
+      - name: Focused regressions in PowerShell 7
+        if: matrix.shell == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/SmbRuntimeActivation.Tests.ps1
+          ./tests/SmbRuntimeActivation.Cli.Tests.ps1
+      - name: Native activation and restoration in PowerShell 7
+        if: matrix.shell == 'pwsh'
+        shell: pwsh
         env:
           WELA_DISPOSABLE_SMB_ACTIVATION: 'true'
         run: ./tests/SmbRuntimeActivation.Windows.Tests.ps1

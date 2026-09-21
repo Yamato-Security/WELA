@@ -7,7 +7,7 @@
 
 **Improvements:**
 
-- Added explicit `smb-runtime` activation of six native SMB audit switches, with reviewed module/build/ADMX capabilities, typed policy conflicts, complete configuration drift guards and durable per-switch receipts. Signing, encryption, guest access and service settings are preserved; runtime verification stays separate from events, persistence and Sigma credit. Disposable Server 2025 activation/restoration and Server 2022 refusal tests cover PowerShell 5.1/7. (Related to #377) (@Shirofune-Security)
+- Added explicit `smb-runtime` activation of six native SMB audit switches, with reviewed module/build/ADMX capabilities, typed policy conflicts, complete configuration drift guards and durable per-switch receipts. Signing, encryption, guest access and service settings are preserved; runtime verification stays separate from events, persistence and Sigma credit. Disposable Server 2025 activation/restoration and Server 2022 refusal tests cover PowerShell 5.1/7. (#441) (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
 
