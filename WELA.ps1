@@ -1945,6 +1945,10 @@ function Get-WelaUserProfiles {
 }
 
 $usage = @"
+WELA.ps1 accepts only its documented script parameters. PowerShell common parameters
+(-ErrorAction, -Verbose, -WarningAction, -InformationAction) are not supported.
+Remove these options from automation wrappers; check WELA's exit code instead.
+
 Usage:
   ./WELA.ps1 dns-analytical -Help  # Dedicated DNS Server direct-channel lifecycle
   ./WELA.ps1 wec-runtime -WecRuntimeId subscription-id -ResultsPath new-runtime.json
@@ -2236,6 +2240,13 @@ if (($PSBoundParameters.ContainsKey('ChannelAction') -or $PSBoundParameters.Cont
 
 if ($Cmd -ne 'ldap-diagnostics' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('LdapAction','LdapMode','LdapSearchTimeMs','LdapExpensiveThreshold','LdapInefficientThreshold') }).Count) {
     throw 'LDAP options require the dedicated ldap-diagnostics command. No command was run.'
+}
+
+# Plain scripts retain unknown named options in $args. Check them before every
+# dispatch, including the profile shortcut, so an unsupported -WhatIf or typo
+# cannot accidentally reach a writer. Keep dedicated option diagnostics above.
+if ($args.Count -gt 0) {
+    throw 'Unsupported trailing arguments. PowerShell common parameters (for example -ErrorAction or -Verbose) are not supported. Check -Help for documented options; no command was run.'
 }
 
 if ($Profile -and $Cmd.ToLower() -in @('plan', 'audit', 'audit-settings', 'configure') -and -not $Help) {
@@ -2701,6 +2712,7 @@ switch ($Cmd.ToLower()) {
             Write-Host "  -BackupPath  New directory for the pre-change recovery journal (unique default beside WELA)"
             Write-Host "  -ResultsPath Save structured per-control outcomes as JSON"
             Write-Host ""
+            Write-Host "PowerShell common parameters (-ErrorAction, -Verbose, -WarningAction, -InformationAction) are not supported. Remove them from wrappers and check the exit code."
             Write-Host "Without -Profile, configure applies the YamatoSecurity native logging settings. -Profile applies advanced audit policy and its precedence prerequisite. -DryRun and recovery/results options work with both."
             Write-Host ""
             return
