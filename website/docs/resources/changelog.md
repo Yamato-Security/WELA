@@ -7,6 +7,7 @@
 
 **Improvements:**
 
+- Added explicit `capi2-probe` Plan/Run for a fixed offline ephemeral certificate-chain build and exact local CAPI2 event11 evidence, with public certificate/nonce/PID/token/precise-UTC binding, bounded worker/collection and retained artifacts. Existing channel, certificate-store and trust configuration are preserved; no TLS, revocation, remote delivery or Sigma credit is claimed.
 - Fixed `wmi-probe` operation timing to use the native precise UTC clock consistently in the parent and worker. Explicit clock receipts and launch/completion bounds preserve exact event correlation; sub-millisecond boundary tests and repeated native public-CLI runs cover timing failures without widening the accepted interval. (@Shirofune-Security)
 
 - Added read-only `channel-read` to test actual current-token access to selected built-in local logs. Native query outcomes distinguish denied, missing, empty and observed-event reads independently of metadata/ACL inspection; token/context checks and bounded private reports preserve uncertainty without changing Windows settings or granting Sigma credit. Disposable standard-user denial/read tests cover Server 2022/2025 and PowerShell 5.1/7. (#432) (@Shirofune-Security)
