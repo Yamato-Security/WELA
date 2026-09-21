@@ -1,0 +1,39 @@
+name: Native local WMI access probe
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wmi-probe:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Fixtures and public guards in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WmiProbe.Tests.ps1
+          ./tests/WmiProbe.Cli.Tests.ps1
+      - name: Native owned namespace and4662 in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WmiProbe.Windows.Tests.ps1 -AllowDisposableNamespaceWrite
+      - name: Fixtures and public guards in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WmiProbe.Tests.ps1
+          ./tests/WmiProbe.Cli.Tests.ps1
+      - name: Native owned namespace and4662 in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WmiProbe.Windows.Tests.ps1 -AllowDisposableNamespaceWrite
