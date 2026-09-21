@@ -125,8 +125,8 @@ function Get-WelaWefCollectorPrerequisites {
         if ($rules.Count -ne 1) { throw 'Expected exactly one existing effective firewall rule.' }
         $rule=$rules[0]; $ports=@($rule | Get-NetFirewallPortFilter -ErrorAction Stop); $addresses=@($rule | Get-NetFirewallAddressFilter -ErrorAction Stop)
         $scopeMatches=$addresses.Count -eq 1 -and
-            (@(Compare-Object @($Config.IngressLocalAddresses | Sort-Object -Unique) @($addresses[0].LocalAddress | Sort-Object -Unique)).Count -eq 0) -and
-            (@(Compare-Object @($Config.IngressRemoteAddresses | Sort-Object -Unique) @($addresses[0].RemoteAddress | Sort-Object -Unique)).Count -eq 0)
+            (Test-WelaWefFirewallAddressSet $Config.IngressLocalAddresses @($addresses[0].LocalAddress)) -and
+            (Test-WelaWefFirewallAddressSet $Config.IngressRemoteAddresses @($addresses[0].RemoteAddress))
         $ok=[string]$rule.Enabled -eq 'True' -and [string]$rule.Direction -eq 'Inbound' -and [string]$rule.Action -eq 'Allow' -and [string]$rule.Profile -eq 'Domain' -and
             $ports.Count -eq 1 -and [string]$ports[0].Protocol -in @('TCP','6') -and [string]$ports[0].LocalPort -eq '5985' -and $scopeMatches
         $checks += [pscustomobject]@{ Name='Existing scoped domain ingress rule'; Verified=[bool]$ok; Evidence=@{ Rule=($rule | Select-Object Name,Enabled,Direction,Action,Profile,PolicyStoreSourceType,EnforcementStatus); Ports=$ports | Select-Object Protocol,LocalPort,RemotePort; Addresses=$addresses | Select-Object LocalAddress,RemoteAddress }; Diagnostic='Exact selected rule definition only; other rules, network reachability and effective packet acceptance are not established.' }

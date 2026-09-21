@@ -29,12 +29,14 @@ jobs:
         shell: powershell
         run: |
           ./tests/TranscriptionRecovery.Tests.ps1
+          ./tests/TranscriptionRecovery.Cli.Tests.ps1
           ./tests/TranscriptionRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
       - name: Focused and native public CLI recovery in PowerShell 7
         if: matrix.engine == 'pwsh'
         shell: pwsh
         run: |
           ./tests/TranscriptionRecovery.Tests.ps1
+          ./tests/TranscriptionRecovery.Cli.Tests.ps1
           ./tests/TranscriptionRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
       - name: Retain native policy and cleanup evidence
         if: always()
