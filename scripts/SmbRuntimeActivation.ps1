@@ -17,7 +17,10 @@ function Get-WelaSmbRuntimeCommands {
             $name="SmbShare\$verb-Smb${side}Configuration"
             $found=@(Get-Command -Name $name -ErrorAction Stop)
             if($found.Count -ne 1 -or $found[0].ModuleName -cne 'SmbShare' -or
-                [IO.Path]::GetFullPath($found[0].Module.ModuleBase) -ine $base) {throw 'SMB commands must resolve to the native Windows SmbShare module.'}
+                [IO.Path]::GetFullPath($found[0].Module.ModuleBase) -ine $base) {
+                $observed=@($found | ForEach-Object {[pscustomobject]@{Name=$_.Name;ModuleName=$_.ModuleName;ModuleBase=$_.Module.ModuleBase;Type=$_.CommandType.ToString()}})
+                throw "SMB commands must resolve to the native Windows SmbShare module. Expected $base; observed $(Get-WelaSmbRuntimeKey $observed)"
+            }
             if($verb -eq 'Set') {
                 $component=if($side -eq 'Server'){'LanmanServer'}else{'LanmanWorkstation'}
                 foreach($definition in @(Get-WelaSmbAuditDefinitions | Where-Object Component -eq $component)) {
