@@ -35,8 +35,32 @@ $token=[pscustomobject]@{Sid='S-1-5-21-1-2-3-1001';Name='LAB\Reader';Authenticat
 $descriptor=[pscustomobject]@{ControlFlags=32788;Owner=$null;Group=$null;DACL=@();SACL=@([pscustomobject]@{AceType=2;AceFlags=64;AccessMask=1;Trustee=[pscustomobject]@{SIDString='S-1-1-0'}})}
 $state=[pscustomobject][ordered]@{Namespace='root\default';Computer='LAB';Service='Running';Host=[pscustomobject]@{Status='Observed';Build=26100;ProductType=3;DomainJoined=$false};Token=$token;Descriptor=[pscustomobject]@{Namespace='root\default';DescriptorJson=($descriptor|ConvertTo-Json -Depth 10 -Compress);DescriptorMof='fixture descriptor'};AuditMask=1;Precedence=[pscustomobject]@{ValueExists=$true;Type='DWord';Value=1};Channel=[pscustomobject]@{Name='Security';Enabled=$true;SecurityDescriptor='O:SYG:SYD:(A;;0x1;;;SY)'};Engine='/fixture';EngineHash=('a'*64);Sources='fixture-sources'}
 $operation=[pscustomobject]@{Namespace='root\default';StartedUtc='2025-01-02T03:04:05.1234500Z';CompletedUtc='2025-01-02T03:04:06.1234500Z';ExpectedAccessMask=1;SecurityRecordIdBefore=100;BeforeToken=$token;AfterToken=$token}
+# Clock evidence and exact bounds: coarse or padded intervals cannot authorize events.
+$timed=Clone $operation;$timed|Add-Member NoteProperty Clock 'GetSystemTimePreciseAsFileTime'
+$launch=[DateTimeOffset]'2025-01-02T03:04:05Z';$observed=[DateTimeOffset]'2025-01-02T03:04:07Z'
+$interval=Assert-WelaWmiProbeInterval $timed $launch $observed
+Assert ($interval.Start.UtcDateTime.Ticks -eq ([DateTimeOffset]'2025-01-02T03:04:05.1234500Z').UtcDateTime.Ticks) 'Precise fractional timestamp survives normalization.'
+foreach($case in @('MissingClock','CoarseClock','Reversed','BeforeLaunch','Future','Overlong','ParentReversed')){
+    $bad=Clone $timed;$l=$launch;$o=$observed
+    switch($case){
+        MissingClock {$bad.PSObject.Properties.Remove('Clock')}
+        CoarseClock {$bad.Clock='DateTime.UtcNow'}
+        Reversed {$bad.CompletedUtc='2025-01-02T03:04:05Z'}
+        BeforeLaunch {$bad.StartedUtc='2025-01-02T03:04:04.9999999Z'}
+        Future {$bad.CompletedUtc='2025-01-02T03:04:07.0000001Z'}
+        Overlong {$bad.CompletedUtc='2025-01-02T03:04:25.1234501Z';$o=[DateTimeOffset]'2025-01-02T03:05:00Z'}
+        ParentReversed {$l=$observed;$o=$launch}
+    }
+    Reject {Assert-WelaWmiProbeInterval $bad $l $o} 'precise fixed worker time interval'
+}
+$clockImport=[Wela.WmiProbe.Native].GetMethod('GetSystemTimePreciseAsFileTime',[Reflection.BindingFlags]'NonPublic,Static').GetCustomAttributes([Runtime.InteropServices.DllImportAttribute],$false)[0]
+Assert ($clockImport.ExactSpelling -and $clockImport.EntryPoint -ceq 'GetSystemTimePreciseAsFileTime') 'The native UTC clock is bound exactly.'
 $xml='<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}"/><EventID>4662</EventID><Version>0</Version><Keywords>0x8020000000000000</Keywords><EventRecordID>101</EventRecordID><Channel>Security</Channel><Computer>LAB</Computer><TimeCreated SystemTime="2025-01-02T03:04:05.5000000Z"/></System><EventData><Data Name="SubjectUserSid">S-1-5-21-1-2-3-1001</Data><Data Name="SubjectLogonId">0x123</Data><Data Name="ObjectServer">WMI</Data><Data Name="ObjectName">root\default</Data><Data Name="AccessMask">0x1</Data></EventData></Event>'
 Assert (Test-WelaWmiProbeEvent $xml $operation $state) 'Exact synthetic WMI namespace event matches.'
+foreach($edge in @(@('03:04:05.1234500Z',$true),@('03:04:06.1234500Z',$true),@('03:04:05.1234499Z',$false),@('03:04:06.1234501Z',$false))){
+    Assert ((Test-WelaWmiProbeEvent $xml.Replace('03:04:05.5000000Z',$edge[0]) $operation $state) -eq $edge[1]) ('Exact 100ns boundary without positive time padding: '+$edge[0])
+}
+
 $mutations=@(
  @('4662','4663'),@('>0</Version>','>1</Version>'),@('>WMI<','>DS<'),@('root\default','root\cimv2'),@('0x1</Data>','0x2</Data>'),@('0x123','0x124'),@('S-1-5-21-1-2-3-1001','S-1-5-21-1-2-3-1002'),@('>LAB<','>OTHER<'),@('>Security<','>Application<'),@('0x8020000000000000','0x8010000000000000'),@('>101<','>100<'),@('03:04:05.5000000Z','03:04:05.1000000Z'),@('03:04:05.5000000Z','03:04:06.5000000Z'),@('54849625-5478-4994-a5ba-3e3b0328c30d','54849625-5478-4994-a5ba-3e3b0328c30e'),@('Name="AccessMask"','Name="SubjectLogonId"'))
 foreach($pair in $mutations){$changed=$xml.Replace($pair[0],$pair[1]);Assert ($changed -cne $xml) 'Mutation changed the fixture.';Assert (-not(Test-WelaWmiProbeEvent $changed $operation $state)) ('Reject mismatched '+$pair[0])}
