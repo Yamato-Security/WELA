@@ -50,7 +50,7 @@ function Assert-WelaFailedLogonOperation {
     param($Operation,$State,[string]$Nonce,[int]$ProcessId,[DateTimeOffset]$Launch,[DateTimeOffset]$Observed)
     $a=$Operation.Attempt
     foreach($name in @('Nonce','Executable')){if($Operation.$name -isnot [string]){throw 'Unexpected fixed local authentication receipt type.'}}
-    foreach($name in @('UserName','Domain','Clock','StartedUtc','CompletedUtc')){if($a.$name -isnot [string]){throw 'Unexpected fixed local authentication receipt type.'}}
+    foreach($name in @('UserName','Domain','Clock')){if($a.$name -isnot [string]){throw 'Unexpected fixed local authentication receipt type.'}}
     foreach($name in @('MissingAccountStatus','LogonType','LogonProvider','NativeError')){if($a.$name -isnot [int] -and $a.$name -isnot [long]){throw 'Unexpected fixed local authentication receipt type.'}}
     if($Operation.ProcessId -isnot [int] -and $Operation.ProcessId -isnot [long]){throw 'Unexpected fixed local authentication receipt type.'}
     if($Operation.Nonce -cne $Nonce -or $Operation.ProcessId -ne $ProcessId -or $Operation.Executable -ine $State.Engine -or $a.UserName -cne ('WL'+$Nonce.Substring(0,18)) -or $a.Domain -cne '.' -or $a.MissingAccountStatus -ne 2221 -or $a.LogonType -ne 3 -or $a.LogonProvider -ne 2 -or $a.Succeeded -isnot [bool] -or $a.Succeeded -or $a.NativeError -ne 1326 -or $a.Clock -cne 'GetSystemTimePreciseAsFileTime'){throw 'Unexpected fixed local authentication result; no failed-logon proof is granted.'}

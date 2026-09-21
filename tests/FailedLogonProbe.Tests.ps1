@@ -15,6 +15,10 @@ $operation=[pscustomobject]@{Nonce=$nonce;ProcessId=456;Executable=$state.Engine
 $launch=[DateTimeOffset]'2025-01-02T03:04:05Z';$observed=[DateTimeOffset]'2025-01-02T03:04:07Z'
 Assert-WelaFailedLogonOperation $operation $state $nonce 456 $launch $observed
 Assert $true 'A fixed typed receipt under the same inherited authorization is accepted.'
+# PowerShell7 before DateKind support may materialize ISO UTC JSON as DateTime.
+$dated=Clone $operation;$dated.Attempt.StartedUtc=[datetime]::Parse('2025-01-02T03:04:05.1234500Z',[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind);$dated.Attempt.CompletedUtc=[datetime]::Parse('2025-01-02T03:04:06.1234500Z',[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind)
+Assert-WelaFailedLogonOperation $dated $state $nonce 456 $launch $observed
+Assert ($dated.Attempt.StartedUtc -ceq $operation.Attempt.StartedUtc) 'Supported UTC DateTime parsing preserves the exact native interval.'
 foreach($field in @('UserName','Domain','MissingAccountStatus','LogonType','LogonProvider','Succeeded','NativeError','Clock','StartedUtc','CompletedUtc','Nonce','ProcessId','Executable','Token','TokenType')){
  $bad=Clone $operation
  switch($field){
