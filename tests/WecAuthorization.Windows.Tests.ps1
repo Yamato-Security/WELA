@@ -15,12 +15,13 @@ function Key($Value){Get-WelaWecAuthorizationKey $Value}
 function Services {@(Get-CimInstance Win32_Service -Filter "Name='Wecsvc' OR Name='Winmgmt' OR Name='EventLog' OR Name='WinRM'"|Sort-Object Name|Select-Object Name,State,StartMode)}
 function Channel {$c=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('ForwardedEvents');try{[pscustomobject]@{Name=$c.LogName;Enabled=$c.IsEnabled;Mode=[string]$c.LogMode;MaximumBytes=$c.MaximumSizeInBytes;Path=$c.LogFilePath;SecurityDescriptor=$c.SecurityDescriptor}}finally{$c.Dispose()}}
 function EnableChannel([bool]$Value){$c=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('ForwardedEvents');try{$c.IsEnabled=$Value;$c.SaveChanges()}finally{$c.Dispose()}}
-function Ids {@((Invoke-WelaNative 'wecutil.exe' @('es')).Output|ForEach-Object {$_.ToString().Trim()}|Where-Object {$_}|Sort-Object)}
-function Inventory {$ids=@(Ids);if($ids.Count -gt 64){throw 'Disposable inventory exceeds bound.'};@($ids|ForEach-Object {[pscustomobject]@{Id=$_;Xml=Read-WelaWecSubscriptionXml $_}})}
+Add-Type -Path (Join-Path $PSScriptRoot 'WecAuthorizationFixtureNative.cs')
+function Ids {[Wela.WecAuthorizationFixture.Inventory]::Read()|Sort-Object}
+function Inventory {$ids=@(Ids);Save 'last-observed-ids.json' $ids;@($ids|ForEach-Object {[pscustomobject]@{Id=$_;Xml=Read-WelaWecSubscriptionXml $_}})}
 $nonce=[guid]::NewGuid().ToString('N');$id='WELA-Authorization-'+$nonce;$description='Owned authorization '+$nonce+' '+[char]0x65e5+[char]0x672c
 $sidA='S-1-5-21-111111111-222222222-333333333-1234';$sidB='S-1-5-21-111111111-222222222-333333333-1235'
 $root=Join-Path $env:RUNNER_TEMP ('wela-wec-authorization-'+$nonce);$null=New-Item -ItemType Directory $root
-function Save($Name,$Value){$Value|ConvertTo-Json -Depth 24|Set-Content -LiteralPath (Join-Path $root $Name) -Encoding UTF8}
+function Save($Name,$Value){ConvertTo-Json -InputObject $Value -Depth 24|Set-Content -LiteralPath (Join-Path $root $Name) -Encoding UTF8}
 # Native -File argument binding cannot portably carry a string[] on both engines.
 # This fixture wrapper supplies the selected array to the actual public script.
 $wrapper=Join-Path $root 'invoke-public.ps1'
@@ -32,7 +33,9 @@ if($PSBoundParameters.ContainsKey('Id')){$p.WecAuthorizationId=$Id}
 if($PSBoundParameters.ContainsKey('Sids')){$p.WecAuthorizationSourceSid=@($Sids.Split(';'))}
 if($PSBoundParameters.ContainsKey('PlanPath')){$p.WecAuthorizationPlanPath=$PlanPath}
 if($PSBoundParameters.ContainsKey('PlanHash')){$p.WecAuthorizationPlanHash=$PlanHash}
+$global:LASTEXITCODE=0
 & $WelaPath @p
+exit $LASTEXITCODE
 '@|Set-Content -LiteralPath $wrapper -Encoding UTF8
 function Public([string[]]$Arguments,[string]$Output,[bool]$Success=$true){
  $prior=$ErrorActionPreference;try{$ErrorActionPreference='Continue';$text=@(&$engine -NoLogo -NoProfile -NonInteractive -File $wrapper -WelaPath "$repo/WELA.ps1" @Arguments -OutputPath $Output 2>&1);$code=$LASTEXITCODE}finally{$ErrorActionPreference=$prior}
@@ -48,6 +51,7 @@ try {
  $wec=@($beforeServices|Where-Object Name -eq Wecsvc);Assert ($wec.Count -eq 1 -and $wec[0].State -in @('Running','Stopped') -and $wec[0].StartMode -in @('Auto','Manual','Disabled')) 'Stable original service state required'
  if($wec[0].StartMode -eq 'Disabled'){Set-Service Wecsvc -StartupType Manual};if($wec[0].State -eq 'Stopped'){Start-Service Wecsvc}
  if(-not $beforeChannel.Enabled){EnableChannel $true}
+ Save 'original-console-enumeration.json' (Invoke-WelaNative 'wecutil.exe' @('es'))
  $original=@(Inventory);Save 'original-inventory.json' $original;Assert (@(Ids) -notcontains $id) 'Unique owned subscription is initially absent'
  $query='<QueryList><Query Id="0" Path="Application"><Select Path="Application">*[System[(EventID=1)]]</Select></Query></QueryList>'
  $xml=@"

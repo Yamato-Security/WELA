@@ -18,6 +18,32 @@ Assert ((Get-WelaWecAuthorizationKey @(Get-WelaWecAuthorizationSids @($sidB,$sid
 foreach($good in @($authA,$authAB)){[Wela.WecAuthorization.Edit]::ValidateAuthorization($good);$count++}
 foreach($bad in @('',$authA.Replace('GA','GR'),$authA.Replace('NSG:NS','SYG:SY'),($authA+$authA),$authA.Replace('11-22','011-22'),$authA.Replace('11-22','4294967296-22'),$authAB.Replace($sidB,$sidA),('O:NSG:NSD:(A;;GA;;;'+$sidB+')(A;;GA;;;'+$sidA+')'),($authA+'S:(AU;SA;GA;;;WD)'))){Reject {[Wela.WecAuthorization.Edit]::ValidateAuthorization($bad)}}
 Assert ([Wela.WecAuthorization.Edit]::SourceSha256 -ceq (Get-WelaArrivalHash ([IO.File]::ReadAllBytes("$repo/scripts/WecAuthorizationNative.cs")))) 'Compiled native helper binds the exact source bytes'
+# Allocated EC_VARIANT buffers exercise the WEC ABI rather than EVT_VARIANT values.
+$buffer=[Runtime.InteropServices.Marshal]::AllocHGlobal(64)
+try {
+ for($i=0;$i -lt 64;$i++){[Runtime.InteropServices.Marshal]::WriteByte($buffer,$i,0)}
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,2)
+ Assert ([Wela.WecAuthorization.Edit]::Decode($buffer,16,27) -eq [uint32]0) 'EcVarTypeUInt32 is 2 and source-initiated value is zero'
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,0,1)
+ Assert ([Wela.WecAuthorization.Edit]::Decode($buffer,16,27) -eq [uint32]1) 'Collector-initiated scalar remains distinguishable'
+ foreach($type in @(0,1,4,8,130)){[Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,$type);Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,16,27)} 'UInt32'}
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,1)
+ Assert ([Wela.WecAuthorization.Edit]::Decode($buffer,16,0) -eq $true) 'Native scalar Boolean decodes true'
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,0,0)
+ Assert ([Wela.WecAuthorization.Edit]::Decode($buffer,16,0) -eq $false) 'Native scalar Boolean decodes false'
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,0,2);Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,16,0)} 'Boolean'
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,4)
+ [Runtime.InteropServices.Marshal]::WriteIntPtr($buffer,[IntPtr]::Add($buffer,16));[Runtime.InteropServices.Marshal]::WriteInt16($buffer,16,65)
+ Assert ([Wela.WecAuthorization.Edit]::Decode($buffer,20,31) -ceq 'A') 'String data is decoded within returned bounds'
+ Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,18,31)} 'Unterminated'
+ [Runtime.InteropServices.Marshal]::WriteIntPtr($buffer,[IntPtr]::Add($buffer,64));Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,20,31)} 'outside'
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,132);Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,20,31)} 'scalar'
+ Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,15,31)} 'buffer';Reject {[Wela.WecAuthorization.Edit]::Decode([IntPtr]::Zero,16,31)} 'buffer'
+ Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,16,1)} 'selection'
+ [Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,0)
+ Assert ([Wela.WecAuthorization.Edit]::Decode($buffer,16,6) -ceq '') 'Absent description normalizes to empty'
+ Reject {[Wela.WecAuthorization.Edit]::Decode($buffer,16,31)} 'scalar'
+}finally{[Runtime.InteropServices.Marshal]::FreeHGlobal($buffer)}
 $before=Get-WelaWecAuthorizationDefinition $base;$after=Get-WelaWecAuthorizationDefinition ($base.Replace($authA,$authAB))
 Assert ($before.SourceSids.Count -eq 1 -and $after.SourceSids.Count -eq 2 -and $before.PreservedKey -ceq $after.PreservedKey -and $before.WholeKey -cne $after.WholeKey) 'Only the explicit allow list is excluded from preserved XML'
 foreach($bad in @($base.Replace('SourceInitiated','CollectorInitiated'),$base.Replace('>false</Enabled>','>true</Enabled>'),$base.Replace($authA,'D:(A;;GA;;;WD)'),$base.Replace($authA,''),$base.Replace($authA,$authAB.Replace($sidB,$sidA)),$base.Replace('Path="Security"','Path="Microsoft-Windows-Sysmon/Operational"'),$base.Replace('</Subscription>','<AllowedSourceDomainComputers>bad</AllowedSourceDomainComputers></Subscription>'))){Reject {Get-WelaWecAuthorizationDefinition $bad}}

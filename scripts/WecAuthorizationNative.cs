@@ -31,6 +31,20 @@ namespace Wela.WecAuthorization {
    }
    if(!String.Equals(expected.ToString(),value,StringComparison.Ordinal))throw new ArgumentException("Unsupported authorization descriptor.");
   }
+  // Public only for allocated-buffer ABI/type regression tests; performs no native calls.
+  public static object Decode(IntPtr buffer,uint size,int property) {
+   if(buffer==IntPtr.Zero||size<16||size>1048576||property!=0&&property!=6&&property!=7&&property!=10&&property!=11&&property!=19&&property!=27&&property!=31)throw new InvalidOperationException("Invalid native property buffer or selection.");
+     int type=Marshal.ReadInt32(buffer,12);
+     if(property==27){if(type!=2)throw new InvalidOperationException("Subscription type is not UInt32.");return unchecked((uint)Marshal.ReadInt32(buffer));}
+     if(property==0){if(type!=1)throw new InvalidOperationException("Enabled is not a scalar Boolean.");int value=Marshal.ReadInt32(buffer);if(value!=0&&value!=1)throw new InvalidOperationException("Invalid native Boolean.");return value==1;}
+     if(type==0&&property==6)return "";
+     if(type!=4)throw new InvalidOperationException("Expected scalar native string.");
+     IntPtr pointer=Marshal.ReadIntPtr(buffer);long offset=pointer.ToInt64()-buffer.ToInt64();
+     if(pointer==IntPtr.Zero||offset<16||offset>size-2)throw new InvalidOperationException("Native string pointer is outside its buffer.");
+     StringBuilder text=new StringBuilder();
+     for(int i=0;i<524288&&offset+2L*i+2<=size;i++){char c=(char)(ushort)Marshal.ReadInt16(pointer,2*i);if(c==0)return text.ToString();text.Append(c);}
+     throw new InvalidOperationException("Unterminated native string.");
+  }
   static object Read(IntPtr h,int property) {
    uint size=16;
    for(int attempt=0;attempt<3;attempt++) {
@@ -39,16 +53,7 @@ namespace Wela.WecAuthorization {
      uint used;bool ok=EcGetSubscriptionProperty(h,property,0,size,buffer,out used);int error=Marshal.GetLastWin32Error();
      if(!ok){if(error!=122)throw new Win32Exception(error);if(used<=size||used>1048576)throw new InvalidOperationException("Invalid native property buffer size.");size=used;continue;}
      if(used<16||used>size)throw new InvalidOperationException("Invalid native property length.");
-     int type=Marshal.ReadInt32(buffer,12);
-     if(property==27){if(type!=8)throw new InvalidOperationException("Subscription type is not UInt32.");return unchecked((uint)Marshal.ReadInt32(buffer));}
-     if(property==0){if(type!=1)throw new InvalidOperationException("Enabled is not a scalar Boolean.");int value=Marshal.ReadInt32(buffer);if(value!=0&&value!=1)throw new InvalidOperationException("Invalid native Boolean.");return value==1;}
-     if(type==0&&property==6)return "";
-     if(type!=4)throw new InvalidOperationException("Expected scalar native string.");
-     IntPtr pointer=Marshal.ReadIntPtr(buffer);long offset=pointer.ToInt64()-buffer.ToInt64();
-     if(pointer==IntPtr.Zero||offset<16||offset>used-2)throw new InvalidOperationException("Native string pointer is outside its buffer.");
-     StringBuilder text=new StringBuilder();
-     for(int i=0;i<524288&&offset+2L*i+2<=used;i++){char c=(char)(ushort)Marshal.ReadInt16(pointer,2*i);if(c==0)return text.ToString();text.Append(c);}
-     throw new InvalidOperationException("Unterminated native string.");
+     return Decode(buffer,used,property);
     }finally{Marshal.FreeHGlobal(buffer);}
    }
    throw new InvalidOperationException("Native property changed repeatedly.");
