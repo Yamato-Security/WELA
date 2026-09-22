@@ -78,8 +78,17 @@ function Get-WSManInstance {
 }
 function Get-NetFirewallRule { param($Name,$PolicyStore) Assert ($PolicyStore -eq 'ActiveStore') 'Ingress is read from effective ActiveStore'; [pscustomobject]@{ Name=$Name; Enabled=$global:WelaWefFixture.Ingress; Direction='Inbound'; Action='Allow'; Profile='Domain'; PolicyStoreSourceType='Local'; EnforcementStatus='Full' } }
 function Get-NetFirewallPortFilter { [CmdletBinding()]param([Parameter(ValueFromPipeline)]$Rule) process { [pscustomobject]@{ Protocol='TCP'; LocalPort='5985'; RemotePort='Any' } } }
-function Get-NetFirewallAddressFilter { [CmdletBinding()]param([Parameter(ValueFromPipeline)]$Rule) process { [pscustomobject]@{ LocalAddress=@('192.0.2.10'); RemoteAddress=@('192.0.2.0/24') } } }
+function Get-NetFirewallAddressFilter { [CmdletBinding()]param([Parameter(ValueFromPipeline)]$Rule) process { [pscustomobject]@{ LocalAddress=@('192.0.2.10/255.255.255.255'); RemoteAddress=@('192.0.2.0/255.255.255.0') } } }
 function Read-Host { param($Prompt) return $global:WelaWefFixture.Prompt }
+function Get-WelaWecSubscriptionIds {
+    if($global:WelaWefFixture.Fail -eq 'Inventory'){throw 'Incomplete native inventory'}
+    @($global:WelaWefFixture.Subs.Keys)
+}
+function Read-WelaWecSubscriptionXml {
+    param($Id)
+    if($global:WelaWefFixture.Fail -eq 'ReadXml' -or -not $global:WelaWefFixture.Subs.ContainsKey($Id)){throw 'Native definition is no longer readable'}
+    $global:WelaWefFixture.Subs[$Id]
+}
 function Invoke-WelaNative {
     param($FilePath,$Arguments)
     $f=$global:WelaWefFixture
@@ -90,8 +99,7 @@ function Invoke-WelaNative {
     }
     Assert ($FilePath -eq 'wecutil.exe') 'Only native wecutil subscription API is called'
     switch ($Arguments[0]) {
-        'es' { return [pscustomobject]@{ ExitCode=0; Output=@($f.Subs.Keys); Diagnostic=(@($f.Subs.Keys) -join "`n") } }
-        'gs' { if (-not $f.Subs.ContainsKey($Arguments[1])) { throw 'No fixture subscription' }; return [pscustomobject]@{ ExitCode=0; Output=@($f.Subs[$Arguments[1]]); Diagnostic=$f.Subs[$Arguments[1]] } }
+        {$_ -in @('es','gs')} {throw 'Subscription inventory and XML must bypass console decoding.'}
         'gr' { return [pscustomobject]@{ ExitCode=0; Output=@('Localized runtime fixture'); Diagnostic='Localized runtime fixture' } }
         'cs' {
             Record-Write Subscription $Arguments
@@ -214,6 +222,22 @@ try {
     $report=Invoke-Collector
     Assert ($report.ExitCode -eq 1 -and $global:WelaWefFixture.Writes.Count -eq 0) 'An existing disabled/different subscription is never silently updated'
     Assert ($report.Subscriptions[0].RequestedEnabled -and $report.Subscriptions[0].ObservedEnabled -eq $false) 'Inventory distinguishes an observed disabled subscription from the requested enabled definition'
+    Reset-Fixture
+    foreach($failure in @('Inventory','ReadXml')) {
+        Reset-Fixture
+        $model=Import-WelaWefConfig (Join-Path $temp 'collector.json') Collector
+        $global:WelaWefFixture.Subs[$model.Subscriptions[0].Id]=$model.Subscriptions[0].Xml
+        $global:WelaWefFixture.Fail=$failure
+        $report=Invoke-Collector
+        Assert ($report.ExitCode -eq 1 -and $global:WelaWefFixture.Writes.Count -eq 0) 'Incomplete enumeration or disappearing/unreadable XML cannot authorize creation'
+        Assert ($null -eq $report.Subscriptions[0].ObservedSubscription -and $null -eq $report.Subscriptions[0].ObservedEnabled -and $report.Subscriptions[0].ObservationError) 'Read failure stays unknown rather than absent or disabled'
+        Assert (@($report.Controls|Where-Object {$_.Kind -eq 'Subscription' -and $_.Status -eq 'Unknown'}).Count -eq 1) 'Partial observation remains an unknown control'
+    }
+    Reset-Fixture
+    $model=Import-WelaWefConfig (Join-Path $temp 'collector.json') Collector
+    $global:WelaWefFixture.Subs[$model.Subscriptions[0].Id]=$model.Subscriptions[0].Xml.Replace($model.Subscriptions[0].Id,'Different native ID')
+    $report=Invoke-Collector
+    Assert ($report.ExitCode -eq 1 -and $report.Subscriptions[0].ObservationError -match 'identity differs' -and $global:WelaWefFixture.Writes.Count -eq 0) 'Mismatched native XML identity cannot become selected subscription evidence'
     Reset-Fixture
     $global:WelaWefFixture.Fail='false-subscription'
     $report=Invoke-Collector

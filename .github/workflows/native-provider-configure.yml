@@ -1,0 +1,43 @@
+name: Native provider configuration acceptance
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-provider-configure:
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Focused provider regressions in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/NativeProviderPacks.Tests.ps1
+      - name: Public native provider configuration in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/NativeProviderConfigure.Windows.Tests.ps1 -AllowDisposableProviderWrite
+      - name: Focused provider regressions in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/NativeProviderPacks.Tests.ps1
+      - name: Public native provider configuration in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/NativeProviderConfigure.Windows.Tests.ps1 -AllowDisposableProviderWrite
+      - name: Retain owned fixture evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-provider-configure-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-provider-configure-*/
+          if-no-files-found: warn
+          retention-days: 7

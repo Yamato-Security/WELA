@@ -61,3 +61,45 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 # Leaf-file recovery review binds these exact helper bytes.
 /scripts/FileSaclRecovery* text eol=lf
 /tests/FileSaclRecovery* text eol=lf
+
+/scripts/Capi2Probe* text eol=lf
+/tests/Capi2Probe* text eol=lf
+
+/scripts/CustomAuditProfiles.ps1 text eol=lf
+
+# Reviewed WEC state plans bind native setter and runtime source bytes.
+/scripts/WecState* text eol=lf
+/scripts/WecRuntime* text eol=lf
+/tests/WecState* text eol=lf
+
+/scripts/WecListener* text eol=lf
+# Existing-file read receipts bind identical native/worker source bytes.
+/scripts/FileAccessProbe* text eol=lf
+/tests/FileAccessProbe* text eol=lf
+
+# Disposable native provider configuration fixture
+tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
+
+# Disposable public registry lifecycle fixture bytes are retained in evidence.
+/tests/RegistrySacl* text eol=lf
+/scripts/WecAuthorization* text eol=lf
+/tests/WecAuthorization* text eol=lf
+# Reviewed channel restoration binds exact installed source bytes.
+/scripts/ChannelRecovery.ps1 text eol=lf
+/tests/ChannelRecovery*.ps1 text eol=lf
+
+# Registry recovery plans bind identical source bytes across native hosts.
+/scripts/RegistrySaclRecovery* text eol=lf
+/tests/RegistrySaclRecovery* text eol=lf
+/scripts/SelectedSaclDescendants.ps1 text eol=lf
+/scripts/AuditRecovery.ps1 text eol=lf
+/scripts/EvtxRecovery.ps1 text eol=lf
+
+# Collector inventory reads native UTF16 names and bounded Unicode XML.
+/modules/WecSubscriptionInventory.cs text eol=lf
+/tests/WecCollectorObservation* text eol=lf
+/tests/WecSubscriptionInventory* text eol=lf
+
+# Public filesystem-SACL disposable lifecycle evidence.
+tests/FileSaclProfileFixture.cs text eol=lf
+tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf

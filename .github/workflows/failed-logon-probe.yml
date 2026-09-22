@@ -1,0 +1,47 @@
+name: Native local failed-logon probe
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  failed-logon-probe:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Fixtures and public guards in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/FailedLogonProbe.Tests.ps1
+          ./tests/FailedLogonProbe.Cli.Tests.ps1
+      - name: Native local account failure and4625 in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/FailedLogonProbe.Windows.Tests.ps1 -AllowDisposableAuditWrite
+      - name: Fixtures and public guards in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/FailedLogonProbe.Tests.ps1
+          ./tests/FailedLogonProbe.Cli.Tests.ps1
+      - name: Native local account failure and4625 in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/FailedLogonProbe.Windows.Tests.ps1 -AllowDisposableAuditWrite
+      - name: Preserve bounded native evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: failed-logon-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-failed-logon-native-*/**
+          retention-days: 7
+          if-no-files-found: warn
