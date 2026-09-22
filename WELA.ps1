@@ -228,7 +228,10 @@
     [ValidateRange(1,1024)][int]$MeasurementMaximumEvents = 256,
     [string]$MeasurementOutputPath,
     [switch]$MeasurementExportEvtx,
-    [switch]$Help
+    [switch]$Help,
+    [ValidateSet("Plan","Run")][string]$RegistryProbeAction = "Plan",
+    [string]$RegistryProbeOutputPath,
+    [ValidateRange(1,30)][int]$RegistryProbeTimeoutSeconds = 15
 )
 
 $WELAVersion     = "2.2.0"
@@ -263,6 +266,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/FileAccessProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/RegistryValueProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
@@ -2167,6 +2171,8 @@ if ($Cmd -eq 'intune-export' -and @($PSBoundParameters.Keys | Where-Object { $_ 
     throw 'intune-export accepts only Intune target/export options, IncludeOptional and Help. No command was run.'
 }
 
+if ($Cmd -ne 'registry-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'RegistryProbe*'}).Count) {throw 'RegistryProbe options require registry-probe.'}
+if ($Cmd -eq 'registry-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','RegistryProbeAction','RegistryProbeOutputPath','RegistryProbeTimeoutSeconds','Help')}).Count) {throw 'registry-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'file-access-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FileProbe*'}).Count) {throw 'FileProbe options require file-access-probe.'}
 if ($Cmd -eq 'file-access-probe' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileProbeAction','FileProbePath','FileProbeOutputPath','FileProbeTimeoutSeconds','Help')}).Count)) {throw 'file-access-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
@@ -2425,6 +2431,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaEvtxRecovery -Action $EvtxAction -ProbePath $EvtxProbePath -ArchivePath $EvtxArchivePath -OutputPath $EvtxOutputPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'registry-probe' {
+        if ($Help) {Write-Host 'Usage: registry-probe [-RegistryProbeAction Plan|Run] [-RegistryProbeOutputPath new-directory] [-RegistryProbeTimeoutSeconds 15]. Uses only the existing current-user Software\WELA\AuditProbe key with existing SetValue SACL and Registry success policy. Run creates, modifies and deletes one owned nonce value; never configures auditing. See docs/registry-value-probe.md.';return}
+        $report=Invoke-WelaRegistryValueProbe -Action $RegistryProbeAction -OutputPath $RegistryProbeOutputPath -TimeoutSeconds $RegistryProbeTimeoutSeconds
+        $report|ConvertTo-Json -Depth 28
+        exit $report.ExitCode
     }
     'file-access-probe' {
         if ($Help) {Write-Host 'Usage: file-access-probe [-FileProbeAction Plan] -FileProbePath C:\Audit\existing-file.txt; Run additionally requires -FileProbeOutputPath C:\Evidence\new-probe [-FileProbeTimeoutSeconds 15]. Reads one byte and discards it; event matching uses the measured read plus held-handle identity/security readback phase, with the ReadFile return recorded separately. Source-tree/active-engine targets and aliases are refused before hashing. Existing File System success policy, precedence and matching ReadData SACL are required; no policy, ACL or file-data writes. Local4663 success only, no failure/forwarding/Sigma credit. See docs/file-access-probe.md.';return}
