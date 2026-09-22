@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added native public filesystem SACL lifecycle validation for one genuine redirected per-user catalog target on disposable Server 2022/2025 with PowerShell 5.1/7. Actual Plan/DryRun/Configure, stale-child refusal and idempotence preserve unrelated security and protected descendants; an inherited leaf SACL is checked against an exact public-probe Security4663. Retained receipts and hashes verify full typed profile, hive, token, audit-policy and owned-file cleanup without production profile loading, remote-user, future-child or Sigma claims. (Related #373) (@Shirofune-Security)
+
 - Added opt-in `registry-sacl-recovery` for one proven explicit registry-root audit ACE, requiring four matching original records, a reviewed plan hash, empty historical/current descendants and separate audit-reduction/inheritance consent. Native SACL-only removal preserves unrelated descriptor fields and ACE order, retains partial-write evidence and reports original-byte equality separately; no authenticated historical key/operator identity, atomic-tree, event or Sigma claim. (Related #373) (@Shirofune-Security)
 
 - Add native public SMB policy configuration acceptance on Server 2022/2025 and PowerShell 5.1/7: six-policy apply/readback and idempotence on supported hosts, unsupported-host skips, typed original journals, unrelated-state preservation and exact cleanup. Event generation and runtime activation remain separate. (Related #377) (@Shirofune-Security)

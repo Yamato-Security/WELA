@@ -4,14 +4,11 @@ $ErrorActionPreference='Stop'
 if(-not $AllowDisposableProfileWrite -or $env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or [Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Explicit disposable hosted native Windows fixture only.'}
 $script:ScriptRoot=Split-Path $PSScriptRoot -Parent
 Import-Module (Join-Path $script:ScriptRoot 'modules/AuditProfiles.psm1') -ErrorAction Stop
-foreach($name in @('Configuration','WefArrival','WmiProbe','ChannelRead','SelectedSaclConfiguration','FileAccessProbe')){. (Join-Path $script:ScriptRoot ('scripts/'+$name+'.ps1'))}
+foreach($name in @('Configuration','WefArrival','WmiProbe','ChannelRead','ControlApplicability','TargetedSaclPlanning','SelectedSaclConfiguration','FileAccessProbe')){. (Join-Path $script:ScriptRoot ('scripts/'+$name+'.ps1'))}
 Initialize-WelaWmiProbeNative
 Add-Type -Path (Join-Path $PSScriptRoot 'RegistrySaclFixtureNative.cs') -ErrorAction Stop
 Add-Type -Path (Join-Path $PSScriptRoot 'FileSaclProfileFixture.cs') -ErrorAction Stop
 $nonce=[guid]::NewGuid().ToString('N')
-$evidence=New-WelaArrivalOutput (Join-Path $env:RUNNER_TEMP ('wela-filesystem-lifecycle-'+$nonce)) $script:ScriptRoot
-$targetRoot=New-WelaArrivalOutput (Join-Path (Join-Path $env:SystemRoot 'Temp') ('wela-filesystem-sacl-'+$nonce)) $script:ScriptRoot
-$files=Join-Path $evidence 'owned-hive-files';$null=New-Item -ItemType Directory $files
 function Save([string]$Name,$Value){[IO.File]::WriteAllText((Join-Path $evidence $Name),(ConvertTo-Json -InputObject $Value -Depth 32),[Text.UTF8Encoding]::new($false))}
 function Key($Value){ConvertTo-Json -InputObject $Value -Depth 32 -Compress}
 function Hives {@([Microsoft.Win32.Registry]::Users.GetSubKeyNames()|Sort-Object)}
@@ -46,11 +43,27 @@ $script:assertions=0
 function Assert($Condition,[string]$Message){if(-not $Condition){throw $Message};$script:assertions++}
 $beforeProfiles=[Wela.FileSaclFixture.Profile]::Snapshot();$beforeHives=Hives;$beforeToken=[Wela.WmiProbe.Native]::Snapshot()
 $beforeMasks=Get-WelaEffectiveAuditPolicy;$precedencePath='HKLM:\SYSTEM\CurrentControlSet\Control\Lsa';$precedenceName='SCENoApplyLegacyAuditPolicy';$beforePrecedence=Get-WelaRegistryState $precedencePath $precedenceName
+$evidence=New-WelaArrivalOutput (Join-Path $env:RUNNER_TEMP ('wela-filesystem-lifecycle-'+$nonce)) $script:ScriptRoot
+$targetRoot=New-WelaArrivalOutput (Join-Path (Join-Path $env:SystemRoot 'Temp') ('wela-filesystem-sacl-'+$nonce)) $script:ScriptRoot
+$files=Join-Path $evidence 'owned-hive-files';$null=New-Item -ItemType Directory $files
 Save 'before-profiles.json' $beforeProfiles;Save 'before-hives.json' $beforeHives;Save 'before-token.json' $beforeToken;Save 'before-masks.json' $beforeMasks;Save 'before-precedence.json' $beforePrecedence
 $hive=[Wela.RegistrySaclFixture.Hive]::new($nonce,(Join-Path $files 'owned.dat'));$profile=$null;$failure=$null;$cleanupErrors=@();$policyTouched=$false;$auditGuid='0CCE921D-69AE-11D9-BED3-505054503030'
 try {
     $hive.Prepare();$profile=[Wela.FileSaclFixture.Profile]::new($nonce,$hive.Sid,$targetRoot);$profile.Prepare()
     $signal=Join-Path $profile.AppDataPath 'Signal';$null=New-Item -ItemType Directory $signal
+    $preparedProfiles=Key ([Wela.FileSaclFixture.Profile]::Snapshot())
+    $collision=[Wela.FileSaclFixture.Profile]::new($nonce,$hive.Sid,$targetRoot);$refusal=''
+    try{$collision.Prepare()}catch{$refusal=$_.Exception.Message}finally{$collision.Dispose()}
+    Assert ($refusal -match 'already exists' -and -not $collision.Created -and (Key ([Wela.FileSaclFixture.Profile]::Snapshot())) -ceq $preparedProfiles) 'A real colliding ProfileList entry is never claimed, altered or removed by a new fixture owner.'
+    $ownedProfilePath='Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\'+$hive.Sid
+    try{
+        Set-ItemProperty -LiteralPath $ownedProfilePath -Name ProfileImagePath -Type String -Value $profile.ProfilePath
+        $refusal='';try{$profile.Dispose()}catch{$refusal=$_.Exception.Message}
+        Assert ($refusal -match 'changed' -and $profile.Created -and (Test-Path -LiteralPath $ownedProfilePath)) 'Typed ownership drift refuses profile deletion despite identical text.'
+    }finally{Set-ItemProperty -LiteralPath $ownedProfilePath -Name ProfileImagePath -Type ExpandString -Value $profile.ProfilePath}
+    $profile.AssertOwned()
+    Assert ((Key ([Wela.FileSaclFixture.Profile]::Snapshot())) -ceq $preparedProfiles) 'Fixture-only ownership refusal test restores its exact registered profile tuple.'
+
     Public 'catalog' @('targeted-sacl','-TargetSaclProfile','asd-native-2021-10','-IncludeOptional','-ResultsPath',(Join-Path $evidence 'catalog.json'))
     $catalog=Read-Receipt 'catalog.json'
     Save 'owned-profile.json' ([pscustomobject]@{Sid=$hive.Sid;Nonce=$nonce;Root=$targetRoot;ProfilePath=$profile.ProfilePath;AppDataPath=$profile.AppDataPath;SelectedPath=$signal})
