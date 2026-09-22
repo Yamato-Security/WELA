@@ -1,0 +1,44 @@
+name: Native public registry SACL lifecycle
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'tests/RegistrySacl*'
+      - 'scripts/SelectedSacl*'
+      - 'scripts/TargetedSaclPlanning.ps1'
+      - 'WELA.ps1'
+      - '.github/workflows/registry-sacl-lifecycle.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  registry-sacl-lifecycle:
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Actual public registry lifecycle in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/RegistrySaclLifecycle.Tests.ps1
+          ./tests/RegistrySaclLifecycle.Windows.Tests.ps1 -AllowDisposableHiveWrite
+      - name: Actual public registry lifecycle in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/RegistrySaclLifecycle.Tests.ps1
+          ./tests/RegistrySaclLifecycle.Windows.Tests.ps1 -AllowDisposableHiveWrite
+      - name: Retain public receipts, actual XML and exact cleanup
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: registry-sacl-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-registry-sacl-*/
+          if-no-files-found: error

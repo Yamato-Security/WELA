@@ -16,7 +16,7 @@ $options.Impersonation=[System.Management.ImpersonationLevel]::Impersonate
 $options.Timeout=[TimeSpan]::FromSeconds(10)
 $scope=New-Object System.Management.ManagementScope -ArgumentList ('\\.\'+$Namespace),$options
 $searcher=$null;$rows=$null
-$started=[DateTime]::UtcNow
+$started=[Wela.WmiProbe.Native]::UtcNow()
 try {
     $scope.Connect()
     $enumeration=New-Object System.Management.EnumerationOptions
@@ -24,8 +24,8 @@ try {
     $searcher=New-Object System.Management.ManagementObjectSearcher -ArgumentList $scope,([System.Management.ObjectQuery]::new($query)),$enumeration
     $rows=$searcher.Get();$count=0
     foreach($row in $rows){try{$count++;if($count -gt 0){throw 'The random nonexistent namespace filter unexpectedly matched an instance.'}}finally{$row.Dispose()}}
-    $completed=[DateTime]::UtcNow
+    $completed=[Wela.WmiProbe.Native]::UtcNow()
     $after=[Wela.WmiProbe.Native]::Snapshot()
     if((Get-WelaWmiProbeTokenKey $before) -cne (Get-WelaWmiProbeTokenKey $after)){throw 'Worker token changed during the fixed query.'}
-    [pscustomobject]@{Namespace=$Namespace;Query=$query;ExpectedAccessMask=1;ProcessId=$PID;StartedUtc=$started.ToString('o');CompletedUtc=$completed.ToString('o');BeforeToken=$before;AfterToken=$after;ReturnedRows=$count;Operation='Fixed local read; provider completion is separate from audited namespace access'}|ConvertTo-Json -Depth 10 -Compress
+    [pscustomobject]@{Namespace=$Namespace;Query=$query;ExpectedAccessMask=1;ProcessId=$PID;StartedUtc=$started.ToString('o');CompletedUtc=$completed.ToString('o');Clock='GetSystemTimePreciseAsFileTime';BeforeToken=$before;AfterToken=$after;ReturnedRows=$count;Operation='Fixed local read; provider completion is separate from audited namespace access'}|ConvertTo-Json -Depth 10 -Compress
 }finally{if($rows){$rows.Dispose()};if($searcher){$searcher.Dispose()}}

@@ -1,0 +1,47 @@
+name: Native public audit profile configuration
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-profile-configure:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Fixtures and public guards in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/audit-profiles.Tests.ps1
+          ./tests/IntegrationProfileConfiguration.Tests.ps1
+      - name: Native profile configuration in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/ProfileConfigure.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Fixtures and public guards in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/audit-profiles.Tests.ps1
+          ./tests/IntegrationProfileConfiguration.Tests.ps1
+      - name: Native profile configuration in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/ProfileConfigure.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Retain owned fixture evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-profile-configure-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-profile-configure-*/
+          if-no-files-found: warn
+          retention-days: 7

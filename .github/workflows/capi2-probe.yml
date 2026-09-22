@@ -1,0 +1,46 @@
+name: Native offline CAPI2 chain probe
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capi2-probe:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Portable and public guards in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/Capi2Probe.Tests.ps1
+          ./tests/Capi2Probe.Cli.Tests.ps1
+      - name: Genuine public CAPI2 probe in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/Capi2Probe.Windows.Tests.ps1 -AllowDisposableChannelWrite
+      - name: Portable and public guards in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/Capi2Probe.Tests.ps1
+          ./tests/Capi2Probe.Cli.Tests.ps1
+      - name: Genuine public CAPI2 probe in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/Capi2Probe.Windows.Tests.ps1 -AllowDisposableChannelWrite
+      - name: Retain native XML, generated public certificates and cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: capi2-probe-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-capi2-native-*/
+          retention-days: 7
