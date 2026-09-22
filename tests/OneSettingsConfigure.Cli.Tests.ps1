@@ -15,5 +15,12 @@ $cases=@(
 )
 foreach($case in $cases){$old=$ErrorActionPreference;try{$ErrorActionPreference='Continue';$output=&$engine -NoLogo -NoProfile -NonInteractive -File "$repo/WELA.ps1" @($case.Args) 2>&1|Out-String;$code=$LASTEXITCODE}finally{$ErrorActionPreference=$old};if($code -ne $case.Code -or $output -notmatch $case.Pattern){throw "Public option case failed: $($case.Args -join ' ') [$code] $output"};$count++}
 if(Test-Path -LiteralPath $unused){throw 'Unsupported preview created a journal directory.'};$count++
+$defaultPath=$unused+'.json'
+try{
+ $old=$ErrorActionPreference;try{$ErrorActionPreference='Continue';$output=&$engine -NoLogo -NoProfile -NonInteractive -File "$repo/WELA.ps1" audit-notifications -ResultsPath $defaultPath 2>&1|Out-String;$code=$LASTEXITCODE}finally{$ErrorActionPreference=$old}
+ if(-not(Test-Path -LiteralPath $defaultPath)){throw ('Default public Audit failed to create its requested report: '+$output)}
+ $report=Get-Content -LiteralPath $defaultPath -Raw|ConvertFrom-Json
+ if($report.Action -cne 'Audit' -or $report.Current.Count -ne 2 -or (@($report.Current.Definition.Id|Sort-Object) -join ',') -cne 'OneSettings,SecurityWarning' -or $report.ExitCode -ne $code){throw 'Default Audit did not select both controls and preserve its truthful host-specific exit.'};$count++
+}finally{if(Test-Path -LiteralPath $defaultPath){Remove-Item -LiteralPath $defaultPath}}
 Write-Host "PASS: $count public OneSettings option guards."
 $global:LASTEXITCODE=0

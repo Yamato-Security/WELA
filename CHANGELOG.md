@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Add native public OneSettings policy and explicit Privacy-channel configuration acceptance: actual apply, typed journals/readback, idempotence and invalid-value refusals on Server 2022; preserve the existing Server 2025 refusal. Both PowerShell engines verify exact fixture cleanup without event or Sigma claims. Fix omitted notification-control dispatch so default Audit reads both controls and Configure without a selection fails with a nonzero exit. (Related #378) (@Shirofune-Security)
+
 - Added opt-in `registry-sacl-recovery` for one proven explicit registry-root audit ACE, requiring four matching original records, a reviewed plan hash, empty historical/current descendants and separate audit-reduction/inheritance consent. Native SACL-only removal preserves unrelated descriptor fields and ACE order, retains partial-write evidence and reports original-byte equality separately; no authenticated historical key/operator identity, atomic-tree, event or Sigma claim. (Related #373) (@Shirofune-Security)
 
 - Add native public SMB policy configuration acceptance on Server 2022/2025 and PowerShell 5.1/7: six-policy apply/readback and idempotence on supported hosts, unsupported-host skips, typed original journals, unrelated-state preservation and exact cleanup. Event generation and runtime activation remain separate. (Related #377) (@Shirofune-Security)

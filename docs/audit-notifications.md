@@ -76,6 +76,8 @@ CrashOnAuditFail and all 59 audit masks. It never fills or clears a log, changes
 retention, tests warning generation, or supplies OneSettings/Windows 11/DC/AD CS
 acceptance.
 
+A separate [native OneSettings acceptance fixture](native-onesettings-acceptance.md) exercises public policy and dependent-channel configuration on Server 2022 and the existing refusal on Server 2025, under both PowerShell engines. It verifies typed journals, idempotence, actual invalid-value refusals and exact cleanup. This remains settings evidence only.
+
 Before closing issue #378, retain isolated Windows 11 and Server 2022 evidence of
 an authorized benign OneSettings attempt with exact build/patch, policy, channel,
 native event XML and collection result. Do not assume an EventID without inspecting

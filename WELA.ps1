@@ -2579,7 +2579,11 @@ switch ($Cmd.ToLower()) {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-notifications [-NotificationAction Audit|Plan|Configure] [-NotificationControl OneSettings,SecurityWarning] [-WarningPercent 1..90] [-EnablePrivacyChannel] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. See docs/audit-notifications.md.'; return }
         if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-notifications uses actual host context and -ResultsPath; profile/role/build overrides and HTML are unsupported.' }
         if ($NotificationAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'Notification Configure requires Administrator privileges.' }
-        $report=Invoke-WelaNotificationCommand -Action $NotificationAction -Control $NotificationControl -WarningPercent $WarningPercent -EnablePrivacyChannel:$EnablePrivacyChannel -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $notificationArguments=@{Action=$NotificationAction;WarningPercent=$WarningPercent;EnablePrivacyChannel=$EnablePrivacyChannel;Auto=$Auto;DryRun=$DryRun;BackupPath=$BackupPath;ResultsPath=$ResultsPath}
+        # Omit an unspecified ValidateSet array: explicit null fails binding before default Audit
+        # selection or Configure's required-selection guard, and can leave a zero process exit.
+        if($PSBoundParameters.ContainsKey('NotificationControl')){$notificationArguments.Control=$NotificationControl}
+        $report=Invoke-WelaNotificationCommand @notificationArguments
         $report
         if ($report.ExitCode) { exit $report.ExitCode }
     }
