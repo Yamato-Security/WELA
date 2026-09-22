@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Add native public SMB policy configuration acceptance on Server 2022/2025 and PowerShell 5.1/7: six-policy apply/readback and idempotence on supported hosts, unsupported-host skips, typed original journals, unrelated-state preservation and exact cleanup. Event generation and runtime activation remain separate. (Related #377) (@Shirofune-Security)
+
 - Verify public Security-log warning configuration on disposable Server 2022/2025 hosts under Windows PowerShell 5.1/PowerShell 7: absent/zero/higher thresholds, earlier-threshold preservation, dry run, idempotence, wrong-type refusal and exact cleanup. Preserve unrelated registry values, channel configuration, audit masks and CrashOnAuditFail; no log-exhaustion or warning-event claim. (@Shirofune-Security)
 
 - Added disposable public `targeted-sacl` registry lifecycle validation on Server 2022/2025 and both PowerShell engines. A fixture-owned mounted hive exercises reviewed selection, DryRun, additive configuration, stale/prerequisite refusal and idempotence, followed by one precisely attributed Security4657. Retained native receipts verify unrelated ACE/value preservation and exact audit-policy, token and owned-hive cleanup; production does not load hives or gain Sigma credit. (Related #373) (@Shirofune-Security)
