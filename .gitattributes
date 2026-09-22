@@ -85,6 +85,13 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 /scripts/ChannelRecovery.ps1 text eol=lf
 /tests/ChannelRecovery*.ps1 text eol=lf
 
+# Registry recovery plans bind identical source bytes across native hosts.
+/scripts/RegistrySaclRecovery* text eol=lf
+/tests/RegistrySaclRecovery* text eol=lf
+/scripts/SelectedSaclDescendants.ps1 text eol=lf
+/scripts/AuditRecovery.ps1 text eol=lf
+/scripts/EvtxRecovery.ps1 text eol=lf
+
 # Collector inventory reads native UTF16 names and bounded Unicode XML.
 /modules/WecSubscriptionInventory.cs text eol=lf
 /tests/WecCollectorObservation* text eol=lf

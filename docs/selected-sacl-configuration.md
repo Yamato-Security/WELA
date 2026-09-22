@@ -57,6 +57,8 @@ Each attempted change first creates `<target-id>.pending.json`, containing the o
 
 For recovery, review the receipts and a fresh descriptor first. Remove only the explicit ACE demonstrated to have been added by this run; do not remove a matching ACE that was already present. Preserve the existing owner, group, DACL, protection flags and all newer audit entries. If Windows propagated inheritance, use the child snapshots and observations for manual assessment; a matching inherited ACE does not establish that this run owns it. No automatic full-descriptor replacement or bulk rollback is provided by this command. Pending receipts cannot establish that an ACE belongs to WELA; retain them for manual investigation.
 
+For one completed registry-root addition with complete empty historical and current descendant observations, the separate [registry SACL recovery command](registry-sacl-recovery.md) checks the original plan, named Pending/Confirmed receipts and final successful result. A reviewed recovery hash and both audit-reduction/inheritance consents authorize removal of only the proven explicit ACE. Populated trees, pending-only records and full-descriptor rollback remain outside that command's scope.
+
 Windows security updates are not a compare-and-swap transaction against other administrators or GPO. Fresh-state checks and handle-bound mutation reduce races but do not lock out concurrent SACL writers. Use an isolated change window; no later policy persistence or race-free inheritance guarantee is claimed.
 
 ## Reviewed descendant evidence
