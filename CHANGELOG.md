@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Add native public SMB policy configuration acceptance on Server 2022/2025 and PowerShell 5.1/7: six-policy apply/readback and idempotence on supported hosts, unsupported-host skips, typed original journals, unrelated-state preservation and exact cleanup. Event generation and runtime activation remain separate. (Related #377) (@Shirofune-Security)
+
 - Add `outgoing-ntlm` Audit/Plan/Configure to manage the outgoing audit DWORD independently of broad configuration. Preserve existing deny by default, require explicit Audit to replace it, refuse unknown types/values and pre-write drift, and retain typed original journals plus native readback. Native Server 2022/2025 tests verify narrow scope and exact cleanup; authentication/event generation remain unverified. (Related #362) (@Shirofune-Security)
 
 - Fixed collector subscription observations to use complete bounded native name enumeration and strict Unicode XML reads instead of console decoding. Empty inventories, failed reads and actual disabled state remain distinct; Unicode descriptions and XPath are preserved. Disposable public Audit/Plan tests cover both Server 2022/2025 and PowerShell engines with exact cleanup, without domain deployment, forwarding or Sigma claims. (Related #368) (@Shirofune-Security)
