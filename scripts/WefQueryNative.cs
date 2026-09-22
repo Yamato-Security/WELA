@@ -66,7 +66,7 @@ namespace Wela.WefQuery {
    uint size=0;for(int attempt=0;attempt<4;attempt++){
     IntPtr buffer=size==0?IntPtr.Zero:Marshal.AllocHGlobal((int)size);
     try{uint used,count;bool ok=EvtRender(IntPtr.Zero,value,1,size,buffer,out used,out count);int error=Marshal.GetLastWin32Error();
-     if(ok){if(used<2||used>size||(used&1)!=0||count!=0||Marshal.ReadInt16(buffer,(int)used-2)!=0)throw new InvalidDataException("Native event XML has an invalid UTF16 boundary.");byte[] bytes=new byte[used-2];Marshal.Copy(buffer,bytes,0,bytes.Length);string xml=new UnicodeEncoding(false,false,true).GetString(bytes);if(xml.IndexOf('\0')>=0)throw new InvalidDataException("Embedded NUL in event XML.");return xml;}
+     if(ok){if(used<2||used>size||(used&1)!=0)throw new InvalidDataException("Native event XML byte boundary differs: used="+used+", allocated="+size+".");if(count!=0)throw new InvalidDataException("Native XML PropertyCount is "+count+", expected zero.");if(Marshal.ReadInt16(buffer,(int)used-2)!=0)throw new InvalidDataException("Native event XML lacks the final UTF16 terminator: used="+used+", allocated="+size+", finalWord="+Marshal.ReadInt16(buffer,(int)used-2)+".");byte[] bytes=new byte[used-2];Marshal.Copy(buffer,bytes,0,bytes.Length);string xml=new UnicodeEncoding(false,false,true).GetString(bytes);if(xml.IndexOf('\0')>=0)throw new InvalidDataException("Embedded NUL in event XML.");return xml;}
      if(error!=122)throw new Win32Exception(error);if(used<=size||used>MaximumBuffer)throw new InvalidDataException("Native event XML exceeds one MiB.");size=used;
     }finally{if(buffer!=IntPtr.Zero)Marshal.FreeHGlobal(buffer);}
    }throw new InvalidDataException("Native event XML buffer did not stabilize.");
