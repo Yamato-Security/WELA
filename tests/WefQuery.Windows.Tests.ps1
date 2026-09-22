@@ -67,6 +67,7 @@ try{
  $query='<QueryList><Query Id="0" Path="System"><Select Path="System">*[System[EventRecordID='+$recordId+']]</Select></Query></QueryList>'
  $match=Invoke-Public (New-Case 'match' $query) 0
  Assert ($match.Status -ceq 'MatchesObserved' -and $match.Matches.Count -eq 1 -and $match.Matches[0].Metadata.RecordId -eq $recordId) 'Actual exact System record selected.'
+ Assert-WelaWefQueryUInt $match.Query.XmlPropertyCounts[0];Assert ($match.Query.XmlPropertyCounts.Count -eq 1) 'Actual native XML PropertyCount is informational and retained.'
  $found=[IO.File]::ReadAllText((Join-Path $root 'result-match/event-001.xml'))
  Assert ((Get-WelaWefXmlKey (Read-WelaWefXml $found).DocumentElement) -ceq (Get-WelaWefXmlKey (Read-WelaWefXml $originalXml).DocumentElement)) 'Actual returned full event matches independent native XML.'
  $suppressed=$query.Replace('</Query>','<Suppress Path="System">*[System[EventRecordID='+$recordId+']]</Suppress></Query>')

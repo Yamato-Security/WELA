@@ -30,9 +30,20 @@ try{
  Reject {[Wela.WefQuery.Native]::DecodeNames($buffer,44)} 'Unterminated names refuse.'
  [Runtime.InteropServices.Marshal]::WriteInt16($buffer,32,[int16]-10240);Reject {[Wela.WefQuery.Native]::DecodeNames($buffer,46)} 'Unpaired Unicode surrogate refuses.'
  foreach($used in @(0,15,1048577)){Reject {[Wela.WefQuery.Native]::DecodeNames($buffer,$used)} "Invalid buffer length $used"}
+ $rendered='<Event>日本語 Ω</Event>';$raw=[Text.Encoding]::Unicode.GetBytes($rendered+[char]0);[Runtime.InteropServices.Marshal]::Copy($raw,0,$buffer,$raw.Length)
+ Assert ([Wela.WefQuery.Native]::DecodeXml($buffer,128,$raw.Length) -ceq $rendered) 'Bounded native rendered XML preserves exact Unicode.'
+ foreach($used in @(0,1,3,130)){Reject {[Wela.WefQuery.Native]::DecodeXml($buffer,128,$used)} "Invalid rendered byte boundary $used"}
+ Reject {[Wela.WefQuery.Native]::DecodeXml([IntPtr]::Zero,128,$raw.Length)} 'Null render buffer refused.'
+ Reject {[Wela.WefQuery.Native]::DecodeXml($buffer,1048577,$raw.Length)} 'Render allocation cap enforced.'
+ Reject {[Wela.WefQuery.Native]::DecodeXml($buffer,128,$raw.Length-2)} 'Missing final XML terminator refused.'
+ [Runtime.InteropServices.Marshal]::WriteInt16($buffer,0,0);Reject {[Wela.WefQuery.Native]::DecodeXml($buffer,128,$raw.Length)} 'Embedded rendered XML NUL refused.'
+ [Runtime.InteropServices.Marshal]::WriteInt16($buffer,0,[int16]-10240);Reject {[Wela.WefQuery.Native]::DecodeXml($buffer,128,$raw.Length)} 'Invalid rendered UTF16 surrogate refused.'
 }finally{[Runtime.InteropServices.Marshal]::FreeHGlobal($buffer)}
-$result=[pscustomobject]@{Opened=$true;Complete=$true;Capped=$false;CleanupConfirmed=$true;NativeError=$null;Diagnostic='';Channels=@([pscustomobject]@{Channel='System';Error=0});DiagnosticChannels=@();DiagnosticNativeError=$null;Events=@()}
+$result=[pscustomobject]@{Opened=$true;Complete=$true;Capped=$false;CleanupConfirmed=$true;NativeError=$null;Diagnostic='';Channels=@([pscustomobject]@{Channel='System';Error=0});DiagnosticChannels=@();DiagnosticNativeError=$null;Events=@();XmlPropertyCounts=@()}
 Assert-WelaWefQueryNativeResult $result @('System') 16;Assert $true 'Complete empty strict result valid.'
+$copy=Clone $result;$copy.Events=@('<Event/>');$copy.XmlPropertyCounts=@(1);Assert-WelaWefQueryNativeResult $copy @('System') 16;Assert $true 'Observed XML PropertyCount=1 is informational, not a values-array requirement.'
+$copy.XmlPropertyCounts=@();Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Every retained XML has a corresponding render observation.'
+$copy.XmlPropertyCounts=@($true);Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Render observation must be an actual native unsigned count.'
 foreach($field in @('Opened','Complete','Capped','CleanupConfirmed')){$copy=Clone $result;$copy.$field='true';Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} "Typed Boolean $field"}
 foreach($field in @('NativeError','DiagnosticNativeError')){$copy=Clone $result;$copy.$field=$true;Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} "Typed native code $field"}
 $copy=Clone $result;$copy.Channels=@();Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Missing native per-channel provenance.'
@@ -41,9 +52,9 @@ $copy=Clone $result;$copy.Channels[0].Error=$true;Reject {Assert-WelaWefQueryNat
 foreach($field in @('Capped','Diagnostic','NativeError','CleanupConfirmed')){$copy=Clone $result;switch($field){Capped{$copy.Capped=$true};Diagnostic{$copy.Diagnostic='failure'};NativeError{$copy.NativeError=5};CleanupConfirmed{$copy.CleanupConfirmed=$false}};Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} "Completeness cannot coexist with $field"}
 $failure=Clone $result;$failure.Opened=$false;$failure.Complete=$false;$failure.NativeError=15001;$failure.Channels=@();$failure.DiagnosticChannels=@([pscustomobject]@{Channel='System';Error=15001})
 Assert-WelaWefQueryNativeResult $failure @('System') 16;Assert $true 'Failed strict query retains separate diagnostic errors.'
-$failure.Events=@('<Event/>');Reject {Assert-WelaWefQueryNativeResult $failure @('System') 16} 'Diagnostic records cannot become matches.'
-$copy=Clone $result;$copy.Events=@($true);Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Typed XML required.'
-$copy=Clone $result;$copy.Events=@('x','y');Reject {Assert-WelaWefQueryNativeResult $copy @('System') 1} 'Event bound enforced.'
+$failure.Events=@('<Event/>');$failure.XmlPropertyCounts=@(1);Reject {Assert-WelaWefQueryNativeResult $failure @('System') 16} 'Diagnostic records cannot become matches.'
+$copy=Clone $result;$copy.Events=@($true);$copy.XmlPropertyCounts=@(1);Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Typed XML required.'
+$copy=Clone $result;$copy.Events=@('x','y');$copy.XmlPropertyCounts=@(1,1);Reject {Assert-WelaWefQueryNativeResult $copy @('System') 1} 'Event bound enforced.'
 $xml='<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Native"/><EventID>1</EventID><EventRecordID>42</EventRecordID><Channel>System</Channel><Computer>Host.example.test</Computer><TimeCreated SystemTime="2026-01-01T00:00:00.1234567Z"/></System><EventData><Data>日本語 Ω &amp; value</Data></EventData></Event>'
 $hostContext=[pscustomobject]@{Computer='Host';DnsHostName='Host';DnsSuffix='example.test'}
 $event=Read-WelaWefQueryEvent $xml @('System') $hostContext;Assert ($event.RecordId -eq 42 -and $event.Channel -ceq 'System') 'Native event selected channel/local host provenance.'
@@ -75,12 +86,12 @@ function Get-WelaWefQueryToken {[pscustomobject]@{Sid='S-1-5-21-1-2-3-1001';Name
 function Get-WelaWefQueryChannelState {param($Channels) $script:lifecycle.ChannelReads++;[pscustomobject]@{Name='System';State=$(if($script:lifecycle.Case -eq 'ChannelDrift' -and $script:lifecycle.ChannelReads -gt 1){'Disabled'}else{'Enabled'})}}
 function Start-WelaWefQueryWorker {
  param($Engine,$RequestPath,$RequestHash)
- $request=ConvertFrom-WelaArrivalJson ([IO.File]::ReadAllText($RequestPath));$result=[pscustomobject]@{Opened=$true;Complete=$true;Capped=$false;CleanupConfirmed=$true;NativeError=$null;Diagnostic='';Channels=@([pscustomobject]@{Channel='System';Error=0});DiagnosticChannels=@();DiagnosticNativeError=$null;Events=@($script:lifecycle.Xml)}
- if($script:lifecycle.Case -eq 'Empty'){$result.Events=@()}
+ $request=ConvertFrom-WelaArrivalJson ([IO.File]::ReadAllText($RequestPath));$result=[pscustomobject]@{Opened=$true;Complete=$true;Capped=$false;CleanupConfirmed=$true;NativeError=$null;Diagnostic='';Channels=@([pscustomobject]@{Channel='System';Error=0});DiagnosticChannels=@();DiagnosticNativeError=$null;Events=@($script:lifecycle.Xml);XmlPropertyCounts=@(1)}
+ if($script:lifecycle.Case -eq 'Empty'){$result.Events=@();$result.XmlPropertyCounts=@()}
  if($script:lifecycle.Case -eq 'Partial'){$result.Complete=$false;$result.Capped=$true}
  if($script:lifecycle.Case -eq 'MissingStatus'){$result.Channels=@()}
- if($script:lifecycle.Case -eq 'DuplicateEvents'){$result.Events=@($script:lifecycle.Xml,$script:lifecycle.Xml)}
- if($script:lifecycle.Case -eq 'FailedQuery'){$result.Opened=$false;$result.Complete=$false;$result.NativeError=5;$result.Channels=@();$result.Events=@()}
+ if($script:lifecycle.Case -eq 'DuplicateEvents'){$result.Events=@($script:lifecycle.Xml,$script:lifecycle.Xml);$result.XmlPropertyCounts=@(1,1)}
+ if($script:lifecycle.Case -eq 'FailedQuery'){$result.Opened=$false;$result.Complete=$false;$result.NativeError=5;$result.Channels=@();$result.Events=@();$result.XmlPropertyCounts=@()}
  $receipt=[pscustomobject]@{SchemaVersion=1;Kind='WelaWefQueryWorker';Nonce=$request.Nonce;ProcessId=4242;Engine=$Engine;ModulePath=$Engine.ModulePath;StartedUtc='2026-01-01T00:00:00Z';CompletedUtc='2026-01-01T00:00:01Z';ReaderBefore=(Get-WelaWefQueryToken);ReaderAfter=(Get-WelaWefQueryToken);Host=$request.Host;Sources=$request.Sources;QuerySha256=$request.QuerySha256;Result=$result}
  if($script:lifecycle.Case -eq 'DateTimeReceipt'){$receipt.StartedUtc=[DateTime]::SpecifyKind([datetime]'2026-01-01T00:00:00',[DateTimeKind]::Utc);$receipt.CompletedUtc=$receipt.StartedUtc.AddSeconds(1)}
  if($script:lifecycle.Case -eq 'InvalidTimeReceipt'){$receipt.StartedUtc=$true}

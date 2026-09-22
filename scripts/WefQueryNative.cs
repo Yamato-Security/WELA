@@ -15,6 +15,7 @@ namespace Wela.WefQuery {
   public LogStatus[] Channels=new LogStatus[0], DiagnosticChannels=new LogStatus[0];
   public uint? DiagnosticNativeError;
   public string[] Events=new string[0];
+  public uint[] XmlPropertyCounts=new uint[0];
  }
  public static class Native {
   public const string SourceSha256="__WELA_WEF_QUERY_SHA256__";
@@ -62,11 +63,20 @@ namespace Wela.WefQuery {
    if(names.Length!=codes.Length||names.Length==0)throw new InvalidDataException("Incomplete native query channel status arrays.");
    LogStatus[] result=new LogStatus[names.Length];for(int i=0;i<names.Length;i++)result[i]=new LogStatus {Channel=names[i],Error=codes[i]};return result;
   }
-  static string Render(IntPtr value) {
-   uint size=0;for(int attempt=0;attempt<4;attempt++){
+  public static string DecodeXml(IntPtr buffer,uint allocated,uint used) {
+   if(buffer==IntPtr.Zero||allocated>MaximumBuffer||used<2||used>allocated||(used&1)!=0)throw new InvalidDataException("Native event XML byte boundary differs: used="+used+", allocated="+allocated+".");
+   if(Marshal.ReadInt16(buffer,(int)used-2)!=0)throw new InvalidDataException("Native event XML lacks the final UTF16 terminator.");
+   byte[] bytes=new byte[used-2];Marshal.Copy(buffer,bytes,0,bytes.Length);string xml=new UnicodeEncoding(false,false,true).GetString(bytes);
+   if(xml.IndexOf('\0')>=0)throw new InvalidDataException("Embedded NUL in event XML.");return xml;
+  }
+  static string Render(IntPtr value,out uint propertyCount) {
+   propertyCount=0;uint size=0;for(int attempt=0;attempt<4;attempt++){
     IntPtr buffer=size==0?IntPtr.Zero:Marshal.AllocHGlobal((int)size);
     try{uint used,count;bool ok=EvtRender(IntPtr.Zero,value,1,size,buffer,out used,out count);int error=Marshal.GetLastWin32Error();
-     if(ok){if(used<2||used>size||(used&1)!=0)throw new InvalidDataException("Native event XML byte boundary differs: used="+used+", allocated="+size+".");if(count!=0)throw new InvalidDataException("Native XML PropertyCount is "+count+", expected zero.");if(Marshal.ReadInt16(buffer,(int)used-2)!=0)throw new InvalidDataException("Native event XML lacks the final UTF16 terminator: used="+used+", allocated="+size+", finalWord="+Marshal.ReadInt16(buffer,(int)used-2)+".");byte[] bytes=new byte[used-2];Marshal.Copy(buffer,bytes,0,bytes.Length);string xml=new UnicodeEncoding(false,false,true).GetString(bytes);if(xml.IndexOf('\0')>=0)throw new InvalidDataException("Embedded NUL in event XML.");return xml;}
+     // XML is a Unicode string, not an EVT_VARIANT array. Reviewed Server 2022/2025 runs returned
+     // PropertyCount=1 here despite the documented zero. Retain it as information;
+     // like .NET EventLogReader, never use it to size or interpret XML.
+     if(ok){propertyCount=count;return DecodeXml(buffer,size,used);}
      if(error!=122)throw new Win32Exception(error);if(used<=size||used>MaximumBuffer)throw new InvalidDataException("Native event XML exceeds one MiB.");size=used;
     }finally{if(buffer!=IntPtr.Zero)Marshal.FreeHGlobal(buffer);}
    }throw new InvalidDataException("Native event XML buffer did not stabilize.");
@@ -74,7 +84,7 @@ namespace Wela.WefQuery {
   static void Close(IntPtr handle,Result result) {if(handle!=IntPtr.Zero&&!EvtClose(handle)){result.CleanupConfirmed=false;result.Complete=false;result.Diagnostic+=" Native query/event handle close failed.";}}
   public static Result Read(string query,int maximum) {
    if(String.IsNullOrEmpty(query)||query.Length>65536||maximum<1||maximum>64)throw new ArgumentException("Query text/event count exceeds the explicit bound.");
-   Result result=new Result();List<string> events=new List<string>();IntPtr handle=IntPtr.Zero;
+   Result result=new Result();List<string> events=new List<string>();List<uint> propertyCounts=new List<uint>();IntPtr handle=IntPtr.Zero;
    try{
     // Local log query, reverse order. Never tolerate errors for matching evidence.
     handle=EvtQuery(IntPtr.Zero,null,query,0x201);
@@ -91,12 +101,12 @@ namespace Wela.WefQuery {
       if(!ok){if(returned!=0||next[0]!=IntPtr.Zero)throw new InvalidDataException("Failed EvtNext returned an unexpected event.");if(error==259)result.Complete=true;else result.NativeError=unchecked((uint)error);break;}
       if(returned!=1||next[0]==IntPtr.Zero)throw new InvalidDataException("EvtNext returned an invalid count or handle.");
       if(events.Count==maximum){result.Capped=true;break;}
-      string xml=Render(next[0]);bytes+=Encoding.UTF8.GetByteCount(xml);if(bytes>4194304)throw new InvalidDataException("Native matching XML exceeds four MiB aggregate.");events.Add(xml);
+      uint propertyCount;string xml=Render(next[0],out propertyCount);bytes+=Encoding.UTF8.GetByteCount(xml);if(bytes>4194304)throw new InvalidDataException("Native matching XML exceeds four MiB aggregate.");events.Add(xml);propertyCounts.Add(propertyCount);
      }finally{Close(next[0],result);}
     }
    }catch(Win32Exception e){result.NativeError=unchecked((uint)e.NativeErrorCode);result.Complete=false;result.Diagnostic+=e.Message;}
    catch(Exception e){result.Complete=false;result.Diagnostic+=e.Message;}
-   finally{Close(handle,result);if(!result.CleanupConfirmed)result.Complete=false;result.Events=events.ToArray();}
+   finally{Close(handle,result);if(!result.CleanupConfirmed)result.Complete=false;result.Events=events.ToArray();result.XmlPropertyCounts=propertyCounts.ToArray();}
    return result;
   }
   public static async Task<string> ReadPipe(TextReader reader,int maximum) {

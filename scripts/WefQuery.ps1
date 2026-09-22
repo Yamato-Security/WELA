@@ -123,9 +123,10 @@ function Start-WelaWefQueryWorker {
 }
 function Assert-WelaWefQueryNativeResult {
  param($Result,[string[]]$Channels,[int]$MaximumEvents)
- Assert-WelaArrivalObject $Result @('Opened','Complete','Capped','CleanupConfirmed','NativeError','Diagnostic','Channels','DiagnosticChannels','DiagnosticNativeError','Events')
+ Assert-WelaArrivalObject $Result @('Opened','Complete','Capped','CleanupConfirmed','NativeError','Diagnostic','Channels','DiagnosticChannels','DiagnosticNativeError','Events','XmlPropertyCounts')
  foreach($name in @('Opened','Complete','Capped','CleanupConfirmed')){if($Result.$name -isnot [bool]){throw 'Mistyped native query outcome.'}}
  if($Result.Diagnostic -isnot [string] -or $Result.Events -isnot [array] -or $Result.Events.Count -gt $MaximumEvents){throw 'Invalid native query evidence count or diagnostic.'}
+ if($Result.XmlPropertyCounts -isnot [array] -or $Result.XmlPropertyCounts.Count -ne $Result.Events.Count){throw 'Native XML render observations do not match retained records.'};foreach($count in $Result.XmlPropertyCounts){Assert-WelaWefQueryUInt $count}
  foreach($name in @('NativeError','DiagnosticNativeError')){if($null -ne $Result.$name){Assert-WelaWefQueryUInt $Result.$name}}
  foreach($field in @('Channels','DiagnosticChannels')){
   $entries=$Result.$field;if($entries -isnot [array] -or $entries.Count -gt 128){throw 'Invalid native query status list.'}
