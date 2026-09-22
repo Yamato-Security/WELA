@@ -155,9 +155,10 @@ function Test-WelaWefFirewallAddressSet {
 }
 
 function Import-WelaWefConfig {
-    param([string]$Path, [ValidateSet('Source','Collector')][string]$Role)
+    param([string]$Path, [ValidateSet('Source','Collector')][string]$Role, [scriptblock]$ReadText)
     $full = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
-    $config = Get-Content -LiteralPath $full -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+    $configText=if($ReadText){ & $ReadText $full }else{Get-Content -LiteralPath $full -Raw -Encoding UTF8 -ErrorAction Stop}
+    $config = $configText | ConvertFrom-Json -ErrorAction Stop
     $known = @('SchemaVersion','Role','CollectorFqdn','CollectorUri','Authentication','SourceSids','SubscriptionFiles','Hardening','SubscriptionManagerSlot','RefreshSeconds','GrantNetworkServiceRead','ApplyChannelProfile','GrantCapi2Read','ListenerAddress','IngressRuleName','IngressLocalAddresses','IngressRemoteAddresses')
     foreach ($property in $config.PSObject.Properties) { if ($property.Name -cnotin $known) { throw "Unknown WEF config field: $($property.Name)" } }
     if ($config.SchemaVersion -ne 1 -or $config.Role -cne $Role) { throw "Expected schema 1 $Role configuration." }
@@ -186,7 +187,7 @@ function Import-WelaWefConfig {
     $subscriptions = @(); $ids = @{}
     foreach ($file in $config.SubscriptionFiles) {
         $target = if ([IO.Path]::IsPathRooted($file)) { $file } else { Join-Path (Split-Path $full -Parent) $file }
-        $xml = Get-Content -LiteralPath $target -Raw -Encoding UTF8 -ErrorAction Stop
+        $xml = if($ReadText){ & $ReadText $target }else{Get-Content -LiteralPath $target -Raw -Encoding UTF8 -ErrorAction Stop}
         $subscription = ConvertFrom-WelaWefSubscription -Xml $xml -SourceSids @($config.SourceSids)
         if ($ids.ContainsKey($subscription.Id)) { throw 'Duplicate subscription ID in selected files.' }
         $ids[$subscription.Id] = $true; $subscriptions += $subscription

@@ -49,6 +49,10 @@
     [string]$ChannelReadOutputPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$WefAction = 'Audit',
     [string]$WefConfigPath,
+    [string]$WefQueryConfigPath,
+    [string]$WefQuerySubscriptionId,
+    [string]$WefQueryOutputPath,
+    [ValidateRange(1,64)][int]$WefQueryMaximumEvents = 16,
     [string]$RetentionConfigPath,
     [string]$RetentionPreviousPath,
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
@@ -278,6 +282,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 . (Join-Path $ScriptRoot "scripts/DnsAnalytical.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
+. (Join-Path $ScriptRoot "scripts/WefQuery.ps1")
 . (Join-Path $ScriptRoot "scripts/WecUpdate.ps1")
 . (Join-Path $ScriptRoot "scripts/WecIngress.ps1")
 . (Join-Path $ScriptRoot "scripts/WecListener.ps1")
@@ -2018,6 +2023,7 @@ Usage:
   ./WELA.ps1 provider-packs -ProviderAction List
   ./WELA.ps1 provider-packs -ProviderAction Plan -ProviderPack dns-client,capi2 -ResultsPath provider-plan.json
 
+  ./WELA.ps1 wef-query -Help # Execute one selected source QueryList locally
   ./WELA.ps1 wef-source -WefAction Plan -WefConfigPath source.json -ResultsPath source-plan.json
   ./WELA.ps1 wec-collector -WefAction Configure -WefConfigPath collector.json -DryRun
 
@@ -2198,6 +2204,8 @@ if ($Cmd -eq 'outgoing-ntlm') {
     if ($OutgoingNtlmMode -eq 'Deny') {throw 'outgoing-ntlm configures auditing only; Deny enforcement is not accepted.'}
     if ($NtlmAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require NtlmAction Configure.'}
 }
+if ($Cmd -ne 'wef-query' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WefQuery*'}).Count) {throw 'WefQuery options require wef-query.'}
+if ($Cmd -eq 'wef-query' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WefQueryConfigPath','WefQuerySubscriptionId','WefQueryOutputPath','WefQueryMaximumEvents','Help')}).Count)) {throw 'wef-query accepts only dedicated read-only options.'}
 if ($Cmd -ne 'wec-authorization' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecAuthorization*'}).Count) {throw 'WecAuthorization options require wec-authorization.'}
 if ($Cmd -eq 'wec-authorization' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecAuthorizationAction','WecAuthorizationId','WecAuthorizationSourceSid','WecAuthorizationPlanPath','WecAuthorizationPlanHash','WecAuthorizationOutputPath','Help')}).Count)) {throw 'wec-authorization accepts only dedicated options.'}
 if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
@@ -2485,6 +2493,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaOutgoingAuditCommand -Action $NtlmAction -Mode $OutgoingNtlmMode -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'wef-query' {
+        if ($Help) {Write-Host 'Usage: wef-query -WefQueryConfigPath source.json -WefQuerySubscriptionId exact-ID -WefQueryOutputPath new-directory [-WefQueryMaximumEvents 16]. Executes the exact selected local QueryList under the actual caller token. Strict query failures and separate partial diagnostics remain visible; empty reads differ from denied/missing/invalid/capped results. No configuration, NETWORK SERVICE access, forwarding or Sigma claim. See docs/wef-query.md.';return}
+        $report=Invoke-WelaWefQuery -ConfigPath $WefQueryConfigPath -SubscriptionId $WefQuerySubscriptionId -OutputPath $WefQueryOutputPath -MaximumEvents $WefQueryMaximumEvents
+        $report | ConvertTo-Json -Depth 32 | Write-Output
+        exit ([int]$report.ExitCode)
     }
     'wec-authorization' {
         if ($Help) {Write-Host 'Usage: wec-authorization [-WecAuthorizationAction Plan] -WecAuthorizationId ID -WecAuthorizationSourceSid desired-SID1,desired-SID2 -WecAuthorizationOutputPath new-directory; then Apply with -WecAuthorizationPlanPath plan.json -WecAuthorizationPlanHash SHA256 -WecAuthorizationOutputPath new-directory. Only the explicit source SID authorization of one already disabled subscription. No SID resolution or forwarding proof. See docs/wec-authorization.md.';return}
