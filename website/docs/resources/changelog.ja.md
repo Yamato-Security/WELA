@@ -7,6 +7,8 @@
 
 **改善:**
 
+- Server 2022/2025 の Windows PowerShell 5.1/PowerShell 7 で、公開 provider-packs コマンドの Plan、DryRun、Configure、冪等性、前提不足・手動対象の拒否、部分適用を実機検証する使い捨て CI を追加。DNS Client、CAPI2、WinRM、RDP Client の設定と復元記録・ハッシュを確認し、完全な ACL、保持モード、大きい既存バッファ、他チャネル、サービス、全監査マスクの保持とテスト後の正確な復元を検証。イベント生成や Sigma 対応の証明は含みません。(@Shirofune-Security)
+
 - カスタム監査プロファイルの公開 Plan、DryRun、Configure、任意項目、再実行、Audit を Server 2022/2025 と Windows PowerShell 5.1/PowerShell 7 の破棄可能な環境で検証します。実際の優先設定、厳密値・最小値・維持の動作、変更前ジャーナル、全59監査マスクと復元を確認します。 (@Shirofune-Security)
 - `wec-listener` の Plan/Apply を追加し、割り当て済みIPv4に限定した新規HTTP5985リスナーを作成できるようにしました。ホスト・実行ユーザー・ソース・WinRMとファイアウォールの状態、計画ハッシュ、実行前記録とネイティブ再読取で変更を検証します。両PowerShellホストから固定のWindows PowerShell 5.1ワーカーを使用し、既存リスナーや状態変化を検出した場合は拒否します。転送到着やSigma対応は別途検証が必要です。 (@Shirofune-Security)
 
