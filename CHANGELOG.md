@@ -2,6 +2,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document the versioned offline Intune audit export and assignment limitations. (Related #1)
+
 - Document the explicit GPO export scope and its domain-deployment limitations. (Related #2)
 
 - Document weighted audit scoring inputs, exclusions, and evidence limitations. (Related #10)
