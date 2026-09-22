@@ -252,6 +252,7 @@
     [string]$MeasurementOutputPath,
     [switch]$MeasurementExportEvtx,
     [switch]$Help,
+    [ValidateSet("Audit","Plan","Configure")][string]$ProcessCommandlineAction = "Audit",
     [ValidateSet('Audit','Plan','Configure')][string]$PowerShellLoggingAction = 'Audit',
     [ValidateSet('ScriptBlock','Module')][string[]]$PowerShellLoggingControl,
     [string[]]$PowerShellLoggingModuleName
@@ -269,6 +270,7 @@ $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/OutgoingNtlmAudit.ps1")
+. (Join-Path $ScriptRoot "scripts/ProcessCommandline.ps1")
 . (Join-Path $ScriptRoot "scripts/NtlmAudit.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsRestartResume.ps1")
@@ -2122,6 +2124,7 @@ Usage:
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
   ./WELA.ps1 powershell-logging -Help # Configure selected Windows PowerShell event policies
   ./WELA.ps1 ntlm-auditing -Help    # Configure selected incoming/domain NTLM auditing
+  ./WELA.ps1 process-commandline -Help
   ./WELA.ps1 outgoing-ntlm -Help    # Configure outgoing NTLM auditing independently
   ./WELA.ps1 wec-authorization -Help # Review source SID authorization on a disabled subscription
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
@@ -2237,6 +2240,11 @@ if ($Cmd -eq 'ntlm-auditing') {
     if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','NtlmAuditAction','NtlmAuditScope','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'ntlm-auditing accepts only its dedicated options.'}
     if ($NtlmAuditAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require NtlmAuditAction Configure.'}
     if ($NtlmAuditAction -eq 'Configure' -and -not $PSBoundParameters.ContainsKey('NtlmAuditScope')) {throw 'Configure requires explicit NtlmAuditScope Incoming, Domain or Both.'}
+}
+if ($Cmd -ne 'process-commandline' -and $PSBoundParameters.ContainsKey('ProcessCommandlineAction')) {throw 'ProcessCommandlineAction requires process-commandline.'}
+if ($Cmd -eq 'process-commandline') {
+    if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','ProcessCommandlineAction','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'process-commandline accepts only its dedicated options.'}
+    if ($ProcessCommandlineAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require ProcessCommandlineAction Configure.'}
 }
 if ($Cmd -ne 'powershell-logging' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'PowerShellLogging*'}).Count) {throw 'PowerShellLogging options require powershell-logging.'}
 if ($Cmd -eq 'powershell-logging') {
@@ -2543,6 +2551,13 @@ switch ($Cmd.ToLower()) {
         if ($Help) {Write-Host 'Usage: ntlm-auditing [-NtlmAuditAction Audit|Plan|Configure] [-NtlmAuditScope Incoming|Domain|Both] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Configure requires explicit scope. Writes only incoming audit DWORD2 and/or actual-DC domain audit DWORD7; preserves all authentication restrictions. See docs/ntlm-auditing.md.';return}
         if ($NtlmAuditAction -eq 'Configure' -and -not (TestAdministrator)) {throw 'NTLM audit configuration requires Administrator privileges.'}
         $report=Invoke-WelaNtlmAuditCommand -Action $NtlmAuditAction -Selection $NtlmAuditScope -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report|Format-List
+        exit $report.ExitCode
+    }
+    'process-commandline' {
+        if ($Help) {Write-Host 'Usage: process-commandline [-ProcessCommandlineAction Audit|Plan|Configure] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Enables only command-line inclusion for Security4688. Audit Process Creation and precedence are separate prerequisites. See docs/process-commandline.md.';return}
+        if ($ProcessCommandlineAction -eq 'Configure' -and -not (TestAdministrator)) {throw 'Command-line policy configuration requires Administrator privileges.'}
+        $report=Invoke-WelaProcessCommandline -Action $ProcessCommandlineAction -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report|Format-List
         exit $report.ExitCode
     }
