@@ -1,6 +1,5 @@
 ﻿param (
     [string]$Cmd,
-    [ValidateSet("Audit","Plan","Configure")][string]$ProcessCommandlineAction = "Audit",
     [string]$OutType = "std",
     [switch]$Debug,
     [string]$Baseline,
@@ -229,7 +228,8 @@
     [ValidateRange(1,1024)][int]$MeasurementMaximumEvents = 256,
     [string]$MeasurementOutputPath,
     [switch]$MeasurementExportEvtx,
-    [switch]$Help
+    [switch]$Help,
+    [ValidateSet("Audit","Plan","Configure")][string]$ProcessCommandlineAction = "Audit"
 )
 
 $WELAVersion     = "2.2.0"
