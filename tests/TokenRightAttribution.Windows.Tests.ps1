@@ -23,6 +23,9 @@ $provider=Get-WinEvent -ListProvider 'Microsoft-Windows-Security-Auditing'
 $schema=@($provider.Events|Where-Object{$_.Id -eq 4703 -and $_.Version -eq 0})
 if($schema.Count -ne 1 -or $provider.Id -ne [guid]'54849625-5478-4994-a5ba-3e3b0328c30d'){throw 'Exactly one installed version0 Security4703 schema is required.'}
 $eventTask=[int]$schema[0].Task.Value
+Save 'provider-diagnostic.json' @{TaskType=$schema[0].Task.GetType().FullName;TaskValue=$schema[0].Task.Value;TaskName=$schema[0].Task.Name;TaskDisplay=$schema[0].Task.DisplayName;Tasks=@($provider.Tasks|ForEach-Object{@{Value=$_.Value;Name=$_.Name;Display=$_.DisplayName;Guid=[string]$_.EventGuid}})}
+$publisher=Invoke-WelaNative wevtutil.exe @('gp','Microsoft-Windows-Security-Auditing','/ge:true','/gm:false','/f:xml')
+$publisherText=$publisher.Output -join "`n";if($publisherText.Length -gt 4194304){throw 'Native publisher metadata exceeds fixture bound.'};[IO.File]::WriteAllText((Join-Path $root 'publisher.xml'),$publisherText)
 $computerProperties=[Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties();$computers=@([Environment]::MachineName,$computerProperties.HostName);if($computerProperties.DomainName){$computers+=$computerProperties.HostName+'.'+$computerProperties.DomainName};$computers=@($computers|Sort-Object -Unique)
 function Channel{(Invoke-WelaNative wevtutil.exe @('gl','Security','/f:xml')).Output -join "`n"}
 function Services{@(Get-Service Winmgmt,EventLog|Sort-Object Name|ForEach-Object{[pscustomobject]@{Name=$_.Name;Status=[string]$_.Status;StartType=[string]$_.StartType}})}
