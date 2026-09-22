@@ -1,0 +1,49 @@
+name: Native WEF query preflight
+on:
+  push:
+    paths: ['WELA.ps1', 'modules/WefSubscriptions.psm1', 'scripts/WefQuery*', 'tests/WefQuery*', '.github/workflows/wef-query.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wef-query:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Query regressions in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WefQuery.Tests.ps1
+          ./tests/WefQuery.Cli.Tests.ps1
+          ./tests/WefDeployment.Tests.ps1
+      - name: Query regressions in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WefQuery.Tests.ps1
+          ./tests/WefQuery.Cli.Tests.ps1
+          ./tests/WefDeployment.Tests.ps1
+      - name: Actual public query semantics in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WefQuery.Windows.Tests.ps1 -AllowDisposableAccount
+      - name: Actual public query semantics in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WefQuery.Windows.Tests.ps1 -AllowDisposableAccount
+      - name: Retain native query evidence and exact fixture cleanup
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wef-query-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-wef-query-*
+          if-no-files-found: warn
+          retention-days: 7
