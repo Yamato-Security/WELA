@@ -1,5 +1,9 @@
 # Native public OneSettings configuration acceptance
 
+### Issue 378 coverage
+
+OneSettings auditing and Security warning thresholds are configured only through explicit, version-aware workflows. Unsupported builds and absent controls are refused or reported, sibling values are preserved, and successful policy writes do not claim warning-event generation or telemetry collection.
+
 The disposable acceptance fixture invokes the actual `WELA.ps1 audit-notifications` command under Windows PowerShell 5.1 and PowerShell 7. It verifies local configuration and the explicit Privacy channel dependency. It does not generate a OneSettings event or claim effective producer behavior, policy persistence, forwarding or Sigma readiness. Sysmon is excluded.
 
 ```powershell
