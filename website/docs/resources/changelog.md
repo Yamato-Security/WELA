@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document weighted audit scoring inputs, exclusions, and evidence limitations. (Related #10)
+
 - Document versioned custom audit-profile loading, semantics, and drift protection. (Related #185)
 
 - Document reproducible native-only Sigma eligibility states and explicit VM/evidence boundaries. (Related #387)
