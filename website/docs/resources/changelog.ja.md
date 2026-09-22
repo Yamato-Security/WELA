@@ -9,6 +9,10 @@
 
 - `outgoing-ntlm` のAudit/Plan/Configureを追加し、送信NTLM監査DWORDを個別に設定できます。既存の拒否設定は既定で維持し、置換には明示的なAuditを要求します。不明な型・値や書込直前の変化を拒否し、元の型付き記録と再読取を保持します。Server 2022/2025のテストで範囲と復元を確認し、認証・イベント生成は未検証として報告します。(関連 #362) (@Shirofune-Security)
 
+- コレクターのサブスクリプション観測で、コンソール経由の文字変換を、上限付きの完全なネイティブ名前列挙と厳密なUnicode XML読取に置き換えました。空の一覧・読取失敗・実際の無効状態を区別し、Unicodeの説明とXPathを保持します。Server 2022/2025と両PowerShellで公開Audit/Planおよび正確な後処理を検証し、ドメイン展開・転送・Sigma対応は主張しません。(関連 #368) (@Shirofune-Security)
+
+- Server 2022/2025 の Windows PowerShell 5.1/PowerShell 7 で、公開 provider-packs コマンドの Plan、DryRun、Configure、冪等性、前提不足・手動対象の拒否、部分適用を実機検証する使い捨て CI を追加。DNS Client、CAPI2、WinRM、RDP Client の設定と復元記録・ハッシュを確認し、完全な ACL、保持モード、大きい既存バッファ、他チャネル、サービス、全監査マスクの保持とテスト後の正確な復元を検証。イベント生成や Sigma 対応の証明は含みません。 WinRM のマニフェスト ID をネイティブの Int64 として比較し、対象外の大きい ID により必要なイベントの確認が失敗する不具合も修正。 (@Shirofune-Security)
+
 - Server 2022/2025 と Windows PowerShell 5.1/PowerShell 7 の破棄可能な環境で、Securityログ警告設定の公開CLIを検証します。未設定・0・高いしきい値、早い警告値の維持、DryRun、再実行、不正型の拒否と完全な復元を確認し、無関係な設定は保持します。ログ枯渇や警告イベント生成は検証範囲外です。 (@Shirofune-Security)
 
 - Server 2022/2025 と両 PowerShell エンジンで、公開 `targeted-sacl` のレジストリ操作を検証する使い捨てテストを追加しました。テスト専用の新規ハイブをマウントし、対象選択、DryRun、監査 ACE の追加、古い計画・前提条件不足の拒否、冪等性と厳密に対応付けた Security4657 を確認します。無関係な ACE・型付き値の保持、監査ポリシー・トークンの復元、所有ハイブのアンロードと削除の証跡を保存します。製品側のハイブ読み込みや Sigma 準備完了の判定は追加しません。(関連 #373) (@Shirofune-Security)

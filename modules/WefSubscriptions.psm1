@@ -194,6 +194,27 @@ function Import-WelaWefConfig {
     [pscustomobject]@{ Config=$config; Path=$full; Subscriptions=$subscriptions }
 }
 
+function Initialize-WelaWecSubscriptionInventory {
+    $path=Join-Path $PSScriptRoot 'WecSubscriptionInventory.cs'
+    $bytes=[IO.File]::ReadAllBytes($path);if($bytes.Length -gt 65536){throw 'Native inventory source exceeds its bound.'}
+    $sha=[Security.Cryptography.SHA256]::Create();try{$hash=([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}
+    if(-not ('Wela.WecInventory.Reader' -as [type])){
+        $source=[Text.UTF8Encoding]::new($false,$true).GetString($bytes).TrimStart([char]0xfeff)
+        if([regex]::Matches($source,'__WELA_SOURCE_SHA256__').Count -ne 1){throw 'Native inventory source binding marker is missing or ambiguous.'}
+        $compile=@{TypeDefinition=$source.Replace('__WELA_SOURCE_SHA256__',$hash);ErrorAction='Stop'}
+        if($PSVersionTable.PSEdition -eq 'Desktop'){$compile.ReferencedAssemblies=@('System.dll','System.Core.dll')}
+        Add-Type @compile
+    }
+    if([Wela.WecInventory.Reader]::SourceSha256 -cne $hash){throw 'Loaded native inventory differs from its source; start a fresh process.'}
+}
+
+function Get-WelaWecSubscriptionIds {
+    if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Native WEC inventory requires 64-bit Windows.'}
+    Initialize-WelaWecSubscriptionInventory
+    # The native method returns nothing until enumeration has completed successfully.
+    [Wela.WecInventory.Reader]::ReadNames()
+}
+
 function Read-WelaWecSubscriptionXml {
     param([Parameter(Mandatory)][string]$Id)
     if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Native WEC XML reads require 64-bit Windows.'}
@@ -207,4 +228,4 @@ function Read-WelaWecSubscriptionXml {
     [Wela.WecXml.Reader]::ReadXml($Id)
 }
 
-Export-ModuleMember -Function ConvertTo-WelaWefFirewallAddressKey, Test-WelaWefFirewallAddressSet, Read-WelaWecSubscriptionXml, Read-WelaWefXml, Get-WelaWefXmlKey, ConvertFrom-WelaWefQuery, Get-WelaWefAuthorization, ConvertFrom-WelaWefSubscription, Import-WelaWefConfig
+Export-ModuleMember -Function Get-WelaWecSubscriptionIds, ConvertTo-WelaWefFirewallAddressKey, Test-WelaWefFirewallAddressSet, Read-WelaWecSubscriptionXml, Read-WelaWefXml, Get-WelaWefXmlKey, ConvertFrom-WelaWefQuery, Get-WelaWefAuthorization, ConvertFrom-WelaWefSubscription, Import-WelaWefConfig
