@@ -278,11 +278,11 @@ function Set-WelaWmiAuditControls {
     param($Context, [array]$Plan)
     foreach ($entry in $Plan) {
         $inherit=@($entry.Definitions|Where-Object {($_.AceFlags -band 2) -ne 0}).Count -gt 0
-        $callback = @{ Namespace = $entry.Namespace; Definitions = $entry.Definitions; Original = $null; ExpectedJson = $null; Applied = $false; VerifiedJson = $null; Inherit=$inherit; PlannedTree=$entry.Descendants; OriginalTree=$null; VerifiedTree=$null; DescendantVerification=[pscustomobject]@{Observation=$null} }
+        $callback = @{ Namespace = $entry.Namespace; Definitions = $entry.Definitions; Original = $null; ExpectedJson = $null; Applied = $false; VerifiedJson = $null; Inherit=$inherit; PlannedTree=$entry.Descendants; OriginalTree=$null; VerifiedTree=$null; DescendantVerification=[pscustomobject]@{ParentSetterAttempted=$false;ParentSetterAccepted=$false;Observation=$null;LastTree=$null} }
         $read = {
             param($state)
             if($state.Inherit){
-                $tree=Get-WelaWmiStableDescendants $state.Namespace
+                $tree=Get-WelaWmiStableDescendants $state.Namespace $state.DescendantVerification
                 if($null -eq $state.OriginalTree){
                     if((Get-WelaWmiDescendantKey $tree) -cne (Get-WelaWmiDescendantKey $state.PlannedTree)){throw 'WMI descendant tree changed after planning; no SACL was written.'}
                     $state.OriginalTree=$tree
@@ -318,10 +318,13 @@ function Set-WelaWmiAuditControls {
         $apply = {
             param($state)
             if($state.Inherit){
-                $fresh=Get-WelaWmiStableDescendants $state.Namespace
+                $fresh=Get-WelaWmiStableDescendants $state.Namespace $state.DescendantVerification
                 if((Get-WelaWmiDescendantKey $fresh) -cne (Get-WelaWmiDescendantKey $state.OriginalTree)){throw 'WMI descendant topology or descriptor changed before the parent setter; no SACL was written.'}
+                $state.DescendantVerification.ParentSetterAttempted=$true
+                $state.DescendantVerification.Observation=$null
             }
             Set-WelaWmiNamespaceDescriptor -Namespace $state.Namespace -ExpectedJson $state.ExpectedJson -Definitions $state.Definitions
+            if($state.Inherit){$state.DescendantVerification.ParentSetterAccepted=$true}
             $state.Applied = $true
         }
         Invoke-WelaConfigurationControl -Context $Context -Id "WmiNamespace/$($entry.Namespace)/SACL" -Kind WmiNamespaceSacl `

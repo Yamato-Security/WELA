@@ -82,12 +82,14 @@ function Get-WelaWmiDescendants {
     [pscustomobject]@{Status=$(if($diagnostics.Count){'Incomplete'}else{'Complete'});Maximum=64;MaximumDepth=8;StartedUtc=$started.ToString('o');CompletedUtc=[DateTime]::UtcNow.ToString('o');Root=$root;Entries=@($entries.ToArray());Diagnostics=@($diagnostics.ToArray())}
 }
 function Get-WelaWmiStableDescendants {
-    param([string]$Namespace)
+    param([string]$Namespace,$Observation)
     $context=Get-WelaWmiDescendantContext
     try {
         $first=Get-WelaWmiDescendants $Namespace
+        if($Observation){$Observation.LastTree=$first}
         if($first.Status -cne 'Complete'){throw ('Incomplete WMI descendant inventory: '+($first.Diagnostics -join '; '))}
         $second=Get-WelaWmiDescendants $Namespace
+        if($Observation){$Observation.LastTree=$second}
         if((Get-WelaWmiDescendantKey $first) -cne (Get-WelaWmiDescendantKey $second)){throw 'WMI descendant topology or full descriptor changed between observations.'}
         $second|Add-Member NoteProperty Context $context
         $second

@@ -11,10 +11,11 @@ function Ace([uint32]$flags=82){[pscustomobject]@{AceType=2;AceFlags=$flags;Acce
 $script:tree=@{};$script:reads=0;$script:changeAt=0;$script:context='caller/host/source';$script:writes=0
 function Reset {
  $script:tree=@{'root\default'=(Descriptor);'root\default\A'=(Descriptor);'root\default\A\B'=(Descriptor);'root\default\Protected'=(Descriptor 40964);'root\default\Protected\B'=(Descriptor)}
- $script:reads=0;$script:changeAt=0;$script:context='caller/host/source';$script:writes=0;$script:prompt=$null
+ $script:reads=0;$script:changeAt=0;$script:context='caller/host/source';$script:writes=0;$script:prompt=$null;$script:failChildrenAfterWrite=$false
 }
 function Get-WelaWmiChildNames {
  param($Namespace,$Maximum)
+ if($script:failChildrenAfterWrite -and $script:writes -gt 0){throw "Injected post-write child-read refusal."}
  @($script:tree.Keys|Where-Object {$_ -clike ($Namespace+'\*') -and $_.Substring($Namespace.Length+1) -notmatch '\\'}|ForEach-Object {$_.Substring($Namespace.Length+1)}|Sort-Object)
 }
 function Get-WelaWmiDescendantContext {$script:context}
@@ -92,6 +93,13 @@ try{
  $c=New-WelaConfigurationContext -Auto -BackupPath (Join-Path $temp unverified)
  Set-WelaWmiAuditControls $c $unverified
  Assert ($script:writes -eq 0 -and (Complete-WelaConfiguration $c).ExitCode -eq 1) 'Missing existing-child inheritance fails without an unnecessary parent rewrite.'
+ Reset;$p=@(Get-WelaWmiAuditPlan -Namespace 'root\default' -IncludeChildren);$script:failChildrenAfterWrite=$true
+ $c=New-WelaConfigurationContext -Auto -BackupPath (Join-Path $temp partial)
+ Set-WelaWmiAuditControls $c $p
+ $r=Complete-WelaConfiguration $c
+ Assert ($r.ExitCode -eq 1 -and $script:writes -eq 1 -and $r.Results[0].Status -eq 'Failed') 'Post-write enumeration failure propagates a nonzero result.'
+ $v=$r.Results[0].DescendantVerification
+ Assert ($v.ParentSetterAttempted -and $v.ParentSetterAccepted -and $null -eq $v.Observation -and $v.LastTree.Status -eq 'Incomplete') 'Partial read failure retains parent-write flags and incomplete native observations without claiming verified outcomes.'
  # Each unrelated mutation invalidates observed propagation, even when required ACE still exists.
  foreach($kind in @('Owner','Dacl','Control','Unknown','NewProperty','Protected','Removed','Extra','Duplicate','Missing','New')){
   Reset;$a=Get-WelaWmiStableDescendants 'root\default';$null=Set-WelaWmiNamespaceDescriptor 'root\default' $a.Root.DescriptorJson $defs
