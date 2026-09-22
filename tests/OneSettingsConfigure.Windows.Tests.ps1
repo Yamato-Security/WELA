@@ -82,6 +82,8 @@ try{
   $policyTouched=$true;if((Policy).ValueExists){Remove-ItemProperty -LiteralPath $path -Name $valueName}
   $channelTouched=$true;$null=Invoke-WelaNative wevtutil.exe @('sl',$channelName,'/e:false','/ms:1048576')
   $seed=Policy;$seedChannel=Get-WelaNativeChannel $channelName;$seedXml=Read-Raw $channelName
+  Save 'prepared.json' @{Policy=$seed;Channel=$seedChannel;ChannelXml=$seedXml}
+  Assert ($seedChannel.MaximumSizeInBytes -ge 1048576) 'Native prepared buffer remains above the technical minimum; use actual rounded readback.'
   $plan=Public 'plan' ($base+@('-NotificationAction','Plan','-EnablePrivacyChannel'))
   Assert ($plan.Plan.Count -eq 1 -and $plan.Plan[0].Status -ceq 'ChangeRequired' -and -not $plan.Plan[0].Before.Policy.ValueExists -and $plan.PrivacyChannelPlan.Count -eq 1) 'Public Plan observes actual absence and the explicit channel dependency.'
   $dry=Public 'dry' ($base+@('-NotificationAction','Configure','-EnablePrivacyChannel','-Auto','-DryRun','-BackupPath',"$root/dry-backup"))
@@ -96,9 +98,10 @@ try{
   $journal=@(Get-Content "$root/policy-backup/before.jsonl"|ConvertFrom-Json);Assert ($journal.Count -eq 1 -and $journal[0].Target.Path -ceq $path -and $journal[0].Target.Name -ceq $valueName -and (Key $journal[0].Before.Policy) -ceq (Key $seed)) 'Original missing value is preserved exactly in the durable journal.'
   $dependent=Public 'dependent' ($base+@('-NotificationAction','Configure','-EnablePrivacyChannel','-Auto','-BackupPath',"$root/dependent-backup"))
   $enabled=Get-WelaNativeChannel $channelName;$enabledXml=Read-Raw $channelName
+  Save 'enabled.json' @{Policy=Policy;Channel=$enabled;ChannelXml=$enabledXml}
   Assert ($dependent.Results.Count -eq 2 -and $dependent.Results[0].Status -ceq 'AlreadyCompliant' -and $dependent.Results[1].Status -ceq 'Applied') 'Verified producer policy precedes one actual dependent channel change.'
   $expected=[xml]$seedXml;$expected.DocumentElement.SetAttribute('enabled','true')
-  Assert ($enabled.IsEnabled -and $enabled.MaximumSizeInBytes -eq 1048576 -and $enabledXml -ceq $expected.OuterXml) 'Only channel Enabled changes; existing larger buffer, retention, full descriptor and metadata survive.'
+  Assert ($enabled.IsEnabled -and $enabled.MaximumSizeInBytes -eq $seedChannel.MaximumSizeInBytes -and $enabledXml -ceq $expected.OuterXml) 'Only channel Enabled changes; existing larger buffer, retention, full descriptor and metadata survive.'
   $journal=@(Get-Content "$root/dependent-backup/before.jsonl"|ConvertFrom-Json);Assert ($journal.Count -eq 1 -and $journal[0].Kind -ceq 'NativeChannel' -and $journal[0].Target.Channel -ceq $channelName -and (Key $journal[0].Before) -ceq (Key $seedChannel)) 'Channel-only journal contains its exact native original configuration.'
   Preserve $policyAfter $enabledXml
   $repeat=Public 'repeat' ($base+@('-NotificationAction','Configure','-EnablePrivacyChannel','-Auto','-BackupPath',"$root/repeat-backup"))
