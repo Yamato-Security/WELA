@@ -5,10 +5,12 @@ on:
     paths:
       - 'WELA.ps1'
       - 'scripts/AuditRecovery.ps1'
+      - 'scripts/NamedRegistryRecovery*'
       - 'scripts/ControlApplicability.ps1'
       - 'scripts/Configuration.ps1'
       - 'modules/AuditProfiles.psm1'
       - 'tests/AuditRecovery*'
+      - 'tests/NamedRegistryRecovery*'
       - '.github/workflows/audit-recovery.yml'
   pull_request:
   workflow_dispatch:
@@ -35,3 +37,15 @@ jobs:
       - name: Native recovery from PowerShell 7 with restoration
         shell: pwsh
         run: ./tests/AuditRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Named logging registry recovery regressions in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/NamedRegistryRecovery.Tests.ps1
+      - name: Native named logging registry recovery and safety restoration in Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/NamedRegistryRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
+      - name: Named logging registry recovery regressions in PowerShell 7
+        shell: pwsh
+        run: ./tests/NamedRegistryRecovery.Tests.ps1
+      - name: Native named logging registry recovery and safety restoration in PowerShell 7
+        shell: pwsh
+        run: ./tests/NamedRegistryRecovery.Windows.Tests.ps1 -AllowDisposablePolicyWrite
