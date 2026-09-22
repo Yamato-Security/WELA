@@ -58,11 +58,23 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/WmiNamespaceAuditing.ps1 text eol=lf
 /scripts/WefArrival.ps1 text eol=lf
 /tests/WmiProbe*.ps1 text eol=lf
+# Leaf-file recovery review binds these exact helper bytes.
+/scripts/FileSaclRecovery* text eol=lf
+/tests/FileSaclRecovery* text eol=lf
+# Actual archive-reader evidence binds implementation and native-token source bytes.
+/scripts/EvtxRecovery.ps1 text eol=lf
+/scripts/NativeValidation.ps1 text eol=lf
+/tests/EvtxRecovery*.ps1 text eol=lf
+/tests/fixtures/EvtxReader*.ps1 text eol=lf
 
 /scripts/TranscriptProbe* text eol=lf
 /scripts/PowerShellTranscription.ps1 text eol=lf
 /scripts/WefArrival.ps1 text eol=lf
 /tests/TranscriptProbe*.ps1 text eol=lf
+# Named registry recovery binds implementation bytes across checkouts.
+/scripts/NamedRegistryRecovery* text eol=lf
+/scripts/AuditRecovery.ps1 text eol=lf
+/tests/NamedRegistryRecovery* text eol=lf
 /scripts/Capi2Probe* text eol=lf
 /tests/Capi2Probe* text eol=lf
 
