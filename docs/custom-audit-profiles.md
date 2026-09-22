@@ -110,7 +110,14 @@ undo partially applied changes, restore a GPO, or invoke policy refresh. Re-run 
 assessment after GPO/MDM refresh to verify effective state.
 
 Tests exercise malformed files, preservation modes, validation ordering, mocked
-writes, prompt-time file changes and final drift. Windows CI performs real read-only
-custom-profile audits on Server 2022/2025 with PowerShell 5.1/7. Configuration and
-benign event/backend acceptance on Windows 11, DC and AD CS labs remain separate;
+writes, prompt-time file changes and final drift. Windows CI also exercises the actual public Plan, DryRun, Configure and Audit
+commands on disposable Server 2022/2025 hosts with PowerShell 5.1/7. A fixture-owned
+custom file selects four canonical controls: minimum and exact masks, an explicit
+optional control, and Not Configured preservation. Tests compare all 59 masks,
+typed precedence, source fingerprints, native channels and original journals,
+then verify exact fixture restoration. Invalid role selection is refused before
+configuration, and repeated configuration makes no further native change.
+These are hosted standalone servers classified by the shared profile engine as
+MemberServer; no domain join or GPO refresh is simulated. Configuration and
+benign event/backend acceptance on Windows 11, domain-joined servers, DC and AD CS labs remain separate;
 no clean-install or detection-coverage claim is made.

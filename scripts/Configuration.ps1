@@ -108,7 +108,7 @@ function Invoke-WelaConfigurationControl {
 
 function Complete-WelaConfiguration {
     param($Context, [string]$ResultsPath, $Plan,
-          [ValidateSet("native-windows-configuration", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only", "windows-powershell-transcription-policy-only", "wef-source-configuration-only", "wec-collector-subscriptions-only", "audit-integrity-local-policy-only", "adcs-audit-settings-only", "disabled-unlinked-gpo-creation-only")]
+          [ValidateSet("native-windows-configuration", "outgoing-ntlm-audit-policy-only", "incoming-domain-ntlm-audit-policy-only", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only", "windows-powershell-transcription-policy-only", "wef-source-configuration-only", "wec-collector-subscriptions-only", "audit-integrity-local-policy-only", "adcs-audit-settings-only", "disabled-unlinked-gpo-creation-only")]
           [string]$Scope = "native-windows-configuration",
           [string]$SuccessMessage = 'Configuration completed; all requested controls verified.')
     if ($Context.PSObject.Properties['CustomProfileGuard']) {
@@ -284,10 +284,17 @@ function Get-WelaAuditPolicyMask {
 
 function Set-WelaAuditPolicyControl {
     param($Context, $Policy, [ValidateRange(0, 3)][int]$Mask = 3,
-          [ValidateSet('exact', 'minimum')][string]$Mode = 'exact', [switch]$RequirePrecedence)
+          [ValidateSet('exact', 'minimum')][string]$Mode = 'exact', [switch]$RequirePrecedence,
+          $IpsecObservations, [scriptblock]$ReadIpsec = { Get-WelaIpsecPrerequisite })
     $guid = $Policy.GUID
-    $state = @{ Guid = $guid; Mask = $Mask; Mode = $Mode; RequirePrecedence = [bool]$RequirePrecedence }
-    $read = { param($state) Get-WelaAuditPolicyMask -Guid $state.Guid }
+    $state = @{ Guid = $guid; Mask = $Mask; Mode = $Mode; RequirePrecedence = [bool]$RequirePrecedence; IpsecObservations=$IpsecObservations; ReadIpsec=$ReadIpsec }
+    $read = { param($state)
+        if ($null -ne $state.IpsecObservations) {
+            $evidence = & $state.ReadIpsec; $state.IpsecObservations.Add($evidence)
+            Assert-WelaIpsecPrerequisite $evidence
+        }
+        Get-WelaAuditPolicyMask -Guid $state.Guid
+    }
     $test = {
         param($value, $state)
         if ($state.Mode -eq 'minimum') { return ($value -band $state.Mask) -eq $state.Mask }
@@ -311,6 +318,11 @@ function Set-WelaAuditPolicyControl {
             $failure = if ($state.Mask -band 2) { 'enable' } else { 'disable' }
             $arguments += "/success:$success", "/failure:$failure"
         }
+        if ($null -ne $state.IpsecObservations) {
+            # This check runs after the operator prompt and durable recovery journal.
+            $evidence = & $state.ReadIpsec; $state.IpsecObservations.Add($evidence)
+            Assert-WelaIpsecPrerequisite $evidence
+        }
         Invoke-WelaNative -FilePath 'auditpol.exe' -Arguments $arguments
     }
     Invoke-WelaConfigurationControl -Context $Context -Id "AuditPolicy/$($Policy.Name)" -Kind AuditPolicy `
@@ -318,7 +330,7 @@ function Set-WelaAuditPolicyControl {
 }
 
 function Set-WelaProfileAuditControls {
-    param($Context, $Plan)
+    param($Context, $Plan, [scriptblock]$ReadIpsec = { Get-WelaIpsecPrerequisite })
     if ($Plan.PSObject.Properties['CustomProfileSource']) {
         $Context | Add-Member NoteProperty CustomProfileGuard ([pscustomobject]@{Source=$Plan.CustomProfileSource;Role=$Plan.role;Build=$Plan.build}) -Force
         Assert-WelaConfigurationProfileGuard $Context
@@ -334,9 +346,26 @@ function Set-WelaProfileAuditControls {
             $Context.Results.Add([pscustomobject]@{ Id = "AuditPolicy/$($policy.id)"; Kind = 'AuditPolicy'; Target = @{ Guid = $policy.guid }; Desired = $policy.requiredMask; Before = $null; After = $null; Status = 'Skipped'; Diagnostic = 'Audit precedence was not verified; dependent policy was not changed.' })
             continue
         }
-        $mode = if ($policy.mode -eq 'minimum') { 'minimum' } else { 'exact' }
-        Set-WelaAuditPolicyControl -Context $Context -Policy @{ GUID = $policy.guid; Name = $policy.id } -Mask $policy.requiredMask -Mode $mode -RequirePrecedence
+        $conditional = Test-WelaIpsecConditionalPolicy $Plan $policy
+        $observations = $null; $blocked = $false
+        if ($conditional) {
+            $observations = New-Object 'System.Collections.Generic.List[object]'
+            try {
+                $evidence = & $ReadIpsec; $observations.Add($evidence)
+                $blocked = $evidence.Status -ne 'Applicable'
+                $status = if ($evidence.Status -eq 'NotObservedWithinScope') { 'Skipped' } else { 'Failed' }
+                $diagnostic = "IPsec prerequisite $($evidence.Status); policy preserved. $($evidence.Diagnostic)"
+            } catch { $blocked = $true; $status = 'Failed'; $diagnostic = $_.ToString() }
+            if ($blocked) {
+                $Context.Results.Add([pscustomobject]@{Id="AuditPolicy/$($policy.id)";Kind='AuditPolicy';Target=@{Guid=$policy.guid};Desired=@{Mask=$policy.requiredMask;Mode='exact'};Before=$null;After=$null;Status=$status;Diagnostic=$diagnostic})
+            }
+        }
+        if (-not $blocked) {
+            $mode = if ($policy.mode -eq 'minimum') { 'minimum' } else { 'exact' }
+            Set-WelaAuditPolicyControl -Context $Context -Policy @{ GUID = $policy.guid; Name = $policy.id } -Mask $policy.requiredMask -Mode $mode -RequirePrecedence -IpsecObservations $observations -ReadIpsec $ReadIpsec
+        }
         $row = $Context.Results[$Context.Results.Count - 1]
+        if ($conditional) { $row | Add-Member NoteProperty PrerequisiteObservations $observations }
         $row | Add-Member NoteProperty Profile $Plan.profile
         $row | Add-Member NoteProperty Version $Plan.version
         $row | Add-Member NoteProperty SchemaSha256 $Plan.schemaSha256

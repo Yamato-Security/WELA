@@ -59,6 +59,12 @@ function Get-WelaWmiProbeWatermark {
     $record=Get-WinEvent -LogName Security -MaxEvents 1 -ErrorAction Stop
     try{if($null -eq $record.RecordId -or $record.RecordId -lt 1){throw 'Unknown Security record boundary.'};[long]$record.RecordId}finally{$record.Dispose()}
 }
+function Assert-WelaWmiProbeInterval {
+    param($Operation,[DateTimeOffset]$LaunchedUtc,[DateTimeOffset]$ObservedUtc)
+    $start=ConvertTo-WelaArrivalUtc $Operation.StartedUtc;$end=ConvertTo-WelaArrivalUtc $Operation.CompletedUtc
+    if($Operation.Clock -cne 'GetSystemTimePreciseAsFileTime' -or $LaunchedUtc -gt $ObservedUtc -or $start -lt $LaunchedUtc -or $start -gt $end -or ($end-$start).TotalSeconds -gt 20 -or $end -gt $ObservedUtc){throw 'Invalid precise fixed worker time interval.'}
+    [pscustomobject]@{Start=$start;End=$end}
+}
 function Start-WelaWmiProbeRead {
     param($State)
     $fresh=Get-WelaWmiProbeState $State.Namespace
@@ -71,6 +77,7 @@ function Start-WelaWmiProbeRead {
     $info.StandardOutputEncoding=[Text.UTF8Encoding]::new($false,$true);$info.StandardErrorEncoding=[Text.UTF8Encoding]::new($false,$true)
     $process=$null
     try{
+        $launch=[DateTimeOffset][Wela.WmiProbe.Native]::UtcNow()
         $process=[Diagnostics.Process]::Start($info);$output=$process.StandardOutput.ReadToEndAsync();$errors=$process.StandardError.ReadToEndAsync()
         if(-not $process.WaitForExit(20000)){$process.Kill();$null=$process.WaitForExit(1000);throw 'The fixed WMI read worker exceeded twenty seconds.'}
         if(-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($output,$errors),1000)){throw 'The fixed read output did not complete.'}
@@ -79,8 +86,8 @@ function Start-WelaWmiProbeRead {
         if($process.ExitCode -ne 0 -or $diagnostic){throw ('Fixed local WMI read failed: '+$diagnostic)}
         $operation=ConvertFrom-WelaArrivalJson $text
         if($operation.Namespace -cne $State.Namespace -or $operation.ProcessId -ne $process.Id -or $operation.ExpectedAccessMask -ne 1 -or $operation.ReturnedRows -ne 0 -or $operation.Query -cnotmatch "^SELECT Name FROM __Namespace WHERE Name='WelaReadProbe_[a-f0-9]{32}'$"){throw 'Unexpected fixed worker response.'}
-        $start=ConvertTo-WelaArrivalUtc $operation.StartedUtc;$end=ConvertTo-WelaArrivalUtc $operation.CompletedUtc
-        if($start -gt $end -or ($end-$start).TotalSeconds -gt 20 -or $end -gt [DateTimeOffset]::UtcNow){throw 'Invalid fixed worker time interval.'}
+        $interval=Assert-WelaWmiProbeInterval $operation $launch ([DateTimeOffset][Wela.WmiProbe.Native]::UtcNow())
+        $start=$interval.Start;$end=$interval.End
         # Older PowerShell7 JSON readers can materialize UTC strings as DateTime.
         $operation.StartedUtc=$start.UtcDateTime.ToString('o');$operation.CompletedUtc=$end.UtcDateTime.ToString('o')
         if((Get-WelaWmiProbeTokenKey $operation.BeforeToken) -cne (Get-WelaWmiProbeTokenKey $operation.AfterToken) -or (Get-WelaWmiProbeTokenKey $operation.BeforeToken -AuthorizationOnly) -cne (Get-WelaWmiProbeTokenKey $State.Token -AuthorizationOnly)){throw 'Worker token differs from the observed caller or changed during access.'}

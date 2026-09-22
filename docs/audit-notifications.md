@@ -65,9 +65,18 @@ behavior or policy persistence.
 
 Fixture tests cover absent/typed values, threshold preservation, role/source and
 ADMX/channel gates, stale plans, races, failed/ignored writes, final drift,
-idempotence, dry-run and command dispatch. Windows Server 2022/2025 CI observes
-native registry/CIM/channel state without changing policy, under PowerShell 5.1
-and 7. This is not a Windows 11, DC or AD CS event-generation test.
+idempotence, dry-run and command dispatch. The original Windows smoke observes native registry/CIM/channel state read-only.
+A separate explicitly opted-in disposable Server 2022/2025 fixture runs public
+SecurityWarning Plan, DryRun and Configure under PowerShell 5.1/7. It exercises
+absent, zero and higher thresholds, preserves an earlier threshold, verifies
+idempotence and refuses a real non-DWORD value. It checks typed original journals,
+readback and exact cleanup while preserving other Security-key values/ACL,
+channel enablement/size/retention, Event Log service state, OneSettings,
+CrashOnAuditFail and all 59 audit masks. It never fills or clears a log, changes
+retention, tests warning generation, or supplies OneSettings/Windows 11/DC/AD CS
+acceptance.
+
+A separate [native OneSettings acceptance fixture](native-onesettings-acceptance.md) exercises public policy and dependent-channel configuration on Server 2022 and the existing refusal on Server 2025, under both PowerShell engines. It verifies typed journals, idempotence, actual invalid-value refusals and exact cleanup. This remains settings evidence only.
 
 Before closing issue #378, retain isolated Windows 11 and Server 2022 evidence of
 an authorized benign OneSettings attempt with exact build/patch, policy, channel,
