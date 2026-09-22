@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document version-aware OneSettings and Security warning configuration boundaries. (Related #378)
+
 - Document guarded event-log sizing, retention-mode, and recovery boundaries. (Related #379)
 
 - Document native Security 4703 attribution evidence and conditional mapping boundaries. (Related #380)
