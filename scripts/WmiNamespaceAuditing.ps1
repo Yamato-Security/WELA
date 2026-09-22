@@ -1,4 +1,5 @@
 # Opt-in local namespace SACLs. No namespace DACL, audit policy, or remote-access changes.
+. (Join-Path $PSScriptRoot 'WmiNamespaceDescendants.ps1')
 function Get-WelaWmiAuditDefinitions {
     param([string[]]$Namespace, [switch]$IncludeChildren)
     $source = 'https://github.com/AustralianCyberSecurityCentre/windows_event_logging/blob/59041b5d4586789a751171fb752be1624ad5e3b4/events/wmi_auditing/wmi_auditing.ps1'
@@ -256,10 +257,14 @@ function Get-WelaWmiAuditPlan {
     foreach ($name in @($definitions | Select-Object -ExpandProperty Namespace -Unique)) {
         $selected = @($definitions | Where-Object Namespace -eq $name)
         try {
-            $snapshot = Get-WelaWmiNamespaceSnapshot $name
+            $tree=$null
+            if(@($selected|Where-Object {($_.AceFlags -band 2) -ne 0}).Count){
+                $tree=Get-WelaWmiStableDescendants $name
+                $snapshot=$tree.Root
+            } else {$snapshot = Get-WelaWmiNamespaceSnapshot $name}
             $descriptor = $snapshot.DescriptorJson | ConvertFrom-Json
             $missing = @(Get-WelaWmiMissingAces $descriptor $selected)
-            [pscustomobject]@{ Namespace = $name; Status = $(if ($missing.Count) { 'ChangeRequired' } else { 'AlreadyCompliant' }); Before = $snapshot; Definitions = $selected; Missing = $missing; Diagnostic = '' }
+            [pscustomobject]@{ Namespace = $name; Status = $(if ($missing.Count) { 'ChangeRequired' } else { 'AlreadyCompliant' }); Before = $snapshot; Definitions = $selected; Missing = $missing; Descendants=$tree; Diagnostic = '' }
         } catch { [pscustomobject]@{ Namespace = $name; Status = 'Unknown'; Before = $null; Definitions = $selected; Missing = @(); Diagnostic = $_.Exception.Message } }
     }
 }
@@ -267,16 +272,34 @@ function Get-WelaWmiAuditPlan {
 function Set-WelaWmiAuditControls {
     param($Context, [array]$Plan)
     foreach ($entry in $Plan) {
-        $callback = @{ Namespace = $entry.Namespace; Definitions = $entry.Definitions; Original = $null; ExpectedJson = $null; Applied = $false; VerifiedJson = $null }
+        $inherit=@($entry.Definitions|Where-Object {($_.AceFlags -band 2) -ne 0}).Count -gt 0
+        $callback = @{ Namespace = $entry.Namespace; Definitions = $entry.Definitions; Original = $null; ExpectedJson = $null; Applied = $false; VerifiedJson = $null; Inherit=$inherit; PlannedTree=$entry.Descendants; OriginalTree=$null; VerifiedTree=$null; DescendantVerification=[pscustomobject]@{Observation=$null} }
         $read = {
             param($state)
-            $snapshot = Get-WelaWmiNamespaceSnapshot $state.Namespace
+            if($state.Inherit){
+                $tree=Get-WelaWmiStableDescendants $state.Namespace
+                if($null -eq $state.OriginalTree){
+                    if((Get-WelaWmiDescendantKey $tree) -cne (Get-WelaWmiDescendantKey $state.PlannedTree)){throw 'WMI descendant tree changed after planning; no SACL was written.'}
+                    $state.OriginalTree=$tree
+                }
+                $snapshot=$tree.Root|Select-Object *
+                $snapshot|Add-Member NoteProperty Descendants $tree -Force
+            } else {$snapshot = Get-WelaWmiNamespaceSnapshot $state.Namespace}
             if ($null -eq $state.Original) { $state.Original = $snapshot.DescriptorJson | ConvertFrom-Json; $state.ExpectedJson = $snapshot.DescriptorJson }
             return $snapshot
         }
         $test = {
             param($snapshot, $state)
             $descriptor = $snapshot.DescriptorJson | ConvertFrom-Json
+            if($state.Inherit){
+                $state.DescendantVerification.Observation=Test-WelaWmiDescendantOutcomes $state.OriginalTree $snapshot.Descendants $state.Definitions
+                if($state.Applied -or -not @(Get-WelaWmiMissingAces $descriptor $state.Definitions).Count){
+                    if($state.DescendantVerification.Observation.Status -cne 'Observed'){throw ('WMI descendant outcome is unverified: '+($state.DescendantVerification.Observation.Diagnostics -join '; '))}
+                    $key=Get-WelaWmiDescendantKey $snapshot.Descendants
+                    if($null -eq $state.VerifiedTree){$state.VerifiedTree=$key}
+                    if($key -cne $state.VerifiedTree){throw 'WMI descendant descriptor changed after verification.'}
+                }
+            }
             if (@(Get-WelaWmiMissingAces $descriptor $state.Definitions).Count) { return $false }
             if ($state.Applied) {
                 if (-not (Test-WelaWmiDescriptorPreserved $state.Original $descriptor)) { return $false }
@@ -288,13 +311,18 @@ function Set-WelaWmiAuditControls {
         }
         $apply = {
             param($state)
+            if($state.Inherit){
+                $fresh=Get-WelaWmiStableDescendants $state.Namespace
+                if((Get-WelaWmiDescendantKey $fresh) -cne (Get-WelaWmiDescendantKey $state.OriginalTree)){throw 'WMI descendant topology or descriptor changed before the parent setter; no SACL was written.'}
+            }
             Set-WelaWmiNamespaceDescriptor -Namespace $state.Namespace -ExpectedJson $state.ExpectedJson -Definitions $state.Definitions
             $state.Applied = $true
         }
         Invoke-WelaConfigurationControl -Context $Context -Id "WmiNamespace/$($entry.Namespace)/SACL" -Kind WmiNamespaceSacl `
             -Target @{ Namespace = $entry.Namespace; Computer = 'Local'; Operation = 'Append audit ACEs only' } -Desired $entry.Definitions `
             -Read $read -Compliant $test -Apply $apply -CallbackState $callback `
-            -Description ('Append missing success audit ACEs. Scope: ' + (($entry.Definitions.Scope | Select-Object -Unique) -join ', '))
+            -Description ('Append missing success audit ACEs. Scope: ' + (($entry.Definitions.Scope | Select-Object -Unique) -join ', ') + $(if($inherit){'; reviewed existing descendants: '+@($entry.Descendants.Entries).Count+'. Only the parent is written; unsupported propagation fails verification.'}else{''}))
+        if($inherit){$Context.Results[$Context.Results.Count-1]|Add-Member NoteProperty DescendantVerification $callback.DescendantVerification}
     }
 }
 
