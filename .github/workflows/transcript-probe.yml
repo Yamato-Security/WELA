@@ -1,0 +1,47 @@
+name: Native automatic transcription probe
+on:
+  push:
+    paths: ['WELA.ps1', 'scripts/TranscriptProbe*', 'scripts/PowerShellTranscription.ps1', 'scripts/WmiProbe*', 'scripts/ChannelRead.ps1', 'scripts/WefArrival.ps1', 'tests/TranscriptProbe*', '.github/workflows/transcript-probe.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  actual-writer:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Correlation and refusal fixtures (Windows PowerShell5.1)
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/TranscriptProbe.Tests.ps1
+      - name: Actual standard writer, denial and restoration (Windows PowerShell5.1 host)
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/TranscriptProbe.Windows.Tests.ps1 -AllowDisposableWriter -TestEngine powershell
+      - name: Correlation and refusal fixtures (PowerShell7)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/TranscriptProbe.Tests.ps1
+      - name: Actual standard writer, denial and restoration (PowerShell7 host)
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/TranscriptProbe.Windows.Tests.ps1 -AllowDisposableWriter -TestEngine pwsh
+      - name: Retain native probe and cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: transcript-probe-${{ matrix.os }}-${{ matrix.engine }}
+          path: |
+            ${{ runner.temp }}/wela-transcript-probe-*/acceptance.json
+            ${{ runner.temp }}/wela-transcript-probe-*/policy-before.json
+            ${{ runner.temp }}/wela-transcript-probe-*/writer/
+            ${{ runner.temp }}/wela-transcript-probe-*/transcripts/
+          if-no-files-found: warn
+          retention-days: 7

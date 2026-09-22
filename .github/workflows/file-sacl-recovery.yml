@@ -1,0 +1,40 @@
+name: Native leaf-file SACL recovery
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  file-sacl-recovery:
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Strict inputs and CLI on Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          ./tests/FileSaclRecovery.Tests.ps1
+          ./tests/FileSaclRecovery.Cli.Tests.ps1
+      - name: Native descriptor guards on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/FileSaclRecovery.Descriptor.Tests.ps1
+      - name: Public owned-file addition and recovery on Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/FileSaclRecovery.Windows.Tests.ps1 -AllowDisposableSaclWrite
+      - name: Strict inputs and CLI on PowerShell 7
+        shell: pwsh
+        run: |
+          ./tests/FileSaclRecovery.Tests.ps1
+          ./tests/FileSaclRecovery.Cli.Tests.ps1
+      - name: Native descriptor guards on PowerShell 7
+        shell: pwsh
+        run: ./tests/FileSaclRecovery.Descriptor.Tests.ps1
+      - name: Public owned-file addition and recovery on PowerShell 7
+        shell: pwsh
+        run: ./tests/FileSaclRecovery.Windows.Tests.ps1 -AllowDisposableSaclWrite
