@@ -104,7 +104,8 @@ try {
   $null=Invoke-WelaNative wevtutil.exe $nativeArguments
   $prepared[$channel]=Get-WelaNativeChannel $channel;$preparedRaw[$channel]=Read-Raw $channel
  }
- Save 'prepared.json' $prepared
+ $preparedText=@{};foreach($channel in $preparedRaw.Keys){$preparedText[$channel]=$preparedRaw[$channel].OuterXml}
+ Save 'prepared.json' $prepared;Save 'prepared-xml.json' $preparedText
  $planned=Public 'plan' 'Plan' $names
  Assert (@($planned.ControlsPlan|Where-Object Status -cne 'ChangeRequired').Count -eq 0) 'Actual disabled/small prepared channels require change.'
  $dry=Public 'dry' 'Configure' $names -DryRun
@@ -125,6 +126,7 @@ try {
   Assert ($now.IsEnabled -and $now.MaximumSizeInBytes -eq $minimum -and (Test-WelaNativeChannelSnapshotEqual $entry[0].After $now)) 'Exact native enable/floor/larger-buffer readback matches Applied after-state.'
   Assert ((Test-WelaChannelDescriptorEqual $now.SecurityDescriptor $prepared[$channel].SecurityDescriptor) -and $now.LogMode -ceq $prepared[$channel].LogMode -and -not $entry[0].Desired.AccessChangeRequested) 'Every descriptor byte and retention mode is preserved without a read grant.'
  }
+ $configuredText=@{};foreach($channel in $selected.channel){$configuredText[$channel]=(Read-Raw $channel).OuterXml};Save 'configured-xml.json' $configuredText
  Assert ((Get-WelaNativeChannel 'Microsoft-Windows-CAPI2/Operational').LogMode -ceq 'Retain') 'An actual nondefault Retain setting survives provider configuration.'
  Preserved
  $repeat=Public 'repeat' 'Configure' $names
@@ -154,10 +156,10 @@ finally {
    if(-not(Test-WelaNativeChannelSnapshotEqual $s (Get-WelaNativeChannel $channel)) -or (Read-Raw $channel).OuterXml -cne $raw[$channel].OuterXml){throw 'Exact original channel configuration differs after cleanup.'}
   }catch{$errors+="$channel : $($_.Exception.Message)"}
  }
- $after=@{};foreach($channel in $channels){try{$after[$channel]=Get-WelaNativeChannel $channel;if($raw.ContainsKey($channel)){if((Read-Raw $channel).OuterXml -cne $raw[$channel].OuterXml){throw 'Original channel XML differs'}}elseif((Key $after[$channel]) -cne (Key $before[$channel])){throw 'Original unavailable observation differs'}}catch{$errors+="$channel : $($_.Exception.Message)"}}
+ $after=@{};$afterRaw=@{};foreach($channel in $channels){try{$after[$channel]=Get-WelaNativeChannel $channel;if($raw.ContainsKey($channel)){$afterRaw[$channel]=(Read-Raw $channel).OuterXml;if($afterRaw[$channel] -cne $raw[$channel].OuterXml){throw 'Original channel XML differs'}}elseif((Key $after[$channel]) -cne (Key $before[$channel])){throw 'Original unavailable observation differs'}}catch{$errors+="$channel : $($_.Exception.Message)"}}
  $serviceAfter=$null;try{$serviceAfter=@(Services);if((Key $serviceAfter) -cne (Key $services)){throw 'Service state/start type differs'}}catch{$errors+=$_.Exception.Message}
  $maskAfter=$null;try{$maskAfter=Get-WelaEffectiveAuditPolicy;if($maskAfter.Count -ne $policies.Count){throw 'Audit mask count differs'};foreach($guid in $policies.Keys){if($maskAfter[$guid] -ne $policies[$guid]){throw "Audit mask differs: $guid"}}}catch{$errors+=$_.Exception.Message}
- Save 'cleanup.json' @{CleanupVerified=($errors.Count -eq 0);Original=$before;After=$after;ServicesBefore=$services;ServicesAfter=$serviceAfter;AuditMasksCompared=$policies.Count;AuditMasksAfter=$maskAfter;Errors=$errors;PrimaryError=[string]$primary;Assertions=$count}
+ Save 'cleanup.json' @{CleanupVerified=($errors.Count -eq 0);Original=$before;After=$after;AfterRawXml=$afterRaw;ServicesBefore=$services;ServicesAfter=$serviceAfter;AuditMasksCompared=$policies.Count;AuditMasksAfter=$maskAfter;Errors=$errors;PrimaryError=[string]$primary;Assertions=$count}
 }
 $artifacts=@(Get-ChildItem -LiteralPath $root -File -Recurse|ForEach-Object {[ordered]@{Path=$_.FullName.Substring($root.Length+1);Sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash}})
 $sourcePaths=@('WELA.ps1','scripts/Configuration.ps1','scripts/NativeChannelConfiguration.ps1','scripts/NativeProviderPacks.ps1','modules/AuditProfiles.psm1','modules/EventLogSettings.psm1','modules/NativeProviders.psm1','modules/NativeChannelAccess.psm1','config/native_channel_profile.json','config/native_provider_packs.json','config/security_rules.json','tests/NativeProviderConfigure.Windows.Tests.ps1')+@($catalog.ruleReviews|ForEach-Object {'config/'+$_.localPath})
