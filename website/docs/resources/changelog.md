@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Add `ntlm-auditing` Audit/Plan/Configure with explicit Incoming/Domain/Both selection. Configure only incoming audit DWORD2 and actual-DC domain audit DWORD7, identify legacy domain2 without invented semantics, refuse unknown values and host/state drift, and retain separate typed journals/readback/partial outcomes. Native tests verify incoming changes, non-DC skips and exact preservation of unrelated settings. (Related #363) (@Shirofune-Security)
+
 - Added opt-in `registry-sacl-recovery` for one proven explicit registry-root audit ACE, requiring four matching original records, a reviewed plan hash, empty historical/current descendants and separate audit-reduction/inheritance consent. Native SACL-only removal preserves unrelated descriptor fields and ACE order, retains partial-write evidence and reports original-byte equality separately; no authenticated historical key/operator identity, atomic-tree, event or Sigma claim. (Related #373) (@Shirofune-Security)
 
 - Add native public SMB policy configuration acceptance on Server 2022/2025 and PowerShell 5.1/7: six-policy apply/readback and idempotence on supported hosts, unsupported-host skips, typed original journals, unrelated-state preservation and exact cleanup. Event generation and runtime activation remain separate. (Related #377) (@Shirofune-Security)
