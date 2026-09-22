@@ -2,6 +2,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document opt-in native provider-pack schema pinning, role/build gating, manual-review fallbacks, and the separation between configured channels and detection eligibility. (Related #386)
+
 - Document the completed retention-health coverage for ASD-style archive, forwarding, time-source, rollover, and bounded local-buffer evidence. (Related #382)
 
 - Extend `audit-recovery` to restore three named process/PowerShell logging DWORDs from completed journals, with native value-only writes, neighboring-data guards and retained registry keys. ([#435](https://github.com/Yamato-Security/WELA/pull/435))
