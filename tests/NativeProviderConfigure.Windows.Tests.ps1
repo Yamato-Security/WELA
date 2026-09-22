@@ -74,6 +74,7 @@ $before=@{};$raw=@{};$prepared=@{};$preparedRaw=@{};$services=@(Services);$polic
 foreach($channel in $channels){$before[$channel]=Get-WelaNativeChannel $channel;if(Test-WelaNativeChannelSnapshot $before[$channel]){$raw[$channel]=Read-Raw $channel}}
 $rawText=@{};foreach($channel in $raw.Keys){$rawText[$channel]=$raw[$channel].OuterXml}
 Save 'original.json' @{Channels=$before;RawXml=$rawText;Services=$services;AuditMasks=$policies;Engine=$PSVersionTable.PSVersion.ToString()}
+function Stable-Selected {foreach($channel in $selected.channel){Assert (Test-WelaNativeChannelSnapshotEqual $configured[$channel] (Get-WelaNativeChannel $channel)) 'Idempotent/refused/partial invocation preserves the expected complete selected-channel tuple.'}}
 function Preserved {
  foreach($channel in $channels){
   $now=Get-WelaNativeChannel $channel
@@ -95,6 +96,7 @@ try {
  $initial=Public 'initial' 'Plan' $names
  foreach($entry in $initial.ControlsPlan){Assert ($entry.ProviderEvidence.CanConfigure -and $entry.ProviderEvidence.Schema.State -ceq 'Observed' -and $entry.ProviderEvidence.Schema.Provider -ceq $entry.Pack.provider) 'Exact actual provider/schema permits the selected pack.'}
  Assert ($initial.ControlsPlan.Count -eq 4) 'Exactly four explicit packs are observed.'
+ foreach($channel in $raw.Keys){Assert ((Read-Raw $channel).OuterXml -ceq $raw[$channel].OuterXml) 'Initial public Plan preserves every registered channel configuration.'}
  foreach($pack in $selected){
   $channel=$pack.channel;$mutated+=,$channel
   $size=if($pack.id -ceq 'winrm'){2147483648L}else{1048576L}
@@ -111,12 +113,13 @@ try {
  $null=Public 'grant-option' 'Configure' $names -Expected 1 -Extra @('-GrantEventLogReaders')
  foreach($channel in $selected.channel){Assert (Test-WelaNativeChannelSnapshotEqual $prepared[$channel] (Get-WelaNativeChannel $channel)) 'Plan, DryRun and invalid options preserve prepared actual state.'}
  Preserved
+ $configured=@{}
  $applied=Public 'configure' 'Configure' $names
  Assert ($applied.Action -ceq 'Configure' -and $applied.Scope -ceq 'native-channel-settings-only' -and $applied.Results.Count -eq 4 -and @($applied.Results|Where-Object Status -cne 'Applied').Count -eq 0) 'All four explicit configurations are actually Applied.'
  $journal=@(Get-Content "$root/configure-journal/before.jsonl"|ForEach-Object {$_|ConvertFrom-Json})
  Assert ($journal.Count -eq 4 -and @($journal|Where-Object {$selected.channel -notcontains $_.Target.Channel}).Count -eq 0) 'Exactly four selected changes have durable original journals.'
  foreach($pack in $selected){
-  $channel=$pack.channel;$entry=@($applied.Results|Where-Object {$_.Target.Channel -ceq $channel});$j=@($journal|Where-Object {$_.Target.Channel -ceq $channel});$now=Get-WelaNativeChannel $channel
+  $channel=$pack.channel;$entry=@($applied.Results|Where-Object {$_.Target.Channel -ceq $channel});$j=@($journal|Where-Object {$_.Target.Channel -ceq $channel});$now=Get-WelaNativeChannel $channel;$configured[$channel]=$now
   $minimum=if($pack.id -ceq 'capi2'){102432768L}elseif($pack.id -ceq 'winrm'){2147483648L}else{33554432L}
   Assert ($entry.Count -eq 1 -and $j.Count -eq 1 -and (Test-WelaNativeChannelSnapshotEqual $j[0].Before $prepared[$channel]) -and (Test-WelaNativeChannelSnapshotEqual $entry[0].Before $prepared[$channel])) 'Native journal and result retain exact prepared before-state.'
   Assert ($now.IsEnabled -and $now.MaximumSizeInBytes -eq $minimum -and (Test-WelaNativeChannelSnapshotEqual $entry[0].After $now)) 'Exact native enable/floor/larger-buffer readback matches Applied after-state.'
@@ -126,16 +129,20 @@ try {
  Preserved
  $repeat=Public 'repeat' 'Configure' $names
  Assert (@($repeat.Results|Where-Object Status -cne 'AlreadyCompliant').Count -eq 0 -and -not(Test-Path "$root/repeat-journal/before.jsonl")) 'Native repeat is idempotent and journals no write.'
+ Stable-Selected
  $manual=Public 'manual' 'Configure' @('dns-server-analytical','dns-server-classic') -Expected 1
  Assert ($manual.Results.Count -eq 2 -and @($manual.Results|Where-Object Status -cne 'Failed').Count -eq 0 -and -not(Test-Path "$root/manual-journal/before.jsonl")) 'Both actual manual-only selections fail without channel mutation or journal.'
+ Stable-Selected
  $missing=Public 'missing-dns' 'Configure' @('dns-server-audit') -Expected 1
  Assert ($missing.Results[0].Status -ceq 'Failed' -and $missing.ControlsPlan[0].ProviderEvidence.Service.State -ceq 'Not installed' -and -not(Test-Path "$root/missing-dns-journal/before.jsonl")) 'Missing actual DNS service cannot be replaced by an assumed server role.'
+ Stable-Selected
  # A genuine partial public run must retain one success and one manual refusal.
  $capi='Microsoft-Windows-CAPI2/Operational';$null=Invoke-WelaNative wevtutil.exe @('sl',$capi,'/e:false');$partialBefore=Get-WelaNativeChannel $capi
  $partial=Public 'partial' 'Configure' @('capi2','dns-server-analytical') -Expected 1
  Assert (@($partial.Results|Where-Object Status -ceq 'Applied').Count -eq 1 -and @($partial.Results|Where-Object Status -ceq 'Failed').Count -eq 1 -and (Get-WelaNativeChannel $capi).IsEnabled) 'Actual partial configuration retains one verified change and explicit nonzero failure.'
  $partialJournal=@(Get-Content "$root/partial-journal/before.jsonl"|ForEach-Object {$_|ConvertFrom-Json})
  Assert ($partialJournal.Count -eq 1 -and $partialJournal[0].Target.Channel -ceq $capi -and (Test-WelaNativeChannelSnapshotEqual $partialJournal[0].Before $partialBefore)) 'Partial run journals only its actual selected write.'
+ Stable-Selected
  Preserved
  Save 'completed.json' @{Status='Passed';Assertions=$count;ActualAppliedControls=5;IdempotentControls=4;ManualRefusals=3;MissingServiceRefusals=1;ReadyRuleCredit=0}
 }catch{$primary=$_}

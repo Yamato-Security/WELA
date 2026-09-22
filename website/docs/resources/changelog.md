@@ -7,7 +7,7 @@
 
 **Improvements:**
 
-- Added disposable native acceptance for public provider-pack Plan, DryRun, Configure, idempotence, missing/manual refusal and partial outcomes on Server 2022/2025 under Windows PowerShell 5.1/PowerShell 7. Actual DNS Client, CAPI2, WinRM and RDP Client configuration preserves descriptors, retention, larger buffers, unrelated channels, services and all audit masks, with journal/hash evidence and exact fixture cleanup; no event or Sigma credit. (@Shirofune-Security)
+- Added disposable native acceptance for public provider-pack Plan, DryRun, Configure, idempotence, missing/manual refusal and partial outcomes on Server 2022/2025 under Windows PowerShell 5.1/PowerShell 7. Actual DNS Client, CAPI2, WinRM and RDP Client configuration preserves descriptors, retention, larger buffers, unrelated channels, services and all audit masks, with journal/hash evidence and exact fixture cleanup; no event or Sigma credit. Fixed WinRM manifest inspection to preserve native Int64 event IDs, so unrelated large IDs no longer block the selected event schema. (@Shirofune-Security)
 
 - Verify public Security-log warning configuration on disposable Server 2022/2025 hosts under Windows PowerShell 5.1/PowerShell 7: absent/zero/higher thresholds, earlier-threshold preservation, dry run, idempotence, wrong-type refusal and exact cleanup. Preserve unrelated registry values, channel configuration, audit masks and CrashOnAuditFail; no log-exhaustion or warning-event claim. (@Shirofune-Security)
 

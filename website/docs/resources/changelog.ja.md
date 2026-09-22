@@ -7,7 +7,7 @@
 
 **改善:**
 
-- Server 2022/2025 の Windows PowerShell 5.1/PowerShell 7 で、公開 provider-packs コマンドの Plan、DryRun、Configure、冪等性、前提不足・手動対象の拒否、部分適用を実機検証する使い捨て CI を追加。DNS Client、CAPI2、WinRM、RDP Client の設定と復元記録・ハッシュを確認し、完全な ACL、保持モード、大きい既存バッファ、他チャネル、サービス、全監査マスクの保持とテスト後の正確な復元を検証。イベント生成や Sigma 対応の証明は含みません。(@Shirofune-Security)
+- Server 2022/2025 の Windows PowerShell 5.1/PowerShell 7 で、公開 provider-packs コマンドの Plan、DryRun、Configure、冪等性、前提不足・手動対象の拒否、部分適用を実機検証する使い捨て CI を追加。DNS Client、CAPI2、WinRM、RDP Client の設定と復元記録・ハッシュを確認し、完全な ACL、保持モード、大きい既存バッファ、他チャネル、サービス、全監査マスクの保持とテスト後の正確な復元を検証。イベント生成や Sigma 対応の証明は含みません。 WinRM のマニフェスト ID をネイティブの Int64 として比較し、対象外の大きい ID により必要なイベントの確認が失敗する不具合も修正。 (@Shirofune-Security)
 
 - Server 2022/2025 と Windows PowerShell 5.1/PowerShell 7 の破棄可能な環境で、Securityログ警告設定の公開CLIを検証します。未設定・0・高いしきい値、早い警告値の維持、DryRun、再実行、不正型の拒否と完全な復元を確認し、無関係な設定は保持します。ログ枯渇や警告イベント生成は検証範囲外です。 (@Shirofune-Security)
 

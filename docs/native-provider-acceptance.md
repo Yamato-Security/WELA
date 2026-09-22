@@ -2,7 +2,7 @@
 
 The dedicated `Native provider configuration acceptance` workflow tests the public `provider-packs` command on disposable GitHub-hosted Windows Server 2022 and 2025, separately under Windows PowerShell 5.1 and PowerShell 7. It complements the read-only manifest inventory and mocked failure tests described in [the provider-pack guide](native-provider-packs.md).
 
-This fixture is destructive to the selected channels' temporary configuration and can discard records when restoring smaller buffers. It requires `-AllowDisposableProviderWrite`, `GITHUB_ACTIONS=true` and `RUNNER_ENVIRONMENT=github-hosted`; do not run it on ordinary machines. It makes no production configuration changes outside the existing public command's declared scope.
+This fixture is destructive to the selected channels' temporary configuration and can discard records when restoring smaller buffers. It requires `-AllowDisposableProviderWrite`, `GITHUB_ACTIONS=true` and `RUNNER_ENVIRONMENT=github-hosted`; do not run it on ordinary machines. Production behavior is unchanged; only this opted-in disposable fixture prepares and restores the temporary test settings.
 
 ## Actual public behavior checked
 
@@ -24,3 +24,5 @@ Each selected channel has independent cleanup that restores original enablement,
 `original.json`, public JSON reports, command output, actual journals, `completed.json`, `cleanup.json` and a SHA256 manifest are retained for seven days by the workflow. The manifest binds the fixture, product helpers, catalog, corpus and full reviewed rule-source bytes. Event records are not restored, and no retention-duration, Windows 11, domain/DC/ADCS, positive installed-DNS, forwarding or Sigma acceptance is implied. This advances issues #386 and #366 without closing their broader acceptance work.
 
 The underlying enablement, size, retention and backup options follow Microsoft's [wevtutil command reference](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil). The product's existing channel floors and schema gates remain unchanged.
+
+The first native run exposed a WinRM manifest bug: an unrelated event ID `3221734403` overflowed the reader's signed 32-bit cast and made the whole provider schema unknown. The reader now compares [EventMetadata.Id in its native Int64 domain](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.eventing.reader.eventmetadata.id), then parses only the exact reviewed event/channel templates. Focused tests also require refusal when only unrelated large IDs exist; schema gates are unchanged.
