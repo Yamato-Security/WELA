@@ -121,6 +121,6 @@ These are hosted standalone servers classified by the shared profile engine as
 MemberServer; no domain join or GPO refresh is simulated. Configuration and
 benign event/backend acceptance on Windows 11, domain-joined servers, DC and AD CS labs remain separate;
 no clean-install or detection-coverage claim is made.
-+### Issue 185 coverage
+### Issue 185 coverage
 
 Custom audit settings are loaded from a versioned JSON profile instead of requiring script edits. Exact, minimum, preserve, optional, and not-configured semantics are validated before configuration, with profile hashes guarding against drift.
