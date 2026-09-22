@@ -7,6 +7,7 @@
 
 **Improvements:**
 
+- Add disposable native acceptance for public custom-profile Plan, DryRun, Configure, optional controls, idempotence and Audit on Server 2022/2025 under Windows PowerShell 5.1/PowerShell 7. Verify exact/minimum/preserve semantics, real precedence, original journals and all 59 masks, with exact fixture restoration. (@Shirofune-Security)
 - Added opt-in `wec-listener` Plan/Apply for one new assigned-IPv4 HTTP5985 listener. Reviewed host/operator/source and WinRM/firewall snapshots, explicit plan hashes, pending evidence and native readback guard creation and preserve existing settings. A fixed native Windows PowerShell 5.1 worker provides the creation adapter under both PowerShell host versions. Existing listeners and drift require review; forwarding arrival and Sigma readiness are not inferred. (@Shirofune-Security)
 
 - Added explicit `file-access-probe` Plan/Run for one byte read from one existing ordinary local leaf with a matching pre-existing ReadData success SACL. Source/engine targets are refused before hashing. Same-handle DOS/NT identity, exact worker/token/handle attribution over the measured read and identity-readback phase, full policy/security/source guards and durable private evidence require an actual local Security4663. No content is retained and no policy, ACL or file-data changes are made; failure, forwarding and Sigma readiness remain unverified. Disposable Server 2022/2025 tests cover both PowerShell engines and exact cleanup. (Related #373) (@Shirofune-Security)
