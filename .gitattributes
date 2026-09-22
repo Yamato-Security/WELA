@@ -122,6 +122,8 @@ tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf
 
 /scripts/RegistryValueProbe* text eol=lf
 /tests/RegistryValueProbe* text eol=lf
+/scripts/ProcessCommandline.ps1 text eol=lf
+/tests/ProcessCommandline* text eol=lf
 # Native WMI tree evidence binds source bytes across checkouts.
 /scripts/WmiNamespaceAuditing.ps1 text eol=lf
 /scripts/WmiNamespaceDescendants.ps1 text eol=lf
