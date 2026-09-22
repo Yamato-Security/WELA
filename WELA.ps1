@@ -83,6 +83,9 @@
     [string]$RuleManifestPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$TranscriptionAction = 'Audit',
     [string]$TranscriptDirectory,
+    [ValidateSet('Plan','Run')][string]$TranscriptProbeAction = 'Plan',
+    [string]$TranscriptProbeDirectory,
+    [string]$TranscriptProbeOutputPath,
     [ValidateSet('Audit','Plan','Configure')][string]$LdapAction = 'Audit',
     [ValidateSet('Preserve','Diagnostic','MdiCleanup')][string]$LdapMode = 'Preserve',
     [ValidateRange(1,2147483647)][int]$LdapSearchTimeMs,
@@ -279,6 +282,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
+. (Join-Path $ScriptRoot "scripts/TranscriptProbe.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/RuleEligibility.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/AuditCatalog.psm1") -ErrorAction Stop
@@ -2062,6 +2066,7 @@ Usage:
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 transcript-probe -Help  # Verify one automatic native5.1 transcript under the actual identity
   ./WELA.ps1 file-access-probe -Help
   ./WELA.ps1 transcription-recovery -Help
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
@@ -2124,6 +2129,9 @@ Write-Host $logo -ForegroundColor Green
 Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
+
+if ($Cmd -ne 'transcript-probe' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'TranscriptProbe*' }).Count) { throw 'TranscriptProbe options require transcript-probe. No command was run.' }
+if ($Cmd -eq 'transcript-probe' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','TranscriptProbeAction','TranscriptProbeDirectory','TranscriptProbeOutputPath','Help') }).Count) { throw 'transcript-probe accepts only dedicated action/directory/output options. No command was run.' }
 
 if ($Cmd -ne 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'FirewallRecovery*' }).Count) {throw 'FirewallRecovery options require firewall-recovery. No command was run.'}
 if ($Cmd -eq 'firewall-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','FirewallRecoveryAction','FirewallRecoveryProfile','FirewallRecoveryJournalPath','FirewallRecoveryResultsPath','FirewallRecoveryPlanPath','FirewallRecoveryPlanHash','FirewallRecoveryOutputPath','Auto','DryRun','Help') }).Count)) {throw 'firewall-recovery accepts only dedicated options, Auto and DryRun. No command was run.'}
@@ -2775,6 +2783,12 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] SMB auditing: $_" -ForegroundColor Red; exit 1 }
+    }
+    'transcript-probe' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 transcript-probe [-TranscriptProbeAction Plan|Run] -TranscriptProbeDirectory existing-local-policy-directory [-TranscriptProbeOutputPath new-private-directory]. Run starts one fixed native5.1 child using existing automatic transcription policy; no policy or destination changes. See docs/transcript-probe.md.'; return }
+        $report=Invoke-WelaTranscriptProbe -Action $TranscriptProbeAction -Directory $TranscriptProbeDirectory -OutputPath $TranscriptProbeOutputPath
+        $report | Select-Object Action,Status,WriterAuthorization,Diagnostic,OutputPath | Format-List | Out-Host
+        if ($report.ExitCode) { exit $report.ExitCode }
     }
     'powershell-transcription' {
         if ($Help) {

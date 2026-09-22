@@ -6,6 +6,8 @@
 
 **Improvements:**
 
+- Added opt-in `transcript-probe` to verify a fixed current-account Windows PowerShell 5.1 child produces its own completed automatic transcript in an already enabled local destination. Actual token/logon, native header/footer, nonce/PID/time, bounded file identity and source checks preserve unverified outcomes without changing policy or ACLs, invoking explicit transcription or granting Sigma/EVTX credit. Added disposable standard-writer success/denial tests for Server 2022/2025 under both WELA host engines. (#436) (@Shirofune-Security)
+
 - Added opt-in `file-sacl-recovery` to review and remove one proven explicit audit ACE from an unchanged selected leaf file. Original plans, paired receipts, successful results, source/host hashes and held file identity bind the operation; durable pre-write evidence and SACL-only readback preserve unrelated ACE bytes/counts and observed descriptor components. Empty or null present SACLs are reported without claiming exact historical descriptor restoration; policy, directory/registry recovery and Sigma readiness remain outside this scope. (#437) (@Shirofune-Security)
 
 - Added opt-in `dns-client-probe` for one fixed benign `wela-<nonce>.wela.test.` A lookup to an explicitly selected IPv4 resolver, with default prerequisite planning, bounded native DNS execution and exact local event 3008 correlation. Private hashed evidence preserves native status, context and correlation limits without changing Windows settings. The original DNS rule/channel mismatch remains explicit and Sigma credit stays zero. Added disposable authoritative-loopback DNS acceptance tests for Server 2022/2025 and PowerShell 5.1/7. (#434) (@Shirofune-Security)
