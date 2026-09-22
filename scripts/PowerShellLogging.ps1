@@ -89,8 +89,12 @@ function Assert-WelaPsLoggingCapacity {
     param($Snapshot,[array]$Definitions)
     # Project predictable inventory growth before writing; new inherited access descriptors
     # still require native readback. Projection never mutates the captured original state.
-    $tree=ConvertTo-WelaPsLoggingKey $Snapshot.Machine|ConvertFrom-Json;$rows=@{}
-    foreach($row in $tree.Keys){$rows[$row.Path]=$row}
+    # JSON round-trips can reinterpret literal ISO-date registry strings as DateTime.
+    $tree=[pscustomobject]@{Exists=$Snapshot.Machine.Exists;Keys=@()};$rows=@{}
+    foreach($row in $Snapshot.Machine.Keys){
+        $values=@(foreach($entry in $row.Values){$data=$entry.Value;if($data -is [Array]){$data=$data.Clone()};[pscustomobject]@{Name=$entry.Name;Type=$entry.Type;Value=$data}})
+        $rows[$row.Path]=[pscustomobject]@{Path=$row.Path;Values=$values;Children=@($row.Children);Access=$row.Access}
+    }
     foreach($definition in $Definitions){
         $paths=@('');$path='';foreach($part in $definition.Path.Split('\')){$path=if($path){$path+'\'+$part}else{$part};$paths+=$path}
         foreach($path in $paths){

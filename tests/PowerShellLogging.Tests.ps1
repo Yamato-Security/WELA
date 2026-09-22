@@ -75,6 +75,13 @@ try {
     Assert ((ConvertTo-WelaPsLoggingKey $script:observed.Machine).Length -eq 1048576) 'Character-cap boundary fixture fits the current reader exactly'
     $capacity=Invoke-WelaPowerShellLogging -Action Configure -Control Module -ModuleName NewModule -Auto -BackupPath (Join-Path $root 'character-capacity')
     Assert ($capacity.ExitCode -eq 1 -and $script:writes -eq 0 -and -not (Test-Path (Join-Path $root 'character-capacity'))) 'Predictable serialized-value growth beyond character cap is refused before writes'
+    $literalSnapshot=Fixture;$row=@($literalSnapshot.Machine.Keys|Where-Object Path -eq Transcription)[0]
+    $row.Values+=@(1..64|ForEach-Object{[pscustomobject]@{Name=('LiteralDate'+$_);Type='String';Value='2026-09-21T00:00:00.000Z'}})
+    $row.Values+=[pscustomobject]@{Name='LiteralBytes';Type='Binary';Value=[byte[]]@(0,127,255)},[pscustomobject]@{Name='LiteralStrings';Type='MultiString';Value=[string[]]@('2026-09-21T00:00:00.000Z','')};$row.Values+=[pscustomobject]@{Name='LiteralFiller';Type='String';Value=''};$space=1048576-(ConvertTo-WelaPsLoggingKey $literalSnapshot.Machine).Length;$row.Values[-1].Value='x'*$space
+    $literalBefore=ConvertTo-WelaPsLoggingKey $literalSnapshot
+    Reject {Assert-WelaPsLoggingCapacity $literalSnapshot @(Get-WelaPsLoggingDefinitions @('Module') @('NewModule'))} 'character capacity'
+    Assert ((ConvertTo-WelaPsLoggingKey $literalSnapshot) -ceq $literalBefore -and $row.Values[1].Value -is [string]) 'Capacity projection preserves literal ISO strings and the caller snapshot'
+    Assert (($row.Values|Where-Object Name -eq LiteralBytes).Value -is [byte[]] -and ($row.Values|Where-Object Name -eq LiteralStrings).Value -is [string[]]) 'Projection retains typed binary and multi-string caller data'
     Reset;$script:failWrite=$true;$failed=Invoke-WelaPowerShellLogging -Action Configure -Control Module,ScriptBlock -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'writefailure')
     Assert ($failed.ExitCode -eq 1 -and $script:writes -eq 1 -and @($failed.Results|Where-Object Status -eq Skipped).Count -eq 2) 'Native failure stops and explicitly reports later writes'
     Reset;$script:corrupt=$true;$failed=Invoke-WelaPowerShellLogging -Action Configure -Control Module,ScriptBlock -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'corrupt')
