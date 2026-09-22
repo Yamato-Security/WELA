@@ -35,3 +35,6 @@ Writes require a fresh complete snapshot and a saved `before.jsonl` recovery rec
 For recovery, compare fresh values with both the journal's original state and this run's desired values. Restore original values/types only where this run's changes still remain; remove only a value that was originally absent. Preserve any newer operator changes and keep the recovery journal. MDI cleanup is not a general rollback command.
 
 Tests cover default preservation, explicit setup/cleanup, positive bounds, type/read/write errors, journal ordering, stale plans, races, partial failures, repeated application and final drift. Windows CI queries native role applicability without configuring a DC. Before closing #383, use an isolated DC snapshot to verify a benign query against the selected thresholds, retain matching 1644 XML and before/after policy, measure volume, and verify forwarding. Registry readback is not event-generation or Sigma detection evidence. Sysmon is out of scope.
+# Issue 383 coverage
+
+LDAP 1644 diagnostics are opt-in and role-scoped. `Preserve` changes nothing, `Diagnostic` accepts explicit threshold values, and `MdiCleanup` removes only the four named legacy NTDS values after a fresh local-DC observation. WELA never silently overwrites existing diagnostics, and event volume, forwarding, and MDI compliance remain separate validation steps.
