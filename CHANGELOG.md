@@ -2,6 +2,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document build, role, edition, feature, and removal applicability gates plus provenance requirements for clean-install defaults. (Related #385)
+
 - Document independent audit-right and CrashOnAuditFail profile coverage, including omission-preserves semantics and service-account review boundaries. (Related #384)
 
 - Document role-scoped, opt-in LDAP 1644 diagnostics with explicit Diagnostic and MdiCleanup modes and preservation of unrelated NTDS values. (Related #383)
