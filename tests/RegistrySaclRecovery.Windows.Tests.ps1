@@ -89,6 +89,37 @@ try {
     Assert ((Read-Receipt 'restored/pending.json').State -ceq 'Pending' -and (Read-Receipt 'restored/confirmed.json').State -ceq 'Confirmed') 'Distinct durable intent and verified completion receipts exist.'
     $replay=Join-Path $root 'replay';Public 'replay' ($restoreArgs+@('-RegistryRecoveryOutputPath',$replay,'-RegistryRecoveryAllowAuditReduction','-RegistryRecoveryAllowInheritance')) 1
     Assert ((Read-Receipt 'replay/manifest.json').Status -ceq 'Refused' -and -not (Read-Receipt 'replay/manifest.json').WriteAttempted) 'Old reviewed restore refuses replay.'
+    # A second genuine public addition creates fresh history before a benign value edit.
+    $secondPlan=Join-Path $root 'value-plan.json';$secondJournal=Join-Path $root 'value-journal';$secondResults=Join-Path $root 'value-results.json'
+    Public 'value-plan' ($selection+@('-TargetSaclAction','Plan','-ResultsPath',$secondPlan))
+    Public 'value-configure' ($selection+@('-TargetSaclAction','Configure','-TargetSaclPlanPath',$secondPlan,'-BackupPath',$secondJournal,'-ResultsPath',$secondResults,'-Auto'))
+    Assert ((Read-Receipt 'value-results.json').Results[0].Status -ceq 'Applied') 'Fresh recovery scenario starts from another genuine Applied addition.'
+    $valueAfter=Get-WelaSelectedSaclSnapshot $selected.Definition;$write=$hive.WriteProbe();Save 'benign-value-write.json' $write;$hive.AssertValues($true)
+    $valueNow=Get-WelaSelectedSaclSnapshot $selected.Definition
+    Assert ($valueNow.Identity -cne $valueAfter.Identity -and $valueNow.DescriptorBase64 -ceq $valueAfter.DescriptorBase64) 'One benign fixture value edit changes actual last-write identity without changing the SACL.'
+    $valueReview=Join-Path $root 'value-drift'
+    Public 'value-drift' @('registry-sacl-recovery','-RegistryRecoveryOriginalPlanPath',$secondPlan,'-RegistryRecoveryPendingPath',(Join-Path $secondJournal ($selected.Id+'.pending.json')),'-RegistryRecoveryConfirmedPath',(Join-Path $secondJournal ($selected.Id+'.confirmed.json')),'-RegistryRecoveryOriginalResultsPath',$secondResults,'-RegistryRecoveryOutputPath',$valueReview) 1
+    $refusal=Read-Receipt 'value-drift/manifest.json';Assert ($refusal.Status -ceq 'Refused' -and -not $refusal.WriteAttempted -and $refusal.Diagnostic -match 'last-write identity') 'Benign value drift is refused without artificial historical-identity relaxation.'
+    Assert ((Get-WelaSelectedSaclSnapshotKey (Get-WelaSelectedSaclSnapshot $selected.Definition)) -ceq (Get-WelaSelectedSaclSnapshotKey $valueNow)) 'Value-drift refusal preserves exact current native state.'
+    # Start a separate owned hive for child drift; never rewrite historical timestamps.
+    $firstSid=$hive.Sid;$hive.Dispose();Assert ((Key (Hives)) -ceq (Key $beforeHives)) 'First owned hive is unloaded before the next isolated scenario.'
+    Save 'first-hive-unloaded.json' ([pscustomobject]@{Sid=$firstSid;Loaded=$hive.Loaded;SeedCreated=$hive.SeedCreated})
+    $hive=[Wela.RegistrySaclFixture.Hive]::new([guid]::NewGuid().ToString('N'),(Join-Path $files 'second-owned.dat'));$hive.Prepare();$hive.CreateRunOnce();$hive.AssertValues($false)
+    $providerPath='Registry::HKEY_USERS'+$hive.Sid+'SoftwareMicrosoftWindowsCurrentVersionRunOnce'
+    Public 'child-catalog' @('targeted-sacl','-TargetSaclProfile','asd-native-2021-10','-IncludeOptional','-ResultsPath',(Join-Path $root 'child-catalog.json'))
+    $childCatalog=Read-Receipt 'child-catalog.json';$childRows=@($childCatalog.Catalog|Where-Object {$_.Definition.UserSid -ceq $hive.Sid -and $_.Definition.Path -ieq $providerPath});Assert ($childRows.Count -eq 1) 'Child scenario resolves only its separate owned catalog target.'
+    $childSelected=$childRows[0];$childPlan=Join-Path $root 'child-plan.json';$childJournal=Join-Path $root 'child-journal';$childResults=Join-Path $root 'child-results.json'
+    $childSelection=@('targeted-sacl','-TargetSaclProfile','asd-native-2021-10','-TargetSaclId',$childSelected.Id,'-IncludeOptional','-TargetSaclIncludeChildren')
+    Public 'child-plan' ($childSelection+@('-TargetSaclAction','Plan','-ResultsPath',$childPlan))
+    Public 'child-configure' ($childSelection+@('-TargetSaclAction','Configure','-TargetSaclPlanPath',$childPlan,'-BackupPath',$childJournal,'-ResultsPath',$childResults,'-Auto'))
+    Assert ((Read-Receipt 'child-results.json').Results[0].Status -ceq 'Applied') 'Child scenario also uses a genuine public Apply with empty historical descendants.'
+    $childKey=[Microsoft.Win32.Registry]::Users.CreateSubKey($hive.Sid+'SoftwareMicrosoftWindowsCurrentVersionRunOnceOwnedChild');$childKey.Dispose()
+    $childAfter=Get-WelaSelectedSaclSnapshot $childSelected.Definition;Save 'child-drift-native.json' $childAfter
+    $childReview=Join-Path $root 'child-drift'
+    Public 'child-drift' @('registry-sacl-recovery','-RegistryRecoveryOriginalPlanPath',$childPlan,'-RegistryRecoveryPendingPath',(Join-Path $childJournal ($childSelected.Id+'.pending.json')),'-RegistryRecoveryConfirmedPath',(Join-Path $childJournal ($childSelected.Id+'.confirmed.json')),'-RegistryRecoveryOriginalResultsPath',$childResults,'-RegistryRecoveryOutputPath',$childReview) 1
+    $refusal=Read-Receipt 'child-drift/manifest.json';Assert ($refusal.Status -ceq 'Refused' -and -not $refusal.WriteAttempted -and $refusal.Diagnostic -match 'empty registry descendant') 'A real new child refuses recovery before any write.'
+    Assert ((Get-WelaSelectedSaclSnapshotKey (Get-WelaSelectedSaclSnapshot $childSelected.Definition)) -ceq (Get-WelaSelectedSaclSnapshotKey $childAfter)) 'Child-drift refusal preserves exact current parent security state.'
+    $hive.AssertValues($false)
     Assert ((Key ((Get-WelaEffectiveAuditPolicy).GetEnumerator()|Sort-Object Key)) -ceq $preparedMasks -and (Key (Get-WelaRegistryState $precedencePath $precedenceName)) -ceq $preparedPrecedence) 'All public operations preserve prepared auditing.'
     Assert ((Key ([Wela.WmiProbe.Native]::Snapshot())) -ceq (Key $beforeToken)) 'All native fixture security/backup/restore privilege attributes restored.'
 }catch{$failure=$_}finally {

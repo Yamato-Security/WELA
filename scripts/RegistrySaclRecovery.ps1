@@ -18,6 +18,12 @@ function Get-WelaRegistryRecoverySources {
     }
     [pscustomobject]$sources
 }
+function Assert-WelaRegistryRecoverySources {
+    param($Sources)
+    if($Sources -isnot [array]){throw 'Original source inventory must be an array.'}
+    foreach($entry in $Sources){Assert-WelaEvtxObject $entry @('Path','Sha256');Assert-WelaRegistryRecoveryText $entry @('Path','Sha256');if($entry.Sha256 -cnotmatch '^[a-f0-9]{64}$'){throw 'Original source fingerprint is malformed.'}}
+    Assert-WelaSelectedSaclSources $Sources
+}
 function Get-WelaRegistryRecoveryContext {
     if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Registry SACL recovery requires native 64-bit Windows.'}
     foreach($name in @('Winmgmt','EventLog')){if((Get-Service -Name $name -ErrorAction Stop).Status -ne 'Running'){throw 'Native observation services must already be running.'}}
@@ -45,10 +51,10 @@ function Assert-WelaRegistryRecoverySnapshot {
         if($ace.Ordinary -isnot [bool] -or ($null -ne $ace.Sid -and $ace.Sid -isnot [string])){throw 'Mistyped historical ACE metadata.'}
         foreach($name in @('Type','Flags','Mask')){Assert-WelaRegistryRecoveryNumber $ace.$name}
     }
-    Initialize-WelaRegistryRecoveryNative
-    $parsed=[Wela.RegistrySaclRecovery.Descriptor]::Observe($Snapshot.Path,$Snapshot.Identity,[Convert]::FromBase64String($Snapshot.DescriptorBase64))
+    $parsed=Get-WelaRegistryRecoveryDescriptorObservation $Snapshot
     if((Get-WelaSelectedSaclSnapshotKey $parsed) -cne (Get-WelaSelectedSaclSnapshotKey $Snapshot)){throw 'Historical metadata differs from its native descriptor bytes.'}
 }
+function Get-WelaRegistryRecoveryDescriptorObservation {param($Snapshot) Initialize-WelaRegistryRecoveryNative;[Wela.RegistrySaclRecovery.Descriptor]::Observe($Snapshot.Path,$Snapshot.Identity,[Convert]::FromBase64String($Snapshot.DescriptorBase64))}
 function Assert-WelaRegistryRecoveryEmpty {
     param($Inventory,$Root)
     Assert-WelaEvtxObject $Inventory @('Status','Maximum','MaximumDepth','StartedUtc','CompletedUtc','Root','Entries','Diagnostics')
@@ -80,11 +86,11 @@ function New-WelaRegistryRecoveryPlan {
     Assert-WelaEvtxObject $plan $planFields
     foreach($value in @($plan,$pending,$confirmed,$result)){Assert-WelaRegistryRecoveryNumber $value.SchemaVersion;if($value.SchemaVersion -ne 1){throw 'Unsupported original schema.'};Assert-WelaRegistryRecoveryText $value @('Kind')}
     Assert-WelaRegistryRecoveryText $plan @('Profile','GenerationReadiness')
-    if($plan.Kind -cne 'WelaSelectedSaclPlan' -or $plan.IncludeChildren -isnot [bool] -or -not $plan.IncludeChildren -or $plan.IncludeOptional -isnot [bool] -or $plan.Rows -isnot [array] -or $plan.Rows.Count -ne 1 -or $plan.Catalog -isnot [array] -or $plan.Catalog.Count -ne 0){throw 'Require one original selected registry target with explicit child consent.'}
+    if($plan.Kind -cne 'WelaSelectedSaclPlan' -or $plan.IncludeChildren -isnot [bool] -or -not $plan.IncludeChildren -or $plan.IncludeOptional -isnot [bool] -or $plan.Rows -isnot [array] -or $plan.Rows.Count -ne 1 -or ($null -ne $plan.Catalog -and ($plan.Catalog -isnot [array] -or $plan.Catalog.Count -ne 0))){throw 'Require one original selected registry target with explicit child consent.'}
     $row=$plan.Rows[0];Assert-WelaEvtxObject $row $rowFields;Assert-WelaRegistryRecoveryText $row @('Id','DefinitionKey','Status','Diagnostic')
     Assert-WelaRegistryRecoveryText $row.Definition @('Kind','Path','Inheritance','Propagation')
     if($row.Status -cne 'ChangeRequired' -or $row.Diagnostic -cne '' -or $null -ne $row.After -or $null -ne $row.DescendantsAfter -or $null -ne $row.DescendantVerification -or $row.Id -cnotmatch '^sacl-[a-f0-9]{24}$' -or $row.Definition.Kind -cne 'Registry' -or $row.Definition.Inheritance -cnotin @('None','ContainerInherit') -or $row.Definition.Propagation -cne 'None'){throw 'Original plan is not one supported registry root audit addition.'}
-    Assert-WelaSelectedSaclSources $plan.Sources
+    Assert-WelaRegistryRecoverySources $plan.Sources
     Assert-WelaRegistryRecoveryText $plan.Context @('Key','Computer')
     if((Get-WelaRegistryRecoveryKey $plan.Context) -cne (Get-WelaRegistryRecoveryKey $context.Selected) -or $plan.Context.Computer -cne $context.Host.Computer){throw 'Original host context differs from the actual recovery host.'}
     $catalog=Get-WelaSelectedSaclCatalog -Profile $plan.Profile -IncludeOptional:$plan.IncludeOptional -Context $context.Selected
@@ -98,7 +104,7 @@ function New-WelaRegistryRecoveryPlan {
     foreach($receipt in @($pending,$confirmed)){
         Assert-WelaEvtxObject $receipt $receiptFields;Assert-WelaRegistryRecoveryText $receipt @('Kind','State','Computer','ContextKey','Id','Ownership')
         if($receipt.Kind -cne 'WelaSelectedSaclReceipt' -or $receipt.Computer -cne $context.Host.Computer -or $receipt.ContextKey -cne $context.Selected.Key -or $receipt.Id -cne $row.Id -or $receipt.Ownership -cne 'Only the verified explicit selected-root addition; never descendant ACE ownership or bulk rollback authority.'){throw 'Original receipt scope or ownership differs.'}
-        Assert-WelaSelectedSaclSources $receipt.Sources
+        Assert-WelaRegistryRecoverySources $receipt.Sources
         foreach($name in @('Definition','Ace')){if((Get-WelaRegistryRecoveryKey $receipt.$name) -cne (Get-WelaRegistryRecoveryKey $row.$name)){throw 'Original receipt differs from selected plan.'}}
         Assert-WelaRegistryRecoverySnapshot $receipt.Before $row.Definition
         if((Get-WelaSelectedSaclSnapshotKey $receipt.Before) -cne (Get-WelaSelectedSaclSnapshotKey $row.Before)){throw 'Original before-state differs across records.'}
@@ -111,7 +117,8 @@ function New-WelaRegistryRecoveryPlan {
     Assert-WelaEvtxObject $result @('SchemaVersion','Kind','ExitCode','DryRun','BackupPath','Plan','Results','GenerationReadiness','UsableRuleCredit');Assert-WelaRegistryRecoveryNumber $result.ExitCode;Assert-WelaRegistryRecoveryText $result @('BackupPath','GenerationReadiness')
     if($result.Kind -cne 'WelaSelectedSaclResult' -or $result.ExitCode -ne 0 -or $result.DryRun -isnot [bool] -or $result.DryRun -or $result.Results -isnot [array] -or $result.Results.Count -ne 1){throw 'Require one completed successful, non-dry-run operation.'}
     $applied=$result.Results[0];Assert-WelaEvtxObject $applied $rowFields;Assert-WelaRegistryRecoveryText $applied @('Id','DefinitionKey','Status','Diagnostic')
-    Assert-WelaEvtxObject $result.Plan $planFields;Assert-WelaRegistryRecoveryText $result.Plan @('Kind')
+    Assert-WelaEvtxObject $result.Plan $planFields;Assert-WelaRegistryRecoveryText $result.Plan @('Kind');Assert-WelaRegistryRecoveryNumber $result.Plan.SchemaVersion;if($result.Plan.SchemaVersion -ne 1){throw 'Unsupported completed plan schema.'}
+    foreach($value in @($plan,$result.Plan,$result)){Assert-WelaRegistryRecoveryText $value @('GenerationReadiness');Assert-WelaRegistryRecoveryNumber $value.UsableRuleCredit;if($value.GenerationReadiness -cne 'Conditional' -or $value.UsableRuleCredit -ne 0){throw 'Original evidence carries unsupported generation credit.'}}
     if($applied.Status -cne 'Applied' -or $applied.Diagnostic -cne '' -or $result.Plan.Kind -cne 'WelaSelectedSaclPlan' -or $result.Plan.Rows -isnot [array] -or $result.Plan.Rows.Count -ne 1 -or (Get-WelaRegistryRecoveryKey $applied) -cne (Get-WelaRegistryRecoveryKey $result.Plan.Rows[0]) -or $applied.Id -cne $row.Id -or $applied.DefinitionKey -cne $row.DefinitionKey){throw 'Completed result status, rows or scope disagree.'}
     foreach($name in @('Definition','Ace')){if((Get-WelaRegistryRecoveryKey $applied.$name) -cne (Get-WelaRegistryRecoveryKey $row.$name)){throw 'Completed selection differs from original plan.'}}
     foreach($name in @('Before','After')){Assert-WelaRegistryRecoverySnapshot $applied.$name $row.Definition;if((Get-WelaSelectedSaclSnapshotKey $applied.$name) -cne (Get-WelaSelectedSaclSnapshotKey $confirmed.$name)){throw 'Completed descriptor evidence disagrees.'}}

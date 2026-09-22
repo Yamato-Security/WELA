@@ -28,11 +28,15 @@ jobs:
         if: matrix.engine == 'powershell'
         shell: powershell
         run: |
+          ./tests/RegistrySaclRecovery.Cli.Tests.ps1
+          ./tests/RegistrySaclRecovery.Tests.ps1
           ./tests/RegistrySaclRecovery.Windows.Tests.ps1 -AllowDisposableHiveWrite
       - name: Actual public registry lifecycle in PowerShell 7
         if: matrix.engine == 'pwsh'
         shell: pwsh
         run: |
+          ./tests/RegistrySaclRecovery.Cli.Tests.ps1
+          ./tests/RegistrySaclRecovery.Tests.ps1
           ./tests/RegistrySaclRecovery.Windows.Tests.ps1 -AllowDisposableHiveWrite
       - name: Retain public receipts, actual XML and exact cleanup
         if: always()
