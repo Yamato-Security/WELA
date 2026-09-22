@@ -37,8 +37,9 @@ param([string]$Repository,[string]$Request)
 $ErrorActionPreference='Stop'
 $data=Get-Content -LiteralPath $Request -Raw|ConvertFrom-Json;$options=@{}
 foreach($property in $data.PSObject.Properties){$options[$property.Name]=$property.Value}
+$global:LASTEXITCODE=0
 & (Join-Path $Repository 'WELA.ps1') @options
-exit 0
+exit $LASTEXITCODE
 '@ | Set-Content -LiteralPath $wrapper -Encoding UTF8
 function Public([string]$Label,[hashtable]$Parameters,[int]$ExpectedExit=0){
     $Parameters.Cmd='powershell-logging';$Parameters.ResultsPath=Join-Path $root ($Label+'.json');$request=Join-Path $root ($Label+'-request.json');$Parameters|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $request -Encoding UTF8
@@ -134,7 +135,7 @@ finally{
         try{RemoveCreatedKeys $original.Machine}catch{$cleanupErrors+=$_.ToString()}
         try{$after=Get-WelaPsLoggingSnapshot;Save 'cleanup-after.json' $after;if((ConvertTo-WelaPsLoggingKey $after) -cne (ConvertTo-WelaPsLoggingKey $original)){$cleanupErrors+='Full policy/host/source/channel snapshot did not restore exactly.'};if($masks -and (Masks) -cne $masks){$cleanupErrors+='Audit masks changed.'}}catch{$cleanupErrors+=$_.ToString()}
     }
-    Save 'cleanup.json' @{Status=$(if($cleanupErrors.Count){'Failed'}else{'Restored'});Errors=$cleanupErrors;OriginalCaptured=[bool]$original;MutationStarted=$mutationStarted;All59MasksUnchanged=($masks -and (Masks) -ceq $masks)}
+    Save 'cleanup.json' @{Status=$(if($cleanupErrors.Count){'Failed'}elseif($mutationStarted){'Restored'}else{'NotMutated'});Errors=$cleanupErrors;OriginalCaptured=[bool]$original;MutationStarted=$mutationStarted;All59MasksUnchanged=($masks -and (Masks) -ceq $masks)}
     $artifacts=@(Get-ChildItem -LiteralPath $root -File -Recurse|ForEach-Object{[pscustomobject]@{Path=$_.FullName.Substring($root.Length+1);Sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}})
     Save 'manifest.json' @{Kind='WelaPowerShellLoggingNativeFixture';Head=$env:GITHUB_SHA;Engine=$PSVersionTable.PSVersion.ToString();Assertions=$script:count;Failure=$failure;CleanupErrors=$cleanupErrors;ReadyRuleCredit=0;Artifacts=$artifacts}
 }

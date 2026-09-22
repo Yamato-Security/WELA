@@ -77,9 +77,6 @@
     [string]$RuleEvidencePath,
     [string]$RuleCorpusPath,
     [string]$RuleManifestPath,
-    [ValidateSet('Audit','Plan','Configure')][string]$PowerShellLoggingAction = 'Audit',
-    [ValidateSet('ScriptBlock','Module')][string[]]$PowerShellLoggingControl,
-    [string[]]$PowerShellLoggingModuleName,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$TranscriptionAction = 'Audit',
     [string]$TranscriptDirectory,
     [ValidateSet('Audit','Plan','Configure')][string]$LdapAction = 'Audit',
@@ -231,7 +228,10 @@
     [ValidateRange(1,1024)][int]$MeasurementMaximumEvents = 256,
     [string]$MeasurementOutputPath,
     [switch]$MeasurementExportEvtx,
-    [switch]$Help
+    [switch]$Help,
+    [ValidateSet('Audit','Plan','Configure')][string]$PowerShellLoggingAction = 'Audit',
+    [ValidateSet('ScriptBlock','Module')][string[]]$PowerShellLoggingControl,
+    [string[]]$PowerShellLoggingModuleName
 )
 
 $WELAVersion     = "2.2.0"

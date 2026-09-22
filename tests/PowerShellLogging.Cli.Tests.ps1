@@ -1,4 +1,7 @@
 $ErrorActionPreference='Stop';$repo=Split-Path $PSScriptRoot -Parent;$engine=(Get-Process -Id $PID).Path;$count=0
+$parameterAst=[Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'WELA.ps1'),[ref]$null,[ref]$null).ParamBlock.Parameters
+$names=@($parameterAst|ForEach-Object {$_.Name.VariablePath.UserPath});$helpIndex=[array]::IndexOf($names,'Help')
+foreach($name in @('PowerShellLoggingAction','PowerShellLoggingControl','PowerShellLoggingModuleName')){if([array]::IndexOf($names,$name) -le $helpIndex){throw 'New logging parameters must follow existing Help to preserve legacy positional binding.'};$count++}
 $cases=@(
  @{Args=@('powershell-logging','-Help');Code=0;Pattern='Windows PowerShell 5.1'},
  @{Args=@('configure','-PowerShellLoggingAction','Configure');Code=1;Pattern='require powershell-logging'},
