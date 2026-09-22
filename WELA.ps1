@@ -1,5 +1,6 @@
 ﻿param (
     [string]$Cmd,
+    [ValidateSet("Audit","Plan","Configure")][string]$ProcessCommandlineAction = "Audit",
     [string]$OutType = "std",
     [switch]$Debug,
     [string]$Baseline,
@@ -243,6 +244,7 @@ $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/OutgoingNtlmAudit.ps1")
+. (Join-Path $ScriptRoot "scripts/ProcessCommandline.ps1")
 . (Join-Path $ScriptRoot "scripts/NtlmAudit.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsRestartResume.ps1")
@@ -2088,6 +2090,7 @@ Usage:
   ./WELA.ps1 wec-listener -Help      # Review one fixed-address native HTTP5985 listener
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
   ./WELA.ps1 ntlm-auditing -Help    # Configure selected incoming/domain NTLM auditing
+  ./WELA.ps1 process-commandline -Help
   ./WELA.ps1 outgoing-ntlm -Help    # Configure outgoing NTLM auditing independently
   ./WELA.ps1 wec-authorization -Help # Review source SID authorization on a disabled subscription
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
@@ -2198,6 +2201,11 @@ if ($Cmd -eq 'ntlm-auditing') {
     if ($NtlmAuditAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require NtlmAuditAction Configure.'}
     if ($NtlmAuditAction -eq 'Configure' -and -not $PSBoundParameters.ContainsKey('NtlmAuditScope')) {throw 'Configure requires explicit NtlmAuditScope Incoming, Domain or Both.'}
 }
+if ($Cmd -ne 'process-commandline' -and $PSBoundParameters.ContainsKey('ProcessCommandlineAction')) {throw 'ProcessCommandlineAction requires process-commandline.'}
+if ($Cmd -eq 'process-commandline') {
+    if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','ProcessCommandlineAction','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'process-commandline accepts only its dedicated options.'}
+    if ($ProcessCommandlineAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require ProcessCommandlineAction Configure.'}
+}
 if ($Cmd -ne 'outgoing-ntlm' -and $PSBoundParameters.ContainsKey('NtlmAction')) {throw 'NtlmAction requires outgoing-ntlm.'}
 if ($Cmd -eq 'outgoing-ntlm') {
     if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','NtlmAction','OutgoingNtlmMode','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'outgoing-ntlm accepts only its dedicated options.'}
@@ -2294,7 +2302,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'process-commandline' -and $ProcessCommandlineAction -eq 'Configure') -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
@@ -2484,6 +2492,13 @@ switch ($Cmd.ToLower()) {
         if ($Help) {Write-Host 'Usage: ntlm-auditing [-NtlmAuditAction Audit|Plan|Configure] [-NtlmAuditScope Incoming|Domain|Both] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Configure requires explicit scope. Writes only incoming audit DWORD2 and/or actual-DC domain audit DWORD7; preserves all authentication restrictions. See docs/ntlm-auditing.md.';return}
         if ($NtlmAuditAction -eq 'Configure' -and -not (TestAdministrator)) {throw 'NTLM audit configuration requires Administrator privileges.'}
         $report=Invoke-WelaNtlmAuditCommand -Action $NtlmAuditAction -Selection $NtlmAuditScope -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report|Format-List
+        exit $report.ExitCode
+    }
+    'process-commandline' {
+        if ($Help) {Write-Host 'Usage: process-commandline [-ProcessCommandlineAction Audit|Plan|Configure] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Enables only command-line inclusion for Security4688. Audit Process Creation and precedence are separate prerequisites. See docs/process-commandline.md.';return}
+        if ($ProcessCommandlineAction -eq 'Configure' -and -not (TestAdministrator)) {throw 'Command-line policy configuration requires Administrator privileges.'}
+        $report=Invoke-WelaProcessCommandline -Action $ProcessCommandlineAction -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report|Format-List
         exit $report.ExitCode
     }
