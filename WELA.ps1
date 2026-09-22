@@ -58,6 +58,10 @@
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [ValidateSet('Plan','Run')][string]$DnsClientProbeAction = 'Plan',
+    [string]$DnsClientProbeResolver,
+    [string]$DnsClientProbeOutputPath,
+    [ValidateRange(1,30)][int]$DnsClientProbeTimeoutSeconds = 15,
     [ValidateSet('Plan','Run')][string]$Capi2ProbeAction = 'Plan',
     [string]$Capi2ProbeOutputPath,
     [ValidateRange(1,30)][int]$Capi2ProbeTimeoutSeconds = 15,
@@ -262,6 +266,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerScriptProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/DnsClientProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/FileAccessProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
@@ -2092,6 +2097,7 @@ Usage:
   ./WELA.ps1 wec-authorization -Help # Review source SID authorization on a disabled subscription
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
+  ./WELA.ps1 dns-client-probe -Help  # Fixed native DNS lookup and matched Operational3008 evidence
   ./WELA.ps1 capi2-probe -Help       # Fixed offline chain and matched CAPI2 event 11 evidence
   ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
@@ -2119,7 +2125,7 @@ if ($Cmd -eq 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -
 
 if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
 if ($Cmd -eq 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','MeasurementAction','MeasurementChannel','MeasurementSeconds','MeasurementMaximumEvents','MeasurementOutputPath','MeasurementExportEvtx','Help')}).Count) {throw 'event-measurement accepts only its dedicated options. No command was run.'}
-if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'Dns*' -or $_ -eq 'AllowDnsTraceReset' }).Count) {
+if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { ($_ -like 'Dns*' -and $_ -notlike 'DnsClientProbe*') -or $_ -eq 'AllowDnsTraceReset' }).Count) {
     throw 'DNS analytical options require dns-analytical. No command was run.'
 }
 if ($Cmd -eq 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','DnsAction','DnsState','DnsRetention','DnsMinimumBytes','DnsArchiveMaximumBytes','AllowDnsTraceReset','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
@@ -2218,6 +2224,8 @@ if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -li
 if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
     throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
 }
+if ($Cmd -ne 'dns-client-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'DnsClientProbe*'}).Count) {throw 'DnsClientProbe options require dns-client-probe.'}
+if ($Cmd -eq 'dns-client-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','DnsClientProbeAction','DnsClientProbeResolver','DnsClientProbeOutputPath','DnsClientProbeTimeoutSeconds','Help')}).Count) {throw 'dns-client-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'capi2-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Capi2Probe*'}).Count) {throw 'Capi2Probe options require capi2-probe.'}
 if ($Cmd -eq 'capi2-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','Capi2ProbeAction','Capi2ProbeOutputPath','Capi2ProbeTimeoutSeconds','Help')}).Count)) {throw 'capi2-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FailedLogon*'}).Count) {throw 'FailedLogon options require failed-logon-probe.'}
@@ -2522,6 +2530,12 @@ switch ($Cmd.ToLower()) {
         $map=@{WecUpdateId='Id';WecUpdateSourceSid='SourceSids';WecUpdateQueryPath='QueryPath';WecUpdateDescription='Description';WecUpdatePlanPath='PlanPath';WecUpdatePlanHash='PlanHash'}
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaWecUpdate @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'dns-client-probe' {
+        if ($Help) {Write-Host 'Usage: dns-client-probe [-DnsClientProbeAction Plan|Run] -DnsClientProbeResolver approved-IPv4 [-DnsClientProbeOutputPath new-private-directory] [-DnsClientProbeTimeoutSeconds 1..30]. Fixed benign A lookup to wela-<nonce>.wela.test. via explicit DNS TCP53 resolver; no configuration changes or Sigma credit. Plan observes prerequisites only. See docs/dns-client-probe.md.';return}
+        $report=Invoke-WelaDnsClientProbe -Action $DnsClientProbeAction -Resolver $DnsClientProbeResolver -OutputPath $DnsClientProbeOutputPath -TimeoutSeconds $DnsClientProbeTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
