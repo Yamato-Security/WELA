@@ -111,6 +111,7 @@ function Test-WelaWmiDescendantOutcomes {
             } else {
                 # Allow only SACL_PRESENT to appear. Every other control and full
                 # owner/group/DACL/unknown descriptor property remains identical.
+                if((ConvertTo-WelaWmiJson @($a.PSObject.Properties.Name|Sort-Object)) -cne (ConvertTo-WelaWmiJson @($b.PSObject.Properties.Name|Sort-Object))){throw 'Child descriptor property inventory changed.'}
                 foreach($property in $a.PSObject.Properties){
                     if($property.Name -eq 'SACL'){continue}
                     if($property.Name -eq 'ControlFlags'){
@@ -126,6 +127,7 @@ function Test-WelaWmiDescendantOutcomes {
                 }
                 $expected=@($Definitions|Where-Object {($_.AceFlags -band 2) -ne 0}|ForEach-Object {[pscustomobject]@{Sid=$_.Sid;AccessMask=$_.AccessMask;AceFlags=([uint32]$_.AceFlags -bor 16)}})
                 foreach($ace in $remaining){if(-not @($expected|Where-Object {Test-WelaWmiAceMatch $ace $_}).Count){throw 'Unexplained child audit entry appeared.'}}
+                foreach($definition in $expected){if(@($remaining|Where-Object {Test-WelaWmiAceMatch $_ $definition}).Count -gt 1){throw 'Unexplained duplicate inherited child entry appeared.'}}
                 foreach($definition in $expected){if(-not @($b.SACL|Where-Object {Test-WelaWmiAceMatch $_ $definition}).Count){throw 'Requested inherited ACE was not observed; existing-child propagation is unverified.'}}
                 $status='InheritedAceObserved'
             }

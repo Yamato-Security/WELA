@@ -58,6 +58,10 @@ try{
  $c=New-WelaConfigurationContext -Auto -DryRun -BackupPath $temp
  Set-WelaWmiAuditControls $c $p
  Assert ($script:writes -eq 0 -and $c.Results[0].Status -eq 'Skipped' -and -not (Test-Path $temp)) 'DryRun no state or journal mutation.'
+ $script:context='changed token';$c=New-WelaConfigurationContext -Auto -BackupPath (Join-Path $temp token)
+ Set-WelaWmiAuditControls $c $p
+ Assert ($script:writes -eq 0 -and $c.Results[0].Status -eq 'Failed') 'Full context drift invalidates planned subtree.'
+ $script:context='caller/host/source'
  $script:tree['root\default\New']=Descriptor
  $c=New-WelaConfigurationContext -Auto -BackupPath (Join-Path $temp stale)
  Set-WelaWmiAuditControls $c $p
@@ -80,17 +84,25 @@ try{
  Assert ((Get-WelaWmiDescendantKey $journal.Before.Descendants) -ceq (Get-WelaWmiDescendantKey $p[0].Descendants)) 'Journal serialization does not truncate original child snapshots.'
  $script:tree['root\default\A'].Opaque='drift'
  Assert ((Complete-WelaConfiguration $c).ExitCode -eq 1) 'Final child drift propagates failure.'
+ Reset;$script:tree['root\default'].SACL+=Ace 66;$script:tree['root\default'].ControlFlags=32788
+ $unverified=@(Get-WelaWmiAuditPlan -Namespace 'root\default' -IncludeChildren)
+ Assert ($unverified[0].Status -eq 'Unknown' -and $unverified[0].Diagnostic -match 'descendants are unverified') 'Already-compliant parent cannot imply descendant compliance.'
+ $c=New-WelaConfigurationContext -Auto -BackupPath (Join-Path $temp unverified)
+ Set-WelaWmiAuditControls $c $unverified
+ Assert ($script:writes -eq 0 -and (Complete-WelaConfiguration $c).ExitCode -eq 1) 'Missing existing-child inheritance fails without an unnecessary parent rewrite.'
  # Each unrelated mutation invalidates observed propagation, even when required ACE still exists.
- foreach($kind in @('Owner','Dacl','Control','Unknown','Protected','Removed','Extra','Missing','New')){
+ foreach($kind in @('Owner','Dacl','Control','Unknown','NewProperty','Protected','Removed','Extra','Duplicate','Missing','New')){
   Reset;$a=Get-WelaWmiStableDescendants 'root\default';$null=Set-WelaWmiNamespaceDescriptor 'root\default' $a.Root.DescriptorJson $defs
   switch($kind){
    Owner {$script:tree['root\default\A'].Owner='other'}
    Dacl {$script:tree['root\default\A'].DACL=@('other')}
    Control {$script:tree['root\default\A'].ControlFlags=$script:tree['root\default\A'].ControlFlags -bor 256}
    Unknown {$script:tree['root\default\A'].Opaque='other'}
+   NewProperty {$script:tree['root\default\A']|Add-Member NoteProperty NewOpaque 1}
    Protected {$script:tree['root\default\Protected\B'].SACL+=Ace}
    Removed {$script:tree.Remove('root\default\A\B')}
    Extra {$script:tree['root\default\A'].SACL+=Ace 64}
+   Duplicate {$script:tree['root\default\A'].SACL+=Ace}
    Missing {$script:tree['root\default\A'].SACL=@()}
    New {$script:tree['root\default\Unreviewed']=Descriptor}
   }

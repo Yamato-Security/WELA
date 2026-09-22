@@ -28,6 +28,7 @@ jobs:
         run: |
           ./tests/WmiNamespaceAuditing.Tests.ps1
           ./tests/WmiNamespaceDescendants.Tests.ps1
+          ./tests/WmiNamespaceDescendants.Cli.Tests.ps1
           ./tests/WmiNamespaceDescendants.Windows.Tests.ps1 -AllowDisposableNamespaceWrite -EvidencePath wmi-descendants-native.json
       - name: Native tree validation in PowerShell 7
         if: matrix.shell == 'pwsh'
@@ -35,6 +36,7 @@ jobs:
         run: |
           ./tests/WmiNamespaceAuditing.Tests.ps1
           ./tests/WmiNamespaceDescendants.Tests.ps1
+          ./tests/WmiNamespaceDescendants.Cli.Tests.ps1
           ./tests/WmiNamespaceDescendants.Windows.Tests.ps1 -AllowDisposableNamespaceWrite -EvidencePath wmi-descendants-native.json
       - name: Retain complete native observations
         if: always()
