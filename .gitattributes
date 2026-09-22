@@ -97,6 +97,8 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 /tests/WecCollectorObservation* text eol=lf
 /tests/WecSubscriptionInventory* text eol=lf
 
+# Disposable public OneSettings fixture source identity.
+/tests/OneSettingsConfigure*.ps1 text eol=lf
 # Scoped NTLM source and native evidence retain stable bytes.
 /scripts/NtlmAudit.ps1 text eol=lf
 /tests/NtlmAudit* text eol=lf

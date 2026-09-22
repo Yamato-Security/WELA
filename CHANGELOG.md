@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Add native public OneSettings policy and explicit Privacy-channel configuration acceptance: actual apply, typed journals/readback, idempotence and invalid-value refusals on Server 2022; preserve the existing Server 2025 refusal. Both PowerShell engines verify exact fixture cleanup without event or Sigma claims. Fix omitted notification-control dispatch so default Audit reads both controls and Configure without a selection fails with a nonzero exit. (Related #378) (@Shirofune-Security)
+
 - Add `ntlm-auditing` Audit/Plan/Configure with explicit Incoming/Domain/Both selection. Configure only incoming audit DWORD2 and actual-DC domain audit DWORD7, identify legacy domain2 without invented semantics, refuse unknown values and host/state drift, and retain separate typed journals/readback/partial outcomes. Native tests verify incoming changes, non-DC skips and exact preservation of unrelated settings. (Related #363) (@Shirofune-Security)
 
 - Added read-only `wef-query` preflight for one exact selected source QueryList, with strict native Select/Suppress execution, separate per-channel failure diagnostics, bounded matching XML and actual caller/host/source guards. Empty, denied, missing, invalid, capped and drifted results remain distinct; disposable native tests cover real record selection/suppression and standard-user denial with exact cleanup. No forwarding-service access, delivery or Sigma credit is inferred. (Related #368) (@Shirofune-Security)
