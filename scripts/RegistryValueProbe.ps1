@@ -17,7 +17,10 @@ function Get-WelaRegistryValueProbeState {
     $services=@(Get-Service EventLog,Winmgmt,RpcSs -ErrorAction Stop|Sort-Object Name|ForEach-Object {[pscustomobject]@{Name=$_.Name;Status=[string]$_.Status}})
     if($services.Count -ne 3 -or @($services|Where-Object Status -ne Running).Count){throw 'EventLog, Winmgmt and RpcSs must already be running.'}
     $reader=Get-WelaChannelReader;$null=Get-WelaFileProbeReaderKey $reader
+    $computer=Get-CimInstance Win32_ComputerSystem -Property DomainRole,PartOfDomain -ErrorAction Stop
+    if(-not(Test-WelaFileProbeInteger $computer.DomainRole) -or $computer.PartOfDomain -isnot [bool]){throw 'Native Windows role and join observations are incomplete.'}
     $hostState=Get-WelaChannelReadHost
+    if($hostState.DomainRole -ne $computer.DomainRole -or $hostState.DomainJoined -ne $computer.PartOfDomain){throw 'Native Windows role or join state changed during observation.'}
     $target=[Wela.RegistryValueProbe.Target]::new($false)
     try{$registry=$target.Read()}finally{$target.Dispose()}
     $channel=[Diagnostics.Eventing.Reader.EventLogConfiguration]::new('Security')
@@ -31,6 +34,11 @@ function Get-WelaRegistryValueProbeStateKey {
     param($State)
     $null=Get-WelaFileProbeTokenKey $State.Token
     if($State.Computer -isnot [string] -or -not $State.Computer -or -not(Test-WelaFileProbeInteger $State.Host.ProductType) -or $State.Host.ProductType -notin 1,2,3 -or -not(Test-WelaFileProbeInteger $State.Host.Build) -or $State.Host.Build -notin 22000,22621,22631,20348,26100,26200 -or $State.Host.DomainJoined -isnot [bool]){throw 'Complete supported native host context is required.'}
+    if(-not(Test-WelaFileProbeInteger $State.Host.DomainRole) -or
+       ($State.Host.ProductType -eq 1 -and ($State.Host.DomainRole -notin 0,1 -or $State.Host.Build -notin 22000,22621,22631,26100,26200)) -or
+       ($State.Host.ProductType -eq 2 -and ($State.Host.DomainRole -notin 4,5 -or $State.Host.Build -notin 20348,26100)) -or
+       ($State.Host.ProductType -eq 3 -and ($State.Host.DomainRole -notin 2,3 -or $State.Host.Build -notin 20348,26100)) -or
+       ($State.Host.DomainJoined -ne ($State.Host.DomainRole -in 1,3,4,5))){throw 'Contradictory Windows product/build/domain-role/join evidence.'}
     if($State.Services -isnot [array] -or ($State.Services.Name -join ',') -cne 'EventLog,RpcSs,Winmgmt' -or @($State.Services|Where-Object Status -ne Running).Count){throw 'Required services must already be running.'}
     if($State.Reader.ElevatedAdministrator -isnot [bool] -or -not $State.Reader.ElevatedAdministrator -or $State.Reader.TokenType -cne 'Primary' -or $State.Reader.Impersonation -cne 'Absent' -or $State.Reader.UserSid -cne $State.Token.Sid){throw 'Actual elevated non-impersonating primary token required.'}
     $expected='HKEY_USERS\'+$State.Token.Sid+'\Software\WELA\AuditProbe'

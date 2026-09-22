@@ -26,6 +26,12 @@ namespace Wela.RegistryValueProbe {
    RawSecurityDescriptor sd=new RawSecurityDescriptor(b,0);
    return sd;
   }
+  public static void AssertProbeCapacity(Value[] values) {
+   if(values==null||values.Length>=128)throw new InvalidOperationException("Registry inventory has no capacity for an owned probe value.");
+   long total=0;foreach(Value value in values){if(value==null||value.DataBase64==null)throw new InvalidOperationException("Incomplete typed value inventory.");int size=Convert.FromBase64String(value.DataBase64).Length;if(size>65536)throw new InvalidOperationException("Value exceeds inventory bound.");total+=size;}
+   int reserved=Encoding.Unicode.GetByteCount("WELA_BEFORE_"+new string('0',32)+"\0");
+   if(total+reserved>1048576)throw new InvalidOperationException("Registry byte inventory has no capacity for an owned probe value.");
+  }
   public static Snapshot Observe(string path,string identity,byte[] bytes) {
    string encoded=Convert.ToBase64String(bytes);RawSecurityDescriptor sd=Parse(encoded);List<Ace> entries=new List<Ace>();
    if(sd.SystemAcl!=null)foreach(GenericAce ace in sd.SystemAcl){CommonAce common=ace as CommonAce;bool ordinary=common!=null&&!common.IsCallback&&common.AceType==AceType.SystemAudit;entries.Add(new Ace {Binary=Bytes(ace),Type=(int)ace.AceType,Flags=(int)ace.AceFlags,Mask=ordinary?common.AccessMask:0,Sid=ordinary?common.SecurityIdentifier.Value:null,Ordinary=ordinary});}
@@ -118,7 +124,14 @@ namespace Wela.RegistryValueProbe {
    values.Sort((a,b)=>String.CompareOrdinal(a.Name,b.Name));return values.ToArray();
   }
   static bool SameValues(Value[] a,Value[] b){if(a.Length!=b.Length)return false;for(int i=0;i<a.Length;i++)if(a[i].Name!=b[i].Name||a[i].Type!=b[i].Type||a[i].DataBase64!=b[i].DataBase64)return false;return true;}
-  Value Find(string name){foreach(Value v in ReadValues())if(String.Equals(v.Name,name,StringComparison.OrdinalIgnoreCase))return v;return null;}
+  Value Find(string name){
+   uint type,size=0;int error=RegQueryValueExW(handle,name,IntPtr.Zero,out type,IntPtr.Zero,ref size);
+   if(error==2)return null;if(error!=0)throw new Win32Exception(error,"Owned value size query failed.");
+   if(size>65536)throw new InvalidOperationException("Owned value exceeds bound; refusing modification.");
+   IntPtr data=Marshal.AllocHGlobal((int)Math.Max(size,1));
+   try{uint actual=size,currentType;error=RegQueryValueExW(handle,name,IntPtr.Zero,out currentType,data,ref actual);if(error!=0||actual!=size||currentType!=type)throw new InvalidOperationException("Owned value changed during exact query.");byte[] bytes=new byte[actual];if(actual>0)Marshal.Copy(data,bytes,0,(int)actual);return new Value{Name=name,Type=type,DataBase64=Convert.ToBase64String(bytes)};}
+   finally{Marshal.FreeHGlobal(data);}
+  }
   static string Encoded(string value){return Convert.ToBase64String(Encoding.Unicode.GetBytes(value+"\0"));}
   void Put(string name,string text){byte[] data=Encoding.Unicode.GetBytes(text+"\0");int error=RegSetValueExW(handle,name,0,1,data,(uint)data.Length);if(error!=0)throw new Win32Exception(error,"Owned probe value write failed.");Value v=Find(name);if(v==null||v.Type!=1||v.DataBase64!=Encoded(text))throw new InvalidOperationException("Owned value readback differs.");}
   public Operation Run(string nonce,string expectedIdentity,string expectedDescriptor){
@@ -126,6 +139,7 @@ namespace Wela.RegistryValueProbe {
    foreach(char c in nonce)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')))throw new InvalidOperationException("Invalid probe nonce.");
    Operation r=new Operation{Nonce=nonce,Name="WELA_Probe_"+nonce,BeforeValue="WELA_BEFORE_"+nonce,AfterValue="WELA_AFTER_"+nonce,HandleId="0x"+handle.ToInt64().ToString("x"),CleanupComplete=false,Diagnostic=""};
    r.Before=Read();if(r.Before.Identity!=expectedIdentity||r.Before.DescriptorBase64!=expectedDescriptor)throw new InvalidOperationException("Probe key changed after planning.");
+   Descriptor.AssertProbeCapacity(r.Before.Values);
    if(Find(r.Name)!=null)throw new InvalidOperationException("Owned nonce value already exists; refusing overwrite.");
    bool attempted=false;
    try{
