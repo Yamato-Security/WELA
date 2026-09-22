@@ -84,3 +84,8 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 # Reviewed channel restoration binds exact installed source bytes.
 /scripts/ChannelRecovery.ps1 text eol=lf
 /tests/ChannelRecovery*.ps1 text eol=lf
+
+# Collector inventory reads native UTF16 names and bounded Unicode XML.
+/modules/WecSubscriptionInventory.cs text eol=lf
+/tests/WecCollectorObservation* text eol=lf
+/tests/WecSubscriptionInventory* text eol=lf
