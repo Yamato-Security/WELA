@@ -1,6 +1,7 @@
 # Requires Windows PowerShell 5.1 or PowerShell 7. No Windows dependency for schema/planning.
 Set-StrictMode -Version 2.0
 . (Join-Path $PSScriptRoot '../scripts/CustomAuditProfiles.ps1')
+. (Join-Path $PSScriptRoot '../scripts/IpsecPrerequisites.ps1')
 
 function Get-WelaProperty {
     param($Object, [string]$Name, $Default = $null)
@@ -68,7 +69,8 @@ function Get-WelaAuditProfilePlan {
         [Parameter(Mandatory)][string]$Profile,
         [Parameter(Mandatory)][ValidateSet('Client', 'MemberServer', 'DomainController', 'ADCS')][string]$Role,
         [Parameter(Mandatory)][ValidateRange(1, 999999)][int]$Build,
-        [hashtable]$Current = @{}, [switch]$IncludeOptional,
+        [hashtable]$Current = @{}, [switch]$IncludeOptional, [switch]$ObserveIpsec,
+        [scriptblock]$ReadIpsec = { Get-WelaIpsecPrerequisite },
         [string]$Path = (Join-Path $PSScriptRoot '../config/audit_profiles.json'),
         [switch]$CustomFile
     )
@@ -85,6 +87,10 @@ function Get-WelaAuditProfilePlan {
     foreach ($property in $selected.controls.PSObject.Properties) { $controls[$property.Name] = $property.Value }
     $override = Get-WelaProperty $selected.roleOverrides $Role
     if ($override) { foreach ($property in $override.PSObject.Properties) { $controls[$property.Name] = $property.Value } }
+    $ipsec = $null
+    if (-not $CustomFile -and $selected.id -ceq 'microsoft-stronger-reviewed-2026-09') {
+        $ipsec = if ($ObserveIpsec) { & $ReadIpsec } else { Get-WelaIpsecPrerequisite -Offline }
+    }
     $rows = foreach ($policy in $data.catalog) {
         $control = $controls[$policy.id]
         $mode = if ($control) { $control.mode } else { 'unchanged' }
@@ -102,7 +108,17 @@ function Get-WelaAuditProfilePlan {
                 $compliance = if ($action -eq 'No change') { 'Compliant' } else { 'Drift' }
             }
         }
+        $conditional = $null
+        if ($ipsec -and $policy.id -eq 'IPsec Main Mode' -and $mode -eq 'optional') {
+            $conditional = $ipsec
+            if ($IncludeOptional -and $ipsec.Status -ne 'Applicable') {
+                $desired = $null
+                $action = if ($ipsec.Status -eq 'NotObservedWithinScope') { 'Preserve (IPsec not observed in scope)' } else { 'Unknown IPsec prerequisite' }
+                $compliance = 'Not assessed'
+            }
+        }
         [pscustomobject][ordered]@{
+            conditionalPrerequisite = $conditional
             id = $policy.id; guid = $policy.guid; category = $policy.category; mode = $mode
             requiredMask = $mask; currentMask = $currentMask; targetMask = $desired
             recommendation = if ($mode -in @('exact', 'minimum', 'optional')) { "$(Format-WelaAuditMask $mask) [$mode]" } else { $mode }
@@ -268,7 +284,8 @@ function Invoke-WelaAuditProfilePlan {
         [Parameter(Mandatory)]$Plan,
         [scriptblock]$ReadPolicy = { Get-WelaEffectiveAuditPolicy },
         [scriptblock]$WritePolicy,
-        [scriptblock]$ReadContext = { Get-WelaHostContext }
+        [scriptblock]$ReadContext = { Get-WelaHostContext },
+        [scriptblock]$ReadIpsec = { Get-WelaIpsecPrerequisite }
     )
     if ($Plan.PSObject.Properties['CustomProfileSource']) { Assert-WelaCustomProfileSource $Plan.CustomProfileSource }
     $hostContext = & $ReadContext
@@ -277,21 +294,28 @@ function Invoke-WelaAuditProfilePlan {
     $selected = @($Plan.policies | Where-Object { $_.mode -in @('exact', 'minimum') -or ($_.mode -eq 'optional' -and $Plan.includeOptional) })
     $results = foreach ($policy in $selected) {
         $initial = $null; $effective = $null; $target = $null; $errorText = $null; $status = 'No change'
+        $conditional = Test-WelaIpsecConditionalPolicy $Plan $policy; $observations = @(); $skipConditional = $false
         try {
             if ($Plan.PSObject.Properties['CustomProfileSource']) { Assert-WelaCustomProfileSource $Plan.CustomProfileSource }
+            if ($conditional) {
+                $evidence = & $ReadIpsec; $observations += $evidence
+                if ($evidence.Status -eq 'NotObservedWithinScope') { $status = 'Skipped'; $skipConditional = $true; $errorText = 'IPsec prerequisite not observed within the documented native scope; policy preserved.' }
+                else { Assert-WelaIpsecPrerequisite $evidence }
+            }
             # Whole-plan preflight is not a current-state cache: re-read immediately before each control.
             $fresh = & $ReadPolicy
             if ($fresh -isnot [hashtable] -or -not $fresh.ContainsKey($policy.guid) -or $null -eq $fresh[$policy.guid] -or $fresh[$policy.guid] -notin @(0, 1, 2, 3)) { throw 'Current audit policy became unknown before application.' }
             $initial = $fresh[$policy.guid]; $effective = $initial
             $isMinimum = $policy.mode -eq 'minimum'
             $target = if ($isMinimum) { [int]$initial -bor [int]$policy.requiredMask } else { [int]$policy.requiredMask }
-            if ($initial -ne $target) {
+            if (-not $skipConditional -and $initial -ne $target) {
                 if ($PSCmdlet.ShouldProcess($policy.id, "Set audit policy to $(Format-WelaAuditMask $target)")) {
                     if ($Plan.PSObject.Properties['CustomProfileSource']) {
                         Assert-WelaCustomProfileSource $Plan.CustomProfileSource
                         $freshContext = & $ReadContext
                         if ($freshContext.Role -ne $Plan.role -or $freshContext.Build -ne $Plan.build) { throw 'Custom profile target changed before application.' }
                     }
+                    if ($conditional) { $evidence = & $ReadIpsec; $observations += $evidence; Assert-WelaIpsecPrerequisite $evidence }
                     $writeMode = if ($isMinimum) { 'minimum' } else { 'exact' }
                     if ($WritePolicy) {
                         # Existing two-argument test providers retain their merged-mask contract.
@@ -314,6 +338,7 @@ function Invoke-WelaAuditProfilePlan {
         [pscustomobject]@{
             id = $policy.id; guid = $policy.guid; mode = $policy.mode
             beforeMask = $initial; targetMask = $target; effectiveMask = $effective; status = $status; error = $errorText
+            prerequisiteObservations = $observations
             prerequisites = $policy.prerequisites; evidence = $policy.evidence; sourceIds = @($policy.sourceIds)
         }
     }
@@ -325,4 +350,4 @@ function Invoke-WelaAuditProfilePlan {
     }
 }
 
-Export-ModuleMember -Function Import-WelaAuditProfiles, Import-WelaCustomAuditProfiles, Assert-WelaCustomProfileSource, Get-WelaCustomReportPath, Write-WelaCustomProfileReport, Format-WelaAuditMask, Get-WelaAuditProfilePlan, Get-WelaEffectiveAuditPolicy, Set-WelaEffectiveAuditPolicy, Get-WelaHostContext, Assert-WelaAuditProfileTarget, Invoke-WelaAuditProfilePlan
+Export-ModuleMember -Function Get-WelaIpsecPrerequisite, Assert-WelaIpsecPrerequisite, Test-WelaIpsecConditionalPolicy, Import-WelaAuditProfiles, Import-WelaCustomAuditProfiles, Assert-WelaCustomProfileSource, Get-WelaCustomReportPath, Write-WelaCustomProfileReport, Format-WelaAuditMask, Get-WelaAuditProfilePlan, Get-WelaEffectiveAuditPolicy, Set-WelaEffectiveAuditPolicy, Get-WelaHostContext, Assert-WelaAuditProfileTarget, Invoke-WelaAuditProfilePlan

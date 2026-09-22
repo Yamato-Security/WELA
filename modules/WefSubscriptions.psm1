@@ -119,6 +119,41 @@ function ConvertFrom-WelaWefSubscription {
     [pscustomobject]@{ Id=$id; Xml=$doc.OuterXml; Definition=[pscustomobject]$definition; Key=($definition | ConvertTo-Json -Depth 30 -Compress); Query=$query; SourceSids=@($SourceSids | Sort-Object -Unique) }
 }
 
+# Compare explicit firewall address scopes by network identity, retaining family
+# and IPv6 scope ID. Windows may report IPv4 CIDR as a dotted netmask.
+function ConvertTo-WelaWefFirewallAddressKey {
+    param([string]$Value,[switch]$Observed)
+    $parts=$Value -split '/';$address=$null
+    if($parts.Count -gt 2 -or -not [Net.IPAddress]::TryParse($parts[0],[ref]$address)){throw 'Expected an explicit firewall IP address or CIDR network.'}
+    $bytes=$address.GetAddressBytes();$bits=$bytes.Length*8;$prefix=$bits
+    if($parts.Count -eq 2){
+        if($Observed -and $bytes.Length -eq 4 -and $parts[1].Contains('.')){
+            if($parts[1] -notmatch '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'){throw 'Invalid observed IPv4 netmask.'}
+            $mask=@($parts[1].Split('.')|ForEach-Object {if([int]$_ -gt 255){throw 'Invalid observed IPv4 netmask.'};[int]$_})
+            $prefix=0;$zeroSeen=$false
+            foreach($octet in $mask){for($bit=7;$bit -ge 0;$bit--){if(($octet -band (1 -shl $bit)) -ne 0){if($zeroSeen){throw 'Observed IPv4 netmask is not contiguous.'};$prefix++}else{$zeroSeen=$true}}}
+        }else{
+            if($parts[1] -notmatch '^\d+$'){throw 'Expected a numeric firewall CIDR prefix.'}
+            $prefix=[int]$parts[1]
+        }
+        if($prefix -lt 1 -or $prefix -gt $bits){throw 'Zero or out-of-range firewall CIDR prefix is unsupported.'}
+    }
+    # Network host bits are immaterial to an explicit CIDR scope.
+    for($i=0;$i -lt $bytes.Length;$i++){
+        $remaining=$prefix-8*$i
+        if($remaining -le 0){$bytes[$i]=0}elseif($remaining -lt 8){$bytes[$i]=[byte]($bytes[$i] -band (256-(1 -shl (8-$remaining))))}
+    }
+    $scope=if($bits -eq 128){'%'+$address.ScopeId}else{''}
+    [string]$bits+':'+([BitConverter]::ToString($bytes)).Replace('-','')+$scope+'/'+$prefix
+}
+function Test-WelaWefFirewallAddressSet {
+    param([object[]]$Expected,[object[]]$Observed)
+    if(-not $Expected.Count -or -not $Observed.Count){return $false}
+    $expectedKeys=@(foreach($value in $Expected){if($value -isnot [string]){throw 'Expected firewall address must be a string.'};ConvertTo-WelaWefFirewallAddressKey $value})
+    $observedKeys=@(foreach($value in $Observed){if($value -isnot [string]){throw 'Observed firewall address must be a string.'};ConvertTo-WelaWefFirewallAddressKey $value -Observed})
+    return @((Compare-Object @($expectedKeys|Sort-Object -Unique) @($observedKeys|Sort-Object -Unique))).Count -eq 0
+}
+
 function Import-WelaWefConfig {
     param([string]$Path, [ValidateSet('Source','Collector')][string]$Role)
     $full = (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path
@@ -159,6 +194,27 @@ function Import-WelaWefConfig {
     [pscustomobject]@{ Config=$config; Path=$full; Subscriptions=$subscriptions }
 }
 
+function Initialize-WelaWecSubscriptionInventory {
+    $path=Join-Path $PSScriptRoot 'WecSubscriptionInventory.cs'
+    $bytes=[IO.File]::ReadAllBytes($path);if($bytes.Length -gt 65536){throw 'Native inventory source exceeds its bound.'}
+    $sha=[Security.Cryptography.SHA256]::Create();try{$hash=([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()}finally{$sha.Dispose()}
+    if(-not ('Wela.WecInventory.Reader' -as [type])){
+        $source=[Text.UTF8Encoding]::new($false,$true).GetString($bytes).TrimStart([char]0xfeff)
+        if([regex]::Matches($source,'__WELA_SOURCE_SHA256__').Count -ne 1){throw 'Native inventory source binding marker is missing or ambiguous.'}
+        $compile=@{TypeDefinition=$source.Replace('__WELA_SOURCE_SHA256__',$hash);ErrorAction='Stop'}
+        if($PSVersionTable.PSEdition -eq 'Desktop'){$compile.ReferencedAssemblies=@('System.dll','System.Core.dll')}
+        Add-Type @compile
+    }
+    if([Wela.WecInventory.Reader]::SourceSha256 -cne $hash){throw 'Loaded native inventory differs from its source; start a fresh process.'}
+}
+
+function Get-WelaWecSubscriptionIds {
+    if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Native WEC inventory requires 64-bit Windows.'}
+    Initialize-WelaWecSubscriptionInventory
+    # The native method returns nothing until enumeration has completed successfully.
+    [Wela.WecInventory.Reader]::ReadNames()
+}
+
 function Read-WelaWecSubscriptionXml {
     param([Parameter(Mandatory)][string]$Id)
     if([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Native WEC XML reads require 64-bit Windows.'}
@@ -172,4 +228,4 @@ function Read-WelaWecSubscriptionXml {
     [Wela.WecXml.Reader]::ReadXml($Id)
 }
 
-Export-ModuleMember -Function Read-WelaWecSubscriptionXml, Read-WelaWefXml, Get-WelaWefXmlKey, ConvertFrom-WelaWefQuery, Get-WelaWefAuthorization, ConvertFrom-WelaWefSubscription, Import-WelaWefConfig
+Export-ModuleMember -Function Get-WelaWecSubscriptionIds, ConvertTo-WelaWefFirewallAddressKey, Test-WelaWefFirewallAddressSet, Read-WelaWecSubscriptionXml, Read-WelaWefXml, Get-WelaWefXmlKey, ConvertFrom-WelaWefQuery, Get-WelaWefAuthorization, ConvertFrom-WelaWefSubscription, Import-WelaWefConfig

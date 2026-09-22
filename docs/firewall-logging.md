@@ -40,7 +40,9 @@ WELA does not attempt to broaden ACLs, resolve arbitrary group membership, imper
 
 Each snapshot also reports the firewall profile's `Enabled` value. A compliant logging configuration on a disabled/inactive profile is preparation for that profile, not proof of traffic events. WELA never changes that enforcement state. Text logs and Security EVTX audit events are separate sources; increasing an EVTX buffer does not configure these text logs, and a WEF subscription alone does not collect arbitrary text files.
 
-## Manual recovery
+## Guarded and manual recovery
+
+For one completed `Applied` operation with matching original journal and results, use the explicit [guarded firewall logging recovery](firewall-logging-recovery.md) Plan/Restore workflow. It verifies the current confirmed local After values, restores the original four local logging fields and preserves enforcement, other profiles and bounded native rule/filter configuration. Partial, ambiguous, drifted and unsupported operations still require manual investigation.
 
 There is no automatic rollback. Preserve `before.jsonl` and the results JSON. Before recovery, review failed versus applied controls, concurrent operator changes and GPO/MDM ownership. Restore the **local** snapshot, not the effective snapshot; applied policy may continue overriding it. Example for one reviewed journal entry:
 
@@ -60,7 +62,7 @@ Do not blindly replay a journal: a failed write can have left the old state unto
 
 ## Validation and remaining integration evidence
 
-The automated suite uses mocked firewall writes and temporary recovery files to check all profiles, larger limits, path preservation/CIS selection, effective-versus-local conflicts, idempotence, journal ordering, unknown permissions, read/write errors, prompt races and final drift. Windows CI runs these checks under PowerShell 5.1 and 7, plus actual read-only ActiveStore/PersistentStore and ACL inspection and a dry run. It does not alter runner firewall policy or generate traffic.
+The original automated suite uses mocked firewall writes and temporary recovery files to check all profiles, larger limits, path preservation/CIS selection, effective-versus-local conflicts, idempotence, journal ordering, unknown permissions, read/write errors, prompt races and final drift. Its Windows smoke performs read-only ActiveStore/PersistentStore and ACL inspection and a dry run. The separate guarded-recovery workflow explicitly changes logging fields in a disposable owned fixture through the public Configure/Restore commands, then verifies exact restoration under PowerShell 5.1 and 7 on Server 2022/2025. Neither suite changes firewall enforcement or generates traffic.
 
 Before closing issue #375, capture evidence from an isolated Windows client/server lab: OS build, PowerShell version, WELA commit, before/after JSON, effective/local settings and service ACLs. On each applicable active network profile, generate one benign allowed connection and one controlled blocked connection against a disposable endpoint, confirm corresponding `ALLOW`/`DROP` text records and timestamps, and confirm the expected source path and parser in the actual collector. Test log creation and rotation under the actual service token, policy refresh/override behavior, and manual recovery. Do not weaken production filtering to create this evidence. These traffic/rotation/ingestion tests remain unperformed; no end-to-end detection claim is made.
 

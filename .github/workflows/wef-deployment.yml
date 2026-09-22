@@ -15,7 +15,9 @@ jobs:
       - name: Safe public command fixtures in Windows PowerShell 5.1
         shell: powershell
         timeout-minutes: 3
-        run: ./tests/WefDeployment.Tests.ps1
+        run: |
+          ./tests/WefFirewallAddress.Tests.ps1
+          ./tests/WefDeployment.Tests.ps1
       - name: Public CLI rejection checks in Windows PowerShell 5.1
         shell: powershell
         timeout-minutes: 3
@@ -23,7 +25,9 @@ jobs:
       - name: Safe public command fixtures in PowerShell 7
         shell: pwsh
         timeout-minutes: 3
-        run: ./tests/WefDeployment.Tests.ps1
+        run: |
+          ./tests/WefFirewallAddress.Tests.ps1
+          ./tests/WefDeployment.Tests.ps1
       - name: Public CLI rejection checks in PowerShell 7
         shell: pwsh
         timeout-minutes: 3

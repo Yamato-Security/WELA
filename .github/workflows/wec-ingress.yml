@@ -1,0 +1,49 @@
+name: Reviewed collector firewall ingress
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wec-ingress:
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Fixtures and public guards in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WefFirewallAddress.Tests.ps1
+          ./tests/WecIngress.Tests.ps1
+          ./tests/WecIngress.Cli.Tests.ps1
+      - name: Native scoped firewall rule in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WecIngress.Windows.Tests.ps1 -AllowDisposableFirewallRule
+      - name: Fixtures and public guards in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WefFirewallAddress.Tests.ps1
+          ./tests/WecIngress.Tests.ps1
+          ./tests/WecIngress.Cli.Tests.ps1
+      - name: Native scoped firewall rule in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WecIngress.Windows.Tests.ps1 -AllowDisposableFirewallRule
+      - name: Retain owned fixture evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wec-ingress-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-ingress-*/
+          if-no-files-found: warn
+          retention-days: 7

@@ -30,13 +30,14 @@ function Get-WelaWefControlState {
         'SubscriptionManager' { return Get-WelaRegistryState -Path $Target.Path -Name $Target.Name }
         'ForwardedEvents' { return Get-WelaNativeChannel -Name 'ForwardedEvents' }
         'Subscription' {
-            $ids = @((Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('es')).Output | ForEach-Object { $_.ToString().Trim() } | Where-Object { $_ })
+            $ids = @(Get-WelaWecSubscriptionIds)
             if ($ids -notcontains $Target.Id) { return [pscustomobject]@{ Exists=$false; Xml=$null; Key=$null; Definition=$null } }
             # Keep evidence as a plain string. Windows PowerShell 5.1's JSON
             # serializer expands ETS properties on strings (for example a test
             # reader's PSDrive/PSProvider graph), unlike modern PowerShell.
-            $xml = [string]::Concat((Invoke-WelaNative -FilePath 'wecutil.exe' -Arguments @('gs',$Target.Id,'/f:xml')).Diagnostic)
+            $xml = [string]::Concat((Read-WelaWecSubscriptionXml -Id $Target.Id))
             $model = ConvertFrom-WelaWefSubscription -Xml $xml -SourceSids $Target.SourceSids -Observed
+            if($model.Id -cne $Target.Id){throw 'Native subscription identity differs from the selected ID.'}
             return [pscustomobject]@{ Exists=$true; Xml=$xml; Key=$model.Key; Definition=$model.Definition }
         }
         default { throw "Unsupported WEF control kind: $Kind" }
@@ -125,8 +126,8 @@ function Get-WelaWefCollectorPrerequisites {
         if ($rules.Count -ne 1) { throw 'Expected exactly one existing effective firewall rule.' }
         $rule=$rules[0]; $ports=@($rule | Get-NetFirewallPortFilter -ErrorAction Stop); $addresses=@($rule | Get-NetFirewallAddressFilter -ErrorAction Stop)
         $scopeMatches=$addresses.Count -eq 1 -and
-            (@(Compare-Object @($Config.IngressLocalAddresses | Sort-Object -Unique) @($addresses[0].LocalAddress | Sort-Object -Unique)).Count -eq 0) -and
-            (@(Compare-Object @($Config.IngressRemoteAddresses | Sort-Object -Unique) @($addresses[0].RemoteAddress | Sort-Object -Unique)).Count -eq 0)
+            (Test-WelaWefFirewallAddressSet $Config.IngressLocalAddresses @($addresses[0].LocalAddress)) -and
+            (Test-WelaWefFirewallAddressSet $Config.IngressRemoteAddresses @($addresses[0].RemoteAddress))
         $ok=[string]$rule.Enabled -eq 'True' -and [string]$rule.Direction -eq 'Inbound' -and [string]$rule.Action -eq 'Allow' -and [string]$rule.Profile -eq 'Domain' -and
             $ports.Count -eq 1 -and [string]$ports[0].Protocol -in @('TCP','6') -and [string]$ports[0].LocalPort -eq '5985' -and $scopeMatches
         $checks += [pscustomobject]@{ Name='Existing scoped domain ingress rule'; Verified=[bool]$ok; Evidence=@{ Rule=($rule | Select-Object Name,Enabled,Direction,Action,Profile,PolicyStoreSourceType,EnforcementStatus); Ports=$ports | Select-Object Protocol,LocalPort,RemotePort; Addresses=$addresses | Select-Object LocalAddress,RemoteAddress }; Diagnostic='Exact selected rule definition only; other rules, network reachability and effective packet acceptance are not established.' }
