@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document native Security 4703 attribution evidence and conditional mapping boundaries. (Related #380)
+
 - Document the versioned offline Intune audit export and assignment limitations. (Related #1)
 
 - Document the explicit GPO export scope and its domain-deployment limitations. (Related #2)
