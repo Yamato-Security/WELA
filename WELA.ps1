@@ -58,6 +58,14 @@
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [ValidateSet('Plan','Recover')][string]$WmiRecoveryAction = 'Plan',
+    [string]$WmiRecoveryNamespace,
+    [string]$WmiRecoveryJournalPath,
+    [string]$WmiRecoveryOriginalResultsPath,
+    [string]$WmiRecoveryPlanPath,
+    [string]$WmiRecoveryPlanHash,
+    [string]$WmiRecoveryOutputPath,
+    [switch]$WmiRecoveryAllowAuditReduction,
     [ValidateSet('Plan','Run')][string]$DnsClientProbeAction = 'Plan',
     [string]$DnsClientProbeResolver,
     [string]$DnsClientProbeOutputPath,
@@ -279,6 +287,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/AppLockerScriptProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
+. (Join-Path $ScriptRoot "scripts/WmiSaclRecovery.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/DnsClientProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/FileAccessProbe.ps1")
@@ -2052,6 +2061,7 @@ Usage:
   ./WELA.ps1 retention-health -ResultsPath source-retention.json
   ./WELA.ps1 retention-health -RetentionConfigPath collector-health.json -HtmlPath retention.html
   # Native channels only; ACL changes require -GrantEventLogReaders. Forwarding identity access needs a separate test.
+  ./WELA.ps1 wmi-sacl-recovery -Help  # Review removal of one proven parent-only WMI audit ACE
   ./WELA.ps1 wmi-auditing -WmiAction List
   ./WELA.ps1 wmi-auditing -WmiAction Plan -WmiNamespace root\cimv2 -ResultsPath wmi-plan.json
   ./WELA.ps1 wmi-auditing -WmiAction Configure -WmiNamespace root\cimv2 -DryRun
@@ -2260,6 +2270,8 @@ if ($Cmd -ne 'capi2-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -li
 if ($Cmd -eq 'capi2-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','Capi2ProbeAction','Capi2ProbeOutputPath','Capi2ProbeTimeoutSeconds','Help')}).Count)) {throw 'capi2-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FailedLogon*'}).Count) {throw 'FailedLogon options require failed-logon-probe.'}
 if ($Cmd -eq 'failed-logon-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FailedLogonAction','FailedLogonOutputPath','FailedLogonTimeoutSeconds','Help')}).Count)) {throw 'failed-logon-probe accepts only dedicated probe options.'}
+if ($Cmd -ne 'wmi-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiRecovery*'}).Count) {throw 'WmiRecovery options require wmi-sacl-recovery.'}
+if ($Cmd -eq 'wmi-sacl-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiRecoveryAction','WmiRecoveryNamespace','WmiRecoveryJournalPath','WmiRecoveryOriginalResultsPath','WmiRecoveryPlanPath','WmiRecoveryPlanHash','WmiRecoveryOutputPath','WmiRecoveryAllowAuditReduction','Help')}).Count)) {throw 'wmi-sacl-recovery accepts only dedicated recovery options.'}
 if ($Cmd -ne 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WmiProbe*'}).Count) {throw 'WmiProbe options require wmi-probe.'}
 if ($Cmd -eq 'wmi-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiProbeAction','WmiProbeNamespace','WmiProbeOutputPath','WmiProbeTimeoutSeconds','Help')}).Count) {throw 'wmi-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'applocker-script-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'AppLockerScript*'}).Count) {throw 'AppLockerScript options require applocker-script-probe.'}
@@ -2584,6 +2596,12 @@ switch ($Cmd.ToLower()) {
     'failed-logon-probe' {
         if ($Help) {Write-Host 'Usage: failed-logon-probe [-FailedLogonAction Plan|Run] [-FailedLogonOutputPath new-private-directory] [-FailedLogonTimeoutSeconds 1..30]. One fixed nonexistent local account attempt under existing failure auditing. Domain controllers excluded. No real credentials or configuration changes. See docs/failed-logon-probe.md.';return}
         $report=Invoke-WelaFailedLogonProbe -Action $FailedLogonAction -OutputPath $FailedLogonOutputPath -TimeoutSeconds $FailedLogonTimeoutSeconds
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'wmi-sacl-recovery' {
+        if ($Help) {Write-Host 'Usage: wmi-sacl-recovery -WmiRecoveryAction Plan|Recover [-WmiRecoveryNamespace exact-local-namespace -WmiRecoveryJournalPath before.jsonl -WmiRecoveryOriginalResultsPath completed.json] [-WmiRecoveryPlanPath reviewed-plan.json -WmiRecoveryPlanHash SHA256 -WmiRecoveryAllowAuditReduction] -WmiRecoveryOutputPath new-private-directory. Removes one proven parent-only success audit ACE; no whole descriptor rollback or Sigma credit. See docs/wmi-sacl-recovery.md.';return}
+        $report=Invoke-WelaWmiSaclRecovery -Action $WmiRecoveryAction -Namespace $WmiRecoveryNamespace -JournalPath $WmiRecoveryJournalPath -OriginalResultsPath $WmiRecoveryOriginalResultsPath -PlanPath $WmiRecoveryPlanPath -PlanHash $WmiRecoveryPlanHash -OutputPath $WmiRecoveryOutputPath -AllowAuditReduction:$WmiRecoveryAllowAuditReduction
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
