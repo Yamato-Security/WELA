@@ -1,0 +1,49 @@
+name: Reviewed WEC source authorization
+on:
+  push:
+    paths: ['WELA.ps1', 'scripts/WecAuthorization*', 'tests/WecAuthorization*', '.github/workflows/wec-authorization.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wec-authorization:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Portable guards in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WecAuthorization.Tests.ps1
+          ./tests/WecAuthorization.Cli.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
+      - name: Actual owned source authorization updates in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WecAuthorization.Windows.Tests.ps1 -AllowDisposableSubscription
+      - name: Portable guards in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WecAuthorization.Tests.ps1
+          ./tests/WecAuthorization.Cli.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
+      - name: Actual owned source authorization updates in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WecAuthorization.Windows.Tests.ps1 -AllowDisposableSubscription
+      - name: Retain native authorization evidence and cleanup receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wec-authorization-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-wec-authorization-*
+          if-no-files-found: warn
+          retention-days: 7

@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added opt-in `wec-authorization` Plan/Apply for the explicit source SID list of one existing disabled native subscription. Reviewed hashes, host/token/source and full-definition guards, durable pending evidence, one native authorization setter and readback preserve other settings; no-op and partial-save outcomes stay explicit. Native disposable tests cover add/remove/restore, refusals and cleanup without SID-resolution, domain authentication, forwarding or Sigma claims. (@Shirofune-Security)
+
 - Add disposable native acceptance for public custom-profile Plan, DryRun, Configure, optional controls, idempotence and Audit on Server 2022/2025 under Windows PowerShell 5.1/PowerShell 7. Verify exact/minimum/preserve semantics, real precedence, original journals and all 59 masks, with exact fixture restoration. (@Shirofune-Security)
 - Added opt-in `wec-listener` Plan/Apply for one new assigned-IPv4 HTTP5985 listener. Reviewed host/operator/source and WinRM/firewall snapshots, explicit plan hashes, pending evidence and native readback guard creation and preserve existing settings. A fixed native Windows PowerShell 5.1 worker provides the creation adapter under both PowerShell host versions. Existing listeners and drift require review; forwarding arrival and Sigma readiness are not inferred. (@Shirofune-Security)
 
