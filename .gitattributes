@@ -58,6 +58,11 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/WmiNamespaceAuditing.ps1 text eol=lf
 /scripts/WefArrival.ps1 text eol=lf
 /tests/WmiProbe*.ps1 text eol=lf
+# Actual archive-reader evidence binds implementation and native-token source bytes.
+/scripts/EvtxRecovery.ps1 text eol=lf
+/scripts/NativeValidation.ps1 text eol=lf
+/tests/EvtxRecovery*.ps1 text eol=lf
+/tests/fixtures/EvtxReader*.ps1 text eol=lf
 
 /scripts/Capi2Probe* text eol=lf
 /tests/Capi2Probe* text eol=lf
