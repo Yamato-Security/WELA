@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document the versioned offline Intune audit export and its assignment limitations. (Related #1)
+
 - Document opt-in native provider-pack schema pinning, role/build gating, manual-review fallbacks, and the separation between configured channels and detection eligibility. (Related #386)
 
 - Document build, role, edition, feature, and removal applicability gates plus provenance requirements for clean-install defaults. (Related #385)
