@@ -43,7 +43,7 @@ try{
   $events=@(Get-WinEvent -LogName Security -FilterXPath $query -MaxEvents 256 -ErrorAction SilentlyContinue)
   foreach($event in $events){
    $raw=$event.ToXml();[xml]$xml=$raw;$data=@{};foreach($field in $xml.Event.EventData.Data){$data[[string]$field.Name]=[string]$field.'#text'}
-   if($data.ProcessId -and [Convert]::ToInt64($data.ProcessId,16) -eq $result.ProcessId -and ($data.EnabledPrivilegeList -match 'SeChangeNotifyPrivilege' -or $data.DisabledPrivilegeList -match 'SeChangeNotifyPrivilege')){$matches+=@([pscustomobject]@{RecordId=$event.RecordId;Xml=$raw;Data=$data})}
+   if($data.ProcessId -and [Convert]::ToInt64($data.ProcessId,16) -eq $result.ProcessId -and ($data.EnabledPrivilegeList -match 'SeDebugPrivilege' -or $data.DisabledPrivilegeList -match 'SeDebugPrivilege')){$matches+=@([pscustomobject]@{RecordId=$event.RecordId;Xml=$raw;Data=$data})}
    $event.Dispose()
   }
   $matches=@($matches|Sort-Object RecordId -Unique)

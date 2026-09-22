@@ -66,10 +66,10 @@ namespace Wela.TokenRightProbe {
    try {
     PrimaryOnly();
     if(!OpenProcessToken(GetCurrentProcess(),0x28,out token))throw new Win32Exception(Marshal.GetLastWin32Error());
-    if(!LookupPrivilegeValue(null,"SeChangeNotifyPrivilege",out target))throw new Win32Exception(Marshal.GetLastWin32Error());
+    if(!LookupPrivilegeValue(null,"SeDebugPrivilege",out target))throw new Win32Exception(Marshal.GetLastWin32Error());
     result.Luid=Hex(target);result.Before=Read(token);Privilege found=null;
     foreach(var item in result.Before)if(item.Luid==result.Luid)found=item;
-    if(found==null||(found.Attributes&2)==0||(found.Attributes&4)!=0)throw new InvalidOperationException("SeChangeNotifyPrivilege must already be present and enabled; no new privilege is granted.");
+    if(found==null||(found.Attributes&2)==0||(found.Attributes&4)!=0)throw new InvalidOperationException("SeDebugPrivilege must already be present and enabled; no new privilege is granted.");
     result.OriginalAttributes=found.Attributes;
     try {
      result.DisableStartedFileTime=Now();result.AdjustmentAttempted=true;
