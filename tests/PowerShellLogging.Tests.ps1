@@ -57,7 +57,7 @@ try {
     $bad=Invoke-WelaPowerShellLogging -Action Configure -Control Module -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'badname')
     Assert ($bad.ExitCode -eq 1 -and -not (Test-Path (Join-Path $root 'badname'))) 'Unknown module value fails entire preflight'
     Reset;$script:failWrite=$true;$failed=Invoke-WelaPowerShellLogging -Action Configure -Control Module,ScriptBlock -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'writefailure')
-    Assert ($failed.ExitCode -eq 1 -and $script:writes -eq 1) 'Native failure stops later writes'
+    Assert ($failed.ExitCode -eq 1 -and $script:writes -eq 1 -and @($failed.Results|Where-Object Status -eq Skipped).Count -eq 2) 'Native failure stops and explicitly reports later writes'
     Reset;$script:corrupt=$true;$failed=Invoke-WelaPowerShellLogging -Action Configure -Control Module,ScriptBlock -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'corrupt')
     Assert ($failed.ExitCode -eq 1 -and $script:writes -eq 1) 'Preservation failure stops later writes'
     Reset;$snapshot=CloneFixture $script:observed;$definition=$definitions[0];$after=Mutate $snapshot $definition;Assert-WelaPsLoggingTransition $snapshot $after $definition;Assert $true 'Exact additive transition accepted'

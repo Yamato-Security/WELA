@@ -6,7 +6,7 @@ $repo=Split-Path $PSScriptRoot -Parent
 . (Join-Path $repo 'scripts/PowerShellLogging.ps1')
 Import-Module (Join-Path $repo 'modules/AuditProfiles.psm1') -Force
 $root=Join-Path $env:RUNNER_TEMP ('wela-powershell-logging-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $root
-$engine=(Get-Process -Id $PID).Path;$script:count=0;$failure=$null;$cleanupErrors=@();$original=$null;$prepared=$null;$masks=$null;$workerPath=$null
+$engine=(Get-Process -Id $PID).Path;$script:count=0;$failure=$null;$cleanupErrors=@();$original=$null;$prepared=$null;$masks=$null;$workerPath=$null;$mutationStarted=$false
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 function Save($Name,$Value){$Value|ConvertTo-Json -Depth 28|Set-Content -LiteralPath (Join-Path $root $Name) -Encoding UTF8}
 function Masks {$m=Get-WelaEffectiveAuditPolicy;@($m.Keys|Sort-Object|ForEach-Object{"$_=$($m[$_])"}) -join ';'}
@@ -63,7 +63,7 @@ function ReadEvents([int]$OwnedId,[long]$Watermark){
     $query="*[System[(EventID=4103 or EventID=4104) and Execution[@ProcessID='$OwnedId'] and EventRecordID > $Watermark]]"
     $q=[Diagnostics.Eventing.Reader.EventLogQuery]::new('Microsoft-Windows-PowerShell/Operational',[Diagnostics.Eventing.Reader.PathType]::LogName,$query);$q.TolerateQueryErrors=$false
     $reader=$null;$list=New-Object 'System.Collections.Generic.List[string]'
-    try{$reader=[Diagnostics.Eventing.Reader.EventLogReader]::new($q);for($i=0;$i -le 64;$i++){$record=$reader.ReadEvent([TimeSpan]::FromSeconds(2));if(-not $record){break};try{$xml=$record.ToXml();if($xml.Length -gt 262144){throw 'Owned child event exceeds XML bound.'};$list.Add($xml)}finally{$record.Dispose()};if($i -eq 64){throw 'Owned child event candidate cap exceeded.'}};foreach($status in $reader.LogStatus){if($status.StatusCode -ne 0){throw 'Native query reports an incomplete channel read.'}};return @($list.ToArray())}finally{if($reader){$reader.Dispose()}}
+    try{$reader=[Diagnostics.Eventing.Reader.EventLogReader]::new($q);for($i=0;$i -le 64;$i++){$record=$reader.ReadEvent([TimeSpan]::FromSeconds(2));if(-not $record){break};try{$xml=$record.ToXml();if($xml.Length -gt 262144){throw 'Owned child event exceeds XML bound.'};$list.Add($xml)}finally{$record.Dispose()};if($i -eq 64){throw 'Owned child event candidate cap exceeded.'}};$statuses=@($reader.LogStatus);if($statuses.Count -ne 1 -or $statuses[0].LogName -cne 'Microsoft-Windows-PowerShell/Operational' -or $statuses[0].StatusCode -ne 0){throw 'Native query must report exactly one complete successful expected channel.'};return @($list.ToArray())}finally{if($reader){$reader.Dispose()}}
 }
 try{
     $original=Get-WelaPsLoggingSnapshot;Save 'original.json' $original;$masks=Masks
@@ -72,6 +72,7 @@ try{
     $protected=@($original.ProtectedEventLogging.Keys|ForEach-Object {$_.Values}|Where-Object {$_.Name -eq 'EnableProtectedEventLogging' -and $_.Value -ne 0})
     Assert ($protected.Count -eq 0) 'Protected logging must not obscure this plaintext event fixture.'
     # Test fixture only: prepare explicit disabled values; production has no disable action.
+    $mutationStarted=$true
     foreach($pair in @(@('ModuleLogging','EnableModuleLogging'),@('ScriptBlockLogging','EnableScriptBlockLogging'))){
         $base=[Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine,[Microsoft.Win32.RegistryView]::Registry64);$key=$null
         try{$key=$base.CreateSubKey('SOFTWARE\Policies\Microsoft\Windows\PowerShell\'+$pair[0]);$key.SetValue($pair[1],0,[Microsoft.Win32.RegistryValueKind]::DWord);$key.Flush()}finally{if($key){$key.Dispose()};$base.Dispose()}
@@ -95,7 +96,7 @@ try{
     Assert (@($again.Results|Where-Object Status -eq AlreadyCompliant).Count -eq 3 -and -not (Test-Path (Join-Path $root 'repeat-backup/before.jsonl'))) 'Second Configure makes no native writes.'
     Assert ((ConvertTo-WelaPsLoggingKey (Get-WelaPsLoggingSnapshot)) -ceq (ConvertTo-WelaPsLoggingKey $configured)) 'Repeated configuration preserves complete observed state.'
     $nonce='WELA_PS_LOG_'+[guid]::NewGuid().ToString('N');$workerPath=Join-Path $root ('worker-'+[guid]::NewGuid().ToString('N')+'.ps1')
-    $workerText="Microsoft.PowerShell.Utility\Write-Output -InputObject '$nonce'`r`n"
+    $workerText="Microsoft.PowerShell.Utility\Write-Output -InputObject '$nonce'`n"
     [IO.File]::WriteAllText($workerPath,$workerText,[Text.UTF8Encoding]::new($false));Save 'worker-source.json' @{Path=$workerPath;Sha256=(Get-FileHash $workerPath -Algorithm SHA256).Hash;Text=$workerText;Nonce=$nonce}
     $latest=Get-WinEvent -LogName 'Microsoft-Windows-PowerShell/Operational' -MaxEvents 1 -ErrorAction Stop;try{$watermark=[long]$latest.RecordId}finally{$latest.Dispose()}
     $process=Child 'event-worker' $configured.Engine.Path @('-NoLogo','-NoProfile','-NonInteractive','-File',$workerPath)
@@ -104,7 +105,8 @@ try{
     do{
         $candidates=@(ReadEvents $process.Pid $watermark);$selected=@{}
         foreach($xml in $candidates){
-            $doc=[xml]$xml;$ns=[Xml.XmlNamespaceManager]::new($doc.NameTable);$ns.AddNamespace('e','http://schemas.microsoft.com/win/2004/08/events/event');$system=$doc.SelectSingleNode('/e:Event/e:System',$ns);$data=@{}
+            $settings=[Xml.XmlReaderSettings]::new();$settings.DtdProcessing=[Xml.DtdProcessing]::Prohibit;$settings.XmlResolver=$null;$settings.MaxCharactersInDocument=262144;$xmlReader=[Xml.XmlReader]::Create([IO.StringReader]::new($xml),$settings)
+            try{$doc=[Xml.XmlDocument]::new();$doc.XmlResolver=$null;$doc.PreserveWhitespace=$true;$doc.Load($xmlReader)}finally{$xmlReader.Dispose()};$ns=[Xml.XmlNamespaceManager]::new($doc.NameTable);$ns.AddNamespace('e','http://schemas.microsoft.com/win/2004/08/events/event');$system=$doc.SelectSingleNode('/e:Event/e:System',$ns);$data=@{}
             foreach($node in $doc.SelectNodes('/e:Event/e:EventData/e:Data',$ns)){if($data.ContainsKey($node.GetAttribute('Name'))){throw 'Duplicate native event field.'};$data[$node.GetAttribute('Name')]=$node.InnerText}
             $id=[int]$system.SelectSingleNode('e:EventID',$ns).InnerText
             if($system.SelectSingleNode('e:Provider',$ns).GetAttribute('Name') -cne 'Microsoft-Windows-PowerShell' -or $system.SelectSingleNode('e:Provider',$ns).GetAttribute('Guid').Trim('{}') -ine 'a0c1853b-5c40-4b15-8766-3cf1c58f985a' -or [int]$system.SelectSingleNode('e:Execution',$ns).GetAttribute('ProcessID') -ne $process.Pid -or $system.SelectSingleNode('e:Channel',$ns).InnerText -cne 'Microsoft-Windows-PowerShell/Operational' -or $system.SelectSingleNode('e:Computer',$ns).InnerText -ine $env:COMPUTERNAME){continue}
@@ -127,12 +129,12 @@ try{
     Assert ((ConvertTo-WelaPsLoggingKey (Get-WelaPsLoggingSnapshot)) -ceq (ConvertTo-WelaPsLoggingKey $wrong)) 'Refusal preserves the typed wrong value.'
 }catch{$failure=$_.ToString();Save 'failure.json' @{Error=$failure;Stack=$_.ScriptStackTrace}}
 finally{
-    if($original){
+    if($original -and $mutationStarted){
         foreach($item in @(@('ScriptBlockLogging','EnableScriptBlockLogging'),@('ModuleLogging','EnableModuleLogging'),@('ModuleLogging\ModuleNames','Microsoft.PowerShell.Utility'))){try{RestoreValue $original.Machine $item[0] $item[1]}catch{$cleanupErrors+=$_.ToString()}}
         try{RemoveCreatedKeys $original.Machine}catch{$cleanupErrors+=$_.ToString()}
         try{$after=Get-WelaPsLoggingSnapshot;Save 'cleanup-after.json' $after;if((ConvertTo-WelaPsLoggingKey $after) -cne (ConvertTo-WelaPsLoggingKey $original)){$cleanupErrors+='Full policy/host/source/channel snapshot did not restore exactly.'};if($masks -and (Masks) -cne $masks){$cleanupErrors+='Audit masks changed.'}}catch{$cleanupErrors+=$_.ToString()}
     }
-    Save 'cleanup.json' @{Status=$(if($cleanupErrors.Count){'Failed'}else{'Restored'});Errors=$cleanupErrors;OriginalCaptured=[bool]$original;All59MasksUnchanged=($masks -and (Masks) -ceq $masks)}
+    Save 'cleanup.json' @{Status=$(if($cleanupErrors.Count){'Failed'}else{'Restored'});Errors=$cleanupErrors;OriginalCaptured=[bool]$original;MutationStarted=$mutationStarted;All59MasksUnchanged=($masks -and (Masks) -ceq $masks)}
     $artifacts=@(Get-ChildItem -LiteralPath $root -File -Recurse|ForEach-Object{[pscustomobject]@{Path=$_.FullName.Substring($root.Length+1);Sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}})
     Save 'manifest.json' @{Kind='WelaPowerShellLoggingNativeFixture';Head=$env:GITHUB_SHA;Engine=$PSVersionTable.PSVersion.ToString();Assertions=$script:count;Failure=$failure;CleanupErrors=$cleanupErrors;ReadyRuleCredit=0;Artifacts=$artifacts}
 }

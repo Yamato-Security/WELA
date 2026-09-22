@@ -124,7 +124,7 @@ function Invoke-WelaPowerShellLogging {
     param([ValidateSet('Audit','Plan','Configure')][string]$Action='Audit',[string[]]$Control=@(),[string[]]$ModuleName=@(),[switch]$Auto,[switch]$DryRun,[string]$BackupPath,[string]$ResultsPath)
     Assert-WelaPsLoggingSelection $Action $Control $ModuleName
     if($Action -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)){throw 'Consent, dry-run and backup options require PowerShellLoggingAction Configure.'}
-    if($ResultsPath -and (Test-Path -LiteralPath $ResultsPath)){throw 'ResultsPath must name a new file.'}
+    if($ResultsPath){$ResultsPath=$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($ResultsPath);if(Test-Path -LiteralPath $ResultsPath){throw 'ResultsPath must name a new file.'};if(-not (Test-Path -LiteralPath ([IO.Path]::GetDirectoryName($ResultsPath)) -PathType Container)){throw 'ResultsPath parent must already exist.'}}
     $definitions=@(Get-WelaPsLoggingDefinitions $Control $ModuleName);$before=$null;$diagnostic='';$known=$false
     try {$before=Get-WelaPsLoggingSnapshot;Assert-WelaPsLoggingKnown $before $definitions;$known=$true}catch{$diagnostic=$_.Exception.Message}
     $plan=[pscustomobject]@{Selection=@($Control);ModuleNames=@($ModuleName);Before=$before;Controls=@(foreach($definition in $definitions){[pscustomobject]@{Definition=$definition;Status=$(if(-not $known){'Unknown'}elseif(Test-WelaPsLoggingValue $before $definition){'AlreadyCompliant'}else{'ChangeRequired'})}});Status=$(if($known){'Observed'}else{'Unknown'});Diagnostic=$diagnostic;Provenance=@('https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_group_policy_settings?view=powershell-5.1','https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-admx-powershellexecutionpolicy');Meaning='Explicit Windows PowerShell 5.1 machine-policy selection. Existing module names remain active when Module logging is enabled; no claim of a complete Microsoft/CIS/ASD baseline.'}
@@ -132,8 +132,9 @@ function Invoke-WelaPowerShellLogging {
         if(-not $known){$report=[pscustomobject]@{ExitCode=1;Scope='windows-powershell-event-logging-policy-only';Results=@();Diagnostic=$diagnostic}}
         else {
             $context=New-WelaConfigurationContext -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath
-            $shared=@{Expected=$before;Definitions=$definitions;Failed=$false}
+            $shared=@{Expected=$before;Definitions=$definitions;Failed=$false;StopReason=$null}
             foreach($definition in $definitions){
+                if($shared.StopReason){$context.Results.Add([pscustomobject]@{Id=('PowerShellLogging/'+$definition.Path+'/'+$definition.Name);Kind='Registry';Target=@{Path=$definition.Path;Name=$definition.Name};Desired=@{Type=$definition.Type;Value=$definition.Value};Before=$null;After=$null;Status='Skipped';Diagnostic=$shared.StopReason});continue}
                 $state=@{Shared=$shared;Definition=$definition}
                 $read={param($s) if($s.Shared.Failed){throw 'An earlier operation failed; remaining operations are stopped.'};$snapshot=Get-WelaPsLoggingSnapshot;if((ConvertTo-WelaPsLoggingKey $snapshot) -cne (ConvertTo-WelaPsLoggingKey $s.Shared.Expected)){throw 'Policy, host, channel, engine or source changed from the reviewed state.'};Assert-WelaPsLoggingKnown $snapshot $s.Shared.Definitions;return $snapshot}
                 $test={param($snapshot,$s) Test-WelaPsLoggingValue $snapshot $s.Definition}
@@ -141,8 +142,8 @@ function Invoke-WelaPowerShellLogging {
                     try {$fresh=Get-WelaPsLoggingSnapshot;if((ConvertTo-WelaPsLoggingKey $fresh) -cne (ConvertTo-WelaPsLoggingKey $s.Shared.Expected)){throw 'Pre-write state drifted after journal/approval; no write attempted.'};Set-WelaPsLoggingValue $s.Definition;$after=Get-WelaPsLoggingSnapshot;Assert-WelaPsLoggingTransition $fresh $after $s.Definition;$s.Shared.Expected=$after;'Only the named Windows PowerShell policy value was changed and read back.'}catch{$s.Shared.Failed=$true;throw}
                 }
                 Invoke-WelaConfigurationControl -Context $context -Id ('PowerShellLogging/'+$definition.Path+'/'+$definition.Name) -Kind Registry -Target @{Hive='LocalMachine';View='Registry64';Path=('SOFTWARE\Policies\Microsoft\Windows\PowerShell\'+$definition.Path);Name=$definition.Name} -Desired @{Type=$definition.Type;Value=$definition.Value} -Read $read -Compliant $test -Apply $apply -CallbackState $state -Description 'Enable the explicitly selected event-logging policy; existing module names are preserved.'
-                if($context.Results[$context.Results.Count-1].Status -eq 'Failed'){$shared.Failed=$true;break}
-                if($context.Results[$context.Results.Count-1].Status -eq 'Skipped' -and -not $DryRun){break}
+                if($context.Results[$context.Results.Count-1].Status -eq 'Failed'){$shared.Failed=$true;$shared.StopReason='Not attempted because an earlier selected operation failed.'}
+                if($context.Results[$context.Results.Count-1].Status -eq 'Skipped' -and -not $DryRun){$shared.StopReason='Not attempted because an earlier selected operation was declined.'}
             }
             $report=Complete-WelaConfiguration -Context $context -Scope 'windows-powershell-event-logging-policy-only' -SuccessMessage 'Selected local machine policy values verified; fresh-session events and policy persistence remain separate.'
         }

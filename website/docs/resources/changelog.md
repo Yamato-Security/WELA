@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added explicit `powershell-logging` Audit/Plan/Configure for selected Windows PowerShell 5.1 module and script-block logging. Reviewed module names, typed original journals, full observed-policy drift guards and native readback preserve invocation/transcription/Core settings and other module entries. Disposable Server 2022/2025 tests require exact local 4103/4104 evidence and policy cleanup; PowerShell 7 fallback, managed-host persistence, forwarding and Sigma readiness remain separate. (Related #364, #366, #387) (@Shirofune-Security)
+
 - Added disposable native Security4703 attribution for the canonical Token Right Adjusted GUID on Server2022/2025 and PowerShell5.1/7. A fixed owned-child privilege disable/restore compares the two historical audit-mask candidates, retains exact event/context/hash evidence and verifies policy/token cleanup. Historical candidates remain conditional; no production probe, universal mapping or Sigma credit. (Related #380) (@Shirofune-Security)
 
 - Add native public OneSettings policy and explicit Privacy-channel configuration acceptance: actual apply, typed journals/readback, idempotence and invalid-value refusals on Server 2022; preserve the existing Server 2025 refusal. Both PowerShell engines verify exact fixture cleanup without event or Sigma claims. Fix omitted notification-control dispatch so default Audit reads both controls and Configure without a selection fails with a nonzero exit. (Related #378) (@Shirofune-Security)
