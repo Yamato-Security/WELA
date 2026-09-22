@@ -1,0 +1,51 @@
+name: Native collector subscription observation
+on:
+  push:
+    paths: ['WELA.ps1', 'modules/WefSubscriptions.psm1', 'modules/WecSubscription*', 'scripts/WefDeployment.ps1', 'tests/WecCollectorObservation*', 'tests/WecSubscriptionInventory*', '.github/workflows/wec-collector-observation.yml']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  collector-observation:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Native observation regressions in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WecSubscriptionInventory.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
+          ./tests/WefDeployment.Tests.ps1
+          ./tests/WefDeployment.Cli.Tests.ps1
+      - name: Native observation regressions in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WecSubscriptionInventory.Tests.ps1
+          ./tests/WecSubscriptionXml.Tests.ps1
+          ./tests/WefDeployment.Tests.ps1
+          ./tests/WefDeployment.Cli.Tests.ps1
+      - name: Actual public collector observations in Windows PowerShell 5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WecCollectorObservation.Windows.Tests.ps1 -AllowDisposableSubscription
+      - name: Actual public collector observations in PowerShell 7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WecCollectorObservation.Windows.Tests.ps1 -AllowDisposableSubscription
+      - name: Retain native observations and exact cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: collector-observation-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-wec-observation-*
+          if-no-files-found: warn
+          retention-days: 7

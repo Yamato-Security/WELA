@@ -2561,7 +2561,7 @@ switch ($Cmd.ToLower()) {
     { $_ -in @('wef-source','wec-collector') } {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 wef-source|wec-collector -WefConfigPath operator.json [-WefAction Audit|Plan|Configure] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
-            Write-Host 'Native domain/Kerberos HTTP source configuration and create-only collector subscriptions. Existing collector listener and explicit scoped ingress are prerequisites. Optional ASD hardening is explicit in JSON. See docs/wef-deployment.md; forwarding/event arrival remain unverified.'
+            Write-Host 'Native domain/Kerberos HTTP source configuration and create-only collector subscriptions. Existing collector listener and explicit scoped ingress are prerequisites. Optional ASD hardening is explicit in JSON. See docs/wef-deployment.md and docs/wec-collector-observation.md; native inventory/XML read failures stay unknown, and forwarding/event arrival remain unverified.'
             return
         }
         if ($Profile -or $Baseline -or $HtmlPath) { throw 'WEF commands require their own explicit JSON config and use -ResultsPath; -Profile, -Baseline and -HtmlPath are unsupported.' }

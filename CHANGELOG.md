@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Fixed collector subscription observations to use complete bounded native name enumeration and strict Unicode XML reads instead of console decoding. Empty inventories, failed reads and actual disabled state remain distinct; Unicode descriptions and XPath are preserved. Disposable public Audit/Plan tests cover both Server 2022/2025 and PowerShell engines with exact cleanup, without domain deployment, forwarding or Sigma claims. (Related #368) (@Shirofune-Security)
+
 - Verify public Security-log warning configuration on disposable Server 2022/2025 hosts under Windows PowerShell 5.1/PowerShell 7: absent/zero/higher thresholds, earlier-threshold preservation, dry run, idempotence, wrong-type refusal and exact cleanup. Preserve unrelated registry values, channel configuration, audit masks and CrashOnAuditFail; no log-exhaustion or warning-event claim. (@Shirofune-Security)
 
 - Added disposable public `targeted-sacl` registry lifecycle validation on Server 2022/2025 and both PowerShell engines. A fixture-owned mounted hive exercises reviewed selection, DryRun, additive configuration, stale/prerequisite refusal and idempotence, followed by one precisely attributed Security4657. Retained native receipts verify unrelated ACE/value preservation and exact audit-policy, token and owned-hive cleanup; production does not load hives or gain Sigma credit. (Related #373) (@Shirofune-Security)
