@@ -74,6 +74,9 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/FileAccessProbe* text eol=lf
 /tests/FileAccessProbe* text eol=lf
 
+# Disposable native provider configuration fixture
+tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
+
 # Disposable public registry lifecycle fixture bytes are retained in evidence.
 /tests/RegistrySacl* text eol=lf
 /scripts/WecAuthorization* text eol=lf
