@@ -1,0 +1,46 @@
+name: Scoped incoming and domain NTLM auditing
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/NtlmAudit.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'tests/NtlmAudit*'
+      - '.github/workflows/ntlm-auditing.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ntlm-auditing:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Scoped audit tests in Windows PowerShell
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/NtlmAudit.Tests.ps1
+          ./tests/NtlmAudit.Cli.Tests.ps1
+          ./tests/NtlmAudit.Windows.Tests.ps1 -AllowDisposableAuditWrite
+      - name: Scoped audit tests in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/NtlmAudit.Tests.ps1
+          ./tests/NtlmAudit.Cli.Tests.ps1
+          ./tests/NtlmAudit.Windows.Tests.ps1 -AllowDisposableAuditWrite
+      - name: Retain typed originals, results and cleanup
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ntlm-auditing-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-incoming-domain-audit-*/
+          if-no-files-found: error

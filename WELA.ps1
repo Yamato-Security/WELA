@@ -17,6 +17,8 @@
     [ValidateSet("PreserveOrAudit", "Audit", "Deny")]
     [string]$OutgoingNtlmMode = "PreserveOrAudit",
     [ValidateSet("Audit","Plan","Configure")][string]$NtlmAction = "Audit",
+    [ValidateSet("Audit","Plan","Configure")][string]$NtlmAuditAction = "Audit",
+    [ValidateSet("Incoming","Domain","Both")][string]$NtlmAuditScope = "Both",
     [switch]$DryRun,
     [string]$BackupPath,
     [string]$ResultsPath,
@@ -47,11 +49,19 @@
     [string]$ChannelReadOutputPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$WefAction = 'Audit',
     [string]$WefConfigPath,
+    [string]$WefQueryConfigPath,
+    [string]$WefQuerySubscriptionId,
+    [string]$WefQueryOutputPath,
+    [ValidateRange(1,64)][int]$WefQueryMaximumEvents = 16,
     [string]$RetentionConfigPath,
     [string]$RetentionPreviousPath,
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [ValidateSet('Plan','Run')][string]$DnsClientProbeAction = 'Plan',
+    [string]$DnsClientProbeResolver,
+    [string]$DnsClientProbeOutputPath,
+    [ValidateRange(1,30)][int]$DnsClientProbeTimeoutSeconds = 15,
     [ValidateSet('Plan','Run')][string]$Capi2ProbeAction = 'Plan',
     [string]$Capi2ProbeOutputPath,
     [ValidateRange(1,30)][int]$Capi2ProbeTimeoutSeconds = 15,
@@ -237,6 +247,7 @@ $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/OutgoingNtlmAudit.ps1")
+. (Join-Path $ScriptRoot "scripts/NtlmAudit.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/AdcsRestartResume.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditIntegrity.ps1")
@@ -255,6 +266,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerScriptProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/DnsClientProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/FileAccessProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
@@ -275,6 +287,7 @@ Import-Module (Join-Path $ScriptRoot "modules/NativeChannelAccess.psm1") -ErrorA
 . (Join-Path $ScriptRoot "scripts/DnsAnalytical.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorAction Stop
 . (Join-Path $ScriptRoot "scripts/WefDeployment.ps1")
+. (Join-Path $ScriptRoot "scripts/WefQuery.ps1")
 . (Join-Path $ScriptRoot "scripts/WecUpdate.ps1")
 . (Join-Path $ScriptRoot "scripts/WecIngress.ps1")
 . (Join-Path $ScriptRoot "scripts/WecListener.ps1")
@@ -2015,6 +2028,7 @@ Usage:
   ./WELA.ps1 provider-packs -ProviderAction List
   ./WELA.ps1 provider-packs -ProviderAction Plan -ProviderPack dns-client,capi2 -ResultsPath provider-plan.json
 
+  ./WELA.ps1 wef-query -Help # Execute one selected source QueryList locally
   ./WELA.ps1 wef-source -WefAction Plan -WefConfigPath source.json -ResultsPath source-plan.json
   ./WELA.ps1 wec-collector -WefAction Configure -WefConfigPath collector.json -DryRun
 
@@ -2078,10 +2092,12 @@ Usage:
   ./WELA.ps1 eventlog-recovery -Help # Review restoration of one completed log size/mode write
   ./WELA.ps1 wec-listener -Help      # Review one fixed-address native HTTP5985 listener
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
+  ./WELA.ps1 ntlm-auditing -Help    # Configure selected incoming/domain NTLM auditing
   ./WELA.ps1 outgoing-ntlm -Help    # Configure outgoing NTLM auditing independently
   ./WELA.ps1 wec-authorization -Help # Review source SID authorization on a disabled subscription
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
+  ./WELA.ps1 dns-client-probe -Help  # Fixed native DNS lookup and matched Operational3008 evidence
   ./WELA.ps1 capi2-probe -Help       # Fixed offline chain and matched CAPI2 event 11 evidence
   ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
@@ -2109,7 +2125,7 @@ if ($Cmd -eq 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -
 
 if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
 if ($Cmd -eq 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','MeasurementAction','MeasurementChannel','MeasurementSeconds','MeasurementMaximumEvents','MeasurementOutputPath','MeasurementExportEvtx','Help')}).Count) {throw 'event-measurement accepts only its dedicated options. No command was run.'}
-if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'Dns*' -or $_ -eq 'AllowDnsTraceReset' }).Count) {
+if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { ($_ -like 'Dns*' -and $_ -notlike 'DnsClientProbe*') -or $_ -eq 'AllowDnsTraceReset' }).Count) {
     throw 'DNS analytical options require dns-analytical. No command was run.'
 }
 if ($Cmd -eq 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','DnsAction','DnsState','DnsRetention','DnsMinimumBytes','DnsArchiveMaximumBytes','AllowDnsTraceReset','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
@@ -2182,12 +2198,20 @@ if ($Cmd -ne 'wec-listener' -and @($PSBoundParameters.Keys | Where-Object {$_ -l
 if ($Cmd -eq 'wec-listener' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecListenerAction','WecListenerComputerName','WecListenerLocalAddress','WecListenerPlanPath','WecListenerPlanHash','WecListenerOutputPath','Help')}).Count)) {throw 'wec-listener accepts only dedicated options.'}
 if ($Cmd -ne 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecIngress*'}).Count) {throw 'WecIngress options require wec-ingress.'}
 if ($Cmd -eq 'wec-ingress' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecIngressAction','WecIngressName','WecIngressLocalAddress','WecIngressRemoteAddress','WecIngressPlanPath','WecIngressPlanHash','WecIngressOutputPath','Help')}).Count) {throw 'wec-ingress accepts only dedicated options.'}
+if ($Cmd -ne 'ntlm-auditing' -and @($PSBoundParameters.Keys | Where-Object {$_ -in @('NtlmAuditAction','NtlmAuditScope')}).Count) {throw 'NtlmAudit options require ntlm-auditing.'}
+if ($Cmd -eq 'ntlm-auditing') {
+    if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','NtlmAuditAction','NtlmAuditScope','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'ntlm-auditing accepts only its dedicated options.'}
+    if ($NtlmAuditAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require NtlmAuditAction Configure.'}
+    if ($NtlmAuditAction -eq 'Configure' -and -not $PSBoundParameters.ContainsKey('NtlmAuditScope')) {throw 'Configure requires explicit NtlmAuditScope Incoming, Domain or Both.'}
+}
 if ($Cmd -ne 'outgoing-ntlm' -and $PSBoundParameters.ContainsKey('NtlmAction')) {throw 'NtlmAction requires outgoing-ntlm.'}
 if ($Cmd -eq 'outgoing-ntlm') {
     if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','NtlmAction','OutgoingNtlmMode','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'outgoing-ntlm accepts only its dedicated options.'}
     if ($OutgoingNtlmMode -eq 'Deny') {throw 'outgoing-ntlm configures auditing only; Deny enforcement is not accepted.'}
     if ($NtlmAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require NtlmAction Configure.'}
 }
+if ($Cmd -ne 'wef-query' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WefQuery*'}).Count) {throw 'WefQuery options require wef-query.'}
+if ($Cmd -eq 'wef-query' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WefQueryConfigPath','WefQuerySubscriptionId','WefQueryOutputPath','WefQueryMaximumEvents','Help')}).Count)) {throw 'wef-query accepts only dedicated read-only options.'}
 if ($Cmd -ne 'wec-authorization' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecAuthorization*'}).Count) {throw 'WecAuthorization options require wec-authorization.'}
 if ($Cmd -eq 'wec-authorization' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecAuthorizationAction','WecAuthorizationId','WecAuthorizationSourceSid','WecAuthorizationPlanPath','WecAuthorizationPlanHash','WecAuthorizationOutputPath','Help')}).Count)) {throw 'wec-authorization accepts only dedicated options.'}
 if ($Cmd -ne 'wec-state' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'WecState*'}).Count) {throw 'WecState options require wec-state.'}
@@ -2200,6 +2224,8 @@ if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -li
 if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
     throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
 }
+if ($Cmd -ne 'dns-client-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'DnsClientProbe*'}).Count) {throw 'DnsClientProbe options require dns-client-probe.'}
+if ($Cmd -eq 'dns-client-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','DnsClientProbeAction','DnsClientProbeResolver','DnsClientProbeOutputPath','DnsClientProbeTimeoutSeconds','Help')}).Count) {throw 'dns-client-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'capi2-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Capi2Probe*'}).Count) {throw 'Capi2Probe options require capi2-probe.'}
 if ($Cmd -eq 'capi2-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','Capi2ProbeAction','Capi2ProbeOutputPath','Capi2ProbeTimeoutSeconds','Help')}).Count)) {throw 'capi2-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FailedLogon*'}).Count) {throw 'FailedLogon options require failed-logon-probe.'}
@@ -2276,7 +2302,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
@@ -2462,12 +2488,25 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaWecIngress @arguments;$report
         if($report.ExitCode){exit $report.ExitCode}
     }
+    'ntlm-auditing' {
+        if ($Help) {Write-Host 'Usage: ntlm-auditing [-NtlmAuditAction Audit|Plan|Configure] [-NtlmAuditScope Incoming|Domain|Both] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Configure requires explicit scope. Writes only incoming audit DWORD2 and/or actual-DC domain audit DWORD7; preserves all authentication restrictions. See docs/ntlm-auditing.md.';return}
+        if ($NtlmAuditAction -eq 'Configure' -and -not (TestAdministrator)) {throw 'NTLM audit configuration requires Administrator privileges.'}
+        $report=Invoke-WelaNtlmAuditCommand -Action $NtlmAuditAction -Selection $NtlmAuditScope -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report|Format-List
+        exit $report.ExitCode
+    }
     'outgoing-ntlm' {
         if ($Help) {Write-Host 'Usage: outgoing-ntlm [-NtlmAction Audit|Plan|Configure] [-OutgoingNtlmMode PreserveOrAudit|Audit] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. Changes only the outgoing audit DWORD. Existing deny is preserved by default; explicit Audit authorizes replacing it. See docs/outgoing-ntlm.md.';return}
         if ($NtlmAction -eq 'Configure' -and -not (TestAdministrator)) {throw 'Outgoing NTLM configuration requires Administrator privileges.'}
         $report=Invoke-WelaOutgoingAuditCommand -Action $NtlmAction -Mode $OutgoingNtlmMode -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'wef-query' {
+        if ($Help) {Write-Host 'Usage: wef-query -WefQueryConfigPath source.json -WefQuerySubscriptionId exact-ID -WefQueryOutputPath new-directory [-WefQueryMaximumEvents 16]. Executes the exact selected local QueryList under the actual caller token. Strict query failures and separate partial diagnostics remain visible; empty reads differ from denied/missing/invalid/capped results. No configuration, NETWORK SERVICE access, forwarding or Sigma claim. See docs/wef-query.md.';return}
+        $report=Invoke-WelaWefQuery -ConfigPath $WefQueryConfigPath -SubscriptionId $WefQuerySubscriptionId -OutputPath $WefQueryOutputPath -MaximumEvents $WefQueryMaximumEvents
+        $report | ConvertTo-Json -Depth 32 | Write-Output
+        exit ([int]$report.ExitCode)
     }
     'wec-authorization' {
         if ($Help) {Write-Host 'Usage: wec-authorization [-WecAuthorizationAction Plan] -WecAuthorizationId ID -WecAuthorizationSourceSid desired-SID1,desired-SID2 -WecAuthorizationOutputPath new-directory; then Apply with -WecAuthorizationPlanPath plan.json -WecAuthorizationPlanHash SHA256 -WecAuthorizationOutputPath new-directory. Only the explicit source SID authorization of one already disabled subscription. No SID resolution or forwarding proof. See docs/wec-authorization.md.';return}
@@ -2491,6 +2530,12 @@ switch ($Cmd.ToLower()) {
         $map=@{WecUpdateId='Id';WecUpdateSourceSid='SourceSids';WecUpdateQueryPath='QueryPath';WecUpdateDescription='Description';WecUpdatePlanPath='PlanPath';WecUpdatePlanHash='PlanHash'}
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaWecUpdate @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'dns-client-probe' {
+        if ($Help) {Write-Host 'Usage: dns-client-probe [-DnsClientProbeAction Plan|Run] -DnsClientProbeResolver approved-IPv4 [-DnsClientProbeOutputPath new-private-directory] [-DnsClientProbeTimeoutSeconds 1..30]. Fixed benign A lookup to wela-<nonce>.wela.test. via explicit DNS TCP53 resolver; no configuration changes or Sigma credit. Plan observes prerequisites only. See docs/dns-client-probe.md.';return}
+        $report=Invoke-WelaDnsClientProbe -Action $DnsClientProbeAction -Resolver $DnsClientProbeResolver -OutputPath $DnsClientProbeOutputPath -TimeoutSeconds $DnsClientProbeTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
@@ -2579,7 +2624,11 @@ switch ($Cmd.ToLower()) {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 audit-notifications [-NotificationAction Audit|Plan|Configure] [-NotificationControl OneSettings,SecurityWarning] [-WarningPercent 1..90] [-EnablePrivacyChannel] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath report.json]. See docs/audit-notifications.md.'; return }
         if ($Profile -or $Baseline -or $Role -or $Build -or $HtmlPath) { throw 'audit-notifications uses actual host context and -ResultsPath; profile/role/build overrides and HTML are unsupported.' }
         if ($NotificationAction -eq 'Configure' -and -not (TestAdministrator)) { throw 'Notification Configure requires Administrator privileges.' }
-        $report=Invoke-WelaNotificationCommand -Action $NotificationAction -Control $NotificationControl -WarningPercent $WarningPercent -EnablePrivacyChannel:$EnablePrivacyChannel -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $notificationArguments=@{Action=$NotificationAction;WarningPercent=$WarningPercent;EnablePrivacyChannel=$EnablePrivacyChannel;Auto=$Auto;DryRun=$DryRun;BackupPath=$BackupPath;ResultsPath=$ResultsPath}
+        # Omit an unspecified ValidateSet array: explicit null fails binding before default Audit
+        # selection or Configure's required-selection guard, and can leave a zero process exit.
+        if($PSBoundParameters.ContainsKey('NotificationControl')){$notificationArguments.Control=$NotificationControl}
+        $report=Invoke-WelaNotificationCommand @notificationArguments
         $report
         if ($report.ExitCode) { exit $report.ExitCode }
     }
