@@ -105,7 +105,7 @@ try {
     $firstSid=$hive.Sid;$hive.Dispose();Assert ((Key (Hives)) -ceq (Key $beforeHives)) 'First owned hive is unloaded before the next isolated scenario.'
     Save 'first-hive-unloaded.json' ([pscustomobject]@{Sid=$firstSid;Loaded=$hive.Loaded;SeedCreated=$hive.SeedCreated})
     $hive=[Wela.RegistrySaclFixture.Hive]::new([guid]::NewGuid().ToString('N'),(Join-Path $files 'second-owned.dat'));$hive.Prepare();$hive.CreateRunOnce();$hive.AssertValues($false)
-    $providerPath='Registry::HKEY_USERS'+$hive.Sid+'SoftwareMicrosoftWindowsCurrentVersionRunOnce'
+    $providerPath='Registry::HKEY_USERS\'+$hive.Sid+'\Software\Microsoft\Windows\CurrentVersion\RunOnce'
     Public 'child-catalog' @('targeted-sacl','-TargetSaclProfile','asd-native-2021-10','-IncludeOptional','-ResultsPath',(Join-Path $root 'child-catalog.json'))
     $childCatalog=Read-Receipt 'child-catalog.json';$childRows=@($childCatalog.Catalog|Where-Object {$_.Definition.UserSid -ceq $hive.Sid -and $_.Definition.Path -ieq $providerPath});Assert ($childRows.Count -eq 1) 'Child scenario resolves only its separate owned catalog target.'
     $childSelected=$childRows[0];$childPlan=Join-Path $root 'child-plan.json';$childJournal=Join-Path $root 'child-journal';$childResults=Join-Path $root 'child-results.json'
@@ -113,7 +113,7 @@ try {
     Public 'child-plan' ($childSelection+@('-TargetSaclAction','Plan','-ResultsPath',$childPlan))
     Public 'child-configure' ($childSelection+@('-TargetSaclAction','Configure','-TargetSaclPlanPath',$childPlan,'-BackupPath',$childJournal,'-ResultsPath',$childResults,'-Auto'))
     Assert ((Read-Receipt 'child-results.json').Results[0].Status -ceq 'Applied') 'Child scenario also uses a genuine public Apply with empty historical descendants.'
-    $childKey=[Microsoft.Win32.Registry]::Users.CreateSubKey($hive.Sid+'SoftwareMicrosoftWindowsCurrentVersionRunOnceOwnedChild');$childKey.Dispose()
+    $childKey=[Microsoft.Win32.Registry]::Users.CreateSubKey($hive.Sid+'\Software\Microsoft\Windows\CurrentVersion\RunOnce\OwnedChild');$childKey.Dispose()
     $childAfter=Get-WelaSelectedSaclSnapshot $childSelected.Definition;Save 'child-drift-native.json' $childAfter
     $childReview=Join-Path $root 'child-drift'
     Public 'child-drift' @('registry-sacl-recovery','-RegistryRecoveryOriginalPlanPath',$childPlan,'-RegistryRecoveryPendingPath',(Join-Path $childJournal ($childSelected.Id+'.pending.json')),'-RegistryRecoveryConfirmedPath',(Join-Path $childJournal ($childSelected.Id+'.confirmed.json')),'-RegistryRecoveryOriginalResultsPath',$childResults,'-RegistryRecoveryOutputPath',$childReview) 1
