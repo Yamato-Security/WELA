@@ -122,3 +122,6 @@ tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf
 
 /scripts/RegistryValueProbe* text eol=lf
 /tests/RegistryValueProbe* text eol=lf
+# Reviewed WMI namespace recovery binds exact source bytes.
+/scripts/WmiSaclRecovery.ps1 text eol=lf
+/tests/WmiSaclRecovery* text eol=lf
