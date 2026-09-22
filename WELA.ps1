@@ -144,6 +144,14 @@
     [string]$EvtxProbePath,
     [string]$EvtxArchivePath,
     [string]$EvtxOutputPath,
+    [ValidateSet('Plan','Restore')][string]$FileSaclRecoveryAction = 'Plan',
+    [string]$FileSaclRecoveryOriginalPlanPath,
+    [string]$FileSaclRecoveryPendingPath,
+    [string]$FileSaclRecoveryConfirmedPath,
+    [string]$FileSaclRecoveryResultsPath,
+    [string]$FileSaclRecoveryPlanPath,
+    [string]$FileSaclRecoveryPlanHash,
+    [string]$FileSaclRecoveryOutputPath,
     [ValidateSet('Plan','Restore')][string]$TranscriptRecoveryAction = 'Plan',
     [string]$TranscriptRecoveryJournalPath,
     [string]$TranscriptRecoveryOriginalResultsPath,
@@ -304,6 +312,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventMeasurement.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/FileSaclRecovery.ps1")
 . (Join-Path $ScriptRoot "scripts/TranscriptionRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -2177,6 +2186,8 @@ if ($Cmd -ne 'file-access-probe' -and @($PSBoundParameters.Keys | Where-Object {
 if ($Cmd -eq 'file-access-probe' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileProbeAction','FileProbePath','FileProbeOutputPath','FileProbeTimeoutSeconds','Help')}).Count)) {throw 'file-access-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
 if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
+if ($Cmd -ne 'file-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FileSaclRecovery*'}).Count) {throw 'FileSaclRecovery options require file-sacl-recovery. No command was run.'}
+if ($Cmd -eq 'file-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileSaclRecoveryAction','FileSaclRecoveryOriginalPlanPath','FileSaclRecoveryPendingPath','FileSaclRecoveryConfirmedPath','FileSaclRecoveryResultsPath','FileSaclRecoveryPlanPath','FileSaclRecoveryPlanHash','FileSaclRecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'file-sacl-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'transcription-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'TranscriptRecovery*'}).Count) {throw 'TranscriptRecovery options require transcription-recovery.'}
 if ($Cmd -eq 'transcription-recovery' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','TranscriptRecoveryAction','TranscriptRecoveryJournalPath','TranscriptRecoveryOriginalResultsPath','TranscriptRecoveryPlanPath','TranscriptRecoveryPlanHash','TranscriptRecoveryOutputPath','TranscriptRecoveryAllowTemporarySuspension','Auto','DryRun','Help')}).Count)) {throw 'transcription-recovery accepts only its dedicated options, Auto and DryRun.'}
 if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
@@ -2302,7 +2313,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'file-sacl-recovery' -and $FileSaclRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
@@ -2433,6 +2444,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaEvtxRecovery -Action $EvtxAction -ProbePath $EvtxProbePath -ArchivePath $EvtxArchivePath -OutputPath $EvtxOutputPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'file-sacl-recovery' {
+        if ($Help) {Write-Host 'Usage: file-sacl-recovery [-FileSaclRecoveryAction Plan] -FileSaclRecoveryOriginalPlanPath original-plan.json -FileSaclRecoveryPendingPath target.pending.json -FileSaclRecoveryConfirmedPath target.confirmed.json -FileSaclRecoveryResultsPath original-results.json -FileSaclRecoveryOutputPath new-directory; then -FileSaclRecoveryAction Restore -FileSaclRecoveryPlanPath reviewed-plan.json -FileSaclRecoveryPlanHash SHA256 with -DryRun, or -Auto -FileSaclRecoveryOutputPath new-directory. Removes only one proven explicit leaf-file audit ACE. See docs/file-sacl-recovery.md.';return}
+        $report=Invoke-WelaFileSaclRecovery -Action $FileSaclRecoveryAction -OriginalPlanPath $FileSaclRecoveryOriginalPlanPath -PendingPath $FileSaclRecoveryPendingPath -ConfirmedPath $FileSaclRecoveryConfirmedPath -ResultsPath $FileSaclRecoveryResultsPath -PlanPath $FileSaclRecoveryPlanPath -PlanHash $FileSaclRecoveryPlanHash -OutputPath $FileSaclRecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
+        $report | ConvertTo-Json -Depth 30 | Write-Output
+        if ($report.ExitCode) {exit $report.ExitCode};return
     }
     'file-access-probe' {
         if ($Help) {Write-Host 'Usage: file-access-probe [-FileProbeAction Plan] -FileProbePath C:\Audit\existing-file.txt; Run additionally requires -FileProbeOutputPath C:\Evidence\new-probe [-FileProbeTimeoutSeconds 15]. Reads one byte and discards it; event matching uses the measured read plus held-handle identity/security readback phase, with the ReadFile return recorded separately. Source-tree/active-engine targets and aliases are refused before hashing. Existing File System success policy, precedence and matching ReadData SACL are required; no policy, ACL or file-data writes. Local4663 success only, no failure/forwarding/Sigma credit. See docs/file-access-probe.md.';return}

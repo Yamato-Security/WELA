@@ -6,6 +6,8 @@
 
 **Improvements:**
 
+- Added opt-in `file-sacl-recovery` to review and remove one proven explicit audit ACE from an unchanged selected leaf file. Original plans, paired receipts, successful results, source/host hashes and held file identity bind the operation; durable pre-write evidence and SACL-only readback preserve unrelated ACE bytes/counts and observed descriptor components. Empty or null present SACLs are reported without claiming exact historical descriptor restoration; policy, directory/registry recovery and Sigma readiness remain outside this scope. (#437) (@Shirofune-Security)
+
 - Added opt-in `dns-client-probe` for one fixed benign `wela-<nonce>.wela.test.` A lookup to an explicitly selected IPv4 resolver, with default prerequisite planning, bounded native DNS execution and exact local event 3008 correlation. Private hashed evidence preserves native status, context and correlation limits without changing Windows settings. The original DNS rule/channel mismatch remains explicit and Sigma credit stays zero. Added disposable authoritative-loopback DNS acceptance tests for Server 2022/2025 and PowerShell 5.1/7. (#434) (@Shirofune-Security)
 
 - Strengthened `evtx-recovery` with actual primary-token and ordinary host observations so intended standard users can verify existing native archives. Version 2 reports distinguish file-open denial from exact native event recovery, pin token/logon/modification and implementation identities, and retain independent producer/reader evidence without changing existing permissions or granting Sigma credit. Disposable Windows tests use fresh owned standard-user sessions for real denial and exact 4688 EVTX recovery, with verified account, file-ACL and policy cleanup. (#433) (@Shirofune-Security)
