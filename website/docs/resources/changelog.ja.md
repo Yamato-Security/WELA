@@ -7,6 +7,8 @@
 
 **改善:**
 
+- `outgoing-ntlm` のAudit/Plan/Configureを追加し、送信NTLM監査DWORDを個別に設定できます。既存の拒否設定は既定で維持し、置換には明示的なAuditを要求します。不明な型・値や書込直前の変化を拒否し、元の型付き記録と再読取を保持します。Server 2022/2025のテストで範囲と復元を確認し、認証・イベント生成は未検証として報告します。(関連 #362) (@Shirofune-Security)
+
 - コレクターのサブスクリプション観測で、コンソール経由の文字変換を、上限付きの完全なネイティブ名前列挙と厳密なUnicode XML読取に置き換えました。空の一覧・読取失敗・実際の無効状態を区別し、Unicodeの説明とXPathを保持します。Server 2022/2025と両PowerShellで公開Audit/Planおよび正確な後処理を検証し、ドメイン展開・転送・Sigma対応は主張しません。(関連 #368) (@Shirofune-Security)
 
 - Server 2022/2025 の Windows PowerShell 5.1/PowerShell 7 で、公開 provider-packs コマンドの Plan、DryRun、Configure、冪等性、前提不足・手動対象の拒否、部分適用を実機検証する使い捨て CI を追加。DNS Client、CAPI2、WinRM、RDP Client の設定と復元記録・ハッシュを確認し、完全な ACL、保持モード、大きい既存バッファ、他チャネル、サービス、全監査マスクの保持とテスト後の正確な復元を検証。イベント生成や Sigma 対応の証明は含みません。 WinRM のマニフェスト ID をネイティブの Int64 として比較し、対象外の大きい ID により必要なイベントの確認が失敗する不具合も修正。 (@Shirofune-Security)

@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Add `outgoing-ntlm` Audit/Plan/Configure to manage the outgoing audit DWORD independently of broad configuration. Preserve existing deny by default, require explicit Audit to replace it, refuse unknown types/values and pre-write drift, and retain typed original journals plus native readback. Native Server 2022/2025 tests verify narrow scope and exact cleanup; authentication/event generation remain unverified. (Related #362) (@Shirofune-Security)
+
 - Fixed collector subscription observations to use complete bounded native name enumeration and strict Unicode XML reads instead of console decoding. Empty inventories, failed reads and actual disabled state remain distinct; Unicode descriptions and XPath are preserved. Disposable public Audit/Plan tests cover both Server 2022/2025 and PowerShell engines with exact cleanup, without domain deployment, forwarding or Sigma claims. (Related #368) (@Shirofune-Security)
 
 - Added disposable native acceptance for public provider-pack Plan, DryRun, Configure, idempotence, missing/manual refusal and partial outcomes on Server 2022/2025 under Windows PowerShell 5.1/PowerShell 7. Actual DNS Client, CAPI2, WinRM and RDP Client configuration preserves descriptors, retention, larger buffers, unrelated channels, services and all audit masks, with journal/hash evidence and exact fixture cleanup; no event or Sigma credit. Fixed WinRM manifest inspection to preserve native Int64 event IDs, so unrelated large IDs no longer block the selected event schema. (@Shirofune-Security)
