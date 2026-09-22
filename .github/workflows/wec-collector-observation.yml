@@ -33,6 +33,9 @@ jobs:
           ./tests/WecSubscriptionXml.Tests.ps1
           ./tests/WefDeployment.Tests.ps1
           ./tests/WefDeployment.Cli.Tests.ps1
+      - name: Existing read-only source and collector service preservation
+        shell: ${{ matrix.engine }}
+        run: ./tests/WefDeployment.Windows.Tests.ps1
       - name: Actual public collector observations in Windows PowerShell 5.1
         if: matrix.engine == 'powershell'
         shell: powershell

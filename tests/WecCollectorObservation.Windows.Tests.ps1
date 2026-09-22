@@ -18,7 +18,7 @@ $description='Owned observation '+$nonce+' '+$unicode;$sid='S-1-5-21-111111111-2
 $root=Join-Path $env:RUNNER_TEMP ('wela-wec-observation-'+$nonce);$null=New-Item -ItemType Directory $root
 function Save($Name,$Value){$text=ConvertTo-Json -InputObject $Value -Depth 30;[IO.File]::WriteAllText((Join-Path $root $Name),$text,[Text.UTF8Encoding]::new($false))}
 $beforeServices=Services;$beforeChannel=Channel;$serviceKey='HKLM:\SYSTEM\CurrentControlSet\Services\Wecsvc';$beforeDelayed=Get-WelaRegistryState $serviceKey DelayedAutoStart
-$original=$null;$created=$false;$failure=$null;$errors=@();$inventoryOk=$false;$servicesOk=$false;$channelOk=$false;$reports=@()
+$original=$null;$created=$false;$failure=$null;$errors=@();$inventoryOk=$false;$servicesOk=$false;$channelOk=$false;$reports=@();$afterServices=$null;$afterChannel=$null;$afterDelayed=$null
 $sources=[ordered]@{};foreach($p in @('WELA.ps1','scripts/WefDeployment.ps1','modules/WefSubscriptions.psm1','modules/WecSubscriptionInventory.cs','modules/WecSubscriptionXml.cs')){$sources[$p]=(Get-FileHash (Join-Path $repo $p)).Hash.ToLowerInvariant()}
 Save 'before-fixture.json' @{Host=$hostState;Services=$beforeServices;Channel=$beforeChannel;DelayedAutoStart=$beforeDelayed;Sources=$sources}
 $config=Get-Content "$repo/config/wef-examples/collector.json" -Raw|ConvertFrom-Json
@@ -84,14 +84,16 @@ try {
   if($created -and @(Get-WelaWecSubscriptionIds) -contains $id){$raw=Read-WelaWecSubscriptionXml $id;$doc=Read-WelaWefXml $raw;if($doc.Subscription.Description -cne $description -and $doc.Subscription.Description -cne ($description+' drift')){throw 'Fixture ownership differs; do not delete subscription.'};$null=Invoke-WelaNative 'wecutil.exe' @('ds',$id)}
   $restored=@(Inventory);Save 'restored-inventory.json' $restored;$inventoryOk=$null -ne $original -and (Key $restored) -ceq (Key $original)
  }catch{$errors+=$_.ToString()}
- try{$channelOk=(Key (Channel)) -ceq (Key $beforeChannel)}catch{$errors+=$_.ToString()}
+ try{$afterChannel=Channel;$channelOk=(Key $afterChannel) -ceq (Key $beforeChannel)}catch{$errors+=$_.ToString()}
  try {
   $wec=@($beforeServices|Where-Object Name -eq Wecsvc)[0]
   if($wec.State -eq 'Stopped' -and (Get-Service Wecsvc).Status -ne 'Stopped'){Stop-Service Wecsvc}
   if($wec.StartMode -eq 'Disabled'){Set-Service Wecsvc -StartupType Disabled}
   if((Key (Get-WelaRegistryState $serviceKey DelayedAutoStart)) -cne (Key $beforeDelayed)){if($beforeDelayed.ValueExists){$null=New-ItemProperty -LiteralPath $serviceKey -Name DelayedAutoStart -Value $beforeDelayed.Value -PropertyType $beforeDelayed.Type -Force}else{Remove-ItemProperty -LiteralPath $serviceKey -Name DelayedAutoStart -ErrorAction Stop}}
-  $servicesOk=(Key (Services)) -ceq (Key $beforeServices) -and (Key (Get-WelaRegistryState $serviceKey DelayedAutoStart)) -ceq (Key $beforeDelayed)
+  $afterServices=Services;$afterDelayed=Get-WelaRegistryState $serviceKey DelayedAutoStart
+  $servicesOk=(Key $afterServices) -ceq (Key $beforeServices) -and (Key $afterDelayed) -ceq (Key $beforeDelayed)
  }catch{$errors+=$_.ToString()}
+ Save 'after-fixture.json' @{Services=$afterServices;Channel=$afterChannel;DelayedAutoStart=$afterDelayed}
  $artifacts=@(Get-ChildItem $root -File|ForEach-Object {[pscustomobject]@{Name=$_.Name;Bytes=$_.Length;Sha256=(Get-FileHash $_.FullName).Hash.ToLowerInvariant()}})
  Save 'cleanup.json' @{Failure=$failure;CleanupErrors=$errors;SubscriptionsRestored=$inventoryOk;ServicesRestored=$servicesOk;ChannelPreserved=$channelOk;Complete=($inventoryOk -and $servicesOk -and $channelOk -and -not $errors.Count);Assertions=$count;Engine=$PSVersionTable.PSVersion.ToString();Host=$hostState;Sources=$sources;Artifacts=$artifacts;PublicReports=$reports;Scope='Native local collector observation only; real standalone prerequisites remain incomplete.'}
 }
