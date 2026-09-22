@@ -2,6 +2,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- 完了したジャーナルから、プロセス作成・PowerShell ログ用の 3 つの DWORD 値を `audit-recovery` で復元できるようにしました。ネイティブ API による値のみの復元、他の値の変更検知、レジストリキーの保持に対応します。 ([#435](https://github.com/Yamato-Security/WELA/pull/435))
+
 **改善:**
 
 - 明示した IPv4 リゾルバーに固定の無害な `wela-<nonce>.wela.test.` A クエリを送信し、Windows 標準イベント 3008 と照合する任意実行の `dns-client-probe` を追加しました。既定では前提条件の計画だけを行い、実行時は時間・件数を制限した証拠をハッシュ付きで保護します。Windows 設定は変更せず、元の DNS ルールのチャネル不一致と相関の限界を保持し、Sigma の評価には加算しません。Server 2022/2025 と PowerShell 5.1/7 向けに使い捨ての権威 DNS・ループバック検証を追加しました。 (#434) (@Shirofune-Security)

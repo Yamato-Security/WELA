@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Extend `audit-recovery` to restore three named process/PowerShell logging DWORDs from completed journals, with native value-only writes, neighboring-data guards and retained registry keys. ([#435](https://github.com/Yamato-Security/WELA/pull/435))
+
 **Improvements:**
 
 - Added opt-in `dns-client-probe` for one fixed benign `wela-<nonce>.wela.test.` A lookup to an explicitly selected IPv4 resolver, with default prerequisite planning, bounded native DNS execution and exact local event 3008 correlation. Private hashed evidence preserves native status, context and correlation limits without changing Windows settings. The original DNS rule/channel mismatch remains explicit and Sigma credit stays zero. Added disposable authoritative-loopback DNS acceptance tests for Server 2022/2025 and PowerShell 5.1/7. (#434) (@Shirofune-Security)

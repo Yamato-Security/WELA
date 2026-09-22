@@ -64,6 +64,10 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /tests/EvtxRecovery*.ps1 text eol=lf
 /tests/fixtures/EvtxReader*.ps1 text eol=lf
 
+# Named registry recovery binds implementation bytes across checkouts.
+/scripts/NamedRegistryRecovery* text eol=lf
+/scripts/AuditRecovery.ps1 text eol=lf
+/tests/NamedRegistryRecovery* text eol=lf
 /scripts/Capi2Probe* text eol=lf
 /tests/Capi2Probe* text eol=lf
 
