@@ -1,4 +1,5 @@
 # Conservative, explicitly selected recovery of completed audit-policy writes.
+. (Join-Path $PSScriptRoot 'NamedRegistryRecovery.ps1')
 function ConvertFrom-WelaRecoveryJson {
     param([string]$Text)
     # ConvertFrom-Json accepts some JavaScript extensions (including single-quoted
@@ -103,9 +104,10 @@ function New-WelaRecoveryPlan {
     $precedenceId='Registry/HKLM:\SYSTEM\CurrentControlSet\Control\Lsa/SCENoApplyLegacyAuditPolicy'
     $rows=New-Object 'System.Collections.Generic.List[object]'
     $targets=@{}
+    $named=@{}; foreach ($item in Get-WelaNamedRecoveryCatalog) {$named[$item.Id]=$item}
     foreach ($id in ($ControlId | Sort-Object)) {
         if (-not $byId.ContainsKey($id) -or -not $final.ContainsKey($id)) {throw "Missing journal/final evidence for $id"}
-        $entry=$byId[$id]; $last=$final[$id]
+        $entry=$byId[$id]; $last=$final[$id];$namedControl=$false
         if ($last.Status -cne 'Applied' -or $last.Id -cne $entry.Id -or $last.Kind -cne $entry.Kind) {throw "Only completed Applied writes can be recovered: $id"}
         foreach ($field in @('Before','Desired','Target')) {if ((Get-WelaRecoveryKey $entry.$field) -cne (Get-WelaRecoveryKey $last.$field)) {throw "Journal/final $field mismatch: $id"}}
         if ($entry.Kind -ceq 'AuditPolicy' -and $catalog.ContainsKey($id)) {
@@ -119,10 +121,23 @@ function New-WelaRecoveryPlan {
             # Never disable precedence while leaving another journaled subcategory unrestored.
             foreach ($other in $entries) {if ($other.Kind -eq 'AuditPolicy' -and $other.Id -notin $ControlId) {throw 'Precedence recovery requires every journaled audit subcategory to be selected.'}}
             $target=$entry.Before
+        } elseif ($entry.Kind -ceq 'Registry' -and $named.ContainsKey($id)) {
+            $definition=$named[$id]
+            if ($id -cne $definition.Id -or $entry.Target.Path -cne $definition.Path -or $entry.Target.Name -cne $definition.Name -or $entry.Desired.Type -cne 'DWord' -or ($entry.Desired.Value -isnot [int] -and $entry.Desired.Value -isnot [long]) -or $entry.Desired.Value -ne 1) {throw 'Unsupported named logging registry recovery target.'}
+            Assert-WelaNamedRecoveryValue $entry.Before; Assert-WelaNamedRecoveryValue $last.After
+            if (-not $last.After.ValueExists -or $last.After.Value -ne 1) {throw 'Final logging switch is not enabled.'}
+            $target=[pscustomobject]@{KeyExists=$true;ValueExists=$entry.Before.ValueExists;Value=$entry.Before.Value;Type=$entry.Before.Type}
+            $namedControl=$true
         } else {throw "Unsupported control requires manual recovery: $id"}
-        $rows.Add([pscustomobject][ordered]@{Id=$id;Kind=$entry.Kind;Target=$entry.Target;Expected=$last.After;RecoverTo=$target})
+        $row=[pscustomobject][ordered]@{Id=$id;Kind=$entry.Kind;Target=$entry.Target;Expected=$last.After;RecoverTo=$target}
+        if ($namedControl) {
+            $row.Kind='NamedLoggingRegistry'
+            $row | Add-Member NoteProperty OriginalKeyExisted $entry.Before.KeyExists
+            $row | Add-Member NoteProperty RegistryGuard (Get-WelaNamedRecoveryGuard (Get-WelaNamedRecoveryObservation $entry.Target))
+        }
+        $rows.Add($row)
     }
-    [pscustomobject][ordered]@{
+    $plan=[pscustomobject][ordered]@{
         Kind='WelaAuditRecoveryPlan';SchemaVersion=1
         Host=$hostState;Journal=[pscustomobject]@{Path=$journal.Path;Sha256=$journal.Sha256}
         OriginalResults=[pscustomobject]@{Path=$resultFile.Path;Sha256=$resultFile.Sha256}
@@ -132,6 +147,8 @@ function New-WelaRecoveryPlan {
         UnsupportedJournalControls=@($entries | Where-Object {$_.Id -notin $ControlId} | Select-Object Id,Kind)
         ReadyRuleCredit=0
     }
+    if (@($rows | Where-Object Kind -eq 'NamedLoggingRegistry').Count) {$plan | Add-Member NoteProperty NamedSources @(Get-WelaNamedRecoverySources)}
+    return $plan
 }
 function Get-WelaRecoveryOutputDriveType {
     param([string]$Root)
@@ -172,17 +189,24 @@ function Write-WelaRecoveryArtifact {
 function Get-WelaRecoveryCurrent {
     param($Control)
     if ($Control.Kind -eq 'AuditPolicy') {return Get-WelaAuditPolicyMask $Control.Target.Guid}
+    if ($Control.Kind -eq 'NamedLoggingRegistry') {
+        $observation=Get-WelaNamedRecoveryObservation $Control.Target
+        Assert-WelaNamedRecoveryGuard $Control $observation
+        return Get-WelaNamedRecoveryState $observation
+    }
     Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy
 }
 function Set-WelaRecoveryCurrent {
     param($Control)
     if ($Control.Kind -eq 'AuditPolicy') {Set-WelaEffectiveAuditPolicy -Guid $Control.Target.Guid -Mask $Control.RecoverTo -Mode exact;return}
+    if ($Control.Kind -eq 'NamedLoggingRegistry') {Set-WelaNamedRecoveryValue $Control;return}
     $path='HKLM:\SYSTEM\CurrentControlSet\Control\Lsa'
     if ($Control.RecoverTo.ValueExists) {Set-ItemProperty -LiteralPath $path -Name SCENoApplyLegacyAuditPolicy -Value $Control.RecoverTo.Value -Type DWord -ErrorAction Stop}
     else {Remove-ItemProperty -LiteralPath $path -Name SCENoApplyLegacyAuditPolicy -ErrorAction Stop}
 }
 function Assert-WelaRecoverySources {
     param($Plan)
+    if ($Plan.PSObject.Properties.Name -contains 'NamedSources' -and (Get-WelaRecoveryKey @(Get-WelaNamedRecoverySources)) -cne (Get-WelaRecoveryKey $Plan.NamedSources)) {throw 'Named registry recovery implementation changed.'}
     foreach ($source in @($Plan.Journal,$Plan.OriginalResults)) {if ((Get-WelaRecoveryFile $source.Path).Sha256 -cne $source.Sha256) {throw 'Original recovery evidence changed.'}}
     if ((Get-FileHash -LiteralPath (Join-Path $PSScriptRoot '../config/audit_profiles.json')).Hash.ToLowerInvariant() -cne $Plan.CatalogSha256) {throw 'Canonical catalog changed.'}
     if ((Get-WelaRecoveryKey (Get-WelaRecoveryHost)) -cne (Get-WelaRecoveryKey $Plan.Host)) {throw 'Actual host changed since recovery planning.'}
@@ -232,7 +256,7 @@ function Invoke-WelaAuditRecovery {
                     if ($control.Kind -eq 'AuditPolicy') {
                         $p=Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy
                         if (-not $p.ValueExists -or $p.Type -ne 'DWord' -or $p.Value -ne 1) {throw 'Audit precedence changed before recovery write.'}
-                    } else {
+                    } elseif ($control.Kind -eq 'Registry') {
                         foreach ($prior in $plan.Controls | Where-Object Kind -eq 'AuditPolicy') {if ((Get-WelaRecoveryKey (Get-WelaRecoveryCurrent $prior)) -cne (Get-WelaRecoveryKey $prior.RecoverTo)) {throw 'An audit mask changed before precedence recovery.'}}
                     }
                     Set-WelaRecoveryCurrent $control
@@ -252,7 +276,7 @@ function Invoke-WelaAuditRecovery {
             if ((Get-WelaRecoveryKey $row.After) -cne (Get-WelaRecoveryKey $control.RecoverTo)) {throw 'State changed during final recovery verification.'}
         } catch {$row.Status='Failed';$row.Diagnostic=$_.Exception.Message;$blocked=$true}
     }
-    $report=[pscustomobject]@{Status=$(if ($blocked) {'Incomplete'} elseif ($DryRun) {'DryRun'} else {'Recovered'});ExitCode=[int]$blocked;DryRun=[bool]$DryRun;OutputPath=$output;Results=@($results.ToArray());ReadyRuleCredit=0;Scope='Selected audit masks and typed audit precedence only; no persistence or event-generation proof.'}
+    $report=[pscustomobject]@{Status=$(if ($blocked) {'Incomplete'} elseif ($DryRun) {'DryRun'} else {'Recovered'});ExitCode=[int]$blocked;DryRun=[bool]$DryRun;OutputPath=$output;Results=@($results.ToArray());ReadyRuleCredit=0;Scope='Selected audit masks, typed audit precedence and three named logging DWORDs only; value-only registry recovery retains keys. No persistence or event-generation proof.'}
     if (-not $DryRun) {Write-WelaRecoveryArtifact (Join-Path $output 'results.json') $report}
     return $report
 }

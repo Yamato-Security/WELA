@@ -1,0 +1,34 @@
+name: Native DNS Client completion probe
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dns-client-probe:
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Fixed query validators and public CLI guards in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/DnsClientProbe.Tests.ps1
+          ./tests/DnsClientProbe.Cli.Tests.ps1
+      - name: Fixed query validators and public CLI guards in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/DnsClientProbe.Tests.ps1
+          ./tests/DnsClientProbe.Cli.Tests.ps1
+      - name: Owned authoritative loopback DNS and real native3008
+        shell: powershell
+        run: ./tests/DnsClientProbe.Windows.Tests.ps1 -AllowDisposableDns -TestEngine '${{ matrix.engine }}'

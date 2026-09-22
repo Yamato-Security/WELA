@@ -17,6 +17,15 @@ $cases=@(
  @{Args=@('powershell-logging','-PowerShellLoggingControl','Module','-PowerShellLoggingModuleName','Mod*');Code=1;Pattern='literal module'},
  @{Args=@('powershell-logging','-Help','-Typo');Code=1;Pattern='Unsupported trailing arguments'}
 )
-foreach($case in $cases){$prior=$ErrorActionPreference;try{$ErrorActionPreference='Continue';$output=@(&$engine -NoLogo -NoProfile -NonInteractive -File "$repo/WELA.ps1" @($case.Args) 2>&1);$code=$LASTEXITCODE}finally{$ErrorActionPreference=$prior};if(($code -eq 0) -ne ($case.Code -eq 0) -or ($output -join "`n") -notmatch $case.Pattern){throw "CLI failed: $($case.Args -join ' ') -> $code / $($output -join ' ')"};$count++}
+foreach($case in $cases){
+ # ProcessStartInfo preserves literal wildcard arguments on Unix PowerShell hosts too.
+ $arguments=@('-NoLogo','-NoProfile','-NonInteractive','-File',"$repo/WELA.ps1")+@($case.Args)
+ foreach($argument in $arguments){if($argument.Contains('"') -or $argument.EndsWith('\')){throw 'Ambiguous fixture argument.'}}
+ $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$engine;$info.Arguments=(@($arguments|ForEach-Object{'"'+$_+'"'}) -join ' ');$info.UseShellExecute=$false;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
+ $process=[Diagnostics.Process]::new();$process.StartInfo=$info;$started=$false
+ try{if(-not $process.Start()){throw 'CLI child did not start.'};$started=$true;$stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync();if(-not $process.WaitForExit(30000)){throw 'CLI child timeout.'};$code=$process.ExitCode;$output=$stdout.Result+"`n"+$stderr.Result}
+ finally{if($started -and -not $process.HasExited){$process.Kill();$process.WaitForExit()};$process.Dispose()}
+ if(($code -eq 0) -ne ($case.Code -eq 0) -or $output -notmatch $case.Pattern){throw "CLI failed: $($case.Args -join ' ') -> $code / $output"};$count++
+}
 Write-Host "PASS: $count scoped PowerShell logging CLI guards."
 exit 0

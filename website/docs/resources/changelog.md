@@ -5,9 +5,19 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Extend `audit-recovery` to restore three named process/PowerShell logging DWORDs from completed journals, with native value-only writes, neighboring-data guards and retained registry keys. ([#435](https://github.com/Yamato-Security/WELA/pull/435))
+
 **Improvements:**
 
 - Added explicit `powershell-logging` Audit/Plan/Configure for selected Windows PowerShell 5.1 module and script-block logging. Reviewed module names, typed original journals, full observed-policy drift guards and native readback preserve invocation/transcription/Core settings and other module entries. Disposable Server 2022/2025 tests require exact local 4103/4104 evidence and policy cleanup; PowerShell 7 fallback, managed-host persistence, forwarding and Sigma readiness remain separate. (Related #364, #366, #387) (@Shirofune-Security)
+
+- Added opt-in `transcript-probe` to verify a fixed current-account Windows PowerShell 5.1 child produces its own completed automatic transcript in an already enabled local destination. Actual token/logon, native header/footer, nonce/PID/time, bounded file identity and source checks preserve unverified outcomes without changing policy or ACLs, invoking explicit transcription or granting Sigma/EVTX credit. Added disposable standard-writer success/denial tests for Server 2022/2025 under both WELA host engines. (#436) (@Shirofune-Security)
+
+- Added opt-in `file-sacl-recovery` to review and remove one proven explicit audit ACE from an unchanged selected leaf file. Original plans, paired receipts, successful results, source/host hashes and held file identity bind the operation; durable pre-write evidence and SACL-only readback preserve unrelated ACE bytes/counts and observed descriptor components. Empty or null present SACLs are reported without claiming exact historical descriptor restoration; policy, directory/registry recovery and Sigma readiness remain outside this scope. (#437) (@Shirofune-Security)
+
+- Added opt-in `dns-client-probe` for one fixed benign `wela-<nonce>.wela.test.` A lookup to an explicitly selected IPv4 resolver, with default prerequisite planning, bounded native DNS execution and exact local event 3008 correlation. Private hashed evidence preserves native status, context and correlation limits without changing Windows settings. The original DNS rule/channel mismatch remains explicit and Sigma credit stays zero. Added disposable authoritative-loopback DNS acceptance tests for Server 2022/2025 and PowerShell 5.1/7. (#434) (@Shirofune-Security)
+
+- Strengthened `evtx-recovery` with actual primary-token and ordinary host observations so intended standard users can verify existing native archives. Version 2 reports distinguish file-open denial from exact native event recovery, pin token/logon/modification and implementation identities, and retain independent producer/reader evidence without changing existing permissions or granting Sigma credit. Disposable Windows tests use fresh owned standard-user sessions for real denial and exact 4688 EVTX recovery, with verified account, file-ACL and policy cleanup. (#433) (@Shirofune-Security)
 
 - Added disposable native Security4703 attribution for the canonical Token Right Adjusted GUID on Server2022/2025 and PowerShell5.1/7. A fixed owned-child privilege disable/restore compares the two historical audit-mask candidates, retains exact event/context/hash evidence and verifies policy/token cleanup. Historical candidates remain conditional; no production probe, universal mapping or Sigma credit. (Related #380) (@Shirofune-Security)
 

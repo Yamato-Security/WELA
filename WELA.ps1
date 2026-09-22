@@ -58,6 +58,10 @@
     [ValidateSet('Audit', 'Plan', 'Import')][string]$AppLockerAction = 'Audit',
     [string]$AppLockerPolicyPath,
     [ValidateSet('List', 'Audit', 'Plan', 'Configure')][string]$WmiAction = 'List',
+    [ValidateSet('Plan','Run')][string]$DnsClientProbeAction = 'Plan',
+    [string]$DnsClientProbeResolver,
+    [string]$DnsClientProbeOutputPath,
+    [ValidateRange(1,30)][int]$DnsClientProbeTimeoutSeconds = 15,
     [ValidateSet('Plan','Run')][string]$Capi2ProbeAction = 'Plan',
     [string]$Capi2ProbeOutputPath,
     [ValidateRange(1,30)][int]$Capi2ProbeTimeoutSeconds = 15,
@@ -79,6 +83,9 @@
     [string]$RuleManifestPath,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$TranscriptionAction = 'Audit',
     [string]$TranscriptDirectory,
+    [ValidateSet('Plan','Run')][string]$TranscriptProbeAction = 'Plan',
+    [string]$TranscriptProbeDirectory,
+    [string]$TranscriptProbeOutputPath,
     [ValidateSet('Audit','Plan','Configure')][string]$LdapAction = 'Audit',
     [ValidateSet('Preserve','Diagnostic','MdiCleanup')][string]$LdapMode = 'Preserve',
     [ValidateRange(1,2147483647)][int]$LdapSearchTimeMs,
@@ -140,6 +147,14 @@
     [string]$EvtxProbePath,
     [string]$EvtxArchivePath,
     [string]$EvtxOutputPath,
+    [ValidateSet('Plan','Restore')][string]$FileSaclRecoveryAction = 'Plan',
+    [string]$FileSaclRecoveryOriginalPlanPath,
+    [string]$FileSaclRecoveryPendingPath,
+    [string]$FileSaclRecoveryConfirmedPath,
+    [string]$FileSaclRecoveryResultsPath,
+    [string]$FileSaclRecoveryPlanPath,
+    [string]$FileSaclRecoveryPlanHash,
+    [string]$FileSaclRecoveryOutputPath,
     [ValidateSet('Plan','Restore')][string]$TranscriptRecoveryAction = 'Plan',
     [string]$TranscriptRecoveryJournalPath,
     [string]$TranscriptRecoveryOriginalResultsPath,
@@ -265,11 +280,13 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/AppLockerScriptProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiNamespaceAuditing.ps1")
 . (Join-Path $ScriptRoot "scripts/WmiProbe.ps1")
+. (Join-Path $ScriptRoot "scripts/DnsClientProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/FileAccessProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellLogging.ps1")
+. (Join-Path $ScriptRoot "scripts/TranscriptProbe.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/RuleEligibility.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/AuditCatalog.psm1") -ErrorAction Stop
@@ -303,6 +320,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/EventMeasurement.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoCreation.ps1")
 . (Join-Path $ScriptRoot "scripts/AuditRecovery.ps1")
+. (Join-Path $ScriptRoot "scripts/FileSaclRecovery.ps1")
 . (Join-Path $ScriptRoot "scripts/TranscriptionRecovery.ps1")
 
 # 64bit の PowerShell と GPO が読むのは Wow6432Node の無いパス。32bit 用に両方を扱う。
@@ -2052,6 +2070,7 @@ Usage:
   ./WELA.ps1 event-measurement -MeasurementChannel Security -MeasurementAction Run -MeasurementOutputPath C:\Evidence\new-sample -MeasurementExportEvtx
   ./WELA.ps1 rule-eligibility -RuleEvidencePath reviewed-lab-evidence.json -ResultsPath evidence-review.json
   ./WELA.ps1 smb-auditing -SmbAction Configure -DryRun
+  ./WELA.ps1 transcript-probe -Help  # Verify one automatic native5.1 transcript under the actual identity
   ./WELA.ps1 file-access-probe -Help
   ./WELA.ps1 transcription-recovery -Help
   ./WELA.ps1 powershell-transcription -TranscriptionAction Plan -TranscriptDirectory C:\Transcripts -ResultsPath transcription-plan.json
@@ -2097,6 +2116,7 @@ Usage:
   ./WELA.ps1 wec-authorization -Help # Review source SID authorization on a disabled subscription
   ./WELA.ps1 wec-state -Help         # Review enable/disable of one existing subscription
   ./WELA.ps1 wec-update -Help        # Review query/description updates on a disabled subscription
+  ./WELA.ps1 dns-client-probe -Help  # Fixed native DNS lookup and matched Operational3008 evidence
   ./WELA.ps1 capi2-probe -Help       # Fixed offline chain and matched CAPI2 event 11 evidence
   ./WELA.ps1 failed-logon-probe -Help # Fixed nonexistent local account and matched Security4625 evidence
   ./WELA.ps1 wmi-probe -Help         # Fixed local read and matched namespace Security4662 evidence
@@ -2115,6 +2135,9 @@ Write-Host ""
 Write-Host "WELA v$WELAVersion - $WELAReleaseName"
 Write-Host ""
 
+if ($Cmd -ne 'transcript-probe' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'TranscriptProbe*' }).Count) { throw 'TranscriptProbe options require transcript-probe. No command was run.' }
+if ($Cmd -eq 'transcript-probe' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','TranscriptProbeAction','TranscriptProbeDirectory','TranscriptProbeOutputPath','Help') }).Count) { throw 'transcript-probe accepts only dedicated action/directory/output options. No command was run.' }
+
 if ($Cmd -ne 'firewall-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'FirewallRecovery*' }).Count) {throw 'FirewallRecovery options require firewall-recovery. No command was run.'}
 if ($Cmd -eq 'firewall-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','FirewallRecoveryAction','FirewallRecoveryProfile','FirewallRecoveryJournalPath','FirewallRecoveryResultsPath','FirewallRecoveryPlanPath','FirewallRecoveryPlanHash','FirewallRecoveryOutputPath','Auto','DryRun','Help') }).Count)) {throw 'firewall-recovery accepts only dedicated options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'ChannelRead*' }).Count) { throw 'ChannelRead options require channel-read. No command was run.' }
@@ -2124,7 +2147,7 @@ if ($Cmd -eq 'channel-read' -and @($PSBoundParameters.Keys | Where-Object { $_ -
 
 if ($Cmd -ne 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Measurement*'}).Count) {throw 'Measurement options require event-measurement. No command was run.'}
 if ($Cmd -eq 'event-measurement' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','MeasurementAction','MeasurementChannel','MeasurementSeconds','MeasurementMaximumEvents','MeasurementOutputPath','MeasurementExportEvtx','Help')}).Count) {throw 'event-measurement accepts only its dedicated options. No command was run.'}
-if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'Dns*' -or $_ -eq 'AllowDnsTraceReset' }).Count) {
+if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { ($_ -like 'Dns*' -and $_ -notlike 'DnsClientProbe*') -or $_ -eq 'AllowDnsTraceReset' }).Count) {
     throw 'DNS analytical options require dns-analytical. No command was run.'
 }
 if ($Cmd -eq 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','DnsAction','DnsState','DnsRetention','DnsMinimumBytes','DnsArchiveMaximumBytes','AllowDnsTraceReset','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
@@ -2176,6 +2199,8 @@ if ($Cmd -ne 'file-access-probe' -and @($PSBoundParameters.Keys | Where-Object {
 if ($Cmd -eq 'file-access-probe' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileProbeAction','FileProbePath','FileProbeOutputPath','FileProbeTimeoutSeconds','Help')}).Count)) {throw 'file-access-probe accepts only its dedicated options.'}
 if ($Cmd -ne 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Evtx*'}).Count) {throw 'EVTX options require evtx-recovery. No command was run.'}
 if ($Cmd -eq 'evtx-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','EvtxAction','EvtxProbePath','EvtxArchivePath','EvtxOutputPath','Help')}).Count) {throw 'evtx-recovery accepts only its dedicated options. No command was run.'}
+if ($Cmd -ne 'file-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FileSaclRecovery*'}).Count) {throw 'FileSaclRecovery options require file-sacl-recovery. No command was run.'}
+if ($Cmd -eq 'file-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','FileSaclRecoveryAction','FileSaclRecoveryOriginalPlanPath','FileSaclRecoveryPendingPath','FileSaclRecoveryConfirmedPath','FileSaclRecoveryResultsPath','FileSaclRecoveryPlanPath','FileSaclRecoveryPlanHash','FileSaclRecoveryOutputPath','Auto','DryRun','Help')}).Count) {throw 'file-sacl-recovery accepts only dedicated recovery options, Auto and DryRun. No command was run.'}
 if ($Cmd -ne 'transcription-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'TranscriptRecovery*'}).Count) {throw 'TranscriptRecovery options require transcription-recovery.'}
 if ($Cmd -eq 'transcription-recovery' -and ($args.Count -gt 0 -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','TranscriptRecoveryAction','TranscriptRecoveryJournalPath','TranscriptRecoveryOriginalResultsPath','TranscriptRecoveryPlanPath','TranscriptRecoveryPlanHash','TranscriptRecoveryOutputPath','TranscriptRecoveryAllowTemporarySuspension','Auto','DryRun','Help')}).Count)) {throw 'transcription-recovery accepts only its dedicated options, Auto and DryRun.'}
 if ($Cmd -ne 'audit-recovery' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Recovery*'}).Count) {throw 'Recovery options require audit-recovery. No command was run.'}
@@ -2229,6 +2254,8 @@ if ($Cmd -ne 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -li
 if ($Cmd -eq 'wec-runtime' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WecRuntimeId','WecRuntimeMaximumSources','ResultsPath','Help')}).Count) {
     throw 'wec-runtime accepts only selected runtime IDs, source cap and a new result path. No command was run.'
 }
+if ($Cmd -ne 'dns-client-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'DnsClientProbe*'}).Count) {throw 'DnsClientProbe options require dns-client-probe.'}
+if ($Cmd -eq 'dns-client-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','DnsClientProbeAction','DnsClientProbeResolver','DnsClientProbeOutputPath','DnsClientProbeTimeoutSeconds','Help')}).Count) {throw 'dns-client-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'capi2-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'Capi2Probe*'}).Count) {throw 'Capi2Probe options require capi2-probe.'}
 if ($Cmd -eq 'capi2-probe' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','Capi2ProbeAction','Capi2ProbeOutputPath','Capi2ProbeTimeoutSeconds','Help')}).Count)) {throw 'capi2-probe accepts only dedicated probe options.'}
 if ($Cmd -ne 'failed-logon-probe' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'FailedLogon*'}).Count) {throw 'FailedLogon options require failed-logon-probe.'}
@@ -2305,7 +2332,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'powershell-logging' -and $PowerShellLoggingAction -eq 'Configure') -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'powershell-logging' -and $PowerShellLoggingAction -eq 'Configure') -and -not ($Cmd -eq 'file-sacl-recovery' -and $FileSaclRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
@@ -2437,6 +2464,12 @@ switch ($Cmd.ToLower()) {
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
     }
+    'file-sacl-recovery' {
+        if ($Help) {Write-Host 'Usage: file-sacl-recovery [-FileSaclRecoveryAction Plan] -FileSaclRecoveryOriginalPlanPath original-plan.json -FileSaclRecoveryPendingPath target.pending.json -FileSaclRecoveryConfirmedPath target.confirmed.json -FileSaclRecoveryResultsPath original-results.json -FileSaclRecoveryOutputPath new-directory; then -FileSaclRecoveryAction Restore -FileSaclRecoveryPlanPath reviewed-plan.json -FileSaclRecoveryPlanHash SHA256 with -DryRun, or -Auto -FileSaclRecoveryOutputPath new-directory. Removes only one proven explicit leaf-file audit ACE. See docs/file-sacl-recovery.md.';return}
+        $report=Invoke-WelaFileSaclRecovery -Action $FileSaclRecoveryAction -OriginalPlanPath $FileSaclRecoveryOriginalPlanPath -PendingPath $FileSaclRecoveryPendingPath -ConfirmedPath $FileSaclRecoveryConfirmedPath -ResultsPath $FileSaclRecoveryResultsPath -PlanPath $FileSaclRecoveryPlanPath -PlanHash $FileSaclRecoveryPlanHash -OutputPath $FileSaclRecoveryOutputPath -Auto:$Auto -DryRun:$DryRun
+        $report | ConvertTo-Json -Depth 30 | Write-Output
+        if ($report.ExitCode) {exit $report.ExitCode};return
+    }
     'file-access-probe' {
         if ($Help) {Write-Host 'Usage: file-access-probe [-FileProbeAction Plan] -FileProbePath C:\Audit\existing-file.txt; Run additionally requires -FileProbeOutputPath C:\Evidence\new-probe [-FileProbeTimeoutSeconds 15]. Reads one byte and discards it; event matching uses the measured read plus held-handle identity/security readback phase, with the ReadFile return recorded separately. Source-tree/active-engine targets and aliases are refused before hashing. Existing File System success policy, precedence and matching ReadData SACL are required; no policy, ACL or file-data writes. Local4663 success only, no failure/forwarding/Sigma credit. See docs/file-access-probe.md.';return}
         $report=Invoke-WelaFileAccessProbe -Action $FileProbeAction -FilePath $FileProbePath -OutputPath $FileProbeOutputPath -TimeoutSeconds $FileProbeTimeoutSeconds
@@ -2533,6 +2566,12 @@ switch ($Cmd.ToLower()) {
         $map=@{WecUpdateId='Id';WecUpdateSourceSid='SourceSids';WecUpdateQueryPath='QueryPath';WecUpdateDescription='Description';WecUpdatePlanPath='PlanPath';WecUpdatePlanHash='PlanHash'}
         foreach($name in $map.Keys){if($PSBoundParameters.ContainsKey($name)){$arguments[$map[$name]]=$PSBoundParameters[$name]}}
         $report=Invoke-WelaWecUpdate @arguments
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
+    }
+    'dns-client-probe' {
+        if ($Help) {Write-Host 'Usage: dns-client-probe [-DnsClientProbeAction Plan|Run] -DnsClientProbeResolver approved-IPv4 [-DnsClientProbeOutputPath new-private-directory] [-DnsClientProbeTimeoutSeconds 1..30]. Fixed benign A lookup to wela-<nonce>.wela.test. via explicit DNS TCP53 resolver; no configuration changes or Sigma credit. Plan observes prerequisites only. See docs/dns-client-probe.md.';return}
+        $report=Invoke-WelaDnsClientProbe -Action $DnsClientProbeAction -Resolver $DnsClientProbeResolver -OutputPath $DnsClientProbeOutputPath -TimeoutSeconds $DnsClientProbeTimeoutSeconds
         $report
         if($report.ExitCode){exit $report.ExitCode}
     }
@@ -2762,6 +2801,12 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaPowerShellLogging -Action $PowerShellLoggingAction -Control $PowerShellLoggingControl -ModuleName $PowerShellLoggingModuleName -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
         $report
         if($report.ExitCode){exit $report.ExitCode}
+    }
+    'transcript-probe' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 transcript-probe [-TranscriptProbeAction Plan|Run] -TranscriptProbeDirectory existing-local-policy-directory [-TranscriptProbeOutputPath new-private-directory]. Run starts one fixed native5.1 child using existing automatic transcription policy; no policy or destination changes. See docs/transcript-probe.md.'; return }
+        $report=Invoke-WelaTranscriptProbe -Action $TranscriptProbeAction -Directory $TranscriptProbeDirectory -OutputPath $TranscriptProbeOutputPath
+        $report | Select-Object Action,Status,WriterAuthorization,Diagnostic,OutputPath | Format-List | Out-Host
+        if ($report.ExitCode) { exit $report.ExitCode }
     }
     'powershell-transcription' {
         if ($Help) {
