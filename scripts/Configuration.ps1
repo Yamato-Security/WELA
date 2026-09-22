@@ -108,7 +108,7 @@ function Invoke-WelaConfigurationControl {
 
 function Complete-WelaConfiguration {
     param($Context, [string]$ResultsPath, $Plan,
-          [ValidateSet("native-windows-configuration", "outgoing-ntlm-audit-policy-only", "incoming-domain-ntlm-audit-policy-only", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only", "windows-powershell-transcription-policy-only", "wef-source-configuration-only", "wec-collector-subscriptions-only", "audit-integrity-local-policy-only", "adcs-audit-settings-only", "disabled-unlinked-gpo-creation-only")]
+          [ValidateSet("native-windows-configuration", "outgoing-ntlm-audit-policy-only", "incoming-domain-ntlm-audit-policy-only", "advanced-audit-policy-only", "advanced-audit-policy-and-precedence", "firewall-text-logging-only", "event-log-size-and-mode-only", "smb-audit-policies-only", "native-channel-settings-only", "wmi-namespace-sacl-only", "ad-object-sacl-only", "windows-powershell-transcription-policy-only", "windows-powershell-event-logging-policy-only", "wef-source-configuration-only", "wec-collector-subscriptions-only", "audit-integrity-local-policy-only", "adcs-audit-settings-only", "disabled-unlinked-gpo-creation-only")]
           [string]$Scope = "native-windows-configuration",
           [string]$SuccessMessage = 'Configuration completed; all requested controls verified.')
     if ($Context.PSObject.Properties['CustomProfileGuard']) {

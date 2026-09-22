@@ -6,6 +6,8 @@
 
 **Improvements:**
 
+- Added explicit `powershell-logging` Audit/Plan/Configure for selected Windows PowerShell 5.1 module and script-block logging. Reviewed module names, preflight inventory-capacity checks, typed original journals, full observed-policy drift guards and native readback preserve invocation/transcription/Core settings and other module entries. Disposable Server 2022/2025 tests require exact local 4103/4104 evidence and policy cleanup; PowerShell 7 fallback, managed-host persistence, forwarding and Sigma readiness remain separate. (Related #364, #366, #387) (@Shirofune-Security)
+
 - Added bounded existing-descendant snapshots, full recovery evidence and stale-tree guards for explicit WMI inheritance. Parent-only SACL writes now require native inherited/protected readbacks and final drift checks; incomplete propagation fails without child setters, rollback ownership, event or Sigma credit. Unrelated or extra positional WMI command arguments are now refused. (Related #372) (@Shirofune-Security)
 
 - Add reviewed `wmi-sacl-recovery` Plan/Recover for one proven explicit parent-only namespace audit ACE. Require matching completed configuration evidence, current full descriptor, reviewed hash and explicit audit-reduction consent; preserve all other descriptor fields, remaining ACEs and token privileges, retain partial-write evidence, and test owned native namespace cleanup. Historical namespace/operator identity and event/Sigma readiness remain unclaimed. (Related #372, #365) (@Shirofune-Security)
