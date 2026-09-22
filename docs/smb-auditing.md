@@ -1,5 +1,9 @@
 # Version-aware native SMB audit policies
 
+### Issue 377 coverage
+
+SMB audit switches are version-gated and configured independently from signing, encryption, guest access, and service state. Native readback and cleanup prove policy changes only; runtime traffic, emitted events, forwarding, and Sigma matching remain separate evidence.
+
 The opt-in `smb-auditing` command audits, plans and configures six built-in Windows audit policies. It does not enable insecure guest access, weaken signing/encryption, change SMB dialects or shares, restart services, or install Sysmon. It does not configure event forwarding, change channel settings or claim a Sigma coverage increase.
 
 Run in elevated **64-bit** Windows PowerShell 5.1 or PowerShell 7:
