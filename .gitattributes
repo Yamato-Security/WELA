@@ -97,6 +97,9 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 /tests/WecCollectorObservation* text eol=lf
 /tests/WecSubscriptionInventory* text eol=lf
 
+# Scoped NTLM source and native evidence retain stable bytes.
+/scripts/NtlmAudit.ps1 text eol=lf
+/tests/NtlmAudit* text eol=lf
 # Native query receipts bind the same source bytes on every supported engine.
 /scripts/WefQuery* text eol=lf
 /tests/WefQuery* text eol=lf
