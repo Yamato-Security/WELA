@@ -96,3 +96,7 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 /modules/WecSubscriptionInventory.cs text eol=lf
 /tests/WecCollectorObservation* text eol=lf
 /tests/WecSubscriptionInventory* text eol=lf
+
+# Public filesystem-SACL disposable lifecycle evidence.
+tests/FileSaclProfileFixture.cs text eol=lf
+tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf

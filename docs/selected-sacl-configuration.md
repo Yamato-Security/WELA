@@ -88,7 +88,9 @@ Mocked tests cover selection, source-specific masks, unsupported consent, source
 
 The separate [public registry lifecycle fixture](native-registry-sacl-validation.md) mounts a newly saved, fixture-owned hive under a fresh synthetic user SID. The unchanged public catalog resolves its RunOnce key, then actual CLI Plan/DryRun/Configure calls exercise the reviewed lifecycle and one exact local 4657. Only the fixture loads/unloads hives and prepares auditing; the product behavior above is unchanged. This leaf fixture does not replace populated-tree inheritance validation.
 
-Native CI results must be reviewed before claiming those test cases passed. Windows 11, DC/CA, user redirection, large/changing production trees, forwarding and actual Sigma/backend execution remain separate acceptance work. Every report remains `GenerationReadiness=Conditional` with `UsableRuleCredit=0`.
+The [public filesystem lifecycle fixture](native-filesystem-sacl-validation.md) resolves a genuine built-in Signal target through an owned synthetic profile and redirected known folder. It exercises actual public selection, Plan/DryRun/Configure, stale-child refusal and idempotence on a populated tree, checks protected descendants, and matches one public leaf-read probe to local4663 XML. Only the disposable fixture registers its profile and mounts its hive.
+
+Native CI results must be reviewed before claiming those test cases passed. Windows 11, DC/CA, other user-redirection/access scenarios, large/changing production trees, forwarding and actual Sigma/backend execution remain separate acceptance work. Every report remains `GenerationReadiness=Conditional` with `UsableRuleCredit=0`.
 
 Primary API references: [GetSecurityInfo](https://learn.microsoft.com/en-us/windows/win32/api/aclapi/nf-aclapi-getsecurityinfo), [SetSecurityInfo and inheritance](https://learn.microsoft.com/en-us/windows/win32/api/aclapi/nf-aclapi-setsecurityinfo), [registry open/link behavior](https://learn.microsoft.com/en-us/windows/win32/api/winreg/nf-winreg-regopenkeyexw), [file handle and sharing flags](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew).
 
