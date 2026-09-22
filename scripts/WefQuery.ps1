@@ -22,7 +22,15 @@ function Get-WelaWefQuerySources {
 }
 function Get-WelaWefQueryToken {
  Initialize-WelaWefQueryNative
- [Wela.WefQueryToken.Native]::Snapshot()
+ ConvertTo-WelaWefQueryTokenObservation ([Wela.WefQueryToken.Native]::Snapshot())
+}
+function ConvertTo-WelaWefQueryTokenObservation {
+ param($Token)
+ if($Token -isnot [Wela.WefQueryToken.Token]){throw 'Expected the native query token observation.'}
+ # Normalize native DTOs at the boundary, using the same strict shape as worker receipts.
+ $observed=ConvertFrom-WelaArrivalJson (Get-WelaWefQueryKey $Token)
+ $null=Get-WelaWefQueryTokenKey $observed
+ $observed
 }
 function Get-WelaWefQueryTokenKey {
  param($Token)

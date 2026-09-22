@@ -7,6 +7,15 @@ function Assert($value,[string]$message){if(-not $value){throw $message};$script
 function Reject([scriptblock]$code,[string]$message){$caught=$false;try{& $code|Out-Null}catch{$caught=$true};Assert $caught $message}
 function Clone($value){ConvertFrom-WelaArrivalJson (Get-WelaWefQueryKey $value)}
 Initialize-WelaWefQueryNative
+$nativeToken=[Wela.WefQueryToken.Token]::new();$nativeToken.Sid='S-1-5-21-1-2-3-1000';$nativeToken.Name='Host\reader';$nativeToken.AuthenticationId='0x123';$nativeToken.AuthenticationType='NTLM';$nativeToken.ImpersonationLevel='None';$nativeToken.TokenSource='Process'
+$nativeGroup=[Wela.WefQueryToken.Group]::new();$nativeGroup.Sid='S-1-5-32-545';$nativeGroup.Attributes=[uint32]::MaxValue;$nativeToken.Groups=@($nativeGroup);$nativeToken.Privileges=@()
+$observedToken=ConvertTo-WelaWefQueryTokenObservation $nativeToken
+Assert ($observedToken -is [pscustomobject] -and $observedToken.Groups -is [array] -and $observedToken.Groups.Count -eq 1 -and $observedToken.Privileges -is [array] -and $observedToken.Privileges.Count -eq 0) 'Actual native DTO normalizes singleton groups and empty privileges for strict receipt validation.'
+Assert ($observedToken.Groups[0].Attributes -eq [uint32]::MaxValue -and (Get-WelaWefQueryTokenKey $observedToken) -ceq (Get-WelaWefQueryTokenKey (Clone $nativeToken))) 'Native token normalization preserves every unsigned attribute and token comparison.'
+$nativePrivilege=[Wela.WefQueryToken.Privilege]::new();$nativePrivilege.Luid='0x14';$nativePrivilege.Attributes=2;$nativeToken.Privileges=@($nativePrivilege)
+Assert ((ConvertTo-WelaWefQueryTokenObservation $nativeToken).Privileges[0].Attributes -eq 2) 'Native privilege DTO normalizes without losing enabled attributes.'
+$nativeToken.Sid='invalid';Reject {ConvertTo-WelaWefQueryTokenObservation $nativeToken} 'Invalid native token remains unverified.'
+Reject {ConvertTo-WelaWefQueryTokenObservation $observedToken} 'Native boundary rejects a substituted arbitrary object.'
 $buffer=[Runtime.InteropServices.Marshal]::AllocHGlobal(128)
 try{
  function Reset-Buffer([int]$type,[int]$count){for($i=0;$i -lt 128;$i++){[Runtime.InteropServices.Marshal]::WriteByte($buffer,$i,0)};[Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,$type);[Runtime.InteropServices.Marshal]::WriteInt32($buffer,8,$count);[Runtime.InteropServices.Marshal]::WriteIntPtr($buffer,[IntPtr]::Add($buffer,16))}
