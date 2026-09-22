@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document opt-in native provider-pack schema pinning, role/build gating, manual-review fallbacks, and the separation between configured channels and detection eligibility. (Related #386)
+
 - Document build, role, edition, feature, and removal applicability gates plus provenance requirements for clean-install defaults. (Related #385)
 
 - Document independent audit-right and CrashOnAuditFail profile coverage, including omission-preserves semantics and service-account review boundaries. (Related #384)

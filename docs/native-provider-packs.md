@@ -54,3 +54,6 @@ Primary references: [Microsoft WEF Appendix C/F](https://learn.microsoft.com/en-
 For an explicitly reviewed DNS Server analytical transition with stopped-trace archival, use the separate [DNS analytical lifecycle](dns-analytical.md). The ordinary provider-pack setter continues to refuse Analytical/Debug configuration.
 
 The separate [`dns-client-probe`](dns-client-probe.md) can collect a fixed native DNS Client lookup completion and exact Operational3008 XML. The six pinned rule channel strings remain mismatched; the probe grants no Sigma readiness credit.
+# Issue 386 coverage
+
+Provider packs are explicit and opt-in. Each pack pins its provider, channel, event IDs, required string fields, source rule hashes, supported role/build families, and minimum buffer size. Schema or service uncertainty produces a manual-review result; analytical/debug channels stay inventory-only. A configured channel receives no Sigma or detection credit until emitted XML, field mapping, forwarding, and matching are validated separately.
