@@ -1,5 +1,9 @@
 # Native Security 4703 audit attribution
 
+### Issue 380 coverage
+
+Token-right attribution pins the canonical Security 4703 GUID and retains the competing historical mappings as conditional candidates. Native event XML, audit masks, token context, and cleanup evidence are required before attribution; a catalog match alone does not claim universal Windows coverage.
+
 The disposable `Native Security 4703 audit attribution` workflow tests the two historical audit-subcategory candidates for event 4703 on standalone Windows Server 2022/2025 under Windows PowerShell 5.1 and PowerShell 7. It does not add a production probe, change WELA policy recommendations, remove historical mapping candidates or grant Sigma readiness.
 
 Microsoft's [Token Right Adjusted guidance](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/audit-token-right-adjusted) and [advanced audit-policy reference](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/advanced-audit-policy-configuration) associate 4703 with token adjustment. The older [4703 event reference](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4703) names Authorization Policy Change. [WELA's mapping review](audit-catalog-mappings.md) retains both historical candidates as conditional. Native evidence below is specific to the recorded Windows build/UBR, provider manifest, engine and fixed operation.
