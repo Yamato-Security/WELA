@@ -19,6 +19,13 @@ function Runtime {
         [pscustomobject][ordered]@{Side=$side;Properties=@($c.CimInstanceProperties|Sort-Object Name|ForEach-Object{[pscustomobject][ordered]@{Name=$_.Name;Type=$_.CimType.ToString();Value=$_.Value}})}
     }
 }
+function UnselectedRuntime($Snapshot) {
+    foreach($side in $Snapshot){
+        $component=if($side.Side -eq 'Server'){'LanmanServer'}else{'LanmanWorkstation'}
+        $selected=@($definitions|Where-Object Component -eq $component|ForEach-Object Name)
+        [pscustomobject][ordered]@{Side=$side.Side;Properties=@($side.Properties|Where-Object Name -NotIn $selected)}
+    }
+}
 function Policies {foreach($d in $definitions){[pscustomobject]@{Definition=$d;Policy=Get-WelaRegistryState $d.Path $d.Name}}}
 function Keys {
     foreach($component in @('LanmanServer','LanmanWorkstation')){
@@ -53,12 +60,12 @@ try{
         Assert (@($initial|Where-Object {$_.Status -notin @('ChangeRequired','PolicyConfigured')}).Count -eq 0) 'All six policies require exact local ADMX and readable native runtime before fixture writes.'
         foreach($d in $definitions){New-WelaRegistryKey $d.Path;$null=New-ItemProperty -LiteralPath $d.Path -Name $d.Name -Value 0 -PropertyType DWord -Force}
     }
-    $prepared=@(Policies);$other=@(OtherKeys);Save 'prepared.json' $prepared
+    $prepared=@(Policies);$other=@(OtherKeys);$preparedRuntime=@(Runtime);Save 'prepared.json' $prepared;Save 'prepared-runtime.json' $preparedRuntime
     $plan=Public plan @('-SmbAction','Plan','-ResultsPath',(Join-Path $root 'plan.json'))
     Assert ($plan.Controls.Count -eq 6) 'Public Plan accounts for exactly six controls.'
     $dry=Public dry @('-SmbAction','Configure','-DryRun','-BackupPath',(Join-Path $root 'dry-backup'),'-ResultsPath',(Join-Path $root 'dry.json'))
     Assert ($dry.DryRun -and @($dry.Results|Where-Object Status -eq Applied).Count -eq 0 -and -not(Test-Path (Join-Path $root 'dry-backup'))) 'Dry run does not change policy or create original journals.'
-    Assert ((Key @(Policies)) -ceq (Key $prepared) -and (Key @(Runtime)) -ceq (Key $runtime)) 'Plan and DryRun preserve exact typed policy and full native runtime.'
+    Assert ((Key @(Policies)) -ceq (Key $prepared) -and (Key @(Runtime)) -ceq (Key $preparedRuntime)) 'Plan and DryRun preserve exact typed policy and full native runtime.'
     $applied=Public apply @('-SmbAction','Configure','-Auto','-BackupPath',(Join-Path $root 'apply-backup'),'-ResultsPath',(Join-Path $root 'apply.json'))
     Assert ($applied.Scope -ceq 'smb-audit-policies-only' -and $applied.Results.Count -eq 6) 'Public Configure retains narrow scope and all six outcomes.'
     if([int]$os.BuildNumber -eq 20348){
@@ -74,7 +81,17 @@ try{
         $repeat=Public repeat @('-SmbAction','Configure','-Auto','-BackupPath',(Join-Path $root 'repeat-backup'),'-ResultsPath',(Join-Path $root 'repeat.json'))
         Assert (@($repeat.Results|Where-Object Status -ne AlreadyCompliant).Count -eq 0 -and -not(Test-Path (Join-Path $root 'repeat-backup/before.jsonl'))) 'Repeated public Configure is idempotent without another journal.'
     }
-    Assert ((Key @(OtherKeys)) -ceq (Key $other) -and (Key @(Runtime)) -ceq (Key $runtime) -and (Masks) -ceq $masks) 'Sibling values, access descriptors, children, complete SMB runtime and all59 audit masks are preserved.'
+    $afterRuntime=@(Runtime);$afterOther=@(OtherKeys);Save 'after-runtime.json' $afterRuntime;Save 'after-other-keys.json' $afterOther;Save 'prepared-other-keys.json' $other
+    Assert ((Key $afterOther) -ceq (Key $other)) 'Sibling values, access descriptors and child keys are preserved.'
+    Assert ((Key @(UnselectedRuntime $afterRuntime)) -ceq (Key @(UnselectedRuntime $runtime))) 'Every unrelated native SMB runtime property is preserved.'
+    Assert ((Masks) -ceq $masks) 'All59 audit masks are preserved.'
+    if([int]$os.BuildNumber -eq 26100){
+        foreach($row in $applied.Results){
+            $side=if($row.Target.Path -like '*LanmanServer'){'Server'}else{'Client'}
+            $observed=@(($afterRuntime|Where-Object Side -eq $side).Properties|Where-Object Name -eq $row.Target.Name)
+            Assert ($observed.Count -eq 1 -and $observed[0].Type -ceq 'Boolean' -and $row.After.Runtime.Value -ceq $observed[0].Value) 'Reported audit runtime observation matches a separate native getter; activation is observed, not assumed.'
+        }
+    }
     Save 'completed.json' @{Status='Passed';Assertions=$count;ActualPolicyWrites=$(if([int]$os.BuildNumber -eq 26100){6}else{0});Scope='Policy registry only; no SMB traffic, activation, GPO refresh, event generation or Sigma proof.'}
 }catch{$failure=$_.ToString();throw}finally{
     foreach($row in $before){try{
