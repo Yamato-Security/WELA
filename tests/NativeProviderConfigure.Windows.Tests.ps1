@@ -42,8 +42,12 @@ $p=Get-Content -LiteralPath $InputPath -Raw|ConvertFrom-Json
 $a=@{ProviderAction=[string]$p.Action;ProviderPack=[string[]]$p.Names;ResultsPath=[string]$p.ResultsPath}
 if($p.Action -ceq 'Configure'){$a.Auto=$true;$a.BackupPath=[string]$p.BackupPath}
 if($p.DryRun){$a.DryRun=$true}
-$extra=[string[]]$p.Extra
-& ([string]$p.Script) provider-packs @a @extra
+# Array-splatted strings are positional values, not named PowerShell switches.
+# Fixed literal branches exercise the public parameter parser exactly.
+if(@($p.Extra).Count -eq 0){& ([string]$p.Script) provider-packs @a}
+elseif(@($p.Extra).Count -eq 1 -and $p.Extra[0] -ceq '-WhatIf'){& ([string]$p.Script) provider-packs @a -WhatIf}
+elseif(@($p.Extra).Count -eq 1 -and $p.Extra[0] -ceq '-GrantEventLogReaders'){& ([string]$p.Script) provider-packs @a -GrantEventLogReaders}
+else{throw 'Unreviewed fixture option.'}
 exit $global:LASTEXITCODE
 '@ | Set-Content -LiteralPath $wrapper -Encoding UTF8
 function Public([string]$Name,[string]$Action,[string[]]$Names,[switch]$DryRun,[int]$Expected=0,[string[]]$Extra=@()){
