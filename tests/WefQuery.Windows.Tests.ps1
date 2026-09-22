@@ -1,10 +1,11 @@
-# Fixture-only owned account and temporary CAPI2 deny ACE. Product is read-only.
+﻿# Fixture-only owned account and temporary CAPI2 deny ACE. Product is read-only.
 param([switch]$AllowDisposableAccount)
 $ErrorActionPreference='Stop'
 if(-not $AllowDisposableAccount -or $env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or [Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or -not [Environment]::Is64BitProcess){throw 'Explicit disposable GitHub-hosted Windows fixture required.'}
 $repo=Split-Path $PSScriptRoot -Parent;$script:ScriptRoot=$repo
 Import-Module (Join-Path $repo 'modules/AuditProfiles.psm1') -ErrorAction Stop
 Import-Module (Join-Path $repo 'modules/WefSubscriptions.psm1') -ErrorAction Stop
+Import-Module (Join-Path $repo 'modules/NativeProviders.psm1') -ErrorAction Stop
 foreach($name in @('Configuration','WefArrival','WecUpdate','ChannelRead','WefQuery')){. (Join-Path $repo ('scripts/'+$name+'.ps1'))}
 $hostState=Get-WelaWefQueryHost
 if($hostState.DomainJoined -or $hostState.DomainRole -ne 2 -or $hostState.ProductType -ne 3){throw 'Standalone disposable Server fixture required.'}

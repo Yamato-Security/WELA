@@ -1,4 +1,4 @@
-$ErrorActionPreference='Stop';$script:ScriptRoot=Split-Path $PSScriptRoot -Parent
+﻿$ErrorActionPreference='Stop';$script:ScriptRoot=Split-Path $PSScriptRoot -Parent
 Import-Module (Join-Path $script:ScriptRoot 'modules/AuditProfiles.psm1') -Force
 Import-Module (Join-Path $script:ScriptRoot 'modules/WefSubscriptions.psm1') -Force
 foreach($name in @('WefArrival','WecUpdate','ChannelRead','WefQuery')){. (Join-Path $script:ScriptRoot ('scripts/'+$name+'.ps1'))}
@@ -73,6 +73,8 @@ function Start-WelaWefQueryWorker {
  if($script:lifecycle.Case -eq 'DuplicateEvents'){$result.Events=@($script:lifecycle.Xml,$script:lifecycle.Xml)}
  if($script:lifecycle.Case -eq 'FailedQuery'){$result.Opened=$false;$result.Complete=$false;$result.NativeError=5;$result.Channels=@();$result.Events=@()}
  $receipt=[pscustomobject]@{SchemaVersion=1;Kind='WelaWefQueryWorker';Nonce=$request.Nonce;ProcessId=4242;Engine=$Engine;ModulePath=$Engine.ModulePath;StartedUtc='2026-01-01T00:00:00Z';CompletedUtc='2026-01-01T00:00:01Z';ReaderBefore=(Get-WelaWefQueryToken);ReaderAfter=(Get-WelaWefQueryToken);Host=$request.Host;Sources=$request.Sources;QuerySha256=$request.QuerySha256;Result=$result}
+ if($script:lifecycle.Case -eq 'DateTimeReceipt'){$receipt.StartedUtc=[DateTime]::SpecifyKind([datetime]'2026-01-01T00:00:00',[DateTimeKind]::Utc);$receipt.CompletedUtc=$receipt.StartedUtc.AddSeconds(1)}
+ if($script:lifecycle.Case -eq 'InvalidTimeReceipt'){$receipt.StartedUtc=$true}
  if($script:lifecycle.Case -eq 'TokenDrift'){$receipt.ReaderAfter.AuthenticationId='0x999'}
  if($script:lifecycle.Case -eq 'ReceiptBoolean'){$receipt.Kind=$true}
  if($script:lifecycle.Case -eq 'InputDrift'){[IO.File]::AppendAllText($script:lifecycle.Config,' ')}
@@ -84,12 +86,12 @@ try{
  Copy-Item (Join-Path $script:ScriptRoot 'config/wef-examples/*') $temp
  $script:lifecycle.Config=Join-Path $temp 'source.json';$originalConfig=[IO.File]::ReadAllText($script:lifecycle.Config)
  $subscription=Join-Path $temp 'native-security.xml';$doc=Read-WelaWefXml ([IO.File]::ReadAllText($subscription));$doc.DocumentElement.SelectSingleNode('*[local-name()="Query"]').InnerText='<QueryList><Query Id="0" Path="System"><Select>*</Select></Query></QueryList>';[IO.File]::WriteAllText($subscription,$doc.OuterXml)
- foreach($case in @('Match','Empty','Partial','FailedQuery','MissingStatus','DuplicateEvents','TokenDrift','ReceiptBoolean','InputDrift','ArtifactDrift','Termination','HostDrift','ChannelDrift')){
+ foreach($case in @('Match','DateTimeReceipt','InvalidTimeReceipt','Empty','Partial','FailedQuery','MissingStatus','DuplicateEvents','TokenDrift','ReceiptBoolean','InputDrift','ArtifactDrift','Termination','HostDrift','ChannelDrift')){
   $script:lifecycle.Case=$case;$script:lifecycle.HostReads=0;$script:lifecycle.ChannelReads=0;[IO.File]::WriteAllText($script:lifecycle.Config,$originalConfig)
   $report=Invoke-WelaWefQuery $script:lifecycle.Config 'WELA Native Security Example' (Join-Path $temp $case)
-  $expected=switch($case){Match{'MatchesObserved'};Empty{'ReadAllowedEmpty'};Partial{'Partial'};FailedQuery{'QueryFailed'};default{'Unverified'}}
+  $expected=switch($case){Match{'MatchesObserved'};DateTimeReceipt{'MatchesObserved'};Empty{'ReadAllowedEmpty'};Partial{'Partial'};FailedQuery{'QueryFailed'};default{'Unverified'}}
   Assert ($report.Status -ceq $expected) ("Public lifecycle $case expected $expected : "+$report.Diagnostic)
-  Assert ($report.ExitCode -eq $(if($case -in @('Match','Empty')){0}else{1}) -and $report.ReadyRuleCredit -eq 0 -and $report.ConfigurationChanges -eq 0) "Public lifecycle $case exit/credit boundaries."
+  Assert ($report.ExitCode -eq $(if($case -in @('Match','DateTimeReceipt','Empty')){0}else{1}) -and $report.ReadyRuleCredit -eq 0 -and $report.ConfigurationChanges -eq 0) "Public lifecycle $case exit/credit boundaries."
   Assert (Test-Path -LiteralPath (Join-Path (Join-Path $temp $case) 'manifest.json')) "Failure/complete manifest retained for $case."
  }
 }finally{Remove-Item -LiteralPath $temp -Recurse -Force}

@@ -83,7 +83,7 @@ function Assert-WelaWefQueryInputs {
 }
 function Get-WelaWefQueryEngine {
  $path=(Get-Process -Id $PID -ErrorAction Stop).Path
- if([IO.Path]::GetFileName($path) -cnotin @('powershell.exe','pwsh.exe') -or $PSVersionTable.PSVersion.Major -notin @(5,7)){throw 'Native Windows PowerShell 5.1 or PowerShell 7 is required.'}
+ if([IO.Path]::GetFileName($path) -notin @('powershell.exe','pwsh.exe') -or $PSVersionTable.PSVersion.Major -notin @(5,7)){throw 'Native Windows PowerShell 5.1 or PowerShell 7 is required.'}
  [pscustomobject]@{Path=$path;Sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant();Version=$PSVersionTable.PSVersion.ToString();ModulePath=[IO.Path]::Combine($PSHOME,'Modules')}
 }
 function Close-WelaWefQueryWorker {
@@ -162,7 +162,7 @@ function Invoke-WelaWefQuery {
   $worker=Start-WelaWefQueryWorker $engine (Join-Path $output 'request.json') $artifact.Sha256;$report.Worker=$worker
   if(-not $worker.Started -or -not $worker.TerminationConfirmed -or $worker.TimedOut -or $worker.Diagnostic -or $worker.ExitCode -ne 0 -or -not $worker.Receipt){throw ('Query worker did not complete verified observation. '+$worker.Diagnostic)}
   $receipt=$worker.Receipt;Assert-WelaArrivalObject $receipt @('SchemaVersion','Kind','Nonce','ProcessId','Engine','ModulePath','StartedUtc','CompletedUtc','ReaderBefore','ReaderAfter','Host','Sources','QuerySha256','Result')
-  foreach($name in @('Kind','Nonce','ModulePath','StartedUtc','CompletedUtc','QuerySha256')){if($receipt.$name -isnot [string]){throw 'Mistyped worker receipt identity.'}}
+  foreach($name in @('Kind','Nonce','ModulePath','QuerySha256')){if($receipt.$name -isnot [string]){throw 'Mistyped worker receipt identity.'}}
   if(($receipt.SchemaVersion -isnot [int] -and $receipt.SchemaVersion -isnot [long]) -or $receipt.SchemaVersion -ne 1 -or $receipt.Kind -cne 'WelaWefQueryWorker' -or $receipt.Nonce -cne $request.Nonce -or ($receipt.ProcessId -isnot [int] -and $receipt.ProcessId -isnot [long]) -or $receipt.ProcessId -ne $worker.ProcessId -or $receipt.ModulePath -cne $engine.ModulePath -or $receipt.QuerySha256 -cne $selection.QuerySha256 -or (Get-WelaWefQueryKey $receipt.Engine) -cne (Get-WelaWefQueryKey $engine) -or (Get-WelaWefQueryKey $receipt.Host) -cne (Get-WelaWefQueryKey $hostState) -or (Get-WelaWefQueryKey $receipt.Sources) -cne (Get-WelaWefQueryKey $sources)){throw 'Worker receipt differs from actual reviewed query/engine/host/source context.'}
   if((Get-WelaWefQueryTokenKey $receipt.ReaderBefore) -cne $tokenKey -or (Get-WelaWefQueryTokenKey $receipt.ReaderAfter) -cne $tokenKey){throw 'Worker token differs from the actual caller or changed during query.'}
   if((ConvertTo-WelaArrivalUtc $receipt.StartedUtc) -gt (ConvertTo-WelaArrivalUtc $receipt.CompletedUtc)){throw 'Worker time interval is invalid.'}

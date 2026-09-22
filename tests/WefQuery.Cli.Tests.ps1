@@ -10,8 +10,8 @@ Assert-Cli @('wef-query','-DryRun') 1 'dedicated read-only options'
 Assert-Cli @('wef-query','-WhatIf') 1 'dedicated read-only options'
 Assert-Cli @('wef-query','-ResultsPath','out.json') 1 'dedicated read-only options'
 Assert-Cli @('wef-query','-WefAction','Configure') 1 'dedicated read-only options'
-Assert-Cli @('wef-query','-WefQueryMaximumEvents','0') 1 'less than the minimum'
-Assert-Cli @('wef-query','-WefQueryMaximumEvents','65') 1 'greater than the maximum'
+Assert-Cli @('wef-query','-WefQueryMaximumEvents','0') 1 'WefQueryMaximumEvents'
+Assert-Cli @('wef-query','-WefQueryMaximumEvents','65') 1 'WefQueryMaximumEvents'
 Assert-Cli @('wef-query') 1 'exact source config path and subscription ID'
 Write-Host "WefQuery.Cli.Tests: $script:count public CLI checks passed."
 $global:LASTEXITCODE=0
