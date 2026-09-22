@@ -81,3 +81,10 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 # Reviewed channel restoration binds exact installed source bytes.
 /scripts/ChannelRecovery.ps1 text eol=lf
 /tests/ChannelRecovery*.ps1 text eol=lf
+
+# Registry recovery plans bind identical source bytes across native hosts.
+/scripts/RegistrySaclRecovery* text eol=lf
+/tests/RegistrySaclRecovery* text eol=lf
+/scripts/SelectedSaclDescendants.ps1 text eol=lf
+/scripts/AuditRecovery.ps1 text eol=lf
+/scripts/EvtxRecovery.ps1 text eol=lf

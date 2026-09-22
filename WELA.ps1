@@ -104,6 +104,16 @@
     [ValidateSet('Plan','Run')][string]$ProbeAction = 'Plan',
     [string]$ProbeOutputPath,
     [ValidateRange(1,30)][int]$ProbeTimeoutSeconds = 15,
+    [ValidateSet('Plan','Restore')][string]$RegistryRecoveryAction = 'Plan',
+    [string]$RegistryRecoveryOriginalPlanPath,
+    [string]$RegistryRecoveryPendingPath,
+    [string]$RegistryRecoveryConfirmedPath,
+    [string]$RegistryRecoveryOriginalResultsPath,
+    [string]$RegistryRecoveryPlanPath,
+    [string]$RegistryRecoveryPlanHash,
+    [string]$RegistryRecoveryOutputPath,
+    [switch]$RegistryRecoveryAllowAuditReduction,
+    [switch]$RegistryRecoveryAllowInheritance,
     [ValidateSet('Audit','Plan','Configure')][string]$TargetSaclAction = 'Audit',
     [string]$TargetSaclProfile,
     [string[]]$TargetSaclId,
@@ -272,6 +282,7 @@ Import-Module (Join-Path $ScriptRoot "modules/WefSubscriptions.psm1") -ErrorActi
 . (Join-Path $ScriptRoot "scripts/AuditScoring.ps1")
 . (Join-Path $ScriptRoot "scripts/TargetedSaclPlanning.ps1")
 . (Join-Path $ScriptRoot "scripts/SelectedSaclConfiguration.ps1")
+. (Join-Path $ScriptRoot "scripts/RegistrySaclRecovery.ps1")
 . (Join-Path $ScriptRoot "scripts/GpoAuditPackages.ps1")
 . (Join-Path $ScriptRoot "scripts/IntuneAuditExport.ps1")
 . (Join-Path $ScriptRoot "scripts/EvtxRecovery.ps1")
@@ -1982,6 +1993,7 @@ Remove these options from automation wrappers; check WELA's exit code instead.
 Usage:
   ./WELA.ps1 dns-analytical -Help  # Dedicated DNS Server direct-channel lifecycle
   ./WELA.ps1 wec-runtime -WecRuntimeId subscription-id -ResultsPath new-runtime.json
+  ./WELA.ps1 registry-sacl-recovery -Help  # Reviewed removal of one proven registry audit ACE
   ./WELA.ps1 targeted-sacl -Help  # Selected existing local SACL targets; read-only by default
   ./WELA.ps1 gpo-create -Help    # Create only a new disabled, unlinked GPO from reviewed genuine backup
   ./WELA.ps1 gpo-package -GpoAction Plan -GpoProfile wela-2.2.0 -Role Client -Build 26100
@@ -2099,6 +2111,12 @@ if ($Cmd -ne 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_
 }
 if ($Cmd -eq 'dns-analytical' -and @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','DnsAction','DnsState','DnsRetention','DnsMinimumBytes','DnsArchiveMaximumBytes','AllowDnsTraceReset','Auto','DryRun','BackupPath','ResultsPath','Help') }).Count) {
     throw 'dns-analytical accepts only dedicated DNS lifecycle and report options. No command was run.'
+}
+if ($Cmd -ne 'registry-sacl-recovery' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'RegistryRecovery*' }).Count) {
+    throw 'RegistryRecovery options require registry-sacl-recovery. No command was run.'
+}
+if ($Cmd -eq 'registry-sacl-recovery' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object { $_ -notin @('Cmd','RegistryRecoveryAction','RegistryRecoveryOriginalPlanPath','RegistryRecoveryPendingPath','RegistryRecoveryConfirmedPath','RegistryRecoveryOriginalResultsPath','RegistryRecoveryPlanPath','RegistryRecoveryPlanHash','RegistryRecoveryOutputPath','RegistryRecoveryAllowAuditReduction','RegistryRecoveryAllowInheritance','Help') }).Count)) {
+    throw 'registry-sacl-recovery accepts only its dedicated options. Use read-only Plan before explicitly consented Restore.'
 }
 if ($Cmd -ne 'targeted-sacl' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'TargetSacl*' }).Count) {
     throw 'TargetSacl options require targeted-sacl. No command was run.'
@@ -2317,6 +2335,13 @@ switch ($Cmd.ToLower()) {
         $report=Invoke-WelaWecRuntime -Ids $WecRuntimeId -MaximumSources $WecRuntimeMaximumSources -ResultsPath $ResultsPath
         $report
         if ($report.ExitCode) {exit $report.ExitCode}
+    }
+    'registry-sacl-recovery' {
+        if ($Help) { Write-Host 'Usage: ./WELA.ps1 registry-sacl-recovery -RegistryRecoveryOriginalPlanPath original-plan.json -RegistryRecoveryPendingPath target.pending.json -RegistryRecoveryConfirmedPath target.confirmed.json -RegistryRecoveryOriginalResultsPath original-results.json -RegistryRecoveryOutputPath new-review-directory. Restore: -RegistryRecoveryAction Restore -RegistryRecoveryPlanPath review/plan.json -RegistryRecoveryPlanHash sha256 -RegistryRecoveryOutputPath new-evidence-directory -RegistryRecoveryAllowAuditReduction -RegistryRecoveryAllowInheritance. One proven registry-root audit ACE only; historical/current descendants must be empty. Value/child/descriptor drift refuses. Pending evidence may describe a partial removal; no automatic rollback or atomic-tree guarantee. See docs/registry-sacl-recovery.md.'; return }
+        $report=Invoke-WelaRegistrySaclRecovery -Action $RegistryRecoveryAction -OriginalPlanPath $RegistryRecoveryOriginalPlanPath -PendingPath $RegistryRecoveryPendingPath -ConfirmedPath $RegistryRecoveryConfirmedPath -OriginalResultsPath $RegistryRecoveryOriginalResultsPath -PlanPath $RegistryRecoveryPlanPath -PlanHash $RegistryRecoveryPlanHash -OutputPath $RegistryRecoveryOutputPath -AllowAuditReduction:$RegistryRecoveryAllowAuditReduction -AllowInheritance:$RegistryRecoveryAllowInheritance
+        $report
+        if ($report.ExitCode -ne 0) { exit $report.ExitCode }
+        return
     }
     'targeted-sacl' {
         if ($Help) { Write-Host 'Usage: ./WELA.ps1 targeted-sacl -TargetSaclProfile profile-id [-TargetSaclId id,...] [-TargetSaclAction Audit|Plan] [-IncludeOptional] [-TargetSaclIncludeChildren] [-ResultsPath new-plan.json]. Configure requires -TargetSaclAction Configure -TargetSaclPlanPath reviewed.json -TargetSaclId same-ids [-TargetSaclIncludeChildren] [-IncludeOptional] [-DryRun] [-Auto] [-BackupPath new-directory] [-ResultsPath new-results.json]. Existing local targets only; IncludeChildren requires a complete reviewed capture of at most 128 descendants per root, depth 16. See docs/selected-sacl-configuration.md.'; return }
