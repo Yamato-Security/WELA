@@ -1,0 +1,47 @@
+name: Native Security4703 audit attribution
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'tests/TokenRightAttribution*'
+      - 'docs/native-token-right-attribution.md'
+      - 'config/eid_subcategory_mapping.csv'
+      - 'config/audit_profiles.json'
+      - '.github/workflows/native-token-attribution.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  token-right-probe:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Native audit attribution in Windows PowerShell
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/TokenRightAttribution.Tests.ps1
+          ./tests/AuditCatalogMappings.Tests.ps1
+          ./tests/TokenRightAttribution.Windows.Tests.ps1 -AllowDisposableAuditWrite
+      - name: Native audit attribution in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/TokenRightAttribution.Tests.ps1
+          ./tests/AuditCatalogMappings.Tests.ps1
+          ./tests/TokenRightAttribution.Windows.Tests.ps1 -AllowDisposableAuditWrite
+      - name: Retain native events and cleanup
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: token-right-probe-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-token-right-attribution-*/
+          if-no-files-found: error
+          retention-days: 7

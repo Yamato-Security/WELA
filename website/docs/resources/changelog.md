@@ -7,6 +7,8 @@
 
 **Improvements:**
 
+- Added disposable native Security4703 attribution for the canonical Token Right Adjusted GUID on Server2022/2025 and PowerShell5.1/7. A fixed owned-child privilege disable/restore compares the two historical audit-mask candidates, retains exact event/context/hash evidence and verifies policy/token cleanup. Historical candidates remain conditional; no production probe, universal mapping or Sigma credit. (Related #380) (@Shirofune-Security)
+
 - Added opt-in `registry-sacl-recovery` for one proven explicit registry-root audit ACE, requiring four matching original records, a reviewed plan hash, empty historical/current descendants and separate audit-reduction/inheritance consent. Native SACL-only removal preserves unrelated descriptor fields and ACE order, retains partial-write evidence and reports original-byte equality separately; no authenticated historical key/operator identity, atomic-tree, event or Sigma claim. (Related #373) (@Shirofune-Security)
 
 - Add native public SMB policy configuration acceptance on Server 2022/2025 and PowerShell 5.1/7: six-policy apply/readback and idempotence on supported hosts, unsupported-host skips, typed original journals, unrelated-state preservation and exact cleanup. Event generation and runtime activation remain separate. (Related #377) (@Shirofune-Security)

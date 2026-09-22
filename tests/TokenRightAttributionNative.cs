@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Wela.TokenRightProbe {
  public sealed class Privilege { public string Luid; public uint Attributes; }
@@ -9,7 +10,7 @@ namespace Wela.TokenRightProbe {
   public string Status, Diagnostic, Luid;
   public bool AdjustmentAttempted, Restored;
   public uint OriginalAttributes;
-  public long DisableStartedFileTime, DisableReturnedFileTime, RestoreStartedFileTime, RestoreReturnedFileTime;
+  public long DisableStartedFileTime, DisableReturnedFileTime, RestoreStartedFileTime, RestoreReturnedFileTime, OperationCompletedFileTime;
   public Privilege[] Before, Disabled, After;
  }
  public static class Native {
@@ -21,6 +22,7 @@ namespace Wela.TokenRightProbe {
   [DllImport("kernel32.dll", SetLastError=true)] static extern bool CloseHandle(IntPtr handle);
   [DllImport("kernel32.dll")] static extern void GetSystemTimePreciseAsFileTime(out long value);
   [DllImport("kernel32.dll")] static extern void SetLastError(uint error);
+  [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern bool QueryFullProcessImageName(IntPtr process,uint flags,StringBuilder path,ref uint length);
   [DllImport("advapi32.dll",SetLastError=true)] static extern bool OpenProcessToken(IntPtr process,uint access,out IntPtr token);
   [DllImport("advapi32.dll",SetLastError=true)] static extern bool OpenThreadToken(IntPtr thread,uint access,bool self,out IntPtr token);
   [DllImport("advapi32.dll",SetLastError=true)] static extern bool GetTokenInformation(IntPtr token,int kind,IntPtr buffer,int length,out int needed);
@@ -28,6 +30,11 @@ namespace Wela.TokenRightProbe {
   [DllImport("advapi32.dll",SetLastError=true)] static extern bool AdjustTokenPrivileges(IntPtr token,bool all,ref One value,uint length,IntPtr previous,IntPtr returned);
   static string Hex(Luid id) { return "0x"+(((ulong)(uint)id.High<<32)|id.Low).ToString("x"); }
   static long Now() { long value; GetSystemTimePreciseAsFileTime(out value); return value; }
+  public static string Executable() {
+   var path=new StringBuilder(32768);uint length=32768;
+   if(!QueryFullProcessImageName(GetCurrentProcess(),0,path,ref length)||length<1||length>=32768)throw new Win32Exception(Marshal.GetLastWin32Error());
+   return path.ToString();
+  }
   static void PrimaryOnly() {
    IntPtr thread;
    if(OpenThreadToken(GetCurrentThread(),8,true,out thread)) { CloseHandle(thread); throw new InvalidOperationException("An impersonation token is not accepted."); }
@@ -79,7 +86,7 @@ namespace Wela.TokenRightProbe {
     } finally {
      if(result.AdjustmentAttempted) {
       result.RestoreStartedFileTime=Now();Change(token,target,result.OriginalAttributes);result.RestoreReturnedFileTime=Now();
-      result.After=Read(token);Equal(result.Before,result.After,result.Luid,true);result.Restored=true;
+      result.After=Read(token);Equal(result.Before,result.After,result.Luid,true);result.Restored=true;result.OperationCompletedFileTime=Now();
      }
     }
    } catch(Exception error) {result.Status=result.AdjustmentAttempted?"Unverified":"Refused";result.Diagnostic=error.ToString();}
