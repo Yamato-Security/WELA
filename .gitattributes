@@ -74,6 +74,9 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/FileAccessProbe* text eol=lf
 /tests/FileAccessProbe* text eol=lf
 
+# Disposable native provider configuration fixture
+tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
+
 # Disposable public registry lifecycle fixture bytes are retained in evidence.
 /tests/RegistrySacl* text eol=lf
 /scripts/WecAuthorization* text eol=lf
@@ -88,3 +91,8 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/SelectedSaclDescendants.ps1 text eol=lf
 /scripts/AuditRecovery.ps1 text eol=lf
 /scripts/EvtxRecovery.ps1 text eol=lf
+
+# Collector inventory reads native UTF16 names and bounded Unicode XML.
+/modules/WecSubscriptionInventory.cs text eol=lf
+/tests/WecCollectorObservation* text eol=lf
+/tests/WecSubscriptionInventory* text eol=lf
