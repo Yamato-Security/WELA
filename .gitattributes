@@ -76,3 +76,6 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 
 /scripts/WecAuthorization* text eol=lf
 /tests/WecAuthorization* text eol=lf
+# Reviewed channel restoration binds exact installed source bytes.
+/scripts/ChannelRecovery.ps1 text eol=lf
+/tests/ChannelRecovery*.ps1 text eol=lf

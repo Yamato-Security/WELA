@@ -90,3 +90,5 @@ RSoP schema references: [registry policy](https://learn.microsoft.com/en-us/prev
 Targeted file/registry SACL prerequisites are included as a read-only companion plan. See [targeted SACL planning](targeted-sacl-planning.md) for per-user gaps, source distinctions and `-SaclMode Skip`.
 
 The stronger profile's optional IPsec Main Mode control additionally requires positive local native prerequisite evidence during shared planning/configuration. See [conditional IPsec prerequisites](ipsec-prerequisites.md) for scope, statuses and fresh pre-write checks.
+
+A separate [public custom-profile native acceptance fixture](custom-audit-profiles.md#verification-and-recovery) exercises the shared configuration/precedence engine with actual writes on disposable Server 2022/2025 hosts. It verifies all 59 effective masks and exact cleanup without claiming full baseline, GPO, event or Sigma acceptance.
