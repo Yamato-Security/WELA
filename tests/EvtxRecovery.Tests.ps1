@@ -1,9 +1,12 @@
 $ErrorActionPreference='Stop'
 $repo=Split-Path $PSScriptRoot -Parent
+$script:ScriptRoot=$repo
 Import-Module (Join-Path $repo 'modules/AuditProfiles.psm1') -Force
 . (Join-Path $repo 'scripts/ControlApplicability.ps1')
 . (Join-Path $repo 'scripts/NativeValidation.ps1')
 . (Join-Path $repo 'scripts/EvtxRecovery.ps1')
+. (Join-Path $repo 'scripts/WefArrival.ps1')
+. (Join-Path $repo 'scripts/ChannelRead.ps1')
 . (Join-Path $PSScriptRoot 'fixtures/EvtxRecovery.Fixture.ps1')
 $script:checks=0
 function Assert($Value,[string]$Message){if(-not $Value){throw "FAIL: $Message"};$script:checks++}
@@ -57,26 +60,37 @@ try {
         Assert ((Read-WelaEvtxEvent ($fixture.Xml.Replace($change[0],$change[1]))).Key -cne $source.Event.Key) "Original event mutation stays unmatched: $($change[0])"
     }
     foreach($xml in @($fixture.Xml.Replace('</Event>','<UserData/></Event>'),$fixture.Xml.Replace('</Event>','<System/></Event>'),('<!DOCTYPE Event [<!ENTITY a SYSTEM "file:///etc/passwd">]>'+$fixture.Xml))) {Reject {Read-WelaEvtxEvent $xml} 'System|DTD'}
-    $script:scenario='match';$script:reads=0;$script:exports=0
-    function Get-WelaEvtxReader {
+    $script:scenario='match';$script:reads=0;$script:exports=0;$script:hostReads=0;$script:sourceReads=0
+    $script:realRecoverySources=(Get-Command Get-WelaEvtxRecoverySources).ScriptBlock
+    function Get-WelaEvtxReader {throw 'Recovery must not require the legacy administrator feature-inventory reader'}
+    function Get-WelaEvtxRecoverySources {
+        $script:sourceReads++;$value=& $script:realRecoverySources
+        if ($scenario -eq 'implementation-drift' -and $sourceReads -gt 1) {$value.'scripts/EvtxRecovery.ps1'='changed'}
+        $value
+    }
+    function Get-WelaEvtxRecoveryHost {
+        $script:hostReads++
+        [pscustomobject]@{Computer='reader01';Build=26100;UBR=$(if ($scenario -eq 'host-drift' -and $hostReads -gt 1) {2}else{1});ProductType=3;DomainRole=2;DomainJoined=$false;Domain='WORKGROUP';Edition='ServerStandard'}
+    }
+    function Get-WelaEvtxRecoveryReader {
         $script:reads++
-        [pscustomobject]@{Computer='reader01';HostKey='WindowsServer2025';Reader=[pscustomobject]@{Sid=$(if ($scenario -eq 'reader-drift' -and $reads -gt 1) {'S-1-5-20'}else{'S-1-5-18'})}}
+        [pscustomobject]@{Computer='reader01';UserSid=$(if ($scenario -eq 'reader-drift' -and $reads -gt 1) {'S-1-5-20'}else{'S-1-5-18'});TokenId='one';AuthenticationId=$(if ($scenario -eq 'logon-drift' -and $reads -gt 1) {'different'}else{'logon'});ModifiedId=$(if ($scenario -eq 'token-drift' -and $reads -gt 1) {'changed'}else{'unchanged'});TokenType='Primary';Impersonation='Absent'}
     }
     function Get-WelaProbeState {ConvertTo-WelaEvtxState (Clone $fixture.Manifest.BeforeState)}
     function Read-WelaEvtxNative {
         param($Path,[switch]$Live,$Query)
-        if ($scenario -eq 'denied') {throw 'Native reader denied'}
+        if ($scenario -eq 'denied') {throw [UnauthorizedAccessException]::new('Native reader denied')}
         if ($scenario -eq 'corrupt') {throw 'Invalid native EVTX format'}
         if ($scenario -eq 'source-change') {Add-Content -LiteralPath (Join-Path $fixture.Directory 'event.xml') 'tampered'}
         $events=@($fixture.Xml)
         if ($scenario -eq 'empty' -and -not $Live) {$events=@()}
         if ($scenario -eq 'duplicate') {$events=@($fixture.Xml,$fixture.Xml)}
         if ($scenario -eq 'wrong') {$events=@($fixture.Xml.Replace('<EventRecordID>100','<EventRecordID>101'))}
-        [pscustomobject]@{Xml=$events;Limit=2}
+        [pscustomobject]@{Xml=$events;Limit=2;LogStatus=@([pscustomobject]@{LogName=$Path;StatusCode=0})}
     }
     function Export-WelaEvtxNative {param($Query,$Path) $script:exports++;Assert ($Query -match 'EventRecordID=100' -and $Query -match 'EventID=4688' -and $Query -match 'Security-Auditing') 'Export selects one source record only';[IO.File]::WriteAllBytes($Path,[byte[]](1,2,3,4))}
     function Invoke-Case([string]$Name,[string]$Action='Verify') {
-        $script:reads=0;$script:scenario=$Name
+        $script:reads=0;$script:hostReads=0;$script:sourceReads=0;$script:scenario=$Name
         $args=@{Action=$Action;ProbePath=$fixture.Directory;OutputPath=(Join-Path $temp ([guid]::NewGuid().ToString('N')))}
         if ($Action -eq 'Verify') {$args.ArchivePath=$script:archive}
         Invoke-WelaEvtxRecovery @args
@@ -84,12 +98,20 @@ try {
     $script:archive=Join-Path $temp 'fixture.evtx';[IO.File]::WriteAllBytes($archive,[byte[]](1,2,3,4))
     $result=Invoke-Case match
     Assert ($result.Status -eq 'NativeEventRecovered' -and $result.ExitCode -eq 0 -and $result.ReadyRuleCredit -eq 0 -and $result.PolicyChanges -eq 0 -and $result.RecoveredEvents -eq 1) 'Exact recovery records presence and keeps readiness separate'
+    Assert ($result.SchemaVersion -eq 2 -and $result.ReaderStable -and $result.ReaderBefore.TokenType -eq 'Primary' -and $result.ReaderHostBefore.Computer -eq 'reader01' -and $result.SourceComputer -eq 'source01.lab.test') 'Version two distinguishes actual archive reader and source producer'
+    Assert ($result.FileReadAccess -eq 'Allowed' -and $result.NativeQuery -eq 'ExactEventRecovered' -and $result.ArchiveBytes -eq 4 -and $result.Sources.'scripts/ChannelReadNative.cs' -match '^[a-f0-9]{64}$') 'File permission, matched native query and implementation identity remain explicit'
     Assert ($result.ArchiveSha256 -ceq (Get-FileHash -LiteralPath $archive).Hash.ToLowerInvariant()) 'Receipt hashes actual archive bytes'
     Assert (Test-Path (Join-Path $result.OutputPath 'recovered-event.xml')) 'Recovered raw XML retained'
-    foreach ($case in @('empty','duplicate','wrong','denied','corrupt','reader-drift')) {
+    foreach ($case in @('empty','duplicate','wrong','denied','corrupt','reader-drift','token-drift','logon-drift','host-drift','implementation-drift')) {
         $result=Invoke-Case $case
         Assert ($result.Status -eq 'Unverified' -and $result.ExitCode -eq 1 -and $result.Diagnostic) "$case cannot establish recovery"
+        if ($case -in @('reader-drift','token-drift','logon-drift')) {Assert (-not $result.ReaderStable) 'Observed token/logon changes revoke reader stability'}
+        if ($case -eq 'denied') {Assert ($result.FileReadAccess -eq 'Allowed' -and $result.NativeQuery -eq 'Denied' -and $result.NativeError -eq 5 -and $result.FailureStage -eq 'ArchiveNativeQuery') 'Native query denial is distinct from a successfully opened file'}
     }
+    Assert-WelaEvtxQueryStatus -Path 'C:\evidence\one.evtx' -LogStatus @([pscustomobject]@{LogName='C:\EVIDENCE\one.evtx';StatusCode=0});$checks++
+    foreach ($status in @(@(),@([pscustomobject]@{LogName='different.evtx';StatusCode=0}),@([pscustomobject]@{LogName='one.evtx';StatusCode='0'}))) {Reject {Assert-WelaEvtxQueryStatus -Path 'one.evtx' -LogStatus $status} 'incomplete|mismatched|mistyped'}
+    $statusError=$null;try {Assert-WelaEvtxQueryStatus -Path 'one.evtx' -LogStatus @([pscustomobject]@{LogName='one.evtx';StatusCode=5})} catch {$statusError=$_.Exception.NativeErrorCode}
+    Assert ($statusError -eq 5) 'Native query errors preserve the numeric code without localized parsing'
     $result=Invoke-Case match Export
     Assert ($result.Status -eq 'NativeEventRecovered' -and $exports -eq 1 -and (Test-Path $result.ArchivePath)) 'Export requires live source plus native reopening of output'
     $result=Invoke-Case empty Export

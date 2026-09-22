@@ -58,6 +58,11 @@ tests/SelectedSaclFixtureProtection.cs text eol=lf
 /scripts/WmiNamespaceAuditing.ps1 text eol=lf
 /scripts/WefArrival.ps1 text eol=lf
 /tests/WmiProbe*.ps1 text eol=lf
+# Actual archive-reader evidence binds implementation and native-token source bytes.
+/scripts/EvtxRecovery.ps1 text eol=lf
+/scripts/NativeValidation.ps1 text eol=lf
+/tests/EvtxRecovery*.ps1 text eol=lf
+/tests/fixtures/EvtxReader*.ps1 text eol=lf
 
 /scripts/Capi2Probe* text eol=lf
 /tests/Capi2Probe* text eol=lf
@@ -97,6 +102,16 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 /tests/WecCollectorObservation* text eol=lf
 /tests/WecSubscriptionInventory* text eol=lf
 
+/tests/TokenRightAttribution*.ps1 text eol=lf
+/tests/TokenRightAttribution*.cs text eol=lf
+# Disposable public OneSettings fixture source identity.
+/tests/OneSettingsConfigure*.ps1 text eol=lf
+# Scoped NTLM source and native evidence retain stable bytes.
+/scripts/NtlmAudit.ps1 text eol=lf
+/tests/NtlmAudit* text eol=lf
+# Native query receipts bind the same source bytes on every supported engine.
+/scripts/WefQuery* text eol=lf
+/tests/WefQuery* text eol=lf
 # Public filesystem-SACL disposable lifecycle evidence.
 tests/FileSaclProfileFixture.cs text eol=lf
 tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf

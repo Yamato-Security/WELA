@@ -182,21 +182,50 @@ function Get-WelaEvtxReader {
     try {$reader=[pscustomobject]@{Sid=$identity.User.Value;Name=$identity.Name;AuthenticationType=$identity.AuthenticationType;ImpersonationLevel=[string]$identity.ImpersonationLevel;Groups=@($identity.Groups | ForEach-Object {$_.Value} | Sort-Object)}} finally {$identity.Dispose()}
     [pscustomobject]@{Computer=[Environment]::MachineName;HostKey=(Get-WelaDefaultContextKey $hostState);Reader=$reader}
 }
+function Get-WelaEvtxRecoverySources {
+    $root=Split-Path $PSScriptRoot -Parent;$sources=[ordered]@{}
+    foreach ($path in @('WELA.ps1','scripts/EvtxRecovery.ps1','scripts/ChannelRead.ps1','scripts/ChannelReadNative.cs','scripts/WefArrival.ps1','scripts/NativeValidation.ps1','scripts/ControlApplicability.ps1','modules/AuditProfiles.psm1','config/audit_profiles.json')) {
+        $sources[$path]=(Get-FileHash -LiteralPath (Join-Path $root $path) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
+    }
+    [pscustomobject]$sources
+}
+function Get-WelaEvtxRecoveryKey {param($Value) ConvertTo-Json -InputObject $Value -Depth 24 -Compress}
+function Get-WelaEvtxRecoveryHost {
+    # An archive reader does not need administrator-only installed-feature inventory.
+    $hostState=Get-WelaChannelReadHost
+    $consistent=($hostState.ProductType -eq 1 -and $hostState.DomainRole -in @(0,1)) -or
+        ($hostState.ProductType -eq 2 -and $hostState.DomainRole -in @(4,5)) -or ($hostState.ProductType -eq 3 -and $hostState.DomainRole -in @(2,3))
+    if (-not $consistent -or $hostState.DomainJoined -ne ($hostState.DomainRole -in @(1,3,4,5)) -or
+        $hostState.UBR -isnot [int] -or $hostState.UBR -lt 0 -or [string]::IsNullOrWhiteSpace($hostState.Edition) -or [string]::IsNullOrWhiteSpace($hostState.Domain)) {throw 'Incomplete or conflicting actual archive-reader host context.'}
+    $hostState
+}
+function Get-WelaEvtxRecoveryReader {
+    # Reuse the source-bound native token statistics adapter, not the legacy
+    # metadata-only reader used by event-measurement before output preparation.
+    Get-WelaChannelReader
+}
+function Assert-WelaEvtxQueryStatus {
+    param([string]$Path,[object[]]$LogStatus)
+    if ($LogStatus.Count -ne 1 -or -not [string]::Equals($LogStatus[0].LogName,$Path,[StringComparison]::OrdinalIgnoreCase) -or $LogStatus[0].StatusCode -isnot [int]) {throw ('Native EVTX query status is incomplete, mismatched or mistyped: '+(ConvertTo-Json -InputObject $LogStatus -Compress))}
+    if ($LogStatus[0].StatusCode -ne 0) {throw [ComponentModel.Win32Exception]::new($LogStatus[0].StatusCode)}
+}
 function Read-WelaEvtxNative {
     param([string]$Path,[switch]$Live,[string]$Query='*')
     $kind=if ($Live) {[System.Diagnostics.Eventing.Reader.PathType]::LogName} else {[System.Diagnostics.Eventing.Reader.PathType]::FilePath}
     $request=New-Object System.Diagnostics.Eventing.Reader.EventLogQuery($Path,$kind,$Query)
     $request.TolerateQueryErrors=$false
-    $reader=New-Object System.Diagnostics.Eventing.Reader.EventLogReader($request)
+    $reader=New-Object System.Diagnostics.Eventing.Reader.EventLogReader($request);$reader.BatchSize=2
     $events=New-Object 'System.Collections.Generic.List[string]'
     try {
         # Read every exported record, up to two: this probe archive must contain exactly one.
         for ($i=0;$i -lt 2;$i++) {
             $record=$reader.ReadEvent([timespan]::FromSeconds(5))
             if ($null -eq $record) {break}
-            try {$events.Add($record.ToXml())} finally {$record.Dispose()}
+            try {$xml=$record.ToXml();if ([Text.Encoding]::UTF8.GetByteCount($xml) -gt 4194304) {throw 'Recovered event XML exceeds the four MiB bound.'};$events.Add($xml)} finally {$record.Dispose()}
         }
-        return [pscustomobject]@{Xml=@($events.ToArray());Limit=2}
+        $status=@($reader.LogStatus|ForEach-Object {[pscustomobject]@{LogName=$_.LogName;StatusCode=$_.StatusCode}})
+        Assert-WelaEvtxQueryStatus -Path $Path -LogStatus $status
+        return [pscustomobject]@{Xml=@($events.ToArray());Limit=2;LogStatus=$status}
     } finally {$reader.Dispose()}
 }
 function Export-WelaEvtxNative {
@@ -214,6 +243,7 @@ function Invoke-WelaEvtxRecovery {
     param([ValidateSet('Export','Verify')][string]$Action='Verify',[Parameter(Mandatory)][string]$ProbePath,[string]$ArchivePath,[Parameter(Mandatory)][string]$OutputPath)
     $ErrorActionPreference='Stop'
     if (($Action -eq 'Export' -and $ArchivePath) -or ($Action -eq 'Verify' -and -not $ArchivePath)) {throw 'Export creates probe.evtx in a new output directory; Verify requires ArchivePath.'}
+    $sources=Get-WelaEvtxRecoverySources;$sourceKey=Get-WelaEvtxRecoveryKey $sources
     $source=Import-WelaEvtxProbe $ProbePath
     if ($Action -eq 'Verify') {
         $archive=Resolve-WelaEvtxPath $ArchivePath
@@ -222,11 +252,10 @@ function Invoke-WelaEvtxRecovery {
     }
     $output=New-WelaEvtxOutput $OutputPath $source.Path
     if ($Action -eq 'Export') {$archive=Join-Path $output 'probe.evtx'}
-    $report=[pscustomobject][ordered]@{Kind='WelaNativeEvtxRecovery';SchemaVersion=1;Action=$Action;Status='Unverified';ExitCode=1;StartedUtc=[datetime]::UtcNow.ToString('o');CompletedUtc=$null;SourceBundlePath=$source.Path;SourceFingerprint=$source.Fingerprint;ArchivePath=$archive;ArchiveSha256=$null;ReaderBefore=$null;ReaderAfter=$null;ExportQuery=$null;RecoveredEvents=0;Artifacts=@();Diagnostic='';OutputPath=$output;ReadyRuleCredit=0;PolicyChanges=0;Scope='One exact native probe event readable from this EVTX by the recorded current reader. No archive completeness, duration, other-principal access or Sigma readiness claim.'}
-    $lock=$null
+    $report=[pscustomobject][ordered]@{Kind='WelaNativeEvtxRecovery';SchemaVersion=2;Action=$Action;Status='Unverified';ExitCode=1;StartedUtc=[datetime]::UtcNow.ToString('o');CompletedUtc=$null;SourceBundlePath=$source.Path;SourceFingerprint=$source.Fingerprint;SourceComputer=$source.Event.Computer;ArchivePath=$archive;ArchiveSha256=$null;ArchiveBytes=$null;ReaderHostBefore=$null;ReaderHostAfter=$null;ReaderBefore=$null;ReaderAfter=$null;ReaderStable=$false;ReaderInterval='After output/source preparation, immediately before event access through archive hashing/native query and source-file verification; final host/policy inventory is outside this token interval.';Sources=$sources;FileReadAccess='NotAttempted';NativeQuery='NotAttempted';NativeLogStatus=@();FailureStage=$null;NativeError=$null;ExportQuery=$null;RecoveredEvents=0;Artifacts=@();Diagnostic='';OutputPath=$output;ReadyRuleCredit=0;PolicyChanges=0;Scope='Actual primary-token access to one exact local EVTX probe at observation time. Source producer and archive reader are distinct identities. No archive completeness, duration, other-principal access or Sigma readiness claim.'}
+    $lock=$null;$stage='Preparation';$beforeKey=$null
     try {
-        $before=Get-WelaEvtxReader;$report.ReaderBefore=$before
-        $beforeKey=ConvertTo-Json -InputObject $before -Depth 16 -Compress
+        $report.ReaderHostBefore=Get-WelaEvtxRecoveryHost;$hostKey=Get-WelaEvtxRecoveryKey $report.ReaderHostBefore
         $report.Artifacts+=Write-WelaEvtxArtifact $output 'source-event.xml' $source.Files['event.xml'].Text
         if ($Action -eq 'Export') {
             $expected=ConvertTo-WelaEvtxState $source.Manifest.BeforeState
@@ -237,30 +266,60 @@ function Invoke-WelaEvtxRecovery {
             $number=[long]::Parse($source.Event.RecordId,[Globalization.CultureInfo]::InvariantCulture)
             $query="*[System[EventRecordID=$number and EventID=4688 and Provider[@Name='Microsoft-Windows-Security-Auditing']]]"
             $report.ExportQuery=$query
+        }
+        # ACL setup and native audit-policy preparation can temporarily adjust
+        # privileges. Capture the primary token after that work, before event I/O.
+        $before=Get-WelaEvtxRecoveryReader;$report.ReaderBefore=$before;$beforeKey=Get-WelaEvtxRecoveryKey $before
+        if ($Action -eq 'Export') {
+            $stage='LiveSourceQuery'
             Assert-WelaEvtxSingleEvent (Read-WelaEvtxNative -Path Security -Live -Query $query) $source
+            if ((Get-WelaEvtxRecoveryKey (Get-WelaEvtxRecoveryReader)) -cne $beforeKey) {throw 'Reader token changed during live source query.'}
             if ((Import-WelaEvtxProbe $ProbePath).Fingerprint -cne $source.Fingerprint) {throw 'Source evidence changed before export.'}
+            $stage='Export'
             Export-WelaEvtxNative -Query $query -Path $archive
         }
+        $stage='ArchiveFileOpen'
+        if ((Get-WelaEvtxRecoveryKey (Get-WelaEvtxRecoveryReader)) -cne $beforeKey) {throw 'Reader token changed before archive access.'}
         $null=Resolve-WelaEvtxPath $archive
         # Keep the exact file open without write/delete sharing throughout hashing and native reopen.
         $lock=New-Object IO.FileStream($archive,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+        $report.FileReadAccess='Allowed';$stage='ArchiveHash'
         if ($lock.Length -lt 1 -or $lock.Length -gt 16777216) {throw 'Exported probe archive exceeds size bounds.'}
+        $report.ArchiveBytes=$lock.Length
         $sha=[Security.Cryptography.SHA256]::Create()
         try {$report.ArchiveSha256=([BitConverter]::ToString($sha.ComputeHash($lock))).Replace('-','').ToLowerInvariant()} finally {$sha.Dispose()}
+        $stage='ArchiveNativeQuery';$report.NativeQuery='Unverified'
         $batch=Read-WelaEvtxNative -Path $archive
+        $report.NativeLogStatus=@($batch.LogStatus)
         $report.RecoveredEvents=@($batch.Xml).Count
         Assert-WelaEvtxSingleEvent $batch $source
+        $report.NativeQuery='ExactEventRecovered';$stage='EvidenceVerification'
         $report.Artifacts+=Write-WelaEvtxArtifact $output 'recovered-event.xml' $batch.Xml[0]
-        $after=Get-WelaEvtxReader;$report.ReaderAfter=$after
-        if ((ConvertTo-Json -InputObject $after -Depth 16 -Compress) -cne $beforeKey) {throw 'Reader identity or host changed during EVTX readback.'}
-        if ($Action -eq 'Export' -and (Get-WelaProbeStateKey (Get-WelaProbeState)) -cne (Get-WelaProbeStateKey $expected)) {throw 'Source host or prerequisites drifted during export.'}
         if ((Import-WelaEvtxProbe $ProbePath).Fingerprint -cne $source.Fingerprint) {throw 'Source evidence changed during EVTX verification.'}
         if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -cne $report.ArchiveSha256) {throw 'Archive path/bytes changed during native readback.'}
+        $report.ReaderAfter=Get-WelaEvtxRecoveryReader
+        if ((Get-WelaEvtxRecoveryKey $report.ReaderAfter) -cne $beforeKey) {throw 'Reader token changed during EVTX access.'}
+        $report.ReaderStable=$true;$stage='FinalContext'
+        # Final policy inventory may adjust privileges; it runs after the recorded
+        # token interval, with no later native event query or archive export.
+        if ($Action -eq 'Export' -and (Get-WelaProbeStateKey (Get-WelaProbeState)) -cne (Get-WelaProbeStateKey $expected)) {throw 'Source host or prerequisites drifted during export.'}
+        $report.ReaderHostAfter=Get-WelaEvtxRecoveryHost
+        if ((Get-WelaEvtxRecoveryKey $report.ReaderHostAfter) -cne $hostKey) {throw 'Actual archive-reader host changed during recovery.'}
+        if ((Get-WelaEvtxRecoveryKey (Get-WelaEvtxRecoverySources)) -cne $sourceKey) {throw 'Recovery implementation changed during observation.'}
+        foreach ($artifact in $report.Artifacts) {if ((Get-FileHash -LiteralPath (Join-Path $output $artifact.Name) -Algorithm SHA256).Hash.ToLowerInvariant() -cne $artifact.Sha256) {throw 'Saved recovery evidence changed before the manifest.'}}
         $report.Status='NativeEventRecovered';$report.ExitCode=0
-    } catch {$report.Diagnostic=$_.Exception.Message}
+    } catch {
+        $failure=Get-WelaChannelReadFailure $_.Exception
+        $report.Diagnostic=$_.Exception.Message;$report.FailureStage=$stage;$report.NativeError=$failure.NativeError
+        if ($stage -eq 'ArchiveFileOpen' -and $failure.Status -eq 'Denied') {$report.FileReadAccess='Denied'}
+        if ($stage -eq 'ArchiveNativeQuery' -and $failure.Status -eq 'Denied') {$report.NativeQuery='Denied'}
+    }
     finally {
+        if ($report.ReaderBefore -and -not $report.ReaderAfter) {
+            try {$report.ReaderAfter=Get-WelaEvtxRecoveryReader;$report.ReaderStable=(Get-WelaEvtxRecoveryKey $report.ReaderAfter) -ceq $beforeKey}
+            catch {$report.Diagnostic+=' Final reader observation failed: '+$_.Exception.Message}
+        }
         if ($lock) {$lock.Dispose()}
-        if ($report.ReaderBefore -and -not $report.ReaderAfter) {try {$report.ReaderAfter=Get-WelaEvtxReader} catch {$report.Diagnostic+=' Final reader observation failed: '+$_.Exception.Message}}
     }
     $report.CompletedUtc=[datetime]::UtcNow.ToString('o')
     $null=Write-WelaEvtxArtifact $output 'manifest.json' ($report | ConvertTo-Json -Depth 24)
