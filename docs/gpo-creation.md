@@ -83,6 +83,6 @@ Windows Server 2022/2025 CI exercises real GPMC backup/report/OverallStatus usin
 - [GPMBackup report generation](https://learn.microsoft.com/en-us/windows/win32/api/gpmgmt/nf-gpmgmt-igpmbackup-generatereport)
 - [Native GPO import: settings replacement and destination ACL/link preservation](https://learn.microsoft.com/en-us/windows/win32/api/gpmgmt/nf-gpmgmt-igpmgpo-import)
 - [OverallStatus must be checked as well as the native operation](https://learn.microsoft.com/en-us/windows/win32/api/gpmgmt/nf-gpmgmt-igpmresult-overallstatus)
-+### Issue 2 coverage
+### Issue 2 coverage
 
 GPO creation is an explicit export workflow with role/build/profile provenance and unsupported-control disclosures. Export success does not claim domain linking, delegation, replication, client refresh, or resultant-policy application.
