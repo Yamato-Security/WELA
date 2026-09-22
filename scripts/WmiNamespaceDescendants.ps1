@@ -4,7 +4,7 @@ function Get-WelaWmiDescendantContext {
     Initialize-WelaWmiProbeNative
     if((Get-Service Winmgmt -ErrorAction Stop).Status -ne 'Running'){throw 'Winmgmt must already be running before descendant observation.'}
     $sources=[ordered]@{}
-    foreach($name in @('WmiNamespaceAuditing.ps1','WmiNamespaceDescendants.ps1','WmiProbeNative.cs')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name) -Algorithm SHA256 -ErrorAction Stop).Hash}
+    foreach($name in @('WmiNamespaceAuditing.ps1','WmiNamespaceDescendants.ps1','WmiProbeNative.cs','WmiProbe.ps1','Configuration.ps1')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $name) -Algorithm SHA256 -ErrorAction Stop).Hash}
     [ordered]@{Computer=[Environment]::MachineName;Version=[Environment]::OSVersion.VersionString;Token=(Get-WelaWmiProbeTokenKey ([Wela.WmiProbe.Native]::Snapshot()));Sources=$sources}|ConvertTo-Json -Compress -Depth 5
 }
 function Get-WelaWmiChildNames {

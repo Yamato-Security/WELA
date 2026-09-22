@@ -264,7 +264,12 @@ function Get-WelaWmiAuditPlan {
             } else {$snapshot = Get-WelaWmiNamespaceSnapshot $name}
             $descriptor = $snapshot.DescriptorJson | ConvertFrom-Json
             $missing = @(Get-WelaWmiMissingAces $descriptor $selected)
-            [pscustomobject]@{ Namespace = $name; Status = $(if ($missing.Count) { 'ChangeRequired' } else { 'AlreadyCompliant' }); Before = $snapshot; Definitions = $selected; Missing = $missing; Descendants=$tree; Diagnostic = '' }
+            $status=if($missing.Count){'ChangeRequired'}else{'AlreadyCompliant'};$diagnostic=''
+            if($tree -and -not $missing.Count){
+                $outcomes=Test-WelaWmiDescendantOutcomes $tree $tree $selected
+                if($outcomes.Status -cne 'Observed'){$status='Unknown';$diagnostic='Parent entry exists but descendants are unverified: '+($outcomes.Diagnostics -join '; ')}
+            }
+            [pscustomobject]@{ Namespace = $name; Status = $status; Before = $snapshot; Definitions = $selected; Missing = $missing; Descendants=$tree; Diagnostic = $diagnostic }
         } catch { [pscustomobject]@{ Namespace = $name; Status = 'Unknown'; Before = $null; Definitions = $selected; Missing = @(); Diagnostic = $_.Exception.Message } }
     }
 }
@@ -282,6 +287,7 @@ function Set-WelaWmiAuditControls {
                     if((Get-WelaWmiDescendantKey $tree) -cne (Get-WelaWmiDescendantKey $state.PlannedTree)){throw 'WMI descendant tree changed after planning; no SACL was written.'}
                     $state.OriginalTree=$tree
                 }
+                if($tree.Context -cne $state.OriginalTree.Context){throw 'Caller token, host, source or service context changed since descendant planning.'}
                 $snapshot=$tree.Root|Select-Object *
                 $snapshot|Add-Member NoteProperty Descendants $tree -Force
             } else {$snapshot = Get-WelaWmiNamespaceSnapshot $state.Namespace}

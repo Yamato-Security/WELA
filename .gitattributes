@@ -110,3 +110,8 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 # Public filesystem-SACL disposable lifecycle evidence.
 tests/FileSaclProfileFixture.cs text eol=lf
 tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf
+
+# Native WMI tree evidence binds source bytes across checkouts.
+/scripts/WmiNamespaceAuditing.ps1 text eol=lf
+/scripts/WmiNamespaceDescendants.ps1 text eol=lf
+/tests/WmiNamespaceDescendants* text eol=lf

@@ -32,6 +32,21 @@ function Configure($Entry,[string]$Name,[switch]$DryRun){
  Set-WelaWmiAuditControls -Context $c -Plan @($Entry)
  Complete-WelaConfiguration -Context $c -Scope wmi-namespace-sacl-only
 }
+function Observe-OwnedProtection([string]$Namespace){
+ $before=Get-WelaWmiNamespaceSnapshot $Namespace
+ $privilege=New-Object Wela.WmiSecurityPrivilege;$connection=$null;$response=$null
+ try{
+  $connection=New-WelaWmiConnection $Namespace;$descriptor=Get-WelaWmiNativeDescriptor $connection
+  $request=$descriptor.Clone();$request.DACL=$null;$request.Owner=$null;$request.Group=$null
+  $request.ControlFlags=([uint32]$descriptor.ControlFlags -band [uint32]4294967291) -bor [uint32]8208
+  $parameters=$connection.GetMethodParameters('SetSecurityDescriptor');$parameters.Descriptor=$request
+  $response=$connection.InvokeMethod('SetSecurityDescriptor',$parameters,$null)
+ }finally{try{if($connection){$connection.Dispose()}}finally{$privilege.Dispose()}}
+ $after=Get-WelaWmiNamespaceSnapshot $Namespace;$a=$before.DescriptorJson|ConvertFrom-Json;$b=$after.DescriptorJson|ConvertFrom-Json
+ foreach($property in $a.PSObject.Properties){if($property.Name -ne 'ControlFlags'){Assert ((ConvertTo-WelaWmiJson $property.Value) -ceq (ConvertTo-WelaWmiJson $b.($property.Name))) 'Protection fixture changed an unrelated descriptor field.'}}
+ Assert (([uint32]$a.ControlFlags -band (-bnot 8192)) -eq ([uint32]$b.ControlFlags -band (-bnot 8192))) 'Protection fixture changed unrelated controls.'
+ [pscustomobject]@{Namespace=$Namespace;ReturnValue=$response.ReturnValue;Before=$before;After=$after;ProtectionObserved=(([uint32]$b.ControlFlags -band 8192) -ne 0)}
+}
 $backup=Join-Path ([IO.Path]::GetTempPath()) ('wela-wmi-tree-'+[guid]::NewGuid().ToString('N'))
 $e=[ordered]@{SchemaVersion=1;Host=$env:COMPUTERNAME;Version=[Environment]::OSVersion.VersionString;PowerShell=$PSVersionTable.PSVersion.ToString();Head=$env:GITHUB_SHA;Cases=@();Before=$null;After=$null;Sources=@();Cleanup=@();Complete=$false;Failure=$null}
 $failure=$null
@@ -45,8 +60,14 @@ try{
  $s=Get-WelaWmiNamespaceSnapshot $special
  $specialDef=[pscustomobject]@{Sid='S-1-5-18';AccessMask=[uint32]1;AceFlags=[uint32]128}
  $null=Set-WelaWmiNamespaceDescriptor $special $s.DescriptorJson @($specialDef)
+ $protected=New-OwnedNamespace $root Protected
+ $s=Get-WelaWmiNamespaceSnapshot $protected
+ $null=Set-WelaWmiNamespaceDescriptor $protected $s.DescriptorJson @($specialDef)
+ $protection=Observe-OwnedProtection $protected
+ $protectedGrand=New-OwnedNamespace $protected Grandchild
+ $e.Cases+=@{Name='NativeProtectionObservation';Observation=$protection}
  $p=Entry $root
- Assert ($p.Descendants.Entries.Count -eq 3) 'All existing children and the grandchild are captured.'
+ Assert ($p.Descendants.Entries.Count -eq 5) 'All existing children and grandchildren are captured.'
  $dry=Configure $p dry -DryRun
  Assert ($dry.ExitCode -eq 0 -and $dry.Results[0].Status -eq 'Skipped' -and -not (Test-Path $backup)) 'Tree dry-run wrote state or backup.'
  Assert ((Get-WelaWmiDescendantKey (Get-WelaWmiStableDescendants $root)) -ceq (Get-WelaWmiDescendantKey $p.Descendants)) 'Dry-run changed tree.'
@@ -63,7 +84,7 @@ try{
  $outcome=Test-WelaWmiDescendantOutcomes $p.Descendants $after $p.Definitions
  Assert (($outcome.Status -eq 'Observed' -and $result.ExitCode -eq 0) -or ($outcome.Status -eq 'Unverified' -and $result.ExitCode -eq 1)) 'Configuration status misrepresents actual child observations.'
  $journal=@(Get-Content (Join-Path $backup 'apply/before.jsonl')|ConvertFrom-Json)
- Assert ($journal.Count -eq 1 -and $journal[0].Before.Descendants.Entries.Count -eq 4) 'Original complete subtree missing from journal.'
+ Assert ($journal.Count -eq 1 -and $journal[0].Before.Descendants.Entries.Count -eq 6) 'Original complete subtree missing from journal.'
  Assert ((Get-WelaWmiDescendantKey $journal[0].Before.Descendants) -ceq (Get-WelaWmiDescendantKey $p.Descendants)) 'Journal tree differs from pre-write snapshots.'
  $e.Cases+=@{Name='ExistingTree';Plan=$p;Result=$result;After=$after;Outcomes=$outcome;Journal=$journal}
  # A genuinely newly created namespace independently demonstrates provider inheritance.

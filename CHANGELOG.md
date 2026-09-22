@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added bounded existing-descendant snapshots, full recovery evidence and stale-tree guards for explicit WMI inheritance. Parent-only SACL writes now require native inherited/protected readbacks and final drift checks; incomplete propagation fails without child setters, rollback ownership, event or Sigma credit. (Related #372) (@Shirofune-Security)
+
 - Added disposable native Security4703 attribution for the canonical Token Right Adjusted GUID on Server2022/2025 and PowerShell5.1/7. A fixed owned-child privilege disable/restore compares the two historical audit-mask candidates, retains exact event/context/hash evidence and verifies policy/token cleanup. Historical candidates remain conditional; no production probe, universal mapping or Sigma credit. (Related #380) (@Shirofune-Security)
 
 - Add native public OneSettings policy and explicit Privacy-channel configuration acceptance: actual apply, typed journals/readback, idempotence and invalid-value refusals on Server 2022; preserve the existing Server 2025 refusal. Both PowerShell engines verify exact fixture cleanup without event or Sigma claims. Fix omitted notification-control dispatch so default Audit reads both controls and Configure without a selection fails with a nonzero exit. (Related #378) (@Shirofune-Security)
