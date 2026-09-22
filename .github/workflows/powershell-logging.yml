@@ -1,0 +1,46 @@
+name: Scoped Windows PowerShell event logging
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/PowerShellLogging.ps1'
+      - 'scripts/Configuration.ps1'
+      - 'tests/PowerShellLogging*'
+      - '.github/workflows/powershell-logging.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  powershell-logging:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Scoped policy and native events in Windows PowerShell
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/PowerShellLogging.Tests.ps1
+          ./tests/PowerShellLogging.Cli.Tests.ps1
+          ./tests/PowerShellLogging.Windows.Tests.ps1 -AllowDisposableLoggingWrite
+      - name: Scoped policy and native events in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/PowerShellLogging.Tests.ps1
+          ./tests/PowerShellLogging.Cli.Tests.ps1
+          ./tests/PowerShellLogging.Windows.Tests.ps1 -AllowDisposableLoggingWrite
+      - name: Retain native policy, event and cleanup evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: powershell-logging-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-powershell-logging-*/
+          if-no-files-found: error
