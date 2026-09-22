@@ -45,6 +45,7 @@ try {
             $definitions = @(Get-WelaWmiAuditDefinitions -Namespace 'root\default' -IncludeChildren)
             $definitions[0].Namespace = $namespace; $definitions[0].AceFlags = [uint32]$flags
             $entry = [pscustomobject]@{ Namespace=$namespace; Definitions=$definitions }
+            if($flags -eq 66){$entry|Add-Member NoteProperty Descendants (Get-WelaWmiStableDescendants $namespace)}
             $context = New-WelaConfigurationContext -Auto -BackupPath (Join-Path $backup ('first-' + $flags))
             Set-WelaWmiAuditControls -Context $context -Plan @($entry)
             $case.Result = Complete-WelaConfiguration -Context $context -Scope 'wmi-namespace-sacl-only'
@@ -58,6 +59,7 @@ try {
             Assert (Test-WelaWmiDescriptorPreserved $beforeData $afterData) 'Original access fields and existing ACEs survive the real SACL-only write'
             Assert (@(Get-WelaWmiMissingAces $afterData $definitions).Count -eq 0) 'Native provider stores the requested SID/mask/outcome/inheritance'
             $repeat = New-WelaConfigurationContext -Auto -BackupPath (Join-Path $backup ('repeat-' + $flags))
+            if($flags -eq 66){$entry.Descendants=Get-WelaWmiStableDescendants $namespace}
             Set-WelaWmiAuditControls -Context $repeat -Plan @($entry)
             $case.RepeatResult = Complete-WelaConfiguration -Context $repeat -Scope 'wmi-namespace-sacl-only'
             Assert ($case.RepeatResult.ExitCode -eq 0 -and $case.RepeatResult.Results[0].Status -eq 'AlreadyCompliant') 'Repeated real configuration is idempotent'

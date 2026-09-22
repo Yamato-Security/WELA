@@ -2357,6 +2357,9 @@ if ($DryRun -and -not ($Cmd -eq 'file-sacl-recovery' -and $FileSaclRecoveryActio
 if (($WmiNamespace -or $WmiIncludeChildren -or $PSBoundParameters.ContainsKey('WmiAction')) -and $Cmd -ne 'wmi-auditing') {
     throw '-WmiAction, -WmiNamespace and -WmiIncludeChildren require wmi-auditing. No command was run.'
 }
+if ($Cmd -eq 'wmi-auditing' -and ($args.Count -or @($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','WmiAction','WmiNamespace','WmiIncludeChildren','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count)) {
+    throw 'wmi-auditing accepts only its dedicated namespace options, Auto, DryRun, BackupPath, ResultsPath and Help. Unexpected positional or unrelated arguments are refused.'
+}
 if ($Profile -and $Cmd -in @('eventlog-profiles', 'audit-filesize', 'configure-eventlogs')) {
     throw '-Profile selects advanced audit policy only. Use -LogProfile for event-log size/mode settings.'
 }
@@ -2767,7 +2770,7 @@ switch ($Cmd.ToLower()) {
     'wmi-auditing' {
         if ($Help) {
             Write-Host 'Usage: ./WELA.ps1 wmi-auditing -WmiAction List|Audit|Plan|Configure [-WmiNamespace root\cimv2,root\subscription] [-WmiIncludeChildren] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath file.json]'
-            Write-Host 'Select exact local namespaces explicitly. Default action List is read-only. Configure appends ASD success audit ACEs; descendant inheritance requires an explicit switch. No access permissions, audit policy or forwarding changes.'
+            Write-Host 'Select exact local namespaces explicitly. Default action List is read-only. Configure appends ASD success audit ACEs; WmiIncludeChildren requires complete stable descendant snapshots and inherited/protected readbacks. Unverified propagation fails even if the parent write succeeded; no child setter or automatic rollback. See docs/wmi-descendants.md.'
             return
         }
         if ($Profile -or $Baseline) { throw 'wmi-auditing uses its own namespace selections, not -Profile or -Baseline.' }

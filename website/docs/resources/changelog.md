@@ -11,6 +11,8 @@
 
 - Added `process-commandline` Audit/Plan/Configure for only the built-in Security 4688 command-line policy, with typed originals, drift checks, separate audit prerequisites and native Windows configuration/event validation. Related to #364, #365 and #387.
 
+- Added bounded existing-descendant snapshots, full recovery evidence and stale-tree guards for explicit WMI inheritance. Parent-only SACL writes now require native inherited/protected readbacks and final drift checks; incomplete propagation fails without child setters, rollback ownership, event or Sigma credit. Unrelated or extra positional WMI command arguments are now refused. (Related #372) (@Shirofune-Security)
+
 - Add reviewed `wmi-sacl-recovery` Plan/Recover for one proven explicit parent-only namespace audit ACE. Require matching completed configuration evidence, current full descriptor, reviewed hash and explicit audit-reduction consent; preserve all other descriptor fields, remaining ACEs and token privileges, retain partial-write evidence, and test owned native namespace cleanup. Historical namespace/operator identity and event/Sigma readiness remain unclaimed. (Related #372, #365) (@Shirofune-Security)
 
 - Added opt-in `transcript-probe` to verify a fixed current-account Windows PowerShell 5.1 child produces its own completed automatic transcript in an already enabled local destination. Actual token/logon, native header/footer, nonce/PID/time, bounded file identity and source checks preserve unverified outcomes without changing policy or ACLs, invoking explicit transcription or granting Sigma/EVTX credit. Added disposable standard-writer success/denial tests for Server 2022/2025 under both WELA host engines. (#436) (@Shirofune-Security)
