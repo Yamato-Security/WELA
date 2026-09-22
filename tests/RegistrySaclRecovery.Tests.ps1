@@ -75,6 +75,8 @@ function Prepare-Recovery {
 }
 function Restore-Review {param([switch]$OmitReduction,[switch]$OmitInheritance) Invoke-WelaRegistrySaclRecovery -Action Restore -PlanPath $script:planPath -PlanHash $script:hash -OutputPath $script:out -AllowAuditReduction:(-not $OmitReduction) -AllowInheritance:(-not $OmitInheritance)}
 try{
+    foreach($empty in @($null,@(),[pscustomobject]@{})){Assert-WelaRegistryRecoveryEmptyCatalog $empty;Assert $true 'Known empty catalogue representations are accepted.'}
+    foreach($invalid in @($true,'',1,@('target'),[pscustomobject]@{Path='target'})){Throws {Assert-WelaRegistryRecoveryEmptyCatalog $invalid} 'must be empty'}
     Prepare-Recovery;$result=Restore-Review
     Assert ($result.Status -ceq 'AddedAceRemoved' -and $result.WriteAttempted -and $script:mutations -eq 1 -and $result.ReadyRuleCredit -eq 0) ('Exact recovery failed: '+$result.Diagnostic)
     Assert ((Test-Path (Join-Path $script:out 'pending.json')) -and (Test-Path (Join-Path $script:out 'confirmed.json'))) 'Separate durable intent and completion exist.'

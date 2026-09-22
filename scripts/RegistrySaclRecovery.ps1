@@ -75,6 +75,13 @@ function Get-WelaRegistryRecoverySnapshot {
     try{$target.Read()}finally{$target.Dispose()}
 }
 function Get-WelaRegistryRecoveryAddition {param($Before,$After,$Ace) Initialize-WelaRegistryRecoveryNative;[Wela.RegistrySaclRecovery.Descriptor]::AddedAce($Before.DescriptorBase64,$After.DescriptorBase64,$Ace.Sid,$Ace.Mask,$Ace.Flags)}
+function Assert-WelaRegistryRecoveryEmptyCatalog {
+    param($Value)
+    # The original selected command's empty subexpression serializes as {} in
+    # Windows PowerShell 5.1 and null in PowerShell 7. Neither contains targets.
+    if($null -eq $Value -or ($Value -is [array] -and $Value.Count -eq 0) -or ($Value -is [pscustomobject] -and @($Value.PSObject.Properties).Count -eq 0)){return}
+    throw 'Original selected plan catalog must be empty.'
+}
 function New-WelaRegistryRecoveryPlan {
     param([string]$OriginalPlanPath,[string]$PendingPath,[string]$ConfirmedPath,[string]$ResultsPath)
     $context=Get-WelaRegistryRecoveryContext;$sources=Get-WelaRegistryRecoverySources
@@ -86,7 +93,8 @@ function New-WelaRegistryRecoveryPlan {
     Assert-WelaEvtxObject $plan $planFields
     foreach($value in @($plan,$pending,$confirmed,$result)){Assert-WelaRegistryRecoveryNumber $value.SchemaVersion;if($value.SchemaVersion -ne 1){throw 'Unsupported original schema.'};Assert-WelaRegistryRecoveryText $value @('Kind')}
     Assert-WelaRegistryRecoveryText $plan @('Profile','GenerationReadiness')
-    if($plan.Kind -cne 'WelaSelectedSaclPlan' -or $plan.IncludeChildren -isnot [bool] -or -not $plan.IncludeChildren -or $plan.IncludeOptional -isnot [bool] -or $plan.Rows -isnot [array] -or $plan.Rows.Count -ne 1 -or ($null -ne $plan.Catalog -and ($plan.Catalog -isnot [array] -or $plan.Catalog.Count -ne 0))){throw 'Require one original selected registry target with explicit child consent.'}
+    if($plan.Kind -cne 'WelaSelectedSaclPlan' -or $plan.IncludeChildren -isnot [bool] -or -not $plan.IncludeChildren -or $plan.IncludeOptional -isnot [bool] -or $plan.Rows -isnot [array] -or $plan.Rows.Count -ne 1){throw 'Require one original selected registry target with explicit child consent.'}
+    Assert-WelaRegistryRecoveryEmptyCatalog $plan.Catalog
     $row=$plan.Rows[0];Assert-WelaEvtxObject $row $rowFields;Assert-WelaRegistryRecoveryText $row @('Id','DefinitionKey','Status','Diagnostic')
     Assert-WelaRegistryRecoveryText $row.Definition @('Kind','Path','Inheritance','Propagation')
     if($row.Status -cne 'ChangeRequired' -or $row.Diagnostic -cne '' -or $null -ne $row.After -or $null -ne $row.DescendantsAfter -or $null -ne $row.DescendantVerification -or $row.Id -cnotmatch '^sacl-[a-f0-9]{24}$' -or $row.Definition.Kind -cne 'Registry' -or $row.Definition.Inheritance -cnotin @('None','ContainerInherit') -or $row.Definition.Propagation -cne 'None'){throw 'Original plan is not one supported registry root audit addition.'}
