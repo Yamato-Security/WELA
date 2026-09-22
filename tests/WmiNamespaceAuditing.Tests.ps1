@@ -41,6 +41,8 @@ function Set-WelaWmiNamespaceDescriptor {
     if ($script:dropUnknown) { $script:descriptor.SACL = @($script:descriptor.SACL | Where-Object AceType -ne 19) }
 }
 function Read-Host { param($Prompt) if ($script:promptCallback) { & $script:promptCallback }; if ($script:decline) { 'n' } else { 'Y' } }
+function Get-WelaWmiChildNames {param($Namespace,$Maximum) @()}
+function Get-WelaWmiDescendantContext {'Mock unchanged caller/host/source context'}
 function New-TestContext([switch]$DryRun, [switch]$Prompt) {
     $script:context = New-WelaConfigurationContext -Auto:(-not $Prompt) -DryRun:$DryRun -BackupPath (Join-Path $root ([guid]::NewGuid().ToString('N')))
     return $script:context

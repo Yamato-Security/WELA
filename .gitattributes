@@ -122,6 +122,11 @@ tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf
 
 /scripts/RegistryValueProbe* text eol=lf
 /tests/RegistryValueProbe* text eol=lf
+# Native WMI tree evidence binds source bytes across checkouts.
+/scripts/WmiNamespaceAuditing.ps1 text eol=lf
+/scripts/WmiNamespaceDescendants.ps1 text eol=lf
+/tests/WmiNamespaceDescendants* text eol=lf
+/WELA.ps1 text eol=lf
 # Reviewed WMI namespace recovery binds exact source bytes.
 /scripts/WmiSaclRecovery.ps1 text eol=lf
 /tests/WmiSaclRecovery* text eol=lf
