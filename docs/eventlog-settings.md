@@ -1,5 +1,9 @@
 # Event-log sizes and retention modes
 
+### Issue 379 coverage
+
+Event-log sizing and retention changes are explicit per-channel controls with typed before/after evidence, mode preservation, and guarded recovery. Buffer size does not establish a retention duration, archive capacity, forwarding health, or absence of event loss.
+
 `audit-filesize` and ordinary `configure` now use the same
 `config/eventlog_profiles.json` definitions. `-Profile` continues to select
 **advanced audit policy only**. Use the separate `-LogProfile` option with

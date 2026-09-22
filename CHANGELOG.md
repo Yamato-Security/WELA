@@ -2,6 +2,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document guarded event-log sizing, retention-mode, and recovery boundaries. (Related #379)
+
 - Document the versioned offline Intune audit export and assignment limitations. (Related #1)
 
 - Document the explicit GPO export scope and its domain-deployment limitations. (Related #2)
