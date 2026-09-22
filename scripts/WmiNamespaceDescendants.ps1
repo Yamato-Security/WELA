@@ -52,6 +52,9 @@ function Get-WelaWmiDescendants {
     try {
         if($Namespace -cnotmatch '^root(\\[A-Za-z_][A-Za-z0-9_]{0,63}){1,8}$'){throw 'An exact local WMI namespace is required.'}
         $root=Get-WelaWmiNamespaceSnapshot $Namespace
+        if($root.Namespace -cne $Namespace -or -not $root.DescriptorJson -or -not $root.DescriptorMof){throw 'Incomplete selected namespace descriptor.'}
+        $bytes=[Text.Encoding]::UTF8.GetByteCount($root.DescriptorJson+$root.DescriptorMof)
+        if($bytes -gt 2097152){throw 'WMI tree descriptor evidence exceeds two MiB.'}
         $queue.Enqueue([pscustomobject]@{Namespace=$Namespace;Depth=0;ProtectedBarrier=$false})
         $null=$seen.Add($Namespace)
         while($queue.Count){

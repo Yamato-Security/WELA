@@ -53,6 +53,8 @@ try{
  Assert ((Get-WelaWmiDescendants 'root\default').Status -eq 'Incomplete') 'Depth overflow fails rather than truncates.'
  Reset;$script:tree['root\default\A'].Opaque='x'*2097153
  Assert ((Get-WelaWmiDescendants 'root\default').Status -eq 'Incomplete') 'Serialized descriptor budget enforced.'
+ Reset;$script:tree['root\default'].Opaque='x'*2097153
+ Assert ((Get-WelaWmiDescendants 'root\default').Status -eq 'Incomplete') 'The selected root also counts toward the descriptor budget.'
  Reset
  $p=@(Get-WelaWmiAuditPlan -Namespace 'root\default' -IncludeChildren)
  $c=New-WelaConfigurationContext -Auto -DryRun -BackupPath $temp
