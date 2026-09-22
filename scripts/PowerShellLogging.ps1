@@ -43,6 +43,8 @@ function Get-WelaPsLoggingSources {
 function Get-WelaPsLoggingSnapshot {
     if ($env:OS -ne 'Windows_NT' -or -not [Environment]::Is64BitProcess) {throw 'Use native 64-bit PowerShell on Windows.'}
     foreach($service in @('Winmgmt','EventLog')) {if((Get-Service -Name $service -ErrorAction Stop).Status -ne 'Running'){throw "$service must already be running; no service is started."}}
+    $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
+    try {if(-not $identity.User -or $identity.ImpersonationLevel -ne [Security.Principal.TokenImpersonationLevel]::None){throw 'An actual non-impersonated process identity is required.'};$operator=[pscustomobject]@{Sid=$identity.User.Value;ImpersonationLevel=[string]$identity.ImpersonationLevel}}finally{$identity.Dispose()}
     $os=Get-CimInstance Win32_OperatingSystem -Property BuildNumber,ProductType -ErrorAction Stop
     $computer=Get-CimInstance Win32_ComputerSystem -Property Name,Domain,DomainRole,PartOfDomain -ErrorAction Stop
     if ([string]$os.BuildNumber -notmatch '^\d+$' -or $computer.PartOfDomain -isnot [bool] -or $computer.DomainRole -notin @(0,1,2,3,4,5)) {throw 'Complete actual Windows role/build/join context is required.'}
@@ -64,7 +66,7 @@ function Get-WelaPsLoggingSnapshot {
     try {$channel=Get-WinEvent -ListLog 'Microsoft-Windows-PowerShell/Operational' -ErrorAction Stop;$channelState=[pscustomobject]@{Name=[string]$channel.LogName;Enabled=[bool]$channel.IsEnabled;MaximumBytes=[long]$channel.MaximumSizeInBytes;Mode=[string]$channel.LogMode;Security=[string]$channel.SecurityDescriptor}}finally{if($channel -is [IDisposable]){$channel.Dispose()}}
     $patch=Get-WelaRegistryState 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' UBR
     if (-not $patch.ValueExists -or $patch.Type -ne 'DWord' -or $patch.Value -lt 0) {throw 'Exact native patch evidence is required.'}
-    [pscustomobject][ordered]@{Host=[pscustomobject]@{Computer=[string]$computer.Name;Domain=[string]$computer.Domain;Build=$build;Patch=$patch.Value;ProductType=$product;DomainRole=$role;PartOfDomain=$joined;CertSvcPresent=[bool](Get-Service CertSvc -ErrorAction SilentlyContinue)};Engine=[pscustomobject]@{Target='Windows PowerShell 5.1';Version=$engine.Value;Path=$exe;Sha256=$engineHash;WelaHostVersion=$PSVersionTable.PSVersion.ToString()};Sources=@(Get-WelaPsLoggingSources);Machine=$machine;CurrentUser=$user;PowerShellCoreMachine=$coreMachine;PowerShellCoreUser=$coreUser;ProtectedEventLogging=$protected;Channel=$channelState}
+    [pscustomobject][ordered]@{Operator=$operator;Host=[pscustomobject]@{Computer=[string]$computer.Name;Domain=[string]$computer.Domain;Build=$build;Patch=$patch.Value;ProductType=$product;DomainRole=$role;PartOfDomain=$joined;CertSvcPresent=[bool](Get-Service CertSvc -ErrorAction SilentlyContinue)};Engine=[pscustomobject]@{Target='Windows PowerShell 5.1';Version=$engine.Value;Path=$exe;Sha256=$engineHash;WelaHostVersion=$PSVersionTable.PSVersion.ToString()};Sources=@(Get-WelaPsLoggingSources);Machine=$machine;CurrentUser=$user;PowerShellCoreMachine=$coreMachine;PowerShellCoreUser=$coreUser;ProtectedEventLogging=$protected;Channel=$channelState}
 }
 function Get-WelaPsLoggingValue {
     param($Tree,[string]$Path,[string]$Name)

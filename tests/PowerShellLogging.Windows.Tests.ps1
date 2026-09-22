@@ -111,7 +111,7 @@ try{
             $id=[int]$system.SelectSingleNode('e:EventID',$ns).InnerText
             if($system.SelectSingleNode('e:Provider',$ns).GetAttribute('Name') -cne 'Microsoft-Windows-PowerShell' -or $system.SelectSingleNode('e:Provider',$ns).GetAttribute('Guid').Trim('{}') -ine 'a0c1853b-5c40-4b15-8766-3cf1c58f985a' -or [int]$system.SelectSingleNode('e:Execution',$ns).GetAttribute('ProcessID') -ne $process.Pid -or $system.SelectSingleNode('e:Channel',$ns).InnerText -cne 'Microsoft-Windows-PowerShell/Operational' -or $system.SelectSingleNode('e:Computer',$ns).InnerText -ine $env:COMPUTERNAME){continue}
             $time=[DateTimeOffset]::Parse($system.SelectSingleNode('e:TimeCreated',$ns).GetAttribute('SystemTime')).UtcDateTime;if($time -lt [DateTimeOffset]::Parse($process.StartedUtc).UtcDateTime -or $time -gt [DateTimeOffset]::Parse($process.ExitedUtc).UtcDateTime){continue}
-            if($system.SelectSingleNode('e:Security',$ns).GetAttribute('UserID') -cne [Security.Principal.WindowsIdentity]::GetCurrent().User.Value){continue}
+            if($system.SelectSingleNode('e:Security',$ns).GetAttribute('UserID') -cne $original.Operator.Sid){continue}
             if($id -eq 4104 -and $data.ScriptBlockText -ceq $workerText -and $data.Path -ieq $workerPath -and $data.MessageNumber -ceq '1' -and $data.MessageTotal -ceq '1' -and $data.ScriptBlockId -match '^[0-9a-f-]{36}$'){$selected['4104']=@($selected['4104'])+ $xml}
             if($id -eq 4103 -and $data.ContainsKey('Payload') -and $data.ContainsKey('ContextInfo') -and $data.Payload.Contains($nonce) -and $data.ContextInfo.Contains($workerPath)){$selected['4103']=@($selected['4103'])+ $xml}
         }
