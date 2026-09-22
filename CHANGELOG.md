@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added disposable public `targeted-sacl` registry lifecycle validation on Server 2022/2025 and both PowerShell engines. A fixture-owned mounted hive exercises reviewed selection, DryRun, additive configuration, stale/prerequisite refusal and idempotence, followed by one precisely attributed Security4657. Retained native receipts verify unrelated ACE/value preservation and exact audit-policy, token and owned-hive cleanup; production does not load hives or gain Sigma credit. (Related #373) (@Shirofune-Security)
+
 - Added opt-in `wec-authorization` Plan/Apply for the explicit source SID list of one existing disabled native subscription. Reviewed hashes, host/token/source and full-definition guards, durable pending evidence, one native authorization setter and readback preserve other settings; no-op and partial-save outcomes stay explicit. Native disposable tests cover add/remove/restore, refusals and cleanup without SID-resolution, domain authentication, forwarding or Sigma claims. (@Shirofune-Security)
 
 - Add disposable native acceptance for public custom-profile Plan, DryRun, Configure, optional controls, idempotence and Audit on Server 2022/2025 under Windows PowerShell 5.1/PowerShell 7. Verify exact/minimum/preserve semantics, real precedence, original journals and all 59 masks, with exact fixture restoration. (@Shirofune-Security)
