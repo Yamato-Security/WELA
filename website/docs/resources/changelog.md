@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document native Security 4703 attribution evidence and conditional mapping boundaries. (Related #380)
+
 - Document native AppLocker readiness checks and safe audit-only policy import boundaries. (Related #381)
 
 - Document the versioned offline Intune audit export and assignment limitations. (Related #1)
