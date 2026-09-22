@@ -10,6 +10,12 @@ function Get-WelaRegistryValueProbeSources {
     foreach($name in @('WELA.ps1','scripts/RegistryValueProbe.ps1','scripts/RegistryValueProbeNative.cs','scripts/FileAccessProbe.ps1','scripts/WmiProbe.ps1','scripts/WmiProbeNative.cs','scripts/ChannelRead.ps1','scripts/ChannelReadNative.cs','scripts/WefArrival.ps1','scripts/Configuration.ps1','modules/AuditProfiles.psm1','scripts/CustomAuditProfiles.ps1','scripts/IpsecPrerequisites.ps1','config/audit_profiles.json')){$sources[$name]=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot ('../'+$name)) -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
     [pscustomobject]$sources
 }
+function Assert-WelaRegistryValueProbeComputerRole {
+    param($Computer)
+    # Win32_ComputerSystem.DomainRole is a native CIM UInt16, before JSON normalization.
+    $role=$Computer.DomainRole
+    if((-not($role -is [uint16]) -and -not(Test-WelaFileProbeInteger $role)) -or $role -notin 0,1,2,3,4,5 -or $Computer.PartOfDomain -isnot [bool]){throw 'Native Windows role and join observations are incomplete.'}
+}
 function Get-WelaRegistryValueProbeState {
     if($env:OS -ne 'Windows_NT' -or -not [Environment]::Is64BitProcess){throw 'Native 64-bit Windows is required.'}
     Initialize-WelaRegistryValueProbe
@@ -18,7 +24,7 @@ function Get-WelaRegistryValueProbeState {
     if($services.Count -ne 3 -or @($services|Where-Object Status -ne Running).Count){throw 'EventLog, Winmgmt and RpcSs must already be running.'}
     $reader=Get-WelaChannelReader;$null=Get-WelaFileProbeReaderKey $reader
     $computer=Get-CimInstance Win32_ComputerSystem -Property DomainRole,PartOfDomain -ErrorAction Stop
-    if(-not(Test-WelaFileProbeInteger $computer.DomainRole) -or $computer.PartOfDomain -isnot [bool]){throw 'Native Windows role and join observations are incomplete.'}
+    Assert-WelaRegistryValueProbeComputerRole $computer
     $hostState=Get-WelaChannelReadHost
     if($hostState.DomainRole -ne $computer.DomainRole -or $hostState.DomainJoined -ne $computer.PartOfDomain){throw 'Native Windows role or join state changed during observation.'}
     $target=[Wela.RegistryValueProbe.Target]::new($false)
