@@ -17,6 +17,11 @@ function Key($value){Get-WelaWefQueryKey $value}
 function Assert($value,[string]$message){if(-not $value){throw $message};$script:assertions++}
 function Save([string]$name,$value){[IO.File]::WriteAllText((Join-Path $root $name),(Key $value),[Text.UTF8Encoding]::new($false))}
 function Services {@(Get-CimInstance Win32_Service -Filter "Name='WinRM' OR Name='Wecsvc' OR Name='Winmgmt' OR Name='EventLog'"|Sort-Object Name|Select-Object Name,State,StartMode)}
+function Profiles {
+ $base=[Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine,[Microsoft.Win32.RegistryView]::Registry64)
+ $key=$null;try{$key=$base.OpenSubKey('SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList',$false);if(-not $key){throw 'Profile inventory unavailable.'};@($key.GetSubKeyNames()|Sort-Object)}finally{if($key){$key.Dispose()};$base.Dispose()}
+}
+function Hives {@([Microsoft.Win32.Registry]::Users.GetSubKeyNames()|Sort-Object)}
 function NativeChannels {@('System','Security',$channel)|ForEach-Object {Get-WelaNativeChannel $_}}
 function New-Case([string]$name,[string]$query){
  $inputDirectory=Join-Path $root ('input-'+$name);$null=New-Item -ItemType Directory $inputDirectory
@@ -35,7 +40,7 @@ function Invoke-Public($case,[int]$expected,[int]$maximum=16,[switch]$AsUser){
  $all=@('-NoLogo','-NoProfile','-NonInteractive','-File',(Join-Path $code 'WELA.ps1'),'wef-query','-WefQueryConfigPath',$case.Config,'-WefQuerySubscriptionId',$case.Id,'-WefQueryOutputPath',$output,'-WefQueryMaximumEvents',[string]$maximum)
  foreach($arg in $all){if($arg.Contains('"') -or $arg.EndsWith('\') -or $arg -match '[\x00-\x1f]'){throw 'Ambiguous fixture argument.'}}
  $start=[Diagnostics.ProcessStartInfo]::new();$start.FileName=$engine;$start.Arguments=(@($all|ForEach-Object {'"'+$_+'"'}) -join ' ');$start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
- if($AsUser){$start.UserName=$userName;$start.Domain=[Environment]::MachineName;$start.Password=$password;$start.LoadUserProfile=$true;$start.WorkingDirectory=$readerHome;$start.EnvironmentVariables['TEMP']=$readerHome;$start.EnvironmentVariables['TMP']=$readerHome}
+ if($AsUser){$start.UserName=$userName;$start.Domain=[Environment]::MachineName;$start.Password=$password;$start.LoadUserProfile=$false;$start.WorkingDirectory=$readerHome;$start.EnvironmentVariables['TEMP']=$readerHome;$start.EnvironmentVariables['TMP']=$readerHome}
  $process=[Diagnostics.Process]::new();$process.StartInfo=$start;$state=[pscustomobject]@{Started=$false;TerminationConfirmed=$false;Diagnostic=''}
  try{
   if(-not $process.Start()){throw 'Public query command did not start.'};$state.Started=$true
@@ -53,7 +58,7 @@ function Invoke-Public($case,[int]$expected,[int]$maximum=16,[switch]$AsUser){
  if($AsUser){Assert ($manifest.ReaderBefore.Sid -ceq $ownedSid -and $manifest.ReaderBefore.Groups.Sid -notcontains 'S-1-5-32-544' -and $manifest.ReaderBefore.Groups.Sid -notcontains 'S-1-5-32-573') 'Actual owned standard-user token.'}
  $manifest
 }
-$before=[pscustomobject]@{Host=$hostState;Services=(Services);Channels=(NativeChannels);Masks=(Get-WelaEffectiveAuditPolicy);Precedence=(Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy);Token=(Get-WelaWefQueryToken)}
+$before=[pscustomobject]@{Host=$hostState;Profiles=@(Profiles);Hives=@(Hives);Services=(Services);Channels=(NativeChannels);Masks=(Get-WelaEffectiveAuditPolicy);Precedence=(Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy);Token=(Get-WelaWefQueryToken)}
 Save 'original.json' $before
 try{
  $record=Get-WinEvent -LogName System -MaxEvents 1 -ErrorAction Stop
@@ -96,10 +101,11 @@ try{
 finally{
  if($aclChanged){try{& wevtutil.exe sl $channel ('/ca:'+$channelBefore.SecurityDescriptor);if($LASTEXITCODE -ne 0){throw 'Original descriptor restore failed.'};$global:LASTEXITCODE=0}catch{$cleanupErrors+=$_.Exception.Message}}
  if($ownedSid){try{$current=Get-LocalUser -Name $userName -ErrorAction Stop;if($current.SID.Value -cne $ownedSid){throw 'Owned account changed identity.'};Remove-LocalUser -SID $ownedSid -ErrorAction Stop;if(Get-LocalUser -SID $ownedSid -ErrorAction SilentlyContinue){throw 'Owned account remains.'}}catch{$cleanupErrors+=$_.Exception.Message}}
- $restored=$null;try{$restored=[pscustomobject]@{Host=(Get-WelaWefQueryHost);Services=(Services);Channels=(NativeChannels);Masks=(Get-WelaEffectiveAuditPolicy);Precedence=(Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy);Token=(Get-WelaWefQueryToken)};Save 'restored.json' $restored}catch{$cleanupErrors+=$_.Exception.Message}
+ $restored=$null;try{$restored=[pscustomobject]@{Host=(Get-WelaWefQueryHost);Profiles=@(Profiles);Hives=@(Hives);Services=(Services);Channels=(NativeChannels);Masks=(Get-WelaEffectiveAuditPolicy);Precedence=(Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' SCENoApplyLegacyAuditPolicy);Token=(Get-WelaWefQueryToken)};Save 'restored.json' $restored}catch{$cleanupErrors+=$_.Exception.Message}
  $channelsRestored=$restored -and (Key $restored.Channels) -ceq (Key $before.Channels);$servicesRestored=$restored -and (Key $restored.Services) -ceq (Key $before.Services);$policyRestored=$restored -and (Key $restored.Masks) -ceq (Key $before.Masks) -and (Key $restored.Precedence) -ceq (Key $before.Precedence);$tokenRestored=$restored -and (Get-WelaWefQueryTokenKey $restored.Token) -ceq (Get-WelaWefQueryTokenKey $before.Token)
- if(-not $channelsRestored -or -not $servicesRestored -or -not $policyRestored -or -not $tokenRestored){$cleanupErrors+='Original channel/services/policy/token differ.'}
- Save 'cleanup.json' ([pscustomobject]@{Passed=$passed;Assertions=$script:assertions;ChannelsRestored=[bool]$channelsRestored;ServicesRestored=[bool]$servicesRestored;PolicyRestored=[bool]$policyRestored;TokenRestored=[bool]$tokenRestored;AccountRemoved=[bool](-not $ownedSid -or -not(Get-LocalUser -SID $ownedSid -ErrorAction SilentlyContinue));Errors=$cleanupErrors;EventGeneration='Not tested';Forwarding='Not tested';Sources=(Get-WelaWefQuerySources)})
+ $profilesRestored=$restored -and (Key $restored.Profiles) -ceq (Key $before.Profiles) -and (Key $restored.Hives) -ceq (Key $before.Hives)
+ if(-not $profilesRestored -or -not $channelsRestored -or -not $servicesRestored -or -not $policyRestored -or -not $tokenRestored){$cleanupErrors+='Original profile/hive/channel/services/policy/token differ.'}
+ Save 'cleanup.json' ([pscustomobject]@{Passed=$passed;Assertions=$script:assertions;ChannelsRestored=[bool]$channelsRestored;ServicesRestored=[bool]$servicesRestored;PolicyRestored=[bool]$policyRestored;TokenRestored=[bool]$tokenRestored;ProfilesAndHivesRestored=[bool]$profilesRestored;AccountRemoved=[bool](-not $ownedSid -or -not(Get-LocalUser -SID $ownedSid -ErrorAction SilentlyContinue));Errors=$cleanupErrors;EventGeneration='Not tested';Forwarding='Not tested';Sources=(Get-WelaWefQuerySources)})
  if($cleanupErrors.Count){throw ('Fixture cleanup incomplete: '+($cleanupErrors -join '; '))}
 }
 Write-Host "WefQuery.Windows.Tests: $script:assertions actual native assertions passed; complete owned fixture cleanup."
