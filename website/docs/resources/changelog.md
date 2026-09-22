@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document version-aware OneSettings and Security warning configuration boundaries. (Related #378)
+
 - Document the versioned offline Intune audit export and assignment limitations. (Related #1)
 
 - Document the explicit GPO export scope and its domain-deployment limitations. (Related #2)
