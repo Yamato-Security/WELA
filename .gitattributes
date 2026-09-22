@@ -115,3 +115,4 @@ tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf
 /scripts/WmiNamespaceAuditing.ps1 text eol=lf
 /scripts/WmiNamespaceDescendants.ps1 text eol=lf
 /tests/WmiNamespaceDescendants* text eol=lf
+/WELA.ps1 text eol=lf

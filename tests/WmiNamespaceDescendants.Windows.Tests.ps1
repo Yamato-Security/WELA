@@ -64,6 +64,7 @@ try{
  $s=Get-WelaWmiNamespaceSnapshot $protected
  $null=Set-WelaWmiNamespaceDescriptor $protected $s.DescriptorJson @($specialDef)
  $protection=Observe-OwnedProtection $protected
+ Assert ($protection.ReturnValue -eq 0 -and $protection.ProtectionObserved) 'Reviewed native fixture did not retain the requested SACL protection bit.'
  $protectedGrand=New-OwnedNamespace $protected Grandchild
  $e.Cases+=@{Name='NativeProtectionObservation';Observation=$protection}
  $p=Entry $root
@@ -82,7 +83,9 @@ try{
  Assert (Test-WelaWmiDescriptorPreserved $parentBefore $parentAfter) 'Parent access or existing ACE preservation failed.'
  Assert (@(Get-WelaWmiMissingAces $parentAfter $p.Definitions).Count -eq 0) 'Parent setter failed to apply requested inheritance ACE.'
  $outcome=Test-WelaWmiDescendantOutcomes $p.Descendants $after $p.Definitions
- Assert (($outcome.Status -eq 'Observed' -and $result.ExitCode -eq 0) -or ($outcome.Status -eq 'Unverified' -and $result.ExitCode -eq 1)) 'Configuration status misrepresents actual child observations.'
+ Assert ($outcome.Status -eq 'Observed' -and $result.ExitCode -eq 0 -and $result.Results[0].Status -eq 'Applied') 'Reviewed native fixture failed complete descendant verification.'
+ Assert (@($outcome.Outcomes|Where-Object Status -eq InheritedAceObserved).Count -eq 4) 'Four existing unprotected descendants must show exact inherited ACEs.'
+ Assert (@($outcome.Outcomes|Where-Object Status -eq ProtectedUnchanged).Count -eq 2) 'Protected namespace and protected subtree must remain unchanged.'
  $journal=@(Get-Content (Join-Path $backup 'apply/before.jsonl')|ConvertFrom-Json)
  Assert ($journal.Count -eq 1 -and $journal[0].Before.Descendants.Entries.Count -eq 6) 'Original complete subtree missing from journal.'
  Assert ((Get-WelaWmiDescendantKey $journal[0].Before.Descendants) -ceq (Get-WelaWmiDescendantKey $p.Descendants)) 'Journal tree differs from pre-write snapshots.'
@@ -105,14 +108,14 @@ try{
  $emptyRepeat=Configure (Entry $empty) emptyrepeat
  Assert ($emptyRepeat.ExitCode -eq 0 -and $emptyRepeat.Results[0].Status -eq 'AlreadyCompliant') 'Empty-tree repeat is not idempotent.'
  $e.Cases+=@{Name='EmptyTree';Result=$emptyResult;Repeat=$emptyRepeat}
- $e.Assertions=$script:assertions
 }catch{$failure=$_;$e.Failure=$_.Exception.ToString()}
 finally{
  $cleanupErrors=@()
  for($i=$owned.Count-1;$i -ge 0;$i--){$item=$owned[$i];try{$item.Instance.Delete();$names=@(Get-WelaWmiChildNames $item.Parent 64);if($item.Name -in $names){throw 'Owned namespace still exists after deletion.'};$item.Removed=$true}catch{$cleanupErrors+=$_.Exception.ToString()}finally{$item.Instance.Dispose()}}
  $e.Cleanup=@($owned|Select-Object Parent,Name,Path,Removed);$e.CleanupErrors=$cleanupErrors
  try{$e.After=Safety;Assert (($e.Before|ConvertTo-Json -Depth 12 -Compress) -ceq ($e.After|ConvertTo-Json -Depth 12 -Compress)) 'Full token/audit/precedence/services changed.'}catch{$cleanupErrors+=$_.Exception.ToString();$e.CleanupErrors=$cleanupErrors}
- foreach($f in @('scripts/WmiNamespaceAuditing.ps1','scripts/WmiNamespaceDescendants.ps1','scripts/WmiProbe.ps1','scripts/WmiProbeNative.cs','scripts/Configuration.ps1','tests/WmiNamespaceDescendants.Windows.Tests.ps1')){$e.Sources+=@{Path=$f;Sha256=(Get-FileHash (Join-Path $repo $f) -Algorithm SHA256).Hash.ToLowerInvariant()}}
+ foreach($f in @('WELA.ps1','scripts/WmiNamespaceAuditing.ps1','scripts/WmiNamespaceDescendants.ps1','scripts/WmiProbe.ps1','scripts/WmiProbeNative.cs','scripts/Configuration.ps1','config/audit_profiles.json','tests/WmiNamespaceDescendants.Tests.ps1','tests/WmiNamespaceDescendants.Cli.Tests.ps1','tests/WmiNamespaceDescendants.Windows.Tests.ps1')){$e.Sources+=@{Path=$f;Sha256=(Get-FileHash (Join-Path $repo $f) -Algorithm SHA256).Hash.ToLowerInvariant()}}
+ $e.Assertions=$script:assertions
  $e.Complete=($null -eq $failure -and $cleanupErrors.Count -eq 0)
  $e|ConvertTo-Json -Depth 25|Set-Content -LiteralPath $EvidencePath -Encoding UTF8
  if(Test-Path $backup){Copy-Item $backup -Destination ($EvidencePath+'.journals') -Recurse;Remove-Item $backup -Recurse -Force}
