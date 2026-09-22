@@ -5,6 +5,8 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
+- Document independent audit-right and CrashOnAuditFail profile coverage, including omission-preserves semantics and service-account review boundaries. (Related #384)
+
 - Document role-scoped, opt-in LDAP 1644 diagnostics with explicit Diagnostic and MdiCleanup modes and preservation of unrelated NTDS values. (Related #383)
 
 - Document the completed retention-health coverage for ASD-style archive, forwarding, time-source, rollover, and bounded local-buffer evidence. (Related #382)
