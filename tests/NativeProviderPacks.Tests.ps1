@@ -43,6 +43,10 @@ function Get-WinEvent {
   $channel=if($f.TemplateMode -eq 'wrongchannel'){'Other/Operational'}else{$p.channel}
   $events+= [pscustomobject]@{Id=$e.id;Version=0;LogLink=[pscustomobject]@{LogName=$channel};Template=$template}
  }
+ if($f.LargeIds){
+  if($f.LargeOnly){$events=@()}
+  foreach($large in @([long]3221734403,[long]4294967295)){$events+=[pscustomobject]@{Id=$large;Version=0;LogLink=[pscustomobject]@{LogName=$p.channel};Template='unselected template is never parsed'}}
+ }
  [pscustomobject]@{Name=$ListProvider;Id='11111111-1111-1111-1111-111111111111';LogLinks=@([pscustomobject]@{LogName=$p.channel});Events=$events}
 }
 function Read-Host {param($Prompt) if($f.PromptSchemaDrift){$f.TemplateMode='missing'};$f.Prompt}
@@ -95,6 +99,11 @@ try {
  Assert (@($entry.RuleReviews|Where-Object Eligibility -ne 'Conditional').Count -eq 0 -and $report.ReadyRules -eq 0) 'Provider settings never convert incomplete rule evidence into Ready.'
  Assert ($entry.ProviderEvidence.Schema.Events[0].Fields[0].InType -eq 'win:UnicodeString' -and $entry.ProviderEvidence.Schema.Events[0].TemplateSha256.Length -eq 64) 'Report retains runtime version, native field types and template fingerprint.'
  Assert ($f.Writes.Count -eq 0 -and -not(Test-Path $backup)) 'Read-only plan creates no journal and makes no channel changes.'
+ Reset;$f.LargeIds=$true;$r=Invoke-WelaProviderPackCommand -Action Plan -Names winrm
+ Assert ($r.ExitCode -eq 0 -and $r.ControlsPlan[0].ProviderEvidence.CanConfigure) 'Actual WinRM Int64 event IDs above Int32 do not invalidate unrelated selected event6.'
+ Assert ($r.ControlsPlan[0].ProviderEvidence.Schema.Events.Count -eq 1 -and $r.ControlsPlan[0].ProviderEvidence.Schema.Events[0].Id -eq 6) 'Only the exact reviewed event6 enters schema evidence; large unselected IDs/templates are excluded.'
+ Reset;$f.LargeIds=$true;$f.LargeOnly=$true;$r=Invoke-WelaProviderPackCommand -Action Configure -Names winrm -Auto -BackupPath $backup
+ Assert ($r.ExitCode -eq 1 -and -not $r.ControlsPlan[0].ProviderEvidence.CanConfigure -and $f.Writes.Count -eq 0) 'Unrelated large native IDs cannot substitute for a missing selected event6.'
  Reset;$f.States['Microsoft-Windows-DNS-Client/Operational'].State='Not installed';$f.States['Microsoft-Windows-DNS-Client/Operational'].IsEnabled=$null
  $r=Invoke-WelaProviderPackCommand -Action Configure -Names dns-client -Auto -BackupPath $backup
  Assert ($r.ExitCode -eq 1 -and $f.Writes.Count -eq 0) 'Missing actual channel metadata cannot be replaced by provider-manifest availability.'
