@@ -12,6 +12,8 @@ namespace Wela.WmiProbe {
   public Group[] Groups; public Privilege[] Privileges;
  }
  public static class Native {
+  [DllImport("kernel32.dll",ExactSpelling=true)] static extern void GetSystemTimePreciseAsFileTime(out long value);
+  public static DateTime UtcNow() {long value;GetSystemTimePreciseAsFileTime(out value);return DateTime.FromFileTimeUtc(value);}
   [StructLayout(LayoutKind.Sequential)] struct Luid {public uint Low; public int High;}
   [StructLayout(LayoutKind.Sequential)] struct Statistics {public Luid TokenId,AuthenticationId;public long Expiration;public int Type,Level;public uint Charged,Available,Groups,Privileges;public Luid Modified;}
   [StructLayout(LayoutKind.Sequential)] struct SidAndAttributes {public IntPtr Sid;public uint Attributes;}
