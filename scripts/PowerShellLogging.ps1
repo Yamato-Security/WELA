@@ -85,12 +85,32 @@ function Get-WelaPsLoggingDefinitions {
     if ($Control -contains 'ScriptBlock') {[pscustomobject]@{Control='ScriptBlock';Path='ScriptBlockLogging';Name='EnableScriptBlockLogging';Type='DWord';Value=1}}
 }
 function Test-WelaPsLoggingValue {param($Snapshot,$Definition) $value=Get-WelaPsLoggingValue $Snapshot.Machine $Definition.Path $Definition.Name;return $null -ne $value -and $value.Type -ceq $Definition.Type -and (ConvertTo-WelaPsLoggingKey $value.Value) -ceq (ConvertTo-WelaPsLoggingKey $Definition.Value)}
+function Assert-WelaPsLoggingCapacity {
+    param($Snapshot,[array]$Definitions)
+    # Project predictable inventory growth before writing; new inherited access descriptors
+    # still require native readback. Projection never mutates the captured original state.
+    $tree=ConvertTo-WelaPsLoggingKey $Snapshot.Machine|ConvertFrom-Json;$rows=@{}
+    foreach($row in $tree.Keys){$rows[$row.Path]=$row}
+    foreach($definition in $Definitions){
+        $paths=@('');$path='';foreach($part in $definition.Path.Split('\')){$path=if($path){$path+'\'+$part}else{$part};$paths+=$path}
+        foreach($path in $paths){
+            if(-not $rows.ContainsKey($path)){$rows[$path]=[pscustomobject]@{Path=$path;Values=@();Children=@();Access=''}}
+            if($path){$separator=$path.LastIndexOf('\');$parent=if($separator -ge 0){$path.Substring(0,$separator)}else{''};$leaf=if($separator -ge 0){$path.Substring($separator+1)}else{$path};$rows[$parent].Children=@(@($rows[$parent].Children)+$leaf|Sort-Object -Unique)}
+        }
+        $row=$rows[$definition.Path];$row.Values=@($row.Values|Where-Object Name -ine $definition.Name)+[pscustomobject]@{Name=$definition.Name;Type=$definition.Type;Value=$definition.Value}
+        if($row.Values.Count -gt 128){throw 'Selected changes exceed the 128-value policy inventory capacity; no write is safe.'}
+    }
+    if($rows.Count -gt 64){throw 'Selected changes exceed the 64-key policy inventory capacity; no write is safe.'}
+    $tree.Exists=($rows.Count -gt 0);$tree.Keys=@($rows.Values|Sort-Object Path)
+    if((ConvertTo-WelaPsLoggingKey $tree).Length -gt 1048576){throw 'Selected changes exceed the policy snapshot character capacity; no write is safe.'}
+}
 function Assert-WelaPsLoggingKnown {
     param($Snapshot,[array]$Definitions)
     foreach ($definition in $Definitions) {
         $value=Get-WelaPsLoggingValue $Snapshot.Machine $definition.Path $definition.Name
         if ($value -and ($value.Type -cne $definition.Type -or ($definition.Type -eq 'DWord' -and $value.Value -notin @(0,1)) -or ($definition.Type -eq 'String' -and $value.Value -cne $definition.Value))) {throw "Selected policy value has an unknown type/value or a name collision: $($definition.Path)/$($definition.Name)."}
     }
+    Assert-WelaPsLoggingCapacity $Snapshot $Definitions
     if (@($Definitions|Where-Object Control -eq Module).Count) {
         foreach($key in @($Snapshot.Machine.Keys|Where-Object Path -ieq 'ModuleLogging\ModuleNames')) {foreach($value in $key.Values) {if($value.Type -cne 'String' -or [string]::IsNullOrWhiteSpace($value.Value)){throw 'Existing module-name policy contains an unsupported type/empty value; preserve and review it.'}}}
     }

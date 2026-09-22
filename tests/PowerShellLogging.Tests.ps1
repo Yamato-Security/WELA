@@ -56,6 +56,25 @@ try {
     Reset;$badName=Get-WelaPsLoggingValue $script:observed.Machine 'ModuleLogging\ModuleNames' existing;$badName.Type='DWord';$badName.Value=1
     $bad=Invoke-WelaPowerShellLogging -Action Configure -Control Module -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'badname')
     Assert ($bad.ExitCode -eq 1 -and -not (Test-Path (Join-Path $root 'badname'))) 'Unknown module value fails entire preflight'
+    foreach($countBefore in @(127,128)){
+        Reset;$row=@($script:observed.Machine.Keys|Where-Object Path -eq 'ModuleLogging\ModuleNames')[0]
+        $row.Values=@(1..$countBefore|ForEach-Object{[pscustomobject]@{Name=('Existing'+$_);Type='String';Value=('Existing'+$_)}})
+        $capacityPath=Join-Path $root ('value-capacity-'+$countBefore);$captured=ConvertTo-WelaPsLoggingKey $script:observed
+        $capacity=Invoke-WelaPowerShellLogging -Action Configure -Control Module -ModuleName NewModule -DryRun -BackupPath $capacityPath
+        Assert (($capacity.ExitCode -eq 0) -eq ($countBefore -eq 127)) '127 names permit one addition; 128 names refuse before the first write'
+        Assert ($script:writes -eq 0 -and -not (Test-Path $capacityPath) -and (ConvertTo-WelaPsLoggingKey $script:observed) -ceq $captured) 'Capacity preflight preserves the snapshot without writes or journals'
+    }
+    foreach($countBefore in @(63,64)){
+        Reset;$script:observed.Machine.Keys=@((Row '' @() @('ModuleLogging')),(Row 'ModuleLogging' @([pscustomobject]@{Name='EnableModuleLogging';Type='DWord';Value=0})))
+        foreach($index in 1..($countBefore-2)){$name='Existing'+$index;$script:observed.Machine.Keys+=Row $name;$script:observed.Machine.Keys[0].Children+=$name}
+        $capacity=Invoke-WelaPowerShellLogging -Action Plan -Control Module -ModuleName NewModule
+        Assert (($capacity.ExitCode -eq 0) -eq ($countBefore -eq 63)) '63 keys permit the missing selected key; 64 keys refuse predictable readback overflow'
+    }
+    Reset;$row=@($script:observed.Machine.Keys|Where-Object Path -eq Transcription)[0];$row.Values+=[pscustomobject]@{Name='LargeUnrelated';Type='String';Value=''}
+    $space=1048576-(ConvertTo-WelaPsLoggingKey $script:observed.Machine).Length;$row.Values[-1].Value='x'*$space
+    Assert ((ConvertTo-WelaPsLoggingKey $script:observed.Machine).Length -eq 1048576) 'Character-cap boundary fixture fits the current reader exactly'
+    $capacity=Invoke-WelaPowerShellLogging -Action Configure -Control Module -ModuleName NewModule -Auto -BackupPath (Join-Path $root 'character-capacity')
+    Assert ($capacity.ExitCode -eq 1 -and $script:writes -eq 0 -and -not (Test-Path (Join-Path $root 'character-capacity'))) 'Predictable serialized-value growth beyond character cap is refused before writes'
     Reset;$script:failWrite=$true;$failed=Invoke-WelaPowerShellLogging -Action Configure -Control Module,ScriptBlock -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'writefailure')
     Assert ($failed.ExitCode -eq 1 -and $script:writes -eq 1 -and @($failed.Results|Where-Object Status -eq Skipped).Count -eq 2) 'Native failure stops and explicitly reports later writes'
     Reset;$script:corrupt=$true;$failed=Invoke-WelaPowerShellLogging -Action Configure -Control Module,ScriptBlock -ModuleName Microsoft.PowerShell.Utility -Auto -BackupPath (Join-Path $root 'corrupt')

@@ -6,7 +6,7 @@
 
 **Improvements:**
 
-- Added explicit `powershell-logging` Audit/Plan/Configure for selected Windows PowerShell 5.1 module and script-block logging. Reviewed module names, typed original journals, full observed-policy drift guards and native readback preserve invocation/transcription/Core settings and other module entries. Disposable Server 2022/2025 tests require exact local 4103/4104 evidence and policy cleanup; PowerShell 7 fallback, managed-host persistence, forwarding and Sigma readiness remain separate. (Related #364, #366, #387) (@Shirofune-Security)
+- Added explicit `powershell-logging` Audit/Plan/Configure for selected Windows PowerShell 5.1 module and script-block logging. Reviewed module names, preflight inventory-capacity checks, typed original journals, full observed-policy drift guards and native readback preserve invocation/transcription/Core settings and other module entries. Disposable Server 2022/2025 tests require exact local 4103/4104 evidence and policy cleanup; PowerShell 7 fallback, managed-host persistence, forwarding and Sigma readiness remain separate. (Related #364, #366, #387) (@Shirofune-Security)
 
 - Added opt-in `transcript-probe` to verify a fixed current-account Windows PowerShell 5.1 child produces its own completed automatic transcript in an already enabled local destination. Actual token/logon, native header/footer, nonce/PID/time, bounded file identity and source checks preserve unverified outcomes without changing policy or ACLs, invoking explicit transcription or granting Sigma/EVTX credit. Added disposable standard-writer success/denial tests for Server 2022/2025 under both WELA host engines. (#436) (@Shirofune-Security)
 
