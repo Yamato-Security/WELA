@@ -53,12 +53,15 @@ function Get-WelaProviderPackSchema {
         if ([guid]$provider.Id -eq [guid]::Empty) { throw 'Provider GUID is unknown.' }
         if (@($logs[0].ProviderNames) -notcontains $Pack.provider -or @($provider.LogLinks.LogName) -notcontains $Pack.channel) { throw 'Provider/channel links disagree.' }
         $events = @()
+        # EventMetadata.Id is Int64; WinRM includes unrelated IDs above Int32.MaxValue.
+        # Compare before parsing selected templates, without narrowing the native ID.
+        $expectedIds = @($Pack.events | ForEach-Object { [long]$_.id })
         foreach ($event in $provider.Events) {
-            if (@($Pack.events.id) -contains [int]$event.Id -and $event.LogLink.LogName -eq $Pack.channel) {
+            if ($expectedIds -contains [long]$event.Id -and $event.LogLink.LogName -eq $Pack.channel) {
                 $fields = @(Get-WelaProviderTemplateFields -Template $event.Template)
                 $sha = [Security.Cryptography.SHA256]::Create()
                 try { $templateHash = ([BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes([string]$event.Template)))).Replace('-','').ToLowerInvariant() } finally { $sha.Dispose() }
-                $events += [pscustomobject]@{ Id=[int]$event.Id; Version=[int]$event.Version; Channel=[string]$event.LogLink.LogName; Fields=$fields; TemplateSha256=$templateHash }
+                $events += [pscustomobject]@{ Id=[long]$event.Id; Version=[int]$event.Version; Channel=[string]$event.LogLink.LogName; Fields=$fields; TemplateSha256=$templateHash }
             }
         }
         [pscustomobject]@{ State='Observed'; Provider=[string]$provider.Name; ProviderGuid=[string]$provider.Id; ChannelType=[string]$logs[0].LogType; Events=$events; Diagnostic=$null }
