@@ -1,5 +1,9 @@
 # Native AppLocker readiness
 
+### Issue 381 coverage
+
+AppLocker readiness observes the effective policy, AppIDSvc, and native channels before any optional import. Only an operator-supplied audit-only policy may be imported; existing enforcement policies are preserved, and policy state is kept separate from event generation and Sigma eligibility.
+
 `applocker-readiness` reports local and GP effective policy XML, each of the five rule collections, enforcement modes, rule counts, Application Identity (`AppIDSvc`) state/start mode and relevant AppLocker channel observations. A host with enabled channels but no rules reports `MissingGpPolicy`. Stopped/disabled services, missing channels, unavailable cmdlets and read errors remain explicit. `NotConfigured` with rules is treated as potential enforcement, never as disabled.
 
 ```powershell
