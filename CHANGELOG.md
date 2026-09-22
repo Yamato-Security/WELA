@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Add reviewed `wmi-sacl-recovery` Plan/Recover for one proven explicit parent-only namespace audit ACE. Require matching completed configuration evidence, current full descriptor, reviewed hash and explicit audit-reduction consent; preserve all other descriptor fields, remaining ACEs and token privileges, retain partial-write evidence, and test owned native namespace cleanup. Historical namespace/operator identity and event/Sigma readiness remain unclaimed. (Related #372, #365) (@Shirofune-Security)
+
 - Added disposable native Security4703 attribution for the canonical Token Right Adjusted GUID on Server2022/2025 and PowerShell5.1/7. A fixed owned-child privilege disable/restore compares the two historical audit-mask candidates, retains exact event/context/hash evidence and verifies policy/token cleanup. Historical candidates remain conditional; no production probe, universal mapping or Sigma credit. (Related #380) (@Shirofune-Security)
 
 - Add native public OneSettings policy and explicit Privacy-channel configuration acceptance: actual apply, typed journals/readback, idempotence and invalid-value refusals on Server 2022; preserve the existing Server 2025 refusal. Both PowerShell engines verify exact fixture cleanup without event or Sigma claims. Fix omitted notification-control dispatch so default Audit reads both controls and Configure without a selection fails with a nonzero exit. (Related #378) (@Shirofune-Security)

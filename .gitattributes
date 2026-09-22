@@ -110,3 +110,7 @@ tests/NativeProviderConfigure.Windows.Tests.ps1 text eol=lf
 # Public filesystem-SACL disposable lifecycle evidence.
 tests/FileSaclProfileFixture.cs text eol=lf
 tests/FileSaclLifecycle.Windows.Tests.ps1 text eol=lf
+
+# Reviewed WMI namespace recovery binds exact source bytes.
+/scripts/WmiSaclRecovery.ps1 text eol=lf
+/tests/WmiSaclRecovery* text eol=lf
