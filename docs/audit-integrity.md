@@ -68,3 +68,6 @@ The focused suite mocks every mutation and covers exact source sets/omissions, r
 Remaining acceptance evidence requires disposable, snapshotted client/member/DC labs, including member/DC AD CS and relevant IIS/AD FS/Exchange dependencies: review affected principals, apply the chosen source profile, verify new-token behavior, readback after ordinary GPO refresh, benign audit generation and authorized collection, and selective recovery with unrelated rights preserved. Do not create an audit-exhaustion test. DC/member mutation, service-token and event/ingestion evidence is still pending; read-only CI cannot close those requirements.
 
 This is audit-integrity hardening, not a new event family. Reports set `SigmaEvtxCredit=0`; no rule-eligibility or Sigma coverage increase is inferred. Sysmon is outside this native Windows workflow.
+# Issue 384 coverage
+
+Audit-integrity profiles cover the two logging rights (`SeAuditPrivilege` and `SeSecurityPrivilege`) and the `CrashOnAuditFail` DWORD independently. Omitted profile fields preserve the observed state; the disabled crash-on-audit setting is explicit for reviewed CIS profiles. Existing service-account exceptions and unknown values remain operator review items.
