@@ -48,8 +48,9 @@ function Get-WelaTokenAttributionTask {
  $reader=[Xml.XmlReader]::Create([IO.StringReader]::new($PublisherXml),$settings);$xml=[Xml.XmlDocument]::new();$xml.XmlResolver=$null
  try{$xml.Load($reader)}finally{$reader.Dispose()}
  $root=$xml.DocumentElement
- if($root.LocalName -cne 'provider' -or $root.GetAttribute('name') -cne 'Microsoft-Windows-Security-Auditing' -or $root.GetAttribute('guid') -ine '54849625-5478-4994-a5ba-3e3b0328c30d'){throw 'Native publisher identity differs.'}
- $tasks=@($root.SelectNodes('tasks/task')|Where-Object{$_.GetAttribute('name') -ceq $name})
+ if($root.LocalName -cne 'provider' -or $root.NamespaceURI -cne 'http://schemas.microsoft.com/win/2004/08/events' -or $root.GetAttribute('name') -cne 'Microsoft-Windows-Security-Auditing' -or $root.GetAttribute('guid') -ine '54849625-5478-4994-a5ba-3e3b0328c30d'){throw 'Native publisher identity differs.'}
+ $ns=[Xml.XmlNamespaceManager]::new($xml.NameTable);$ns.AddNamespace('p','http://schemas.microsoft.com/win/2004/08/events')
+ $tasks=@($root.SelectNodes('p:tasks/p:task',$ns)|Where-Object{$_.GetAttribute('name') -ceq $name})
  if($tasks.Count -ne 1 -or $tasks[0].GetAttribute('value') -cne '13317'){throw 'Native publisher XML does not corroborate the fixed token-right task.'}
  13317
 }
