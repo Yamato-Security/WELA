@@ -77,6 +77,9 @@
     [string]$RuleEvidencePath,
     [string]$RuleCorpusPath,
     [string]$RuleManifestPath,
+    [ValidateSet('Audit','Plan','Configure')][string]$PowerShellLoggingAction = 'Audit',
+    [ValidateSet('ScriptBlock','Module')][string[]]$PowerShellLoggingControl,
+    [string[]]$PowerShellLoggingModuleName,
     [ValidateSet('Audit', 'Plan', 'Configure')][string]$TranscriptionAction = 'Audit',
     [string]$TranscriptDirectory,
     [ValidateSet('Audit','Plan','Configure')][string]$LdapAction = 'Audit',
@@ -266,6 +269,7 @@ $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Capi2Probe.ps1")
 . (Join-Path $ScriptRoot "scripts/FailedLogonProbe.ps1")
 . (Join-Path $ScriptRoot "scripts/PowerShellTranscription.ps1")
+. (Join-Path $ScriptRoot "scripts/PowerShellLogging.ps1")
 Import-Module (Join-Path $ScriptRoot "modules/AuditProfiles.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/RuleEligibility.psm1") -ErrorAction Stop
 Import-Module (Join-Path $ScriptRoot "modules/AuditCatalog.psm1") -ErrorAction Stop
@@ -2087,6 +2091,7 @@ Usage:
   ./WELA.ps1 eventlog-recovery -Help # Review restoration of one completed log size/mode write
   ./WELA.ps1 wec-listener -Help      # Review one fixed-address native HTTP5985 listener
   ./WELA.ps1 wec-ingress -Help       # Review scoped collector firewall rule creation
+  ./WELA.ps1 powershell-logging -Help # Configure selected Windows PowerShell event policies
   ./WELA.ps1 ntlm-auditing -Help    # Configure selected incoming/domain NTLM auditing
   ./WELA.ps1 outgoing-ntlm -Help    # Configure outgoing NTLM auditing independently
   ./WELA.ps1 wec-authorization -Help # Review source SID authorization on a disabled subscription
@@ -2198,6 +2203,12 @@ if ($Cmd -eq 'ntlm-auditing') {
     if ($NtlmAuditAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require NtlmAuditAction Configure.'}
     if ($NtlmAuditAction -eq 'Configure' -and -not $PSBoundParameters.ContainsKey('NtlmAuditScope')) {throw 'Configure requires explicit NtlmAuditScope Incoming, Domain or Both.'}
 }
+if ($Cmd -ne 'powershell-logging' -and @($PSBoundParameters.Keys | Where-Object {$_ -like 'PowerShellLogging*'}).Count) {throw 'PowerShellLogging options require powershell-logging.'}
+if ($Cmd -eq 'powershell-logging') {
+    if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','PowerShellLoggingAction','PowerShellLoggingControl','PowerShellLoggingModuleName','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'powershell-logging accepts only its dedicated options.'}
+    if (-not $Help) {Assert-WelaPsLoggingSelection $PowerShellLoggingAction $PowerShellLoggingControl $PowerShellLoggingModuleName}
+    if ($PowerShellLoggingAction -ne 'Configure' -and ($Auto -or $DryRun -or $BackupPath)) {throw 'Consent, dry-run and backup options require PowerShellLoggingAction Configure.'}
+}
 if ($Cmd -ne 'outgoing-ntlm' -and $PSBoundParameters.ContainsKey('NtlmAction')) {throw 'NtlmAction requires outgoing-ntlm.'}
 if ($Cmd -eq 'outgoing-ntlm') {
     if (@($PSBoundParameters.Keys | Where-Object {$_ -notin @('Cmd','NtlmAction','OutgoingNtlmMode','Auto','DryRun','BackupPath','ResultsPath','Help')}).Count) {throw 'outgoing-ntlm accepts only its dedicated options.'}
@@ -2294,7 +2305,7 @@ if ($Cmd -ne 'ad-object-sacl' -and @($PSBoundParameters.Keys | Where-Object {
 }).Count) {
     throw 'AD object SACL options require the dedicated ad-object-sacl command. No command was run.'
 }
-if ($DryRun -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
+if ($DryRun -and -not ($Cmd -eq 'powershell-logging' -and $PowerShellLoggingAction -eq 'Configure') -and -not ($Cmd -eq 'ntlm-auditing' -and $NtlmAuditAction -eq 'Configure') -and -not ($Cmd -eq 'outgoing-ntlm' -and $NtlmAction -eq 'Configure') -and -not ($Cmd -eq 'transcription-recovery' -and $TranscriptRecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'adcs-auditing' -and $AdcsAction -eq 'Configure') -and -not ($Cmd -eq 'adcs-resume' -and $AdcsResumeAction -eq 'Resume') -and -not ($Cmd -eq 'gpo-create' -and $GpoCreateAction -eq 'Create') -and -not ($Cmd -eq 'dns-analytical' -and $DnsAction -eq 'Configure') -and -not ($Cmd -eq 'targeted-sacl' -and $TargetSaclAction -eq 'Configure') -and -not ($Cmd -eq 'audit-recovery' -and $RecoveryAction -eq 'Restore') -and -not ($Cmd -eq 'gpo-package' -and $GpoAction -eq 'Export') -and -not ($Cmd -eq 'audit-integrity' -and $IntegrityAction -eq 'Configure') -and -not ($Cmd -eq 'audit-notifications' -and $NotificationAction -eq 'Configure') -and -not ($Cmd -eq 'ldap-diagnostics' -and $LdapAction -eq 'Configure') -and -not ($Cmd -eq 'applocker-readiness' -and $AppLockerAction -eq 'Import') -and $Cmd -notin @('configure', 'configure-eventlogs') -and
     -not ($Cmd -eq 'provider-packs' -and $ProviderAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-logging' -and $FirewallAction -eq 'Configure') -and
     -not ($Cmd -eq 'firewall-recovery' -and $FirewallRecoveryAction -eq 'Restore') -and
@@ -2744,6 +2755,13 @@ switch ($Cmd.ToLower()) {
             $report
             if ($report.ExitCode) { exit $report.ExitCode }
         } catch { Write-Host "[Failed] SMB auditing: $_" -ForegroundColor Red; exit 1 }
+    }
+    'powershell-logging' {
+        if ($Help) {Write-Host 'Usage: powershell-logging [-PowerShellLoggingAction Audit|Plan|Configure] [-PowerShellLoggingControl ScriptBlock,Module] [-PowerShellLoggingModuleName literal-name,...] [-Auto] [-DryRun] [-BackupPath new-directory] [-ResultsPath new.json]. Plan/Configure require explicit controls; Module requires explicit names. Target is Windows PowerShell 5.1; PowerShell Core settings and invocation logging are preserved. See docs/powershell-logging.md.';return}
+        if ($PowerShellLoggingAction -eq 'Configure' -and -not (TestAdministrator)) {throw 'PowerShell logging configuration requires Administrator privileges.'}
+        $report=Invoke-WelaPowerShellLogging -Action $PowerShellLoggingAction -Control $PowerShellLoggingControl -ModuleName $PowerShellLoggingModuleName -Auto:$Auto -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath
+        $report
+        if($report.ExitCode){exit $report.ExitCode}
     }
     'powershell-transcription' {
         if ($Help) {
