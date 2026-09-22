@@ -1,0 +1,55 @@
+name: Reviewed native WMI SACL recovery
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'scripts/WmiSaclRecovery*'
+      - 'scripts/WmiNamespace*'
+      - 'scripts/WmiProbe*'
+      - 'scripts/Configuration.ps1'
+      - 'tests/WmiSaclRecovery*'
+      - '.github/workflows/wmi-sacl-recovery.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wmi-sacl-recovery:
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+        engine: [powershell, pwsh]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Recovery proof and public CLI guards in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WmiSaclRecovery.Tests.ps1
+          ./tests/WmiSaclRecovery.Cli.Tests.ps1
+      - name: Recovery proof and public CLI guards in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WmiSaclRecovery.Tests.ps1
+          ./tests/WmiSaclRecovery.Cli.Tests.ps1
+      - name: Public Configure and Recover on owned namespaces in Windows PowerShell5.1
+        if: matrix.engine == 'powershell'
+        shell: powershell
+        run: ./tests/WmiSaclRecovery.Windows.Tests.ps1 -AllowDisposableNamespaceWrite
+      - name: Public Configure and Recover on owned namespaces in PowerShell7
+        if: matrix.engine == 'pwsh'
+        shell: pwsh
+        run: ./tests/WmiSaclRecovery.Windows.Tests.ps1 -AllowDisposableNamespaceWrite
+      - name: Preserve native evidence and independent cleanup
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wmi-sacl-recovery-${{ matrix.os }}-${{ matrix.engine }}
+          path: ${{ runner.temp }}/wela-wmi-recovery-*/
+          retention-days: 14
+          if-no-files-found: error
