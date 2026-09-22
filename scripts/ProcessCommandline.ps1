@@ -19,10 +19,12 @@ function Get-WelaProcessCommandlineSnapshot {
         $key=$parent.OpenSubKey('Audit')
         $unselected=[pscustomobject][ordered]@{Values=@();Children=@()}
         if ($key) {
+            if ($key.ValueCount -gt 128 -or $key.SubKeyCount -gt 128) {throw 'Unrelated policy inventory exceeds its 128-entry bound.'}
             $unselected.Values=@($key.GetValueNames()|Sort-Object|Where-Object {$_ -ine 'ProcessCreationIncludeCmdLine_Enabled'}|ForEach-Object {
                 [pscustomobject][ordered]@{Name=$_;Type=$key.GetValueKind($_).ToString();Value=$key.GetValue($_,$null,[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)}
             })
             $unselected.Children=@($key.GetSubKeyNames()|Sort-Object)
+            if (($unselected|ConvertTo-Json -Depth 12 -Compress).Length -gt 1048576) {throw 'Unrelated policy inventory exceeds its one Mi character bound.'}
         }
     } finally {if($key){$key.Dispose()};if($parent){$parent.Dispose()};$base.Dispose()}
     [pscustomobject][ordered]@{
