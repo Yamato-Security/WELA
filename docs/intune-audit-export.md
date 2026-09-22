@@ -130,3 +130,6 @@ CI does not enroll a client, upload anything or mutate Windows. Intune acceptanc
 pilot assignment, effective masks after sync, conflicts, recovery and event
 generation remain deployment evidence needed before fully closing issue #1.
 No compliance or Sigma uplift is inferred from export success.
+### Issue 1 coverage
+
+The Intune export emits a versioned offline audit payload for a declared Windows build and profile, preserving omission and minimum semantics while hashing source mappings. File creation does not claim tenant assignment, policy acceptance, resultant settings, or event readiness.
