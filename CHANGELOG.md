@@ -2,7 +2,13 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
-- Document version-aware SMB audit policy scope and runtime limitations. (Related #377)
+- Document version-aware OneSettings and Security warning configuration boundaries. (Related #378)
+
+- Document guarded event-log sizing, retention-mode, and recovery boundaries. (Related #379)
+
+- Document native Security 4703 attribution evidence and conditional mapping boundaries. (Related #380)
+
+- Document native AppLocker readiness checks and safe audit-only policy import boundaries. (Related #381)
 
 - Document the versioned offline Intune audit export and assignment limitations. (Related #1)
 
