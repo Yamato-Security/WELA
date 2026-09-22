@@ -24,12 +24,30 @@ function Other {
     }finally{if($k){$k.Dispose()};$base.Dispose()}
     [pscustomobject][ordered]@{Values=$values;Children=$children;Access=$acl;DomainPolicy=Get-WelaRegistryState 'HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters' AuditNTLMInDomain;NtlmChannel=Get-WelaNativeChannel 'Microsoft-Windows-NTLM/Operational';SecurityChannel=Get-WelaNativeChannel Security;NetlogonService=[string](Get-Service Netlogon).Status}
 }
+Add-Type -TypeDefinition @'
+using System;using System.IO;using System.Text;using System.Threading.Tasks;
+public static class WelaNtlmFixturePipe {
+ public static async Task<string> Read(TextReader reader){var text=new StringBuilder();var buffer=new char[1024];while(true){int n=await reader.ReadAsync(buffer,0,buffer.Length).ConfigureAwait(false);if(n==0)return text.ToString();if(n>1048576-text.Length)throw new InvalidDataException("Fixture output exceeds one Mi character bound.");text.Append(buffer,0,n);}}
+}
+'@
 function Public([string]$Label,[string[]]$Arguments){
-    $prior=$ErrorActionPreference
-    try{$ErrorActionPreference='Continue';$output=& $engine -NoLogo -NoProfile -NonInteractive -File (Join-Path $repo 'WELA.ps1') ntlm-auditing @Arguments 2>&1|Out-String;$code=$LASTEXITCODE}finally{$ErrorActionPreference=$prior}
-    $output|Set-Content -LiteralPath (Join-Path $root ($Label+'.txt')) -Encoding UTF8
-    Assert ($code -eq 0) "Public $Label exited $code : $output"
-    Get-Content -Raw -LiteralPath (Join-Path $root ($Label+'.json'))|ConvertFrom-Json
+    $all=@('-NoLogo','-NoProfile','-NonInteractive','-File',(Join-Path $repo 'WELA.ps1'),'ntlm-auditing')+$Arguments
+    foreach($a in $all){if($a.Contains('"') -or $a.EndsWith('\') -or $a -match '[\x00-\x1f]'){throw 'Ambiguous fixture argument.'}}
+    $info=[Diagnostics.ProcessStartInfo]::new();$info.FileName=$engine;$info.Arguments=(@($all|ForEach-Object {'"'+$_+'"'}) -join ' ');$info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
+    $process=[Diagnostics.Process]::new();$process.StartInfo=$info;$started=$false
+    try{
+        if(-not $process.Start()){throw 'Public process did not start.'};$started=$true
+        $stdout=[WelaNtlmFixturePipe]::Read($process.StandardOutput);$stderr=[WelaNtlmFixturePipe]::Read($process.StandardError)
+        if(-not $process.WaitForExit(180000)){throw 'Public command exceeded three minutes.'}
+        if(-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($stdout,$stderr),5000)){throw 'Public output drain timed out.'}
+        $output=$stdout.Result+"`n"+$stderr.Result
+        $output|Set-Content -LiteralPath (Join-Path $root ($Label+'.txt')) -Encoding UTF8
+        Assert ($process.ExitCode -eq 0) "Public $Label exited $($process.ExitCode) : $output"
+        Get-Content -Raw -LiteralPath (Join-Path $root ($Label+'.json'))|ConvertFrom-Json
+    }finally{
+        if($started){$exited=$false;try{$exited=$process.HasExited}catch{$script:errors+=$_.Exception.Message};if(-not $exited){try{$process.Kill()}catch{$script:errors+=$_.Exception.Message};try{$exited=$process.WaitForExit(5000)}catch{$script:errors+=$_.Exception.Message}};if(-not $exited){$script:errors+='Owned public process termination unconfirmed.'}}
+        $process.Dispose()
+    }
 }
 $original=Get-WelaNtlmAuditSnapshot Incoming
 Assert ($original.Host.ProductType -eq 3 -and $original.Host.DomainRole -eq 2 -and -not $original.Host.PartOfDomain) 'Actual unjoined disposable Server is required.'

@@ -83,7 +83,9 @@ try{
  }}
  # Exercise actual CIM role validation independently of the policy fixture.
  $savedOs=$env:OS;$env:OS='Windows_NT'
- function Get-CimInstance {param($ClassName,$Property,$ErrorAction)if($ClassName -eq 'Win32_OperatingSystem'){$script:osFixture}else{$script:computerFixture}}
+ $script:wmiStatus='Running';$script:cimReads=0
+ function Get-Service {param($Name,$ErrorAction)if($Name -cne 'Winmgmt'){throw 'Unexpected service'};[pscustomobject]@{Status=$script:wmiStatus}}
+ function Get-CimInstance {param($ClassName,$Property,$ErrorAction)$script:cimReads++;if($ClassName -eq 'Win32_OperatingSystem'){$script:osFixture}else{$script:computerFixture}}
  try{
   foreach($case in @(@(1,0,$false,26100),@(1,1,$true,26200),@(3,2,$false,20348),@(3,3,$true,26100),@(2,4,$true,20348),@(2,5,$true,26100))){
    $script:osFixture=[pscustomobject]@{ProductType=$case[0];BuildNumber=[string]$case[3]};$script:computerFixture=[pscustomobject]@{Name='fixture';Domain='fixture';DomainRole=$case[1];PartOfDomain=$case[2]};$h=&$hostValidator;Assert ($h.ProductType -eq $case[0]) 'Coherent native role/build accepted.'
@@ -91,6 +93,7 @@ try{
   foreach($case in @(@(2,2,$false,26100),@(3,4,$true,26100),@(1,1,$false,26100),@(3,3,$false,26100),@(2,5,$true,99999))){
    $script:osFixture=[pscustomobject]@{ProductType=$case[0];BuildNumber=[string]$case[3]};$script:computerFixture=[pscustomobject]@{Name='fixture';Domain='fixture';DomainRole=$case[1];PartOfDomain=$case[2]};$refused=$false;try{&$hostValidator}catch{$refused=$true};Assert $refused 'Conflicting or unsupported observed host is refused.'
   }
+  $script:wmiStatus='Stopped';$script:cimReads=0;$refused=$false;try{&$hostValidator}catch{$refused=$_.Exception.Message -match 'must already be running'};Assert ($refused -and $script:cimReads -eq 0) 'Stopped WMI is refused before a CIM observation can start its service.'
  }finally{$env:OS=$savedOs}
 }finally{Remove-Item -LiteralPath $root -Recurse -Force}
 Write-Host "PASS: $count scoped incoming/domain NTLM assertions."

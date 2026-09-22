@@ -1,6 +1,6 @@
 # Scoped incoming and domain NTLM auditing
 
-`ntlm-auditing` reads or configures two distinct audit values without invoking the broad `configure` workflow. It never writes an NTLM restriction or exception. Configure requires an explicit selection and elevated native 64-bit PowerShell on reviewed Windows 11 builds 22000/22621/22631/26100/26200 or Server 2022/2025 builds 20348/26100. Product type, domain role and join state must agree; role/build overrides are refused.
+`ntlm-auditing` reads or configures two distinct audit values without invoking the broad `configure` workflow. It never writes an NTLM restriction or exception. Configure requires an explicit selection and elevated native 64-bit PowerShell on reviewed Windows 11 builds 22000/22621/22631/26100/26200 or Server 2022/2025 builds 20348/26100. Product type, domain role and join state must agree; role/build overrides are refused. Winmgmt must already be running before any CIM observation.
 
 | Selection | Exact value | Requested setting | Applicability |
 | --- | --- | --- | --- |

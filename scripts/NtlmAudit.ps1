@@ -1,6 +1,7 @@
 # Explicit incoming/domain audit values. Authentication restrictions are separate controls.
 function Get-WelaNtlmAuditHost {
     if($env:OS -ne 'Windows_NT' -or -not [Environment]::Is64BitProcess){throw 'Use native64-bit PowerShell on Windows.'}
+    if((Get-Service -Name Winmgmt -ErrorAction Stop).Status -ne 'Running'){throw 'Winmgmt must already be running; this command never starts services.'}
     $os=Get-CimInstance Win32_OperatingSystem -Property BuildNumber,ProductType -ErrorAction Stop
     $computer=Get-CimInstance Win32_ComputerSystem -Property Name,Domain,DomainRole,PartOfDomain -ErrorAction Stop
     if([string]$os.BuildNumber -notmatch '^\d+$' -or $os.ProductType -notin @(1,2,3) -or $computer.PartOfDomain -isnot [bool] -or $computer.DomainRole -notin @(0,1,2,3,4,5) -or [string]::IsNullOrWhiteSpace($computer.Name)){throw 'Incomplete Windows role/build identity.'}
