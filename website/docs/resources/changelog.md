@@ -9,6 +9,8 @@
 
 **Improvements:**
 
+- Added an opt-in `registry-probe` for one temporary value in an existing current-user WELA diagnostic key, with existing audit/SACL prerequisites, exact native Security 4657 attribution, owned-value cleanup and preserved policy/security state. Related to #373 and #387.
+
 - Added `process-commandline` Audit/Plan/Configure for only the built-in Security 4688 command-line policy, with typed originals, drift checks, separate audit prerequisites and native Windows configuration/event validation. Related to #364, #365 and #387.
 
 - Added explicit `powershell-logging` Audit/Plan/Configure for selected Windows PowerShell 5.1 module and script-block logging. Reviewed module names, preflight inventory-capacity checks, typed original journals, full observed-policy drift guards and native readback preserve invocation/transcription/Core settings and other module entries. Disposable Server 2022/2025 tests require exact local 4103/4104 evidence and policy cleanup; PowerShell 7 fallback, managed-host persistence, forwarding and Sigma readiness remain separate. (Related #364, #366, #387) (@Shirofune-Security)
