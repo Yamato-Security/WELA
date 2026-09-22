@@ -4,6 +4,8 @@
 
 **Improvements:**
 
+- Added read-only `wef-query` preflight for one exact selected source QueryList, with strict native Select/Suppress execution, separate per-channel failure diagnostics, bounded matching XML and actual caller/host/source guards. Empty, denied, missing, invalid, capped and drifted results remain distinct; disposable native tests cover real record selection/suppression and standard-user denial with exact cleanup. No forwarding-service access, delivery or Sigma credit is inferred. (Related #368) (@Shirofune-Security)
+
 - Added opt-in `registry-sacl-recovery` for one proven explicit registry-root audit ACE, requiring four matching original records, a reviewed plan hash, empty historical/current descendants and separate audit-reduction/inheritance consent. Native SACL-only removal preserves unrelated descriptor fields and ACE order, retains partial-write evidence and reports original-byte equality separately; no authenticated historical key/operator identity, atomic-tree, event or Sigma claim. (Related #373) (@Shirofune-Security)
 
 - Add native public SMB policy configuration acceptance on Server 2022/2025 and PowerShell 5.1/7: six-policy apply/readback and idempotence on supported hosts, unsupported-host skips, typed original journals, unrelated-state preservation and exact cleanup. Event generation and runtime activation remain separate. (Related #377) (@Shirofune-Security)

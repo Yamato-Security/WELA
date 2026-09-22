@@ -52,9 +52,46 @@ try{
  Reject {Import-WelaWefQuerySelection $path 'WELA Native Security Example'} 'Duplicate config properties refused.'
  [IO.File]::WriteAllText($path,$original.Replace('"SchemaVersion": 1','"SchemaVersion": true'))
  Reject {Import-WelaWefQuerySelection $path 'WELA Native Security Example'} 'Boolean schema rejected.'
+ foreach($field in @('Role','Hardening','CollectorFqdn','CollectorUri','Authentication')){$config=ConvertFrom-WelaArrivalJson $original;$config.$field=$true;[IO.File]::WriteAllText($path,(Get-WelaWefQueryKey $config));Reject {Import-WelaWefQuerySelection $path 'WELA Native Security Example'} "Boolean text cannot pass source config $field"}
+ foreach($field in @('SourceSids','SubscriptionFiles')){$config=ConvertFrom-WelaArrivalJson $original;$config.$field=@($true);[IO.File]::WriteAllText($path,(Get-WelaWefQueryKey $config));Reject {Import-WelaWefQuerySelection $path 'WELA Native Security Example'} "Typed source array $field"}
  [IO.File]::WriteAllText($path,$original)
  [IO.File]::AppendAllText($subscription,' ');Reject {Assert-WelaWefQueryInputs $selected} 'Original subscription byte drift invalidates evidence.'
 }finally{Remove-Item -LiteralPath $temp -Recurse -Force}
 $stream=[IO.StringReader]::new('abcdef');try{Reject {[Wela.WefQuery.Native]::ReadPipe($stream,5).GetAwaiter().GetResult()} 'Bounded pipe rejects excess before growing without limit.'}finally{$stream.Dispose()}
+# Exercise complete command outcomes and changed evidence through real local artifacts.
+$script:lifecycle=@{Case='';HostReads=0;ChannelReads=0;Config='';Xml=$xml}
+function Get-WelaWefQueryHost {$script:lifecycle.HostReads++;[pscustomobject]@{Computer=$(if($script:lifecycle.Case -eq 'HostDrift' -and $script:lifecycle.HostReads -gt 1){'Other'}else{'Host'});DnsHostName='Host';DnsSuffix='example.test'}}
+function Get-WelaWefQueryEngine {[pscustomobject]@{Path='fixture-engine';Sha256=('a'*64);Version='7.0';ModulePath='fixture-modules'}}
+function Get-WelaWefQueryToken {[pscustomobject]@{Sid='S-1-5-21-1-2-3-1001';Name='Host\Reader';AuthenticationId='0x123';AuthenticationType='Fixture';ImpersonationLevel='None';TokenSource='Process';Groups=@([pscustomobject]@{Sid='S-1-5-32-545';Attributes=7});Privileges=@()}}
+function Get-WelaWefQueryChannelState {param($Channels) $script:lifecycle.ChannelReads++;[pscustomobject]@{Name='System';State=$(if($script:lifecycle.Case -eq 'ChannelDrift' -and $script:lifecycle.ChannelReads -gt 1){'Disabled'}else{'Enabled'})}}
+function Start-WelaWefQueryWorker {
+ param($Engine,$RequestPath,$RequestHash)
+ $request=ConvertFrom-WelaArrivalJson ([IO.File]::ReadAllText($RequestPath));$result=[pscustomobject]@{Opened=$true;Complete=$true;Capped=$false;CleanupConfirmed=$true;NativeError=$null;Diagnostic='';Channels=@([pscustomobject]@{Channel='System';Error=0});DiagnosticChannels=@();DiagnosticNativeError=$null;Events=@($script:lifecycle.Xml)}
+ if($script:lifecycle.Case -eq 'Empty'){$result.Events=@()}
+ if($script:lifecycle.Case -eq 'Partial'){$result.Complete=$false;$result.Capped=$true}
+ if($script:lifecycle.Case -eq 'MissingStatus'){$result.Channels=@()}
+ if($script:lifecycle.Case -eq 'DuplicateEvents'){$result.Events=@($script:lifecycle.Xml,$script:lifecycle.Xml)}
+ if($script:lifecycle.Case -eq 'FailedQuery'){$result.Opened=$false;$result.Complete=$false;$result.NativeError=5;$result.Channels=@();$result.Events=@()}
+ $receipt=[pscustomobject]@{SchemaVersion=1;Kind='WelaWefQueryWorker';Nonce=$request.Nonce;ProcessId=4242;Engine=$Engine;ModulePath=$Engine.ModulePath;StartedUtc='2026-01-01T00:00:00Z';CompletedUtc='2026-01-01T00:00:01Z';ReaderBefore=(Get-WelaWefQueryToken);ReaderAfter=(Get-WelaWefQueryToken);Host=$request.Host;Sources=$request.Sources;QuerySha256=$request.QuerySha256;Result=$result}
+ if($script:lifecycle.Case -eq 'TokenDrift'){$receipt.ReaderAfter.AuthenticationId='0x999'}
+ if($script:lifecycle.Case -eq 'ReceiptBoolean'){$receipt.Kind=$true}
+ if($script:lifecycle.Case -eq 'InputDrift'){[IO.File]::AppendAllText($script:lifecycle.Config,' ')}
+ if($script:lifecycle.Case -eq 'ArtifactDrift'){[IO.File]::AppendAllText((Join-Path (Split-Path $RequestPath -Parent) 'query.xml'),' ')}
+ [pscustomobject]@{Started=$true;ProcessId=4242;ExitCode=0;TimedOut=$false;TerminationConfirmed=($script:lifecycle.Case -ne 'Termination');Receipt=$receipt;Diagnostic=''}
+}
+$temp=Join-Path ([IO.Path]::GetTempPath()) ('wela-query-lifecycle-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $temp
+try{
+ Copy-Item (Join-Path $script:ScriptRoot 'config/wef-examples/*') $temp
+ $script:lifecycle.Config=Join-Path $temp 'source.json';$originalConfig=[IO.File]::ReadAllText($script:lifecycle.Config)
+ $subscription=Join-Path $temp 'native-security.xml';$doc=Read-WelaWefXml ([IO.File]::ReadAllText($subscription));$doc.DocumentElement.SelectSingleNode('*[local-name()="Query"]').InnerText='<QueryList><Query Id="0" Path="System"><Select>*</Select></Query></QueryList>';[IO.File]::WriteAllText($subscription,$doc.OuterXml)
+ foreach($case in @('Match','Empty','Partial','FailedQuery','MissingStatus','DuplicateEvents','TokenDrift','ReceiptBoolean','InputDrift','ArtifactDrift','Termination','HostDrift','ChannelDrift')){
+  $script:lifecycle.Case=$case;$script:lifecycle.HostReads=0;$script:lifecycle.ChannelReads=0;[IO.File]::WriteAllText($script:lifecycle.Config,$originalConfig)
+  $report=Invoke-WelaWefQuery $script:lifecycle.Config 'WELA Native Security Example' (Join-Path $temp $case)
+  $expected=switch($case){Match{'MatchesObserved'};Empty{'ReadAllowedEmpty'};Partial{'Partial'};FailedQuery{'QueryFailed'};default{'Unverified'}}
+  Assert ($report.Status -ceq $expected) ("Public lifecycle $case expected $expected : "+$report.Diagnostic)
+  Assert ($report.ExitCode -eq $(if($case -in @('Match','Empty')){0}else{1}) -and $report.ReadyRuleCredit -eq 0 -and $report.ConfigurationChanges -eq 0) "Public lifecycle $case exit/credit boundaries."
+  Assert (Test-Path -LiteralPath (Join-Path (Join-Path $temp $case) 'manifest.json')) "Failure/complete manifest retained for $case."
+ }
+}finally{Remove-Item -LiteralPath $temp -Recurse -Force}
 Write-Host "WefQuery.Tests: $script:count focused assertions passed."
 $global:LASTEXITCODE=0

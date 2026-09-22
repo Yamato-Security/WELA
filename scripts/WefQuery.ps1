@@ -34,18 +34,28 @@ function Get-WelaWefQueryTokenKey {
  Get-WelaWefQueryKey ([pscustomobject][ordered]@{Sid=$Token.Sid;Name=$Token.Name;AuthenticationId=$Token.AuthenticationId;AuthenticationType=$Token.AuthenticationType;Groups=$Token.Groups;Privileges=$Token.Privileges})
 }
 function Assert-WelaWefQueryUInt {param($Value) if(($Value -isnot [int] -and $Value -isnot [long] -and $Value -isnot [uint32]) -or $Value -lt 0 -or $Value -gt [uint32]::MaxValue){throw 'Expected a native unsigned integer.'}}
+function Assert-WelaWefQuerySourceConfig {
+ param($Config)
+ Assert-WelaArrivalObject $Config @('SchemaVersion','Role','CollectorFqdn','CollectorUri','Authentication','SourceSids','SubscriptionFiles','Hardening','SubscriptionManagerSlot','RefreshSeconds','GrantNetworkServiceRead','ApplyChannelProfile','GrantCapi2Read')
+ foreach($name in @('SchemaVersion','SubscriptionManagerSlot','RefreshSeconds')){if($Config.$name -isnot [int] -and $Config.$name -isnot [long]){throw 'Source config requires integer schema/slot/refresh fields.'}}
+ foreach($name in @('Role','CollectorFqdn','CollectorUri','Authentication','Hardening')){if($Config.$name -isnot [string]){throw 'Source config requires typed text fields.'}}
+ foreach($name in @('SourceSids','SubscriptionFiles')){if($Config.$name -isnot [array]){throw 'Source config requires explicit SID/file arrays.'};foreach($value in $Config.$name){if($value -isnot [string] -or -not $value){throw 'Source config requires nonempty SID/file strings.'}}}
+ foreach($name in @('GrantNetworkServiceRead','ApplyChannelProfile','GrantCapi2Read')){if($Config.$name -isnot [bool]){throw 'Source config requires explicit Boolean permission settings.'}}
+}
 function Import-WelaWefQuerySelection {
  param([string]$ConfigPath,[string]$SubscriptionId)
  if(-not $ConfigPath -or -not $SubscriptionId -or $SubscriptionId.Length -gt 256 -or $SubscriptionId -match '[\x00-\x1f]'){throw 'An exact source config path and subscription ID are required.'}
  $capture=@{Files=[Collections.Generic.List[object]]::new();Bytes=0;Texts=[Collections.Generic.List[string]]::new()}
+ # This synchronous callback retains the caller's script scope. GetNewClosure
+ # creates a dynamic module that cannot see script-local artifact helpers.
  $reader={param($path)
   $file=Read-WelaWecUpdateFile $path 1048576
   if($capture.Files.Path -contains $file.Path){throw 'Duplicate input file path.'}
-  if($capture.Files.Count -eq 0){$json=ConvertFrom-WelaArrivalJson $file.Text;if($json.SchemaVersion -isnot [int] -and $json.SchemaVersion -isnot [long]){throw 'WEF schema version must be an integer.'}}
+  if($capture.Files.Count -eq 0){$json=ConvertFrom-WelaArrivalJson $file.Text;Assert-WelaWefQuerySourceConfig $json}
   $capture.Bytes+=[Text.Encoding]::UTF8.GetByteCount($file.Text);if($capture.Bytes -gt 4194304){throw 'WEF input text exceeds four MiB aggregate.'}
   $capture.Files.Add([pscustomobject]@{Path=$file.Path;Sha256=$file.Hash});$capture.Texts.Add($file.Text)
   $file.Text
- }.GetNewClosure()
+ }
  $model=Import-WelaWefConfig -Path $ConfigPath -Role Source -ReadText $reader
  $selected=@($model.Subscriptions|Where-Object Id -CEQ $SubscriptionId)
  if($selected.Count -ne 1){throw 'Select one exact subscription ID from the source config.'};$selected=$selected[0]
