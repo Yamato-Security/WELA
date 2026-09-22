@@ -1,0 +1,60 @@
+$ErrorActionPreference='Stop';$script:ScriptRoot=Split-Path $PSScriptRoot -Parent
+Import-Module (Join-Path $script:ScriptRoot 'modules/AuditProfiles.psm1') -Force
+Import-Module (Join-Path $script:ScriptRoot 'modules/WefSubscriptions.psm1') -Force
+foreach($name in @('WefArrival','WecUpdate','ChannelRead','WefQuery')){. (Join-Path $script:ScriptRoot ('scripts/'+$name+'.ps1'))}
+$script:count=0
+function Assert($value,[string]$message){if(-not $value){throw $message};$script:count++}
+function Reject([scriptblock]$code,[string]$message){$caught=$false;try{& $code|Out-Null}catch{$caught=$true};Assert $caught $message}
+function Clone($value){ConvertFrom-WelaArrivalJson (Get-WelaWefQueryKey $value)}
+Initialize-WelaWefQueryNative
+$buffer=[Runtime.InteropServices.Marshal]::AllocHGlobal(128)
+try{
+ function Reset-Buffer([int]$type,[int]$count){for($i=0;$i -lt 128;$i++){[Runtime.InteropServices.Marshal]::WriteByte($buffer,$i,0)};[Runtime.InteropServices.Marshal]::WriteInt32($buffer,12,$type);[Runtime.InteropServices.Marshal]::WriteInt32($buffer,8,$count);[Runtime.InteropServices.Marshal]::WriteIntPtr($buffer,[IntPtr]::Add($buffer,16))}
+ Reset-Buffer 136 2;[Runtime.InteropServices.Marshal]::WriteInt32($buffer,16,0);[Runtime.InteropServices.Marshal]::WriteInt32($buffer,20,-1)
+ $values=[Wela.WefQuery.Native]::DecodeStatuses($buffer,24);Assert ($values.Count -eq 2 -and $values[1] -eq [uint32]::MaxValue) 'Native EVT UInt32 status preserves unsigned errors.'
+ foreach($type in @(2,8,130,129,264)){Reset-Buffer $type 1;Reject {[Wela.WefQuery.Native]::DecodeStatuses($buffer,24)} "Reject wrong status variant $type"}
+ Reset-Buffer 136 129;Reject {[Wela.WefQuery.Native]::DecodeStatuses($buffer,128)} 'Status count cap.'
+ Reset-Buffer 136 2;Reject {[Wela.WefQuery.Native]::DecodeStatuses($buffer,20)} 'Status pointer cannot exceed used bytes.'
+ Reset-Buffer 136 1;[Runtime.InteropServices.Marshal]::WriteIntPtr($buffer,[IntPtr]::Add($buffer,8));Reject {[Wela.WefQuery.Native]::DecodeStatuses($buffer,24)} 'Status pointer cannot overlap header.'
+ Reset-Buffer 129 1;[Runtime.InteropServices.Marshal]::WriteIntPtr($buffer,16,[IntPtr]::Add($buffer,32));$text=[Text.Encoding]::Unicode.GetBytes('System'+[char]0);[Runtime.InteropServices.Marshal]::Copy($text,0,[IntPtr]::Add($buffer,32),$text.Length)
+ Assert ([Wela.WefQuery.Native]::DecodeNames($buffer,46)[0] -ceq 'System') 'Native string-array pointer and UTF16.'
+ Reject {[Wela.WefQuery.Native]::DecodeNames($buffer,44)} 'Unterminated names refuse.'
+ [Runtime.InteropServices.Marshal]::WriteInt16($buffer,32,[int16]-10240);Reject {[Wela.WefQuery.Native]::DecodeNames($buffer,46)} 'Unpaired Unicode surrogate refuses.'
+ foreach($used in @(0,15,1048577)){Reject {[Wela.WefQuery.Native]::DecodeNames($buffer,$used)} "Invalid buffer length $used"}
+}finally{[Runtime.InteropServices.Marshal]::FreeHGlobal($buffer)}
+$result=[pscustomobject]@{Opened=$true;Complete=$true;Capped=$false;CleanupConfirmed=$true;NativeError=$null;Diagnostic='';Channels=@([pscustomobject]@{Channel='System';Error=0});DiagnosticChannels=@();DiagnosticNativeError=$null;Events=@()}
+Assert-WelaWefQueryNativeResult $result @('System') 16;Assert $true 'Complete empty strict result valid.'
+foreach($field in @('Opened','Complete','Capped','CleanupConfirmed')){$copy=Clone $result;$copy.$field='true';Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} "Typed Boolean $field"}
+foreach($field in @('NativeError','DiagnosticNativeError')){$copy=Clone $result;$copy.$field=$true;Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} "Typed native code $field"}
+$copy=Clone $result;$copy.Channels=@();Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Missing native per-channel provenance.'
+$copy=Clone $result;$copy.Channels[0].Channel='Application';Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Unexpected native channel.'
+$copy=Clone $result;$copy.Channels[0].Error=$true;Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Boolean error rejected.'
+foreach($field in @('Capped','Diagnostic','NativeError','CleanupConfirmed')){$copy=Clone $result;switch($field){Capped{$copy.Capped=$true};Diagnostic{$copy.Diagnostic='failure'};NativeError{$copy.NativeError=5};CleanupConfirmed{$copy.CleanupConfirmed=$false}};Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} "Completeness cannot coexist with $field"}
+$failure=Clone $result;$failure.Opened=$false;$failure.Complete=$false;$failure.NativeError=15001;$failure.Channels=@();$failure.DiagnosticChannels=@([pscustomobject]@{Channel='System';Error=15001})
+Assert-WelaWefQueryNativeResult $failure @('System') 16;Assert $true 'Failed strict query retains separate diagnostic errors.'
+$failure.Events=@('<Event/>');Reject {Assert-WelaWefQueryNativeResult $failure @('System') 16} 'Diagnostic records cannot become matches.'
+$copy=Clone $result;$copy.Events=@($true);Reject {Assert-WelaWefQueryNativeResult $copy @('System') 16} 'Typed XML required.'
+$copy=Clone $result;$copy.Events=@('x','y');Reject {Assert-WelaWefQueryNativeResult $copy @('System') 1} 'Event bound enforced.'
+$xml='<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Native"/><EventID>1</EventID><EventRecordID>42</EventRecordID><Channel>System</Channel><Computer>Host.example.test</Computer><TimeCreated SystemTime="2026-01-01T00:00:00.1234567Z"/></System><EventData><Data>日本語 Ω &amp; value</Data></EventData></Event>'
+$hostContext=[pscustomobject]@{Computer='Host';DnsHostName='Host';DnsSuffix='example.test'}
+$event=Read-WelaWefQueryEvent $xml @('System') $hostContext;Assert ($event.RecordId -eq 42 -and $event.Channel -ceq 'System') 'Native event selected channel/local host provenance.'
+foreach($bad in @($xml.Replace('<Channel>System','<Channel>Application'),$xml.Replace('Host.example.test','Other.example.test'),$xml.Replace('Host.example.test','Host.unrelated.test'),$xml.Replace('<EventRecordID>42</EventRecordID>',''),$xml.Replace('<EventID>1</EventID>','<EventID>1</EventID><EventID>2</EventID>'),$xml.Replace('2026-01-01T00:00:00.1234567Z','not-utc'))){Reject {Read-WelaWefQueryEvent $bad @('System') $hostContext} 'Native event malformed or mismatched provenance.'}
+$temp=Join-Path ([IO.Path]::GetTempPath()) ('wela-query-tests-'+[guid]::NewGuid().ToString('N'));$null=New-Item -ItemType Directory $temp
+try{
+ Copy-Item (Join-Path $script:ScriptRoot 'config/wef-examples/*') $temp
+ $path=Join-Path $temp 'source.json';$subscription=Join-Path $temp 'native-security.xml';$original=[IO.File]::ReadAllText($path)
+ $selected=Import-WelaWefQuerySelection $path 'WELA Native Security Example'
+ Assert ($selected.Id -ceq 'WELA Native Security Example' -and $selected.Files.Count -eq 2 -and $selected.Channels -contains 'Security') 'Existing source config/parser used with exact bounded inputs.'
+ Assert ($selected.QuerySha256 -ceq (Get-WelaArrivalHash ([Text.Encoding]::UTF8.GetBytes($selected.Query)))) 'Exact extracted QueryList hashed.'
+ Assert-WelaWefQueryInputs $selected;Assert $true 'Unchanged original input hashes valid.'
+ Reject {Import-WelaWefQuerySelection $path 'wela Native Security Example'} 'Selected ID case exact.'
+ [IO.File]::WriteAllText($path,$original.Replace('"SchemaVersion": 1','"SchemaVersion": 1, "SchemaVersion": 1'))
+ Reject {Import-WelaWefQuerySelection $path 'WELA Native Security Example'} 'Duplicate config properties refused.'
+ [IO.File]::WriteAllText($path,$original.Replace('"SchemaVersion": 1','"SchemaVersion": true'))
+ Reject {Import-WelaWefQuerySelection $path 'WELA Native Security Example'} 'Boolean schema rejected.'
+ [IO.File]::WriteAllText($path,$original)
+ [IO.File]::AppendAllText($subscription,' ');Reject {Assert-WelaWefQueryInputs $selected} 'Original subscription byte drift invalidates evidence.'
+}finally{Remove-Item -LiteralPath $temp -Recurse -Force}
+$stream=[IO.StringReader]::new('abcdef');try{Reject {[Wela.WefQuery.Native]::ReadPipe($stream,5).GetAwaiter().GetResult()} 'Bounded pipe rejects excess before growing without limit.'}finally{$stream.Dispose()}
+Write-Host "WefQuery.Tests: $script:count focused assertions passed."
+$global:LASTEXITCODE=0
