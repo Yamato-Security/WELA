@@ -22,12 +22,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Existing WMI regression contracts
-        shell: ${{ matrix.shell }}
-        run: ./tests/WmiNamespaceAuditing.Tests.ps1
-      - name: Actual owned namespace tree and cleanup
-        shell: ${{ matrix.shell }}
-        run: ./tests/WmiNamespaceDescendants.Windows.Tests.ps1 -AllowDisposableNamespaceWrite -EvidencePath wmi-descendants-native.json
+      - name: Native tree validation in Windows PowerShell
+        if: matrix.shell == 'powershell'
+        shell: powershell
+        run: |
+          ./tests/WmiNamespaceAuditing.Tests.ps1
+          ./tests/WmiNamespaceDescendants.Tests.ps1
+          ./tests/WmiNamespaceDescendants.Windows.Tests.ps1 -AllowDisposableNamespaceWrite -EvidencePath wmi-descendants-native.json
+      - name: Native tree validation in PowerShell 7
+        if: matrix.shell == 'pwsh'
+        shell: pwsh
+        run: |
+          ./tests/WmiNamespaceAuditing.Tests.ps1
+          ./tests/WmiNamespaceDescendants.Tests.ps1
+          ./tests/WmiNamespaceDescendants.Windows.Tests.ps1 -AllowDisposableNamespaceWrite -EvidencePath wmi-descendants-native.json
       - name: Retain complete native observations
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
