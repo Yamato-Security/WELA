@@ -2,7 +2,7 @@
 
 ## 2.2.0 [2026/xx/xx] - Dev Release
 
-- `SeAuditPrivilege`、`SeSecurityPrivilege`、`CrashOnAuditFail` の独立したプロファイル対応と、省略時の保持およびレビュー範囲を文書化しました。 (#384)
+- ASD のアーカイブ、転送、時刻源、ロールオーバー、ローカルバッファ証跡に関する `retention-health` の対応範囲を文書化しました。 (#382)
 
 - 完了したジャーナルから、プロセス作成・PowerShell ログ用の 3 つの DWORD 値を `audit-recovery` で復元できるようにしました。ネイティブ API による値のみの復元、他の値の変更検知、レジストリキーの保持に対応します。 ([#435](https://github.com/Yamato-Security/WELA/pull/435))
 
