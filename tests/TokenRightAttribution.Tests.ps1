@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $count=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:count++}
 $start=[DateTime]::Parse('2026-09-22T00:00:00Z').ToFileTimeUtc()
-$context=[pscustomobject]@{Task=13570;Computers=@('HOST','HOST.example.test');Watermark=100;ProcessId=1234;ProcessName='C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe';Sid='S-1-5-21-1-2-3-500';AuthenticationId='0x123';DisableStartedFileTime=$start;DisableReturnedFileTime=$start+100000;RestoreStartedFileTime=$start+200000;RestoreReturnedFileTime=$start+300000;OperationCompletedFileTime=$start+300000}
+$context=[pscustomobject]@{Task=13570;Computers=@('HOST','HOST.example.test');Watermark=100;ProcessId=1234;ProcessName='C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe';Sid='S-1-5-21-1-2-3-500';AuthenticationId='0x123';DisableStartedFileTime=$start;DisableReturnedFileTime=$start+100000;RestoreStartedFileTime=$start+200000;RestoreReturnedFileTime=$start+300000;PrivilegeVerificationCompletedFileTime=$start+300000;OperationCompletedFileTime=$start+300000}
 $xml=@'
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}"/><EventID>4703</EventID><Version>0</Version><Level>0</Level><Task>13570</Task><Opcode>0</Opcode><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime="2026-09-22T00:00:00.0050000Z"/><EventRecordID>101</EventRecordID><Channel>Security</Channel><Computer>HOST.example.test</Computer></System><EventData><Data Name="SubjectUserSid">S-1-5-21-1-2-3-500</Data><Data Name="SubjectLogonId">0x123</Data><Data Name="TargetUserSid">S-1-5-21-1-2-3-500</Data><Data Name="TargetLogonId">0x123</Data><Data Name="ProcessName">C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</Data><Data Name="ProcessId">0x4d2</Data><Data Name="EnabledPrivilegeList">-</Data><Data Name="DisabledPrivilegeList">SeDebugPrivilege</Data></EventData></Event>
 '@
@@ -34,7 +34,7 @@ $review=Get-WelaEventMappingReview @(Import-Csv "$PSScriptRoot/../config/eid_sub
 Assert ($review.State -ceq 'Conditional' -and $review.Candidates.Count -eq 2 -and -not $review.DetectionReady) 'Build-specific generation never erases historical candidates or grants Sigma credit.'
 Assert-WelaTokenAttributionTimes $context ($start-100) ($start+400000)
 Assert $true 'Typed monotonic native timing accepted.'
-foreach($field in @('DisableStartedFileTime','DisableReturnedFileTime','RestoreStartedFileTime','RestoreReturnedFileTime','OperationCompletedFileTime')){
+foreach($field in @('DisableStartedFileTime','DisableReturnedFileTime','RestoreStartedFileTime','RestoreReturnedFileTime','PrivilegeVerificationCompletedFileTime','OperationCompletedFileTime')){
  foreach($bad in @($true,'134345000000000000',0L,($start-200),($start+500000))){
   $copy=$context|ConvertTo-Json -Depth 8|ConvertFrom-Json;$copy.$field=$bad;$rejected=$false
   try{Assert-WelaTokenAttributionTimes $copy ($start-100) ($start+400000)}catch{$rejected=$true}
@@ -42,4 +42,9 @@ foreach($field in @('DisableStartedFileTime','DisableReturnedFileTime','RestoreS
  }
 }
 $copy=$context|ConvertTo-Json -Depth 8|ConvertFrom-Json;$copy.RestoreStartedFileTime=$start+50000;$rejected=$false;try{Assert-WelaTokenAttributionTimes $copy ($start-100) ($start+400000)}catch{$rejected=$true};Assert $rejected 'Nonmonotonic in-envelope timestamps refused.'
+$definitions=@([pscustomobject]@{Name='SE_ADT_DETAILEDTRACKING_TOKENRIGHTADJ';Value=13317})
+$publisher='<provider name="Microsoft-Windows-Security-Auditing" guid="54849625-5478-4994-a5ba-3e3b0328c30d"><tasks><task name="SE_ADT_DETAILEDTRACKING_TOKENRIGHTADJ" value="13317"/></tasks><events><event value="4703" version="0" task="0"/></events></provider>'
+Assert ((Get-WelaTokenAttributionTask $definitions $publisher) -eq 13317) 'Independent native task definition and publisher XML bind runtime task despite generic event declaration0.'
+foreach($bad in @(@(),@($definitions[0],$definitions[0]),@([pscustomobject]@{Name=$definitions[0].Name;Value=$true}),@([pscustomobject]@{Name=$definitions[0].Name;Value='13317'}),@([pscustomobject]@{Name=$definitions[0].Name;Value=13570}),@([pscustomobject]@{Name='Wrong';Value=13317}))){$rejected=$false;try{$null=Get-WelaTokenAttributionTask $bad $publisher}catch{$rejected=$true};Assert $rejected 'Missing/duplicate/mistyped/wrong native task definition refuses.'}
+foreach($text in @($publisher.Replace('13317','13570'),$publisher.Replace('TOKENRIGHTADJ','OTHER'),$publisher.Replace('54849625','54849626'),$publisher.Replace('<tasks>','<other>').Replace('</tasks>','</other>'))){$rejected=$false;try{$null=Get-WelaTokenAttributionTask $definitions $text}catch{$rejected=$true};Assert $rejected 'Native publisher task/identity mismatch refuses.'}
 Write-Host "PASS: $count strict token attribution and catalog checks."

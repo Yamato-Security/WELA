@@ -22,10 +22,11 @@ if(-not(Test-WelaDefaultContextComplete $hostContext) -or $hostContext.ProductTy
 $provider=Get-WinEvent -ListProvider 'Microsoft-Windows-Security-Auditing'
 $schema=@($provider.Events|Where-Object{$_.Id -eq 4703 -and $_.Version -eq 0})
 if($schema.Count -ne 1 -or $provider.Id -ne [guid]'54849625-5478-4994-a5ba-3e3b0328c30d'){throw 'Exactly one installed version0 Security4703 schema is required.'}
-$eventTask=[int]$schema[0].Task.Value
+$declaredTask=[int]$schema[0].Task.Value
 Save 'provider-diagnostic.json' @{TaskType=$schema[0].Task.GetType().FullName;TaskValue=$schema[0].Task.Value;TaskName=$schema[0].Task.Name;TaskDisplay=$schema[0].Task.DisplayName;Tasks=@($provider.Tasks|ForEach-Object{@{Value=$_.Value;Name=$_.Name;Display=$_.DisplayName;Guid=[string]$_.EventGuid}})}
 $publisher=Invoke-WelaNative wevtutil.exe @('gp','Microsoft-Windows-Security-Auditing','/ge:true','/gm:false','/f:xml')
 $publisherText=$publisher.Output -join "`n";if($publisherText.Length -gt 4194304){throw 'Native publisher metadata exceeds fixture bound.'};[IO.File]::WriteAllText((Join-Path $root 'publisher.xml'),$publisherText)
+$eventTask=Get-WelaTokenAttributionTask @($provider.Tasks) $publisherText
 $computerProperties=[Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties();$computers=@([Environment]::MachineName,$computerProperties.HostName);if($computerProperties.DomainName){$computers+=$computerProperties.HostName+'.'+$computerProperties.DomainName};$computers=@($computers|Sort-Object -Unique)
 function Channel{(Invoke-WelaNative wevtutil.exe @('gl','Security','/f:xml')).Output -join "`n"}
 function Services{@(Get-Service Winmgmt,EventLog|Sort-Object Name|ForEach-Object{[pscustomobject]@{Name=$_.Name;Status=[string]$_.Status;StartType=[string]$_.StartType}})}
@@ -44,7 +45,7 @@ Save 'mapping-review.json' $mapping
 $sources=[ordered]@{}
 foreach($file in @('tests/TokenRightAttribution.Windows.Tests.ps1','tests/TokenRightAttributionNative.cs','tests/TokenRightAttributionEvidence.ps1','tests/TokenRightAttribution.Tests.ps1','modules/AuditProfiles.psm1','modules/AuditCatalog.psm1','scripts/Configuration.ps1','scripts/WefArrival.ps1','scripts/WmiProbe.ps1','scripts/WmiProbeNative.cs','scripts/ControlApplicability.ps1','config/audit_profiles.json','config/baselines.json','config/eid_subcategory_mapping.csv')){$sources[$file]=(Get-FileHash -LiteralPath "$repo/$file" -Algorithm SHA256).Hash.ToLowerInvariant()}
 $beforeMasks=Get-WelaEffectiveAuditPolicy;$masks=Masks;$beforePrecedence=Get-WelaRegistryState $path $name;$beforeToken=[Wela.WmiProbe.Native]::Snapshot();$failure=$null;$errors=@()
-Save 'original.json' @{Masks=$beforeMasks;Precedence=$beforePrecedence;Token=$beforeToken;Head=$env:GITHUB_SHA;Engine=$PSVersionTable.PSVersion.ToString();Host=$hostContext;Channel=$originalChannel;Services=$originalServices;Computers=$computers;Provider=[string]$provider.Id;Schema=@{Id=4703;Version=0;Task=$eventTask;Template=$schema[0].Template}}
+Save 'original.json' @{Masks=$beforeMasks;Precedence=$beforePrecedence;Token=$beforeToken;Head=$env:GITHUB_SHA;Engine=$PSVersionTable.PSVersion.ToString();Host=$hostContext;Channel=$originalChannel;Services=$originalServices;Computers=$computers;Provider=[string]$provider.Id;Schema=@{Id=4703;Version=0;Task=$declaredTask;RuntimeTask=$eventTask;RuntimeTaskName='SE_ADT_DETAILEDTRACKING_TOKENRIGHTADJ';Template=$schema[0].Template}}
 Add-Type -TypeDefinition @'
 using System;using System.IO;using System.Text;using System.Threading.Tasks;
 public static class WelaTokenFixturePipe {
@@ -81,6 +82,7 @@ $executable=[Wela.TokenRightProbe.Native]::Executable()
 $before=[Wela.WmiProbe.Native]::Snapshot()
 $outcome=[Wela.TokenRightProbe.Native]::Run()
 $after=[Wela.WmiProbe.Native]::Snapshot()
+$outcome.OperationCompletedFileTime=[Wela.WmiProbe.Native]::UtcNow().ToFileTimeUtc()
 [pscustomobject]@{ProcessId=$PID;ProcessName=$executable;Before=$before;After=$after;Outcome=$outcome}|ConvertTo-Json -Depth 24|Set-Content -LiteralPath $Result -Encoding UTF8
 if($outcome.Status -ne 'Adjusted' -or -not $outcome.Restored -or (($before|ConvertTo-Json -Depth 24 -Compress) -cne ($after|ConvertTo-Json -Depth 24 -Compress))){exit 1}
 exit 0

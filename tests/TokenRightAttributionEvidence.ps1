@@ -31,10 +31,25 @@ function Get-WelaTokenAttributionMatch {
 function Assert-WelaTokenAttributionTimes {
  param($Operation,[long]$Launched,[long]$Observed)
  $previous=$Launched
- foreach($name in @('DisableStartedFileTime','DisableReturnedFileTime','RestoreStartedFileTime','RestoreReturnedFileTime','OperationCompletedFileTime')){
+ foreach($name in @('DisableStartedFileTime','DisableReturnedFileTime','RestoreStartedFileTime','RestoreReturnedFileTime','PrivilegeVerificationCompletedFileTime','OperationCompletedFileTime')){
   $value=$Operation.$name
   if(($value -isnot [long] -and $value -isnot [int]) -or $value -le 0 -or $value -lt $previous -or $value -gt $Observed){throw 'Native operation timestamps must be typed, monotonic and within parent observations.'}
   $previous=$value
  }
  if($Launched -gt $Observed -or ($Observed-$Launched) -gt 950000000){throw 'Parent operation envelope exceeds its bounded worker lifetime.'}
+}
+function Get-WelaTokenAttributionTask {
+ param($Definitions,[string]$PublisherXml)
+ $name='SE_ADT_DETAILEDTRACKING_TOKENRIGHTADJ'
+ $rows=@($Definitions|Where-Object{$_.Name -is [string] -and $_.Name -ceq $name})
+ if($rows.Count -ne 1 -or $rows[0].Value -isnot [int] -or $rows[0].Value -ne 13317){throw 'The independently installed token-right task definition is absent or differs.'}
+ if($PublisherXml.Length -gt 4194304){throw 'Publisher XML exceeds its fixture bound.'}
+ $settings=[Xml.XmlReaderSettings]::new();$settings.DtdProcessing=[Xml.DtdProcessing]::Prohibit;$settings.XmlResolver=$null;$settings.MaxCharactersInDocument=4194304
+ $reader=[Xml.XmlReader]::Create([IO.StringReader]::new($PublisherXml),$settings);$xml=[Xml.XmlDocument]::new();$xml.XmlResolver=$null
+ try{$xml.Load($reader)}finally{$reader.Dispose()}
+ $root=$xml.DocumentElement
+ if($root.LocalName -cne 'provider' -or $root.GetAttribute('name') -cne 'Microsoft-Windows-Security-Auditing' -or $root.GetAttribute('guid') -ine '54849625-5478-4994-a5ba-3e3b0328c30d'){throw 'Native publisher identity differs.'}
+ $tasks=@($root.SelectNodes('tasks/task')|Where-Object{$_.GetAttribute('name') -ceq $name})
+ if($tasks.Count -ne 1 -or $tasks[0].GetAttribute('value') -cne '13317'){throw 'Native publisher XML does not corroborate the fixed token-right task.'}
+ 13317
 }

@@ -10,7 +10,7 @@ namespace Wela.TokenRightProbe {
   public string Status, Diagnostic, Luid;
   public bool AdjustmentAttempted, Restored;
   public uint OriginalAttributes;
-  public long DisableStartedFileTime, DisableReturnedFileTime, RestoreStartedFileTime, RestoreReturnedFileTime, OperationCompletedFileTime;
+  public long DisableStartedFileTime, DisableReturnedFileTime, RestoreStartedFileTime, RestoreReturnedFileTime, PrivilegeVerificationCompletedFileTime, OperationCompletedFileTime;
   public Privilege[] Before, Disabled, After;
  }
  public static class Native {
@@ -86,7 +86,7 @@ namespace Wela.TokenRightProbe {
     } finally {
      if(result.AdjustmentAttempted) {
       result.RestoreStartedFileTime=Now();Change(token,target,result.OriginalAttributes);result.RestoreReturnedFileTime=Now();
-      result.After=Read(token);Equal(result.Before,result.After,result.Luid,true);result.Restored=true;result.OperationCompletedFileTime=Now();
+      result.After=Read(token);Equal(result.Before,result.After,result.Luid,true);result.Restored=true;result.PrivilegeVerificationCompletedFileTime=Now();result.OperationCompletedFileTime=result.PrivilegeVerificationCompletedFileTime;
      }
     }
    } catch(Exception error) {result.Status=result.AdjustmentAttempted?"Unverified":"Refused";result.Diagnostic=error.ToString();}
