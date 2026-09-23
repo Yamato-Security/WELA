@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 3.0.0 [2026/09/23] - Release
+## 3.0.0 [2026/xx/xx] - Dev Release
 
 - Set the public WELA release version to 3.0.0 and print explicit version and release information immediately after the ASCII banner. Historical profile identifiers remain unchanged for compatibility.
 
