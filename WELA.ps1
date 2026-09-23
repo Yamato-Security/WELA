@@ -261,8 +261,8 @@
     [string[]]$PowerShellLoggingModuleName
 )
 
-$WELAVersion     = "2.2.0"
-$WELAReleaseName = "Dev Release"
+$WELAVersion     = "3.0.0"
+$WELAReleaseName = "Release"
 
 # 実行時のカレントディレクトリに依存しないよう、すべてスクリプトの場所を基準にする
 $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
@@ -2149,7 +2149,8 @@ Usage:
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Host $logo -ForegroundColor Green
 Write-Host ""
-Write-Host "WELA v$WELAVersion - $WELAReleaseName"
+Write-Host "Version: $WELAVersion"
+Write-Host "Release: $WELAReleaseName"
 Write-Host ""
 
 if ($Cmd -ne 'transcript-probe' -and @($PSBoundParameters.Keys | Where-Object { $_ -like 'TranscriptProbe*' }).Count) { throw 'TranscriptProbe options require transcript-probe. No command was run.' }
