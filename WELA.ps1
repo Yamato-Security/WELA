@@ -262,7 +262,7 @@
 )
 
 $WELAVersion     = "3.0.0"
-$WELAReleaseName = "Release"
+$WELAReleaseName = "Dev Release"
 
 # 実行時のカレントディレクトリに依存しないよう、すべてスクリプトの場所を基準にする
 $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
