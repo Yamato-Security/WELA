@@ -3,7 +3,9 @@
 !!! info "情報"
     このページはプロジェクトの [`CHANGELOG.md`](https://github.com/Yamato-Security/WELA/blob/main/CHANGELOG-Japanese.md) を反映したものです。ダウンロードは [リリースページ](https://github.com/Yamato-Security/WELA/releases) をご覧ください。
 
-## 2.2.0 [2026/xx/xx] - Dev Release
+## 3.0.0 [2026/09/23] - Release
+
+- 公開 WELA リリースを 3.0.0 に更新し、ASCII バナー直後にバージョンとリリース情報を明示表示します。互換性のため、過去のプロファイル識別子は変更しません。
 
 - バージョン対応 SMB 監査ポリシーの範囲とランタイム上の制限を文書化しました。 (#377)
 

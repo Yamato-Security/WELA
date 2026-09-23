@@ -3,7 +3,9 @@
 !!! info
     This page mirrors the project [`CHANGELOG.md`](https://github.com/Yamato-Security/WELA/blob/main/CHANGELOG.md). See the [Releases page](https://github.com/Yamato-Security/WELA/releases) for downloads.
 
-## 2.2.0 [2026/xx/xx] - Dev Release
+## 3.0.0 [2026/09/23] - Release
+
+- Set the public WELA release version to 3.0.0 and print explicit version and release information immediately after the ASCII banner. Historical profile identifiers remain unchanged for compatibility.
 
 - Document version-aware SMB audit policy scope and runtime limitations. (Related #377)
 
