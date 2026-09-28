@@ -1,0 +1,39 @@
+name: Release package completeness
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'WELA.ps1'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'modules/**'
+      - 'tests/ReleasePackageDocs.Tests.ps1'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/release-package.yml'
+  pull_request:
+    paths:
+      - 'WELA.ps1'
+      - 'docs/**'
+      - 'scripts/**'
+      - 'modules/**'
+      - 'tests/ReleasePackageDocs.Tests.ps1'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/release-package.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Build and validate the release package
+        shell: pwsh
+        run: |
+          $packageRoot = Join-Path $env:RUNNER_TEMP 'wela-release-package'
+          ./scripts/New-WelaReleasePackage.ps1 -Destination $packageRoot
+          ./tests/ReleasePackageDocs.Tests.ps1 -PackageRoot $packageRoot
