@@ -44,7 +44,9 @@ until event volume and archive retention are measured. See the
 [event-log profiles and recovery guide](https://github.com/Yamato-Security/WELA/blob/dev/docs/eventlog-settings.md).
 
 ## configure
-The `configure` command sets the recommended Windows event log audit policy and file size.
+The `configure` command applies native logging controls or a selected advanced
+audit-policy profile. Event-log sizes and retention modes are configured
+separately with `configure-eventlogs`.
 
 Domain NTLM auditing (`AuditNTLMInDomain`) is set to `7` (**Enable all**) only on
 confirmed domain controllers. Windows clients, member/standalone servers and
@@ -79,10 +81,17 @@ Apply Yamato Security's recommended settings (with confirmation prompt before ch
 ./WELA.ps1 configure -Baseline YamatoSecurity
 ```
 
-Apply Australian Signals Directorate's recommended settings without confirmation prompt:
+Preview the Australian Signals Directorate native audit profile for a Windows
+client, then apply it without a confirmation prompt:
+
+```powershell
+./WELA.ps1 configure -Profile asd-native-2021-10 -Role Client -Build 26100 -DryRun
+./WELA.ps1 configure -Profile asd-native-2021-10 -Role Client -Build 26100 -Auto
 ```
-./WELA.ps1 configure -Baseline ASD -auto
-```
+
+Legacy `configure -Baseline` accepts only `YamatoSecurity`. Use `-Profile` for
+ASD, Microsoft, CIS, or another versioned advanced-audit profile; list the
+available IDs with `./WELA.ps1 profiles`.
 
 ## update-rules
 #### `update-rules` command examples

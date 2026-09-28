@@ -127,6 +127,7 @@ plugins:
             Commands: コマンド
             Command List: コマンド一覧
             Command Usage: コマンド使用例
+            Native Audit Controls: ネイティブ監査制御
             Resources: リソース
             Companion Projects: 関連プロジェクト
             Other Resources: その他の参考資料
@@ -386,6 +387,7 @@ nav:
   - Commands:
       - Command List: commands/index.md
       - Command Usage: commands/usage.md
+      - Native Audit Controls: commands/native-audit-controls.md
   - Resources:
       - Companion Projects: resources/companion-projects.md
       - Other Resources: resources/other-resources.md
