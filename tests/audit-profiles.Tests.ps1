@@ -147,9 +147,9 @@ try {
     }
 } finally { Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue }
 # Legacy Yamato audit display now takes recommendations from the shared profile, including omitted policies.
-. (Join-Path $PSScriptRoot '../WELA.ps1') help -Role Client -Build 26100
+. (Join-Path $PSScriptRoot '../WELA.ps1') score -Role Client -Build 26100 -Help
 function GetAuditpol { return @{} }
-$legacy = BuildAuditResult -all_rules @() -Baseline YamatoSecurity -enabledguid @()
+$legacy = BuildAuditResult -all_rules @() -Baseline YamatoSecurity -AuditMasks $zero
 foreach ($id in @('Process Termination', 'RPC Events', 'Detailed File Share', 'Other Policy Change Events')) {
     $entry = $legacy | Where-Object { $_.SubCategory -eq $id }
     Assert ($entry.RecommendedSetting -eq 'Success and Failure [exact]') "legacy audit/settings shares $id recommendation"
@@ -160,6 +160,5 @@ function TestWindows { return $true }
 function TestAdministrator { return $true }
 function Get-WelaHostContext { [pscustomobject]@{ Role = 'Client'; Build = 19045 } }
 function Get-WelaEffectiveAuditPolicy { return $zero.Clone() }
-function CollectAuditpol { throw 'Reached the old configuration body before profile validation' }
 Assert-Throws { ConfigureAuditSettings -Auto } 'does not support'
 Write-Host "PASS: $script:Checks audit profile checks; no Windows settings changed."

@@ -16,20 +16,24 @@ function Assert-Equal($Actual, $Expected, [string]$Message) {
     $script:assertions++
 }
 function TestAdministrator { return $true }
-function CollectAuditpol { param([switch]$UseCached) return $true }
-function GetAuditpol { return @{} }
+function Get-WelaEffectiveAuditPolicy { return @{ '0CCE922B-69AE-11D9-BED3-505054503030' = 1 } }
 function Get-WelaOutgoingNtlmState {
     return [pscustomobject]@{ Description = 'Audit all (1)'; PolicySource = 'Mocked policy source' }
 }
 function Get-WelaDomainNtlmState { return [pscustomobject]@{ Description = $script:description } }
 function Export-MitreHeatmap { param($sigmaRules, $OutputPath, $UseIdealCount) }
 function BuildAuditResult {
-    param($all_rules, $Baseline, $enabledguid)
+    param($all_rules, $Baseline, $AuditMasks)
     $all_rules[0].applicable = $true
-    @(
-        [WELA]::new('Fixture rules', 'Available', 'Success', @($all_rules[0]))
-        [WELA]::new('Fixture rules', 'Unavailable', 'No Auditing', @($all_rules[1]))
-    )
+    $available = [WELA]::new('Fixture rules', 'Available', 'Success', @($all_rules[0]))
+    $available.AuditPolicyGuid = '0CCE922B-69AE-11D9-BED3-505054503030'
+    $available.AuditPolicyMask = 1
+    $available.AuditPolicyApplicable = $true
+    $unavailable = [WELA]::new('Fixture rules', 'Unavailable', 'No Auditing', @($all_rules[1]))
+    $unavailable.AuditPolicyGuid = '0CCE9215-69AE-11D9-BED3-505054503030'
+    $unavailable.AuditPolicyMask = 0
+    $unavailable.AuditPolicyApplicable = $true
+    @($available, $unavailable)
 }
 
 $script:ScriptRoot = Join-Path ([IO.Path]::GetTempPath()) ('wela-domain-output-' + [guid]::NewGuid().ToString('N'))

@@ -106,6 +106,30 @@ function Get-WelaEligibilityRuleHash {
     Get-WelaEligibilityTextHash $text.ToString()
 }
 
+function Get-WelaEligibilityObservationState {
+    param($Observation)
+    $maskProperty = $Observation.PSObject.Properties['AuditPolicyMask']
+    $guidProperty = $Observation.PSObject.Properties['AuditPolicyGuid']
+    $applicableProperty = $Observation.PSObject.Properties['AuditPolicyApplicable']
+    $isAuditPolicy = ($maskProperty -and $null -ne $maskProperty.Value) -or
+        ($guidProperty -and -not [string]::IsNullOrWhiteSpace([string]$guidProperty.Value))
+    if ($isAuditPolicy) {
+        if ($applicableProperty -and $applicableProperty.Value -eq $false) { return 'Unknown' }
+        if (-not $maskProperty -or $null -eq $maskProperty.Value) { return 'Unknown' }
+        $mask = $maskProperty.Value
+        if ($mask -is [bool] -or $mask -isnot [ValueType] -or
+            [double]$mask -ne [int]$mask -or [int]$mask -notin @(0, 1, 2, 3)) { return 'Unknown' }
+        if ([int]$mask -eq 0) { return 'Disabled' }
+        return 'Enabled'
+    }
+    switch ([string]$Observation.CurrentSetting) {
+        'Enabled' { return 'Enabled' }
+        'Disabled' { return 'Disabled' }
+        'Not installed' { return 'Disabled' }
+        default { return 'Unknown' }
+    }
+}
+
 function Get-WelaEligibilityArtifact {
     param([string]$Root, $Reference)
     if ($Reference.path -isnot [string] -or $Reference.sha256 -notmatch '^[a-fA-F0-9]{64}$' -or
@@ -377,9 +401,10 @@ function Get-WelaRuleEligibility {
             $state = 'NotApplicable'; $reasons.Add('AllKnownEventSourcesBelongToOtherRoles')
         }
         $matchingRows = @($observedById[$rule.id] | Where-Object { $null -ne $_ })
-        $configurationEstimate = @($matchingRows | Where-Object { $_.CurrentSetting -match 'Success|Failure|^Enabled$' }).Count -gt 0
+        $observationStates = @($matchingRows | ForEach-Object { Get-WelaEligibilityObservationState $_ })
+        $configurationEstimate = $observationStates -contains 'Enabled'
         if ($state -eq 'Conditional' -and $matchingRows.Count -gt 0 -and
-            @($matchingRows | Where-Object { $_.CurrentSetting -notin @('No Auditing', 'Disabled', 'Not installed') }).Count -eq 0) {
+            @($observationStates | Where-Object { $_ -ne 'Disabled' }).Count -eq 0) {
             $state = 'Blocked'; $reasons.Add('ObservedSourcesDisabledOrAbsent')
         }
         $proof = $null

@@ -64,7 +64,7 @@ $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSS
 if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
 $class = $ast.Find({ param($node) $node -is [System.Management.Automation.Language.TypeDefinitionAst] -and $node.Name -eq 'WELA' }, $true)
 . ([scriptblock]::Create($class.Extent.Text))
-foreach ($name in @('AsArray', 'RuleFilter', 'ApplyRules', 'GetBaselineConfig', 'BuildAuditResult', 'AuditLogSetting')) {
+foreach ($name in @('AsArray', 'RuleFilter', 'ApplyRules', 'Get-WelaObservedAuditMask', 'GetBaselineConfig', 'BuildAuditResult', 'AuditLogSetting')) {
     $definition = $ast.Find({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name }, $true)
     . ([scriptblock]::Create($definition.Extent.Text))
 }
@@ -74,8 +74,7 @@ function Assert-Equal($Actual, $Expected, [string]$Message) {
     $script:assertions++
 }
 function TestAdministrator { $true }
-function CollectAuditpol { param([switch]$UseCached) $true }
-function GetAuditpol { @{ '0CCE9215-69AE-11D9-BED3-505054503030' = 'Success' } }
+function Get-WelaEffectiveAuditPolicy { @{ '0CCE9215-69AE-11D9-BED3-505054503030' = 1 } }
 function CheckRegistryValue { param($registryPath, $valueName, $expectedValue) $false }
 function Get-WelaOutgoingNtlmState { [pscustomobject]@{ Description = 'Audit all (1)'; PolicySource = 'Injected observation' } }
 function Get-WelaDomainNtlmState { [pscustomobject]@{ Description = 'Not applicable (member server)' } }
