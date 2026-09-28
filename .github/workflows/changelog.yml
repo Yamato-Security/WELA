@@ -1,0 +1,35 @@
+name: Changelog consistency
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'CHANGELOG.md'
+      - 'CHANGELOG-Japanese.md'
+      - 'website/docs/resources/changelog.md'
+      - 'website/docs/resources/changelog.ja.md'
+      - 'website/scripts/sync_changelog.py'
+      - '.github/workflows/changelog.yml'
+  pull_request:
+    paths:
+      - 'CHANGELOG.md'
+      - 'CHANGELOG-Japanese.md'
+      - 'website/docs/resources/changelog.md'
+      - 'website/docs/resources/changelog.ja.md'
+      - 'website/scripts/sync_changelog.py'
+      - '.github/workflows/changelog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirrors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Regenerate changelog mirrors
+        run: python website/scripts/sync_changelog.py
+      - name: Verify committed mirrors are current
+        run: git diff --exit-code -- website/docs/resources/changelog.md website/docs/resources/changelog.ja.md
