@@ -271,6 +271,7 @@ $SecurityRulesPath  = Join-Path $ScriptRoot "config/security_rules.json"
 $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
 $AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
+. (Join-Path $ScriptRoot "scripts/CommandParameterValidation.ps1")
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/OutgoingNtlmAudit.ps1")
 . (Join-Path $ScriptRoot "scripts/ProcessCommandline.ps1")
@@ -2396,6 +2397,8 @@ if (($PSBoundParameters.ContainsKey('ChannelAction') -or $PSBoundParameters.Cont
 if ($Cmd -ne 'ldap-diagnostics' -and @($PSBoundParameters.Keys | Where-Object { $_ -in @('LdapAction','LdapMode','LdapSearchTimeMs','LdapExpensiveThreshold','LdapInefficientThreshold') }).Count) {
     throw 'LDAP options require the dedicated ldap-diagnostics command. No command was run.'
 }
+
+Assert-WelaCommandParameters -Command $Cmd -BoundParameters $PSBoundParameters
 
 # Plain scripts retain unknown named options in $args. Check them before every
 # dispatch, including the profile shortcut, so an unsupported -WhatIf or typo

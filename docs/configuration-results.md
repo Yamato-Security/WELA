@@ -18,7 +18,7 @@ or result-file error also exits with status 1.
 .\WELA.ps1 configure -Auto -ResultsPath .\results.json
 ```
 
-Unknown named options and other arguments left unbound by PowerShell are rejected before command dispatch. This includes unsupported `-WhatIf`, `-Confirm` and misspelled `-DryRun` options, even with `-Auto`. Use each command's `-Help` for its supported preview options; `-DryRun` is accepted only where documented. Valid positional binding and PowerShell's unambiguous parameter abbreviations remain supported.
+Unknown named options and other arguments left unbound by PowerShell are rejected before command dispatch. Options declared for a different WELA command are also rejected even though PowerShell can bind them at the script level. This includes unsupported `-WhatIf`, `-Confirm`, misspelled `-DryRun` options and recognized but irrelevant options, even with `-Auto`. Use each command's `-Help` for its supported preview options; `-DryRun` is accepted only where documented. Valid positional binding and PowerShell's unambiguous parameter abbreviations remain supported.
 
 `WELA.ps1` is a plain PowerShell script and does not accept PowerShell common parameters such as `-ErrorAction`, `-Verbose`, `-WarningAction` or `-InformationAction`. Earlier versions silently ignored those unbound options; they now produce exit code 1 before any command runs, including read-only commands. Remove them from automation wrappers and use WELA's exit code and structured results to check the outcome. The explicitly declared WELA `-Debug` switch remains supported where documented.
 

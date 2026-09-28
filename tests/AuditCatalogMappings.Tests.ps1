@@ -41,7 +41,7 @@ $mismatch = Get-WelaEventMappingReview @($bad) $canonical 5712
 Assert ($mismatch.State -eq 'Unknown' -and $mismatch.Reasons -contains 'NameGuidMismatch') 'Mismatched candidate metadata must not be accepted.'
 
 # Exercise the actual legacy renderer for every named baseline with distinct RPC/token state.
-. (Join-Path $root 'WELA.ps1') help -Role Client -Build 26100 6>$null | Out-Null
+. (Join-Path $root 'WELA.ps1') score -Role Client -Build 26100 -Help 6>$null | Out-Null
 function GetAuditpol { @{ '0CCE922E-69AE-11D9-BED3-505054503030'='Failure'; '0CCE924A-69AE-11D9-BED3-505054503030'='Success' } }
 function CheckRegistryValue { $false }
 function Get-WelaNativeSources { @() }
