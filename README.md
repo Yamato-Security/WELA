@@ -46,16 +46,20 @@ Advanced audit policy can also use [versioned WELA, Microsoft, CIS and ASD profi
 
 ## 📖 Documentation
 
-All documentation now lives on a dedicated, searchable, multi-language site:
+The public command reference and introductory documentation live on a dedicated,
+searchable, multi-language site:
 
 > ### 👉 **[yamato-security.github.io/WELA](https://yamato-security.github.io/WELA/)**
 
 | Section | |
 | --- | --- |
 | 🚀 [Getting Started](https://yamato-security.github.io/WELA/getting-started/) | Prerequisites, downloads and running WELA |
-| ⌨️ [Command Reference](https://yamato-security.github.io/WELA/commands/) | `audit-settings`, `audit-filesize`, `configure`, `configure-sacl`, `update-rules` |
+| ⌨️ [Command Reference](https://yamato-security.github.io/WELA/commands/) | Complete WELA 3.0 command catalog and usage examples |
 | ✨ [Features](https://yamato-security.github.io/WELA/overview/features/) | What WELA can do |
 | 📦 [Resources](https://yamato-security.github.io/WELA/resources/companion-projects/) | Companion projects, changelog, contributing |
+
+Detailed implementation, validation, deployment, and recovery guides are maintained
+in the repository [`docs/` directory](docs/) and are included in release packages.
 
 ## ⬇️ Download
 
