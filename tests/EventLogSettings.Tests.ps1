@@ -166,7 +166,9 @@ try {
     $configure = $ast.Find({ param($n) $n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'ConfigureAuditSettings' }, $true).Extent.Text
     Assert ($configure.Contains("Set-WelaEventLogProfileControls -Context `$context -Profile 'wela-source-2.2.0'") -and $configure -notmatch '-Property MaximumSizeInBytes') 'Default configure consumes the shared model rather than another hardcoded size list'
     $release = Get-Content (Join-Path $repo '.github/workflows/release.yml') -Raw
-    foreach ($directory in @('config', 'scripts', 'modules')) { Assert ($release -match "Copy-Item -Recurse -Path ./($directory) ") "Release packages the new $directory dependency" }
+    Assert ($release -match '[.]?/scripts/New-WelaReleasePackage[.]ps1') 'Release workflow uses the tested package builder'
+    $packageBuilder = Get-Content (Join-Path $repo 'scripts/New-WelaReleasePackage.ps1') -Raw
+    foreach ($directory in @('config', 'scripts', 'modules')) { Assert ($packageBuilder -match "'$directory'") "Release packages the new $directory dependency" }
 
     Reset-Fixture
     $output = Join-Path ([IO.Path]::GetTempPath()) ('wela-eventlog-results-' + [guid]::NewGuid().ToString('N') + '.json')
