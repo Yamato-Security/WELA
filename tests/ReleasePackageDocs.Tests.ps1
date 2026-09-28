@@ -32,17 +32,31 @@ foreach ($file in $sourceFiles) {
     Assert (Test-Path -LiteralPath (Join-Path $packageDocs $relative) -PathType Leaf) "Release package is missing docs/$relative."
 }
 
-$entryPoint = Get-Content -LiteralPath (Join-Path $source 'WELA.ps1') -Raw
-$helpLinks = @(
-    [regex]::Matches($entryPoint, 'docs[/\\][A-Za-z0-9._-]+\.md') |
-        ForEach-Object { $_.Value -replace '\\', '/' } |
-        Sort-Object -Unique
+$referenceFiles = @(
+    Get-Item -LiteralPath (Join-Path $source 'WELA.ps1')
+    Get-ChildItem -LiteralPath (Join-Path $source 'scripts') -File -Recurse
+    Get-ChildItem -LiteralPath (Join-Path $source 'modules') -File -Recurse
 )
-Assert ($helpLinks.Count -gt 0) 'WELA.ps1 must contain at least one documentation link.'
-foreach ($link in $helpLinks) {
+$documentationLinks = @(
+    @(
+        foreach ($referenceFile in $referenceFiles) {
+            [regex]::Matches(
+                [IO.File]::ReadAllText($referenceFile.FullName),
+                'docs[/\\](?:[A-Za-z0-9._-]+[/\\])*[A-Za-z0-9._-]+\.md'
+            ) | ForEach-Object { $_.Value -replace '\\', '/' }
+        }
+    ) | Sort-Object -Unique
+)
+Assert ($documentationLinks.Count -gt 0) 'Packaged WELA code must contain at least one documentation link.'
+foreach ($requiredScriptLink in @('docs/gpo-package-deployment.md', 'docs/audit-catalog-mappings.md')) {
+    Assert ($documentationLinks -contains $requiredScriptLink) "Documentation-link discovery omitted a script reference: $requiredScriptLink"
+}
+foreach ($link in $documentationLinks) {
+    $sourcePath = Join-Path $source ($link -replace '/', [IO.Path]::DirectorySeparatorChar)
+    Assert (Test-Path -LiteralPath $sourcePath -PathType Leaf) "Packaged code references a missing source document: $link"
     $packagePath = Join-Path $package ($link -replace '/', [IO.Path]::DirectorySeparatorChar)
-    Assert (Test-Path -LiteralPath $packagePath -PathType Leaf) "CLI help links to a file missing from the release package: $link"
+    Assert (Test-Path -LiteralPath $packagePath -PathType Leaf) "Packaged code references a file missing from the release package: $link"
 }
 
-Write-Host "PASS: $count release package documentation assertions ($($sourceFiles.Count) docs, $($helpLinks.Count) help links)."
+Write-Host "PASS: $count release package documentation assertions ($($sourceFiles.Count) docs, $($documentationLinks.Count) code links)."
 $global:LASTEXITCODE = 0
