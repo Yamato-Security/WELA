@@ -53,6 +53,10 @@ try {
     Invoke-Case @('configure','-Auto','-UnrecognizedOption','opaque-value') 1 'Unsupported trailing arguments'
     Invoke-Case @('configure','-Help','-WhatIf:$false') 1 'Unsupported trailing arguments'
     Invoke-Case @('-WhatIf','configure','-Auto') 1 'Unsupported trailing arguments'
+    # Rejected commands and baselines must not report process success.
+    Invoke-Case @('not-a-command') 1 'Invalid command'
+    Invoke-Case @('audit-settings','-Baseline','Invalid') 1 'Invalid Guide specified'
+    Invoke-Case @('configure','-Baseline','ASD') 1 'currently supports only the YamatoSecurity baseline'
     # Preserve documented named/positional binding, help, abbreviations and DryRun.
     Invoke-Case @('configure','-Help','-Auto','-DryRun') 0 'Read live state'
     Invoke-Case @('-Cmd','configure','-Help') 0 'Usage:'

@@ -2922,7 +2922,7 @@ switch ($Cmd.ToLower()) {
         $validGuides = GetBaselineNames
         if (-not ($validGuides -contains $Baseline)) {
             Write-Host "Invalid Guide specified. Valid options are: $($validGuides -join ', ')."
-            break
+            exit 1
         }
         AuditLogSetting -outType $OutType -Baseline $Baseline -debug:$Debug -ResultsPath $ResultsPath -HtmlPath $HtmlPath
     }
@@ -2983,7 +2983,7 @@ switch ($Cmd.ToLower()) {
         if (-not [string]::IsNullOrEmpty($Baseline) -and $Baseline -ne "YamatoSecurity") {
             Write-Host "'configure' currently supports only the YamatoSecurity baseline, but '-Baseline $Baseline' was given." -ForegroundColor Red
             Write-Host "Re-run with '-Baseline YamatoSecurity' (or omit -Baseline) if that is what you want."
-            break
+            exit 1
         }
         try {
             $report = ConfigureAuditSettings -Auto:$Auto -Debug:$Debug -DryRun:$DryRun -BackupPath $BackupPath -ResultsPath $ResultsPath -OutgoingNtlmMode $OutgoingNtlmMode
@@ -3037,5 +3037,6 @@ switch ($Cmd.ToLower()) {
     default {
         Write-Host "Invalid command. Use 'help' to see available commands."
         Write-Host $usage
+        exit 1
     }
 }
