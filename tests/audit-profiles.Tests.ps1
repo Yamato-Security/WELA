@@ -147,7 +147,7 @@ try {
     }
 } finally { Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue }
 # Legacy Yamato audit display now takes recommendations from the shared profile, including omitted policies.
-. (Join-Path $PSScriptRoot '../WELA.ps1') help -Role Client -Build 26100
+. (Join-Path $PSScriptRoot '../WELA.ps1') score -Role Client -Build 26100 -Help
 function GetAuditpol { return @{} }
 $legacy = BuildAuditResult -all_rules @() -Baseline YamatoSecurity -enabledguid @()
 foreach ($id in @('Process Termination', 'RPC Events', 'Detailed File Share', 'Other Policy Change Events')) {
