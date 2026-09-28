@@ -9,7 +9,7 @@ $ast = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSS
 if ($parseErrors.Count) { throw ($parseErrors | Out-String) }
 $class = $ast.Find({ param($node) $node -is [System.Management.Automation.Language.TypeDefinitionAst] -and $node.Name -eq 'WELA' }, $true)
 . ([scriptblock]::Create($class.Extent.Text))
-foreach ($name in @('ApplyRules', 'BuildAuditResult', 'AuditLogSetting')) {
+foreach ($name in @('ApplyRules', 'Get-WelaObservedAuditMask', 'BuildAuditResult', 'AuditLogSetting')) {
     $definition = $ast.Find({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name }, $true)
     . ([scriptblock]::Create($definition.Extent.Text))
 }
@@ -20,8 +20,7 @@ function Assert-Equal($Actual, $Expected, [string]$Message) {
     $script:assertions++
 }
 function TestAdministrator { return $true }
-function CollectAuditpol { param([switch]$UseCached) return $true }
-function GetAuditpol { return $script:observedAudit }
+function Get-WelaEffectiveAuditPolicy { return $script:observedAudit }
 function Get-WelaSelectedContext { return [pscustomobject]@{ Role = $script:observedRole; Build = 26100 } }
 function GetBaselineConfig {
     # Advanced audit policies still come from the actual versioned profile.
@@ -53,17 +52,22 @@ try {
         @{ id = 'unknown'; title = 'Uncategorized rule'; level = 'low'; subcategory_guids = @() }
     ) | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $script:SecurityRulesPath -Encoding UTF8
 
+    $cases = @(
+        [pscustomobject]@{ Name = 'Success'; Present = $true; Mask = 1; Current = 'Success' }
+        [pscustomobject]@{ Name = 'No Auditing'; Present = $true; Mask = 0; Current = 'No Auditing' }
+        [pscustomobject]@{ Name = 'Missing'; Present = $false; Mask = $null; Current = 'Unknown' }
+    )
     foreach ($role in @('Client', 'MemberServer', 'DomainController', 'ADCS')) {
-        foreach ($observed in @('Success', 'No Auditing', 'Missing')) {
+        foreach ($case in $cases) {
             $script:observedRole = $role
             $script:observedAudit = @{}
-            foreach ($policy in $catalog) { $script:observedAudit[$policy.guid] = 'No Auditing' }
+            foreach ($policy in $catalog) { $script:observedAudit[$policy.guid] = 0 }
             foreach ($name in @('Directory Service Changes', 'Kerberos Authentication Service', 'Certification Services')) {
-                if ($observed -eq 'Missing') { $script:observedAudit.Remove($guids[$name]) }
-                else { $script:observedAudit[$guids[$name]] = $observed }
+                if (-not $case.Present) { $script:observedAudit.Remove($guids[$name]) }
+                else { $script:observedAudit[$guids[$name]] = $case.Mask }
             }
-            $script:observedAudit[$guids['Kernel Object']] = 'Success'
-            $script:observedAudit[$fallbackGuid] = 'Success'
+            $script:observedAudit[$guids['Kernel Object']] = 1
+            $script:observedAudit[$fallbackGuid] = 1
 
             $output = AuditLogSetting -outType std -Baseline YamatoSecurity 6>&1 | Out-String
             $rows = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'WELA-Audit-Result.csv'))
@@ -71,36 +75,37 @@ try {
                 $policy = $catalog | Where-Object id -eq $name
                 $row = @($rows | Where-Object SubCategory -eq $name)
                 $expectedState = if ($role -notin $policy.roles) { 'Not applicable' }
-                                 elseif ($observed -eq 'Missing') { 'Unknown' }
-                                 else { $observed }
-                Assert-Equal $row.Count 1 "$role/$observed contains exactly one $name CSV row"
-                Assert-Equal $row[0].CurrentSetting $expectedState "$role/$observed $name uses role applicability before the live state"
+                                 else { $case.Current }
+                $expectedMask = if ($case.Present) { [string]$case.Mask } else { '' }
+                Assert-Equal $row.Count 1 "$role/$($case.Name) contains exactly one $name CSV row"
+                Assert-Equal $row[0].CurrentSetting $expectedState "$role/$($case.Name) $name uses role applicability before the live state"
+                Assert-Equal $row[0].AuditPolicyMask $expectedMask "$role/$($case.Name) $name exports the locale-independent mask"
                 $expectedRuleCount = if ($name -eq 'Directory Service Changes') { '2' } else { '1' }
-                Assert-Equal $row[0].RuleCount $expectedRuleCount "$role/$observed retains mapped rules for $name without dropping them from the corpus"
+                Assert-Equal $row[0].RuleCount $expectedRuleCount "$role/$($case.Name) retains mapped rules for $name without dropping them from the corpus"
             }
 
             if ($role -ne 'DomainController') {
-                Assert-Equal ($output -match '(?m)^Security Advanced \(DS Access\): Not applicable\r?$') $true "$role/$observed all-inapplicable category has no enabled percentage"
-                Assert-Equal ($output -match '(?m)^Security Advanced \(Account Logon\): Disabled\(0[.,]00%\)\r?$') $true "$role/$observed excludes DC-only rows from mixed category totals"
+                Assert-Equal ($output -match '(?m)^Security Advanced \(DS Access\): Not applicable\r?$') $true "$role/$($case.Name) all-inapplicable category has no enabled percentage"
+                Assert-Equal ($output -match '(?m)^Security Advanced \(Account Logon\): Disabled\(0[.,]00%\)\r?$') $true "$role/$($case.Name) excludes DC-only rows from mixed category totals"
             }
             if ($role -ne 'ADCS') {
-                Assert-Equal ($output -match '(?m)^Security Advanced \(Object Access\): Enabled\(100[.,]00%\)\r?$') $true "$role/$observed excludes the CA-only row from enabled category coverage"
+                Assert-Equal ($output -match '(?m)^Security Advanced \(Object Access\): Enabled\(100[.,]00%\)\r?$') $true "$role/$($case.Name) excludes the CA-only row from enabled category coverage"
             }
 
             $usable = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UsableRules.csv'))
             $unusable = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'UnusableRules.csv'))
-            Assert-Equal $usable.Count 0 "$role/$observed enabled policy alone never establishes usable rules"
-            Assert-Equal ($usable.Count + $unusable.Count) 8 "$role/$observed retains all unique rules in the corpus"
+            Assert-Equal $usable.Count 0 "$role/$($case.Name) enabled policy alone never establishes usable rules"
+            Assert-Equal ($usable.Count + $unusable.Count) 8 "$role/$($case.Name) retains all unique rules in the corpus"
             $eligibility = @(Import-Csv -LiteralPath (Join-Path $script:ScriptRoot 'RuleEligibility.csv'))
-            Assert-Equal $eligibility.Count 8 "$role/$observed exports a reason for every rule"
-            Assert-Equal @($eligibility | Where-Object { $_.State -eq 'Ready' }).Count 0 "$role/$observed supplies no event/query evidence"
-            Assert-Equal ($output.Contains('Evidence-qualified Ready: 0/8 native candidates (0.00% of all 8 unique input rules).') -or $output.Contains('Evidence-qualified Ready: 0/8 native candidates (0,00% of all 8 unique input rules).')) $true "$role/$observed states the explicit numerator and denominator"
+            Assert-Equal $eligibility.Count 8 "$role/$($case.Name) exports a reason for every rule"
+            Assert-Equal @($eligibility | Where-Object { $_.State -eq 'Ready' }).Count 0 "$role/$($case.Name) supplies no event/query evidence"
+            Assert-Equal ($output.Contains('Evidence-qualified Ready: 0/8 native candidates (0.00% of all 8 unique input rules).') -or $output.Contains('Evidence-qualified Ready: 0/8 native candidates (0,00% of all 8 unique input rules).')) $true "$role/$($case.Name) states the explicit numerator and denominator"
             foreach ($ruleId in @('directory', 'kerberos', 'ca')) {
                 $rule = $script:heatmapRules | Where-Object id -eq $ruleId
                 $applicableRole = if ($ruleId -eq 'ca') { 'ADCS' } else { 'DomainController' }
                 if ($role -ne $applicableRole) {
-                    Assert-Equal $rule.applicable $false "$role/$observed excludes $ruleId from current heatmap coverage"
-                    Assert-Equal $rule.ideal $false "$role/$observed excludes $ruleId from ideal heatmap coverage"
+                    Assert-Equal $rule.applicable $false "$role/$($case.Name) excludes $ruleId from current heatmap coverage"
+                    Assert-Equal $rule.ideal $false "$role/$($case.Name) excludes $ruleId from ideal heatmap coverage"
                 }
             }
         }

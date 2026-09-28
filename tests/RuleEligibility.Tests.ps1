@@ -77,12 +77,39 @@ try {
     Save-Corpus @(Fixture-Rule)
     $r=Report
     Assert ($r.Summary.Ready -eq 0 -and $r.Results[0].State -eq 'Conditional') 'Lossy metadata cannot demonstrate usable rules.'
-    $observed=[pscustomobject]@{CurrentSetting='Success';Rules=@(Fixture-Rule)}
-    $r=Get-WelaRuleEligibility -CorpusPath $corpusPath -ManifestPath $manifestPath -Observations @($observed)
-    Assert ($r.Summary.Ready -eq 0 -and $r.Results[0].ConfigurationEstimate) 'Enabled Security audit policy is an estimate, never Ready.'
-    $observed.CurrentSetting='No Auditing'
-    $r=Get-WelaRuleEligibility -CorpusPath $corpusPath -ManifestPath $manifestPath -Observations @($observed)
-    Assert ($r.Results[0].State -eq 'Blocked') 'A positively observed disabled source is distinct from missing evidence.'
+    $auditGuid='0CCE922B-69AE-11D9-BED3-505054503030'
+    # Construct this at runtime so Windows PowerShell 5.1 does not depend on
+    # the source file's UTF-8 decoding when exercising Japanese display text.
+    $japaneseDisabled = -join ([char[]]@(0x76E3,0x67FB,0x306A,0x3057))
+    foreach ($case in @(
+        [pscustomobject]@{Mask=1;Text='No Auditing'},
+        [pscustomobject]@{Mask=2;Text=$japaneseDisabled},
+        [pscustomobject]@{Mask=3;Text='<<<mangled-disabled-text>>>'}
+    )) {
+        $observed=[pscustomobject]@{AuditPolicyGuid=$auditGuid;AuditPolicyMask=$case.Mask;AuditPolicyApplicable=$true;CurrentSetting=$case.Text;Rules=@(Fixture-Rule)}
+        $r=Get-WelaRuleEligibility -CorpusPath $corpusPath -ManifestPath $manifestPath -Observations @($observed)
+        Assert ($r.Summary.Ready -eq 0 -and $r.Results[0].State -eq 'Conditional' -and $r.Results[0].ConfigurationEstimate) "Numeric mask $($case.Mask) is enabled regardless of localized or contradictory display text."
+    }
+    foreach ($text in @('No Auditing',$japaneseDisabled,'<<<mangled-disabled-text>>>','Success and Failure')) {
+        $observed=[pscustomobject]@{AuditPolicyGuid=$auditGuid;AuditPolicyMask=0;AuditPolicyApplicable=$true;CurrentSetting=$text;Rules=@(Fixture-Rule)}
+        $r=Get-WelaRuleEligibility -CorpusPath $corpusPath -ManifestPath $manifestPath -Observations @($observed)
+        Assert ($r.Results[0].State -eq 'Blocked' -and -not $r.Results[0].ConfigurationEstimate) "Numeric mask zero is disabled regardless of display text '$text'."
+    }
+    foreach ($mask in @('0',$false,7)) {
+        $observed=[pscustomobject]@{AuditPolicyGuid=$auditGuid;AuditPolicyMask=$mask;AuditPolicyApplicable=$true;CurrentSetting='Success';Rules=@(Fixture-Rule)}
+        $r=Get-WelaRuleEligibility -CorpusPath $corpusPath -ManifestPath $manifestPath -Observations @($observed)
+        Assert ($r.Results[0].State -eq 'Conditional' -and -not $r.Results[0].ConfigurationEstimate) 'Invalid numeric-mask evidence remains unknown instead of being coerced.'
+    }
+    foreach ($case in @(
+        [pscustomobject]@{Text='Enabled';State='Conditional';Estimate=$true},
+        [pscustomobject]@{Text='Disabled';State='Blocked';Estimate=$false},
+        [pscustomobject]@{Text='Success';State='Conditional';Estimate=$false},
+        [pscustomobject]@{Text='No Auditing';State='Conditional';Estimate=$false}
+    )) {
+        $observed=[pscustomobject]@{CurrentSetting=$case.Text;Rules=@(Fixture-Rule)}
+        $r=Get-WelaRuleEligibility -CorpusPath $corpusPath -ManifestPath $manifestPath -Observations @($observed)
+        Assert ($r.Results[0].State -eq $case.State -and $r.Results[0].ConfigurationEstimate -eq $case.Estimate) "Only canonical non-audit states remain eligible for text classification: $($case.Text)."
+    }
     $sysmon=Fixture-Rule 'sysmon';$sysmon.channel=@('Microsoft-Windows-Sysmon/Operational')
     $external=Fixture-Rule 'exchange';$external.service='msexchange-management'
     Save-Corpus @((Fixture-Rule),(Fixture-Rule),$sysmon,$external)

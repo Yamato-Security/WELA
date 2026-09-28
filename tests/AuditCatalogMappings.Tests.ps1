@@ -41,17 +41,23 @@ $mismatch = Get-WelaEventMappingReview @($bad) $canonical 5712
 Assert ($mismatch.State -eq 'Unknown' -and $mismatch.Reasons -contains 'NameGuidMismatch') 'Mismatched candidate metadata must not be accepted.'
 
 # Exercise the actual legacy renderer for every named baseline with distinct RPC/token state.
-. (Join-Path $root 'WELA.ps1') help -Role Client -Build 26100 6>$null | Out-Null
+. (Join-Path $root 'WELA.ps1') score -Role Client -Build 26100 -Help 6>$null | Out-Null
 function GetAuditpol { @{ '0CCE922E-69AE-11D9-BED3-505054503030'='Failure'; '0CCE924A-69AE-11D9-BED3-505054503030'='Success' } }
 function CheckRegistryValue { $false }
 function Get-WelaNativeSources { @() }
 function Get-WelaNativeSourceState { 'Unknown' }
 function Get-WelaOutgoingNtlmState { [pscustomobject]@{Description='Unknown';PolicySource='Unknown'} }
 function Get-WelaDomainNtlmState { [pscustomobject]@{Description='Unknown'} }
+$auditMasks = @{
+    '0CCE922E-69AE-11D9-BED3-505054503030' = 2
+    '0CCE924A-69AE-11D9-BED3-505054503030' = 1
+}
 foreach ($baselineName in $legacy.baselines.PSObject.Properties.Name) {
-    $rows = BuildAuditResult -all_rules @() -Baseline $baselineName -enabledguid @('0CCE924A-69AE-11D9-BED3-505054503030')
+    $rows = BuildAuditResult -all_rules @() -Baseline $baselineName -AuditMasks $auditMasks
     Assert (($rows | Where-Object SubCategory -eq 'RPC Events').CurrentSetting -eq 'Failure') "$baselineName must read RPC independently."
     Assert (($rows | Where-Object SubCategory -eq 'Token Right Adjusted Events').CurrentSetting -eq 'Success') "$baselineName must read Token independently."
+    Assert (($rows | Where-Object SubCategory -eq 'RPC Events').AuditPolicyMask -eq 2) "$baselineName must retain the numeric RPC mask."
+    Assert (($rows | Where-Object SubCategory -eq 'Token Right Adjusted Events').AuditPolicyMask -eq 1) "$baselineName must retain the numeric Token mask."
 }
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ('wela-mapping-review-'+[guid]::NewGuid().ToString('N')+'.json')
 try {

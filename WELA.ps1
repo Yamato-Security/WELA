@@ -269,7 +269,6 @@ $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 $BaselineConfigPath = Join-Path $ScriptRoot "config/baselines.json"
 $SecurityRulesPath  = Join-Path $ScriptRoot "config/security_rules.json"
 $EidMappingPath     = Join-Path $ScriptRoot "config/eid_subcategory_mapping.csv"
-$AuditpolTxtPath    = Join-Path $ScriptRoot "auditpol.txt"
 $SaclTargetsPath    = Join-Path $ScriptRoot "config/audit_sacl_targets.json"
 . (Join-Path $ScriptRoot "scripts/Configuration.ps1")
 . (Join-Path $ScriptRoot "scripts/OutgoingNtlmAudit.ps1")
@@ -350,6 +349,8 @@ class WELA {
     [string] $SubCategory
     [string] $CurrentSetting = ""
     [string] $AuditPolicyGuid = ""
+    [object] $AuditPolicyMask = $null
+    [object] $AuditPolicyApplicable = $null
     [string] $ChannelState = ""
     [string] $GenerationReadiness = ""
     [array] $NativeSources = @()
@@ -524,34 +525,6 @@ function CheckRegistryValue {
     }
 }
 
-function GetAuditpol {
-    # auditpol /r の出力は CRCRLF や chcp の行が混ざるため、行数の決め打ちはせず
-    # 「GUIDらしき列を持つ行」だけを拾う。権限不足時のエラー行なども自然に無視される。
-    $mapping = @{}
-    if (-not (Test-Path -Path $script:AuditpolTxtPath)) {
-        Write-Host "[ERROR] Audit policy output not found: $script:AuditpolTxtPath" -ForegroundColor Red
-        return $mapping
-    }
-    Get-Content -Path $script:AuditpolTxtPath | ForEach-Object {
-        if ([string]::IsNullOrWhiteSpace($_)) {
-            return
-        }
-        $columns = $_ -split ','
-        if ($columns.Count -lt 5) {
-            return  # ヘッダ行や "Active code page: 437"、エラーメッセージなど
-        }
-        $guid = $columns[3].Trim() -replace '^\{|\}$', ''  # 波括弧を削除
-        if ($guid -notmatch '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$') {
-            return
-        }
-        $inclusionSetting = $columns[4].Trim()
-        if ($inclusionSetting) {
-            $mapping[$guid] = $inclusionSetting
-        }
-    }
-    return $mapping
-}
-
 function TestWindows {
     # Windows PowerShell 5.1 には $IsWindows が無いが、その場合は必ず Windows
     return ($null -eq $IsWindows) -or $IsWindows
@@ -565,32 +538,6 @@ function TestAdministrator {
             [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-function CollectAuditpol {
-    # auditpol の出力を取得する。取得できたかどうかを返す。
-    param ([switch] $UseCached)
-
-    if ($UseCached) {
-        return (Test-Path -Path $script:AuditpolTxtPath)
-    }
-    try {
-        Start-Process -FilePath "cmd.exe" `
-                      -ArgumentList "/c chcp 437 & auditpol /get /category:* /r" `
-                      -NoNewWindow -Wait -RedirectStandardOutput $script:AuditpolTxtPath -ErrorAction Stop
-    } catch {
-        Write-Host "[ERROR] Failed to run auditpol: $_" -ForegroundColor Red
-        return $false
-    }
-    if (-not (Test-Path -Path $script:AuditpolTxtPath)) {
-        return $false
-    }
-    # 権限不足などで1件も取得できていないケースを検出する
-    if ((GetAuditpol).Count -eq 0) {
-        Write-Host "[ERROR] auditpol returned no subcategories. Administrator privileges are required." -ForegroundColor Red
-        return $false
-    }
-    return $true
-}
-
 function AsArray {
     # ConvertFrom-Json returns $null for an absent property and a bare scalar for
     # a single-element array, so normalise before handing anything to RuleFilter.
@@ -599,6 +546,17 @@ function AsArray {
         return @()
     }
     return , @($value)
+}
+
+function Get-WelaObservedAuditMask {
+    param([hashtable]$AuditMasks, [string]$Guid)
+    if ($null -eq $AuditMasks -or [string]::IsNullOrWhiteSpace($Guid) -or -not $AuditMasks.ContainsKey($Guid)) { return $null }
+    $value = $AuditMasks[$Guid]
+    if ($value -is [bool] -or $value -isnot [ValueType] -or
+        [double]$value -ne [int]$value -or [int]$value -notin @(0, 1, 2, 3)) {
+        throw "Invalid numeric audit policy mask for $Guid."
+    }
+    return [int]$value
 }
 
 function GetBaselineConfig {
@@ -723,7 +681,7 @@ function BuildAuditResult {
     param (
         [object[]] $all_rules,
         [string]   $Baseline,
-        [array]    $enabledguid
+        [hashtable] $AuditMasks
     )
 
     $config = GetBaselineConfig
@@ -737,7 +695,6 @@ function BuildAuditResult {
     }
     $settings = $config.baselines.$baselineName
 
-    $auditpol = GetAuditpol
     $auditResult = @()
     $nativeCache = @{}
     $sharedPlan = $null
@@ -765,8 +722,9 @@ function BuildAuditResult {
                 $current = 'Unknown'
             }
             "auditpol" {
-                $enabled = $enabledguid -contains $item.select.guid
-                $current = $auditpol[$item.select.guid]
+                $auditMask = Get-WelaObservedAuditMask -AuditMasks $AuditMasks -Guid $item.select.guid
+                $enabled = $null -ne $auditMask -and $auditMask -ne 0
+                $current = Format-WelaAuditMask $auditMask
             }
             "registry" {
                 # 64bit/32bit でレジストリビューが分かれる設定があるため、いずれかで有効なら有効とみなす
@@ -824,6 +782,11 @@ function BuildAuditResult {
                 $setting.volume,
                 $setting.note
         )
+        if ($item.currentSetting.type -eq 'auditpol') {
+            $entry.AuditPolicyGuid = $item.select.guid
+            $entry.AuditPolicyMask = $auditMask
+            $entry.AuditPolicyApplicable = $true
+        }
         $entry.NativeSources = $nativeSources
         if ($nativeSources.Count) {
             $entry.ChannelState = (@($nativeSources | ForEach-Object { $_.Channel.State } | Select-Object -Unique)) -join '; '
@@ -836,10 +799,10 @@ function BuildAuditResult {
     if ($sharedPlan) {
         foreach ($policy in $sharedPlan.policies) {
             $rules = ApplyRules -rules $all_rules -guid $policy.guid
+            $auditMask = Get-WelaObservedAuditMask -AuditMasks $AuditMasks -Guid $policy.guid
             $current = if ($policy.mode -eq 'not-applicable') { 'Not applicable' }
-                       elseif ($auditpol.ContainsKey($policy.guid)) { $auditpol[$policy.guid] }
-                       else { 'Unknown' }
-            if ($policy.mode -ne 'not-applicable' -and $enabledguid -contains $policy.guid) {
+                       else { Format-WelaAuditMask $auditMask }
+            if ($policy.mode -ne 'not-applicable' -and $null -ne $auditMask -and $auditMask -ne 0) {
                 $rules | ForEach-Object { $_.applicable = $true }
             }
             if ($policy.mode -in @('exact', 'minimum') -and $policy.requiredMask -ne 0) {
@@ -853,6 +816,8 @@ function BuildAuditResult {
             $entry = [WELA]::New("Security Advanced ($($policy.category))", $policy.id, $current, [array]$rules,
                 $defaultSetting, $policy.recommendation, $volume, $note)
             $entry.AuditPolicyGuid = $policy.guid
+            $entry.AuditPolicyMask = $auditMask
+            $entry.AuditPolicyApplicable = $policy.mode -ne 'not-applicable'
             $auditResult += $entry
         }
     }
@@ -897,15 +862,15 @@ function AuditLogSetting {
         Write-Host "[ERROR] 'audit-settings' needs Administrator privileges to read the audit policy." -ForegroundColor Red
         return
     }
-    if (-not (CollectAuditpol -UseCached:$debug)) {
+    try {
+        $auditMasks = Get-WelaEffectiveAuditPolicy
+    } catch {
+        Write-Host "[ERROR] Failed to read numeric audit policy masks: $_" -ForegroundColor Red
         return
     }
-
-    $enabledguid = [System.Collections.Generic.HashSet[string]]::new()
-    foreach ($guid in (GetAuditpol).GetEnumerator()) {
-        if ($guid.Value -ne "No Auditing") {
-            [void]$enabledguid.Add($guid.Key)
-        }
+    if ($auditMasks.Count -eq 0) {
+        Write-Host "[ERROR] The native audit policy API returned no subcategories." -ForegroundColor Red
+        return
     }
     if (-not (Test-Path -Path $script:SecurityRulesPath)) {
         Write-Host "[ERROR] Detection rules not found: $script:SecurityRulesPath" -ForegroundColor Red
@@ -916,7 +881,7 @@ function AuditLogSetting {
         $_ | Add-Member -MemberType NoteProperty -Name "applicable" -Value $false
         $_ | Add-Member -MemberType NoteProperty -Name "ideal" -Value $false
     }
-    $auditResult = BuildAuditResult -all_rules $all_rules -Baseline $Baseline -enabledguid $enabledguid
+    $auditResult = BuildAuditResult -all_rules $all_rules -Baseline $Baseline -AuditMasks $auditMasks
     $outgoingNtlm = Get-WelaOutgoingNtlmState
     $auditResult += [WELA]::new(
         "NTLM Authentication", "Outgoing NTLM policy", $outgoingNtlm.Description, @(),
@@ -933,7 +898,8 @@ function AuditLogSetting {
     $all_rules | ForEach-Object {
         if (-not $_.applicable) {
             foreach ($guid in $_.subcategory_guids) {
-                if ($enabledguid -contains $guid -and $notApplicableGuids -notcontains $guid) {
+                $mask = Get-WelaObservedAuditMask -AuditMasks $auditMasks -Guid $guid
+                if ($null -ne $mask -and $mask -ne 0 -and $notApplicableGuids -notcontains $guid) {
                     $_.applicable = $true
                     break
                 }
@@ -1056,7 +1022,7 @@ function AuditLogSetting {
     $currentJson = Join-Path $script:ScriptRoot "mitre-ttp-navigator-current.json"
     $idealJson   = Join-Path $script:ScriptRoot "mitre-ttp-navigator-ideal.json"
 
-    $auditResult | Select-Object -Property Category, SubCategory, RuleCount, RuleCountByLevel, DefaultSetting, DefaultEvidence, LegacyDefaultHint, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note,
+    $auditResult | Select-Object -Property Category, SubCategory, AuditPolicyGuid, AuditPolicyMask, AuditPolicyApplicable, RuleCount, RuleCountByLevel, DefaultSetting, DefaultEvidence, LegacyDefaultHint, CurrentSetting, ChannelState, GenerationReadiness, RecommendedSetting, Volume, Note,
         @{ Name = 'NativeSourceEvidence'; Expression = { if ($_.NativeSources.Count) { ConvertTo-Json -InputObject $_.NativeSources -Depth 12 -Compress } else { '' } } } |
         Export-Csv -Path $auditCsv -NoTypeInformation
     $usableRules   | Select-Object title, level, service, category, description, id, EligibilityState, EligibilityReasons | Export-Csv -Path $usableCsv -NoTypeInformation

@@ -5,12 +5,20 @@ $null = New-Item -ItemType Directory -Path $OutputDirectory -Force
 # Loading version defines the actual public audit path without configuring Windows.
 . (Join-Path $PSScriptRoot '../WELA.ps1') -Cmd version
 $script:ScriptRoot = $OutputDirectory
-$script:AuditpolTxtPath = Join-Path $OutputDirectory 'auditpol.txt'
 $json = Join-Path $OutputDirectory 'native-assessment.json'
 $html = Join-Path $OutputDirectory 'native-assessment.html'
 $null = AuditLogSetting -outType table -Baseline Microsoft_Server -ResultsPath $json -HtmlPath $html
 if (-not (Test-Path -LiteralPath $json)) { throw 'The public audit command did not export an assessment.' }
 $report = Get-Content -LiteralPath $json -Raw | ConvertFrom-Json
+$auditRows = @($report.Results | Where-Object { $_.AuditPolicyGuid })
+if ($auditRows.Count -eq 0) { throw 'The public audit command exported no numeric audit-policy observations.' }
+foreach ($row in $auditRows) {
+    if ($row.AuditPolicyMask -is [bool] -or $row.AuditPolicyMask -isnot [ValueType] -or
+        [int]$row.AuditPolicyMask -notin @(0, 1, 2, 3) -or
+        $row.CurrentSetting -cne (Format-WelaAuditMask ([int]$row.AuditPolicyMask))) {
+        throw "Audit-policy output is not backed by a valid numeric mask: $($row.SubCategory)"
+    }
+}
 $sources = @($report.Results | ForEach-Object { $_.NativeSources })
 $application = @($sources | Where-Object { $_.Channel.Name -eq 'Application' })
 if ($application.Count -ne 1) { throw 'Expected exactly one Application channel observation.' }
@@ -25,5 +33,5 @@ if (@($sources | Where-Object { $_.Provider.EventGenerationVerified -ne $false -
 }
 $missing = Get-WelaNativeChannel -Name ('WELA-Not-Registered-' + [guid]::NewGuid().ToString('N'))
 if ($missing.State -ne 'Not installed' -or -not $missing.Error) { throw 'A missing real Windows channel must retain its absent-registration evidence.' }
-Write-Host "PASS: real Windows channel metadata, absent-channel classification and public JSON/HTML export. Evidence: $OutputDirectory"
+Write-Host "PASS: real numeric audit masks, Windows channel metadata, absent-channel classification and public JSON/HTML export. Evidence: $OutputDirectory"
 Write-Host 'This smoke test does not validate event generation on Windows 11, domain controllers or AD CS, nor central ingestion.'
