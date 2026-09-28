@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 # Keep mocks in the same script scope as dot-sourced helpers/imported commands;
 # Windows PowerShell 5.1 resolves script-local originals ahead of global mocks.
 $repo = Split-Path $PSScriptRoot -Parent
+. (Join-Path $repo 'scripts/CommandParameterValidation.ps1')
 $tokens = $null; $errors = $null
 $ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $repo 'WELA.ps1'), [ref]$tokens, [ref]$errors)
 if ($errors.Count) { throw ($errors | Out-String) }
