@@ -38,6 +38,10 @@
 
 **Improvements:**
 
+- Added `applocker-readiness` to inspect native policy collections, enforcement, Application Identity and channels, plus a guarded operator-supplied audit-only import for empty local policies. Existing enforcement and managed hosts block import; unused empty NotConfigured placeholders no longer cause false comparison failures, while targeted placeholders remain blocked because merge can retain enforcement. Original XML and unknown/configured collection content stay preserved; GP/CSP visibility and event-generation gaps remain explicit. (#400) (@Shirofune-Security)
+
+- Profile plan/audit/configure now include read-only targeted SACL prerequisites with object policy masks, per-user hive and redirected-folder gaps, exact WEF Run/RunOnce audit entries, and an explicit `-SaclMode Skip`. User-file targets retain their configured suffix under the user's AppData or Startup known folder; unsupported or ambiguous paths remain unresolved. No SACL writes or unverified detection uplift are implied. (#398) (@Shirofune-Security)
+
 - Added an opt-in `registry-probe` for one temporary value in an existing current-user WELA diagnostic key, with existing audit/SACL prerequisites, exact native Security 4657 attribution, owned-value cleanup and preserved policy/security state. Related to #373 and #387.
 
 - Added `process-commandline` Audit/Plan/Configure for only the built-in Security 4688 command-line policy, with typed originals, drift checks, separate audit prerequisites and native Windows configuration/event validation. Related to #364, #365 and #387.
@@ -206,10 +210,6 @@
 ## 2.0.0 [2025/11/16] - CODE BLUE Release
 
 **New Features:**
-
-- Added `applocker-readiness` to inspect native policy collections, enforcement, Application Identity and channels, plus a guarded operator-supplied audit-only import for empty local policies. Existing enforcement and managed hosts block import; unused empty NotConfigured placeholders no longer cause false comparison failures, while targeted placeholders remain blocked because merge can retain enforcement. Original XML and unknown/configured collection content stay preserved; GP/CSP visibility and event-generation gaps remain explicit. (#400) (@Shirofune-Security)
-- Profile plan/audit/configure now include read-only targeted SACL prerequisites with object policy masks, per-user hive and redirected-folder gaps, exact WEF Run/RunOnce audit entries, and an explicit `-SaclMode Skip`. User-file targets retain their configured suffix under the user's AppData or Startup known folder; unsupported or ambiguous paths remain unresolved. No SACL writes or unverified detection uplift are implied. (#398) (@Shirofune-Security)
-
 
 - Support for MITRE ATT&CK Navigator heatmaps. (#11) (@fukusuket)
 - Added a `configure` command to configure Windows settings to various baselines. (#12) (@fukusuket)
