@@ -13,3 +13,6 @@ Cargo.lock
 /auditpol.txt
 /mitre-ttp-navigator-current.json
 /mitre-ttp-navigator-ideal.json
+
+# Local environment files may contain secrets.
+.env
